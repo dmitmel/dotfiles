@@ -1,28 +1,16 @@
 #!/usr/bin/env bash
 
 find_dotfiles_dir() {
-  local readlink
-  # readlink=$(which greadlink || which readlink)
-  local script_path"=${(%):-%x}"
+  export DOTFILES_DIR
 
-  if [[ -n "$script_path" && -x "$readlink" ]]; then
-    script_path=$($readlink -f "$script_path")
-    DOTFILES_DIR=$(dirname "$script_path")
-  else
-    for prefix in "$HOME/" "$HOME/." "/usr/share/" "/usr/local/share/"; do
-      local dotfiles_dir="${prefix}dotfiles"
-      if [[ -d "$dotfiles_dir" ]]; then
-        DOTFILES_DIR="$dotfiles_dir"
-        break
-      fi
-    done
-  fi
+  for prefix in "$HOME/." "/usr/share/" "/usr/local/share/"; do
+    DOTFILES_DIR="${prefix}dotfiles"
+    [[ -d "$DOTFILES_DIR" ]] && return
+  done
 
-  if [[ -d $DOTFILES_DIR ]]; then
-    export DOTFILES_DIR
-  else
-    echo "dotfiles directory not found"
-  fi
+  local script_path
+  script_path=$(realpath "${(%):-%x}")
+  DOTFILES_DIR=$(dirname "$script_path")
 }
 
 find_dotfiles_dir
