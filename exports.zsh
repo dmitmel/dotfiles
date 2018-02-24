@@ -2,6 +2,7 @@
 
 export LANG="en_US.UTF-8"
 export LC_ALL="$LANG"
+export DEFAULT_USER=dmitmel
 
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR="rmate"
