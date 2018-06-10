@@ -6,6 +6,8 @@ append()  { eval "export $1=\"\$$1:$2\""; }
 # user binaries
 append PATH "$HOME/bin"
 append PATH "$HOME/.local/bin"
+# Rust binaries
+prepend PATH="$HOME/.cargo/bin:$PATH"
 # global Yarn packages
 append PATH "$HOME/.config/yarn/global/node_modules/.bin"
 
