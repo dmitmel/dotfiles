@@ -1,2 +1,3 @@
 # dotfiles
-My dotfiles for Mac OS X &amp; Ubuntu
+
+My dotfiles for Mac OS X, Ubuntu and Raspbian.
