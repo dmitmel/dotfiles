@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 find_dotfiles_dir() {
   export DOTFILES_DIR

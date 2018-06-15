@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 prepend() { eval "export $1=\"$2:\$$1\""; }
 append()  { eval "export $1=\"\$$1:$2\""; }

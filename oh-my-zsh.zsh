@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 find_oh_my_zsh() {
   for prefix in "$HOME/." "/usr/share/" "/usr/local/share/"; do
