@@ -15,3 +15,17 @@ command_exists() {
 source_if_exists() {
   [[ -f $1 ]] && source "$1"
 }
+
+run_before() {
+  local command="$1"
+  local init_command="$2"
+
+  eval "$(cat <<EOF
+$command() {
+  unfunction $command
+  $init_command
+  $command \$@
+}
+EOF
+)"
+}

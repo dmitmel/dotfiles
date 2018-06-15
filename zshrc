@@ -19,9 +19,6 @@ for script in "$DOTFILES_DIR"/{functions,path,exports,aliases,oh-my-zsh}.zsh; do
   source "$script"
 done
 
-# rbenv
-command_exists rbenv && eval "$(rbenv init -)"
-# sdkman
-source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"
-# Yarn completion
-source_if_exists "/usr/local/lib/node_modules/yarn-completions/node_modules/tabtab/.completions/yarn.zsh"
+run_before rbenv 'eval "$(rbenv init -)"'
+run_before sdk 'source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"'
+run_before yarn 'source_if_exists "$(yarn global dir)/node_modules/tabtab/.completions/yarn.zsh"'
