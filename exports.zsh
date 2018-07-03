@@ -11,7 +11,7 @@ export DEFAULT_USER=dmitmel
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR="rmate"
 else
-  export EDITOR="code"
+  export EDITOR="code --wait"
 fi
 
 export CLICOLOR=1
