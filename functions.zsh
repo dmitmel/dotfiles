@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
 
 is_linux() {
-  [[ $OSTYPE == linux* ]]
+  [[ "$OSTYPE" == linux* ]]
 }
 
 is_macos() {
-  [[ $OSTYPE == darwin* ]]
+  [[ "$OSTYPE" == darwin* ]]
 }
 
 command_exists() {
@@ -13,7 +13,7 @@ command_exists() {
 }
 
 source_if_exists() {
-  [[ -f $1 ]] && source "$1"
+  [[ -f "$1" ]] && source "$1"
 }
 
 run_before() {

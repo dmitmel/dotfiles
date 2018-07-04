@@ -8,9 +8,8 @@ find_dotfiles_dir() {
     [[ -d "$DOTFILES_DIR" ]] && return
   done
 
-  local script_path
-  script_path=$(realpath "${(%):-%x}")
-  DOTFILES_DIR=$(dirname "$script_path")
+  local script_path="$(realpath "${(%):-%x}")"
+  DOTFILES_DIR="$(dirname "$script_path")"
 }
 
 find_dotfiles_dir
