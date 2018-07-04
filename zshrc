@@ -15,7 +15,7 @@ find_dotfiles_dir() {
 find_dotfiles_dir
 
 for script in functions path exports aliases oh-my-zsh widgets; do
-  source "${DOTFILES_DIR}/${script}.zsh"
+  source "${DOTFILES_DIR}/lib/${script}.zsh"
 done
 
 source_if_exists "$ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
