@@ -14,10 +14,11 @@ find_dotfiles_dir() {
 
 find_dotfiles_dir
 
-for script in "$DOTFILES_DIR"/{functions,path,exports,aliases,oh-my-zsh}.zsh; do
-  source "$script"
+for script in functions path exports aliases oh-my-zsh widgets; do
+  source "${DOTFILES_DIR}/${script}.zsh"
 done
 
+source_if_exists "$ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
 run_before rbenv 'eval "$(rbenv init -)"'
 run_before sdk 'source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"'
 run_before yarn 'source_if_exists "$(yarn global dir)/node_modules/tabtab/.completions/yarn.zsh"'
