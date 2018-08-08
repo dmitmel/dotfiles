@@ -157,16 +157,24 @@ def battery():
       percent, critical=10, warning=20, inverse=True), status
 
 
+def is_android():
+  return os.path.isdir('/system/app') and os.path.isdir('/system/priv-app')
+
+
 def get_distro_info():
   if psutil.WINDOWS:
     return 'windows', platform.system(), platform.release(), ''
-  elif psutil.LINUX:
-    import distro
-    return distro.id(), distro.name(), distro.version(), distro.codename()
   elif psutil.OSX:
     from plistlib import readPlist
     sw_vers = readPlist('/System/Library/CoreServices/SystemVersion.plist')
     return 'mac', sw_vers['ProductName'], sw_vers['ProductVersion'], ''
+  elif is_android():
+    from subprocess import check_output
+    android_version = check_output(['getprop', 'ro.build.version.release'])
+    return 'android', 'Android', android_version.decode().strip(), ''
+  elif psutil.LINUX:
+    import distro
+    return distro.id(), distro.name(), distro.version(), distro.codename()
   else:
     raise NotImplementedError('unsupported OS')
 
