@@ -206,8 +206,13 @@ def get_system_info():
   info('Kernel', '%s %s', platform.system(), platform.release())
 
   info('Uptime', format_timedelta(uptime()))
-  info('Users', users())
+
+  users_info = users()
+  if users_info:
+    info('Users', users_info)
+
   info('Shell', shell())
+
   info('IP address', local_ip)
 
   info_lines.append('')
