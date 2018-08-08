@@ -1,11 +1,12 @@
 import os
 import platform
+import re
 import socket
 from datetime import datetime, timedelta
-import re
 from getpass import getuser
-from colorama import Fore, Back, Style, ansi
+
 import psutil
+from colorama import Fore, Style, ansi
 
 COLORS = [ansi.code_to_chars(30 + color_index) for color_index in range(0, 8)]
 
@@ -44,13 +45,13 @@ def humanize_bytes(bytes):
     units = ["B", "kB", "MB", "GB"]
 
     factor = 1
-    for unit in units:
+    for _unit in units:
         next_factor = factor << 10
         if bytes < next_factor:
             break
         factor = next_factor
 
-    return "%.2f %s" % (float(bytes) / factor, unit)
+    return "%.2f %s" % (float(bytes) / factor, _unit)
 
 
 def colorize_percent(percent, warning, critical, inverse=False):
@@ -125,8 +126,9 @@ def disks():
     result = []
     for disk in psutil.disk_partitions(all=False):
         if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
-            # skip cd-rom drives with no disk in it on Windows; they may raise ENOENT,
-            # pop-up a Windows GUI error for a non-ready partition or just hang
+            # skip cd-rom drives with no disk in it on Windows; they may raise
+            # ENOENT, pop-up a Windows GUI error for a non-ready partition or
+            # just hang
             continue
 
         usage = psutil.disk_usage(disk.mountpoint)
@@ -185,8 +187,8 @@ def get_distro_info():
         import distro
 
         return distro.id(), distro.name(), distro.version(), distro.codename()
-    else:
-        raise NotImplementedError("unsupported OS")
+
+    raise NotImplementedError("unsupported OS")
 
 
 def get_system_info():
@@ -268,4 +270,3 @@ for line_index in range(0, max(len(logo_lines), len(info_lines))):
     print(line)
 
 print("")
-
