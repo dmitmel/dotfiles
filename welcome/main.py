@@ -134,7 +134,18 @@ def disks():
 
 
 def battery():
-  battery = psutil.sensors_battery()
+  if not hasattr(psutil, 'sensors_battery'):
+    return None
+
+  try:
+    battery = psutil.sensors_battery()
+  except Exception as e:
+    print(e)
+    return None
+
+  if battery is None:
+    return None
+
   percent = battery.percent
 
   if battery.power_plugged:
@@ -199,8 +210,9 @@ def get_system_info():
   for disk_info in disks():
     info('Disk (%s)', '%s / %s (%s)', *disk_info)
 
-  if hasattr(psutil, 'sensors_battery'):
-    info('Battery', '%s (%s)', *battery())
+  battery_info = battery()
+  if battery_info is not None:
+    info('Battery', '%s (%s)', *battery_info)
 
   return logo_lines, info_lines
 
