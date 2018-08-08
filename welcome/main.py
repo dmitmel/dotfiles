@@ -30,9 +30,9 @@ def format_timedelta(timedelta):
 
   if days > 0:
     result.append('%d day%s' % plural(days))
-  if hh > 0 or len(result) > 0:
+  if hh > 0 or result:
     result.append('%d hour%s' % plural(hh))
-  if mm > 0 or len(result) > 0:
+  if mm > 0 or result:
     result.append('%d min%s' % plural(mm))
   if len(result) <= 1:
     result.append('%d sec%s' % plural(ss))
@@ -184,7 +184,7 @@ def get_system_info():
 
   def info(name, value, *format_args):
     line = colored(name + ':', Style.BRIGHT, Fore.YELLOW) + ' ' + value
-    if len(format_args) > 0:
+    if format_args:
       line = line % format_args
     info_lines.append(line)
 
