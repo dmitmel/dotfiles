@@ -1,16 +1,8 @@
 #!/usr/bin/env zsh
 
-find_oh_my_zsh() {
-  for prefix in "$HOME/." "/usr/share/" "/usr/local/share/"; do
-    local zsh_dir="${prefix}oh-my-zsh"
-    if [[ -d "$zsh_dir" ]]; then
-      export ZSH="$zsh_dir"
-      break
-    fi
-  done
-}
-
 configure_oh_my_zsh() {
+  export ZSH="$OH_MY_ZSH_PATH"
+
   # see https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
   export ZSH_THEME="agnoster"
 
@@ -50,7 +42,6 @@ configure_zsh() {
   zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
 }
 
-find_oh_my_zsh
 configure_oh_my_zsh
 source "$ZSH/oh-my-zsh.sh"
 configure_zsh
