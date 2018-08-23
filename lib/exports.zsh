@@ -6,7 +6,11 @@ export LC_ALL="$LANG"
 if [[ -z "$USER" && -n "$USERNAME" ]]; then
   export USER="$USERNAME"
 fi
-export DEFAULT_USER="dmitmel"
+if is_android; then
+  export DEFAULT_USER="$USER"
+else
+  export DEFAULT_USER="dmitmel"
+fi
 
 if [[ -n "$SSH_CONNECTION" ]]; then
   export EDITOR="rmate"

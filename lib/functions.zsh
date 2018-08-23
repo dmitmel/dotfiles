@@ -8,6 +8,10 @@ is_macos() {
   [[ "$OSTYPE" == darwin* ]]
 }
 
+is_android() {
+  [[ "$OSTYPE" == linux-android ]]
+}
+
 command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
