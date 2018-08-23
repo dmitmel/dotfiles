@@ -3,6 +3,7 @@
 if [[ -n "$DOTFILES_PATH" ]]; then
   for script in functions path exports aliases oh-my-zsh widgets theme; do
     source "$DOTFILES_PATH/lib/$script.zsh"
+    source_if_exists "$DOTFILES_PATH/custom/$script.zsh"
   done
 
   source "$DOTFILES_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
