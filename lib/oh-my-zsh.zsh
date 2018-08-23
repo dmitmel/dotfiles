@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 configure_oh_my_zsh() {
-  export ZSH="$OH_MY_ZSH_PATH"
+  export ZSH="$DOTFILES_PATH/oh-my-zsh"
 
   # see https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
   export ZSH_THEME="agnoster"

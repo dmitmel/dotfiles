@@ -12,6 +12,5 @@ cat > $ZSHRC <<EOF
 #!/usr/bin/env zsh
 
 export DOTFILES_PATH="\$HOME/.dotfiles"
-export OH_MY_ZSH_PATH="\$HOME/.oh-my-zsh"
 source "\$DOTFILES_PATH/zshrc"
 EOF
