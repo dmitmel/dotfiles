@@ -35,13 +35,5 @@ configure_oh_my_zsh() {
   fi
 }
 
-configure_zsh() {
-  [[ -f ~/.dircolors ]] && eval "$(dircolors ~/.dircolors)"
-  [[ -z "$LS_COLORS" ]] && eval "$(dircolors -b)"
-
-  zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
-}
-
 configure_oh_my_zsh
 source "$ZSH/oh-my-zsh.sh"
-configure_zsh

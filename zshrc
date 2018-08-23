@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 if [[ -n "$DOTFILES_PATH" ]]; then
-  for script in functions path exports aliases oh-my-zsh widgets; do
+  for script in functions path exports aliases oh-my-zsh widgets theme; do
     source "$DOTFILES_PATH/lib/$script.zsh"
   done
 
