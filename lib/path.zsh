@@ -1,27 +1,31 @@
 #!/usr/bin/env zsh
 
-prepend() { eval "export $1=\"$2:\$$1\""; }
-append()  { eval "export $1=\"\$$1:$2\""; }
+arr_push() { eval "export $1=\"$2:\$$1\""; }
 
 # user binaries
-append PATH "$HOME/bin"
-append PATH "$HOME/.local/bin"
+arr_push PATH "$HOME/bin"
+arr_push PATH "$HOME/.local/bin"
 # Rust binaries
-prepend PATH "$HOME/.cargo/bin"
+arr_push PATH "$HOME/.cargo/bin"
 # global Yarn packages
-append PATH "$HOME/.config/yarn/global/node_modules/.bin"
+arr_push PATH "$HOME/.config/yarn/global/node_modules/.bin"
 
 if is_macos; then
-  # GNU sed
-  prepend PATH    "/usr/local/opt/gnu-tar/libexec/gnubin"
-  prepend MANPATH "/usr/local/opt/gnu-tar/libexec/gnuman"
-  # GNU tar
-  prepend PATH    "/usr/local/opt/gnu-sed/libexec/gnubin"
-  prepend MANPATH "/usr/local/opt/gnu-sed/libexec/gnuman"
-  # GNU coreutils
-  prepend PATH    "/usr/local/opt/coreutils/libexec/gnubin"
-  prepend MANPATH "/usr/local/opt/coreutils/libexec/gnuman"
   # Haskell packages
-  append PATH "$HOME/Library/Haskell/bin"
+  arr_push PATH "$HOME/Library/Haskell/bin"
+
+  # GNU sed
+  arr_push PATH    "/usr/local/opt/gnu-tar/libexec/gnubin"
+  arr_push MANPATH "/usr/local/opt/gnu-tar/libexec/gnuman"
+  # GNU tar
+  arr_push PATH    "/usr/local/opt/gnu-sed/libexec/gnubin"
+  arr_push MANPATH "/usr/local/opt/gnu-sed/libexec/gnuman"
+  # GNU coreutils
+  arr_push PATH    "/usr/local/opt/coreutils/libexec/gnubin"
+  arr_push MANPATH "/usr/local/opt/coreutils/libexec/gnuman"
 fi
 
+arr_push FPATH "$DOTFILES_PATH/completions"
+command_exists rustc && arr_push FPATH "$(rustc --print sysroot)/share/zsh/site-functions"
+
+unset arr_push
