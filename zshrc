@@ -6,8 +6,6 @@ if [[ -n "$DOTFILES_PATH" ]]; then
     source_if_exists "$DOTFILES_PATH/custom/$script.zsh"
   done
 
-  source "$DOTFILES_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
-
   run_before rbenv 'eval "$(rbenv init -)"'
   run_before sdk 'source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"'
   run_before yarn 'source_if_exists "$(yarn global dir)/node_modules/tabtab/.completions/yarn.zsh"'

@@ -1,7 +1,9 @@
 #!/usr/bin/env zsh
 
 configure_syntax_highlighting() {
-  source "$DOTFILES_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
+  # set directory for compiled theme files
+  FAST_WORK_DIR="$DOTFILES_PATH/cache"
+  source "$DOTFILES_PATH/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 }
 
 configure_dircolors() {

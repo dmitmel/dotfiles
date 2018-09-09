@@ -27,7 +27,6 @@ configure_oh_my_zsh() {
     git
     common-aliases
     extract
-    # zsh-syntax-highlighting
   )
 
   if is_linux; then
