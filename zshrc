@@ -8,7 +8,6 @@ if [[ -n "$DOTFILES_PATH" ]]; then
 
   run_before rbenv 'eval "$(rbenv init -)"'
   run_before sdk 'source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"'
-  run_before yarn 'source_if_exists "$(yarn global dir)/node_modules/tabtab/.completions/yarn.zsh"'
 
   python "$DOTFILES_PATH/welcome/main.py"
 else
