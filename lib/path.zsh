@@ -26,6 +26,13 @@ if is_macos; then
 fi
 
 arr_push FPATH "$DOTFILES_PATH/completions"
-command_exists rustc && arr_push FPATH "$(rustc --print sysroot)/share/zsh/site-functions"
+
+# Rust
+if command_exists rustc; then
+  rust_sysroot="$(rustc --print sysroot)"
+  arr_push FPATH "${rust_sysroot}/share/zsh/site-functions"
+  arr_push MANPATH "${rust_sysroot}/share/man"
+  unset rust_sysroot
+fi
 
 unset arr_push
