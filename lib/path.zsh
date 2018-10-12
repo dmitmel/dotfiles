@@ -10,6 +10,9 @@ arr_push PATH "$HOME/.cargo/bin"
 # global Yarn packages
 arr_push PATH "$HOME/.config/yarn/global/node_modules/.bin"
 
+# path to libraries installed with Homebrew
+arr_push LIBRARY_PATH "/usr/local/lib"
+
 if is_macos; then
   # Haskell packages
   arr_push PATH "$HOME/Library/Haskell/bin"
