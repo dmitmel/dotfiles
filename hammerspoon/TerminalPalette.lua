@@ -59,8 +59,8 @@ items = {
   { text = "tmux: last window",           keys = {{"ctrl","B"},{"l"}} },
   { text = "tmux: find window",           keys = {{"ctrl","B"},{"f"}} },
 
-  { text = "tmux: split vertically",              keys = {{"ctrl","B"},{"shift","'"}} },
-  { text = "tmux: split horizontally",            keys = {{"ctrl","B"},{"shift","5"}} },
+  { text = "tmux: split horizontally",            keys = {{"ctrl","B"},{"shift","'"}} },
+  { text = "tmux: split vertically",              keys = {{"ctrl","B"},{"shift","5"}} },
   { text = "tmux: switch to pane in a direction", keys = {{"ctrl","B"}}, message = "press an arrow key" },
   { text = "tmux: kill current pane",             keys = {{"ctrl","B"},{"x"}} },
   { text = "tmux: next pane",                     keys = {{"ctrl","B"},{"o"}} },
