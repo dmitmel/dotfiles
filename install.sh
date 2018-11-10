@@ -12,7 +12,6 @@ for zsh_file_name in z{shenv,shrc,login}; do
   cat > "$zsh_file" <<EOF
 #!/usr/bin/env zsh
 
-export DOTFILES_PATH="$PWD"
-source "\$DOTFILES_PATH/$zsh_file_name"
+source "$PWD/$zsh_file_name"
 EOF
 done
