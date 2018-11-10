@@ -2,7 +2,7 @@
 
 DOTFILES_PATH="${0:h}"
 
-for script in oh-my-zsh aliases widgets theme; do
+for script in zgen aliases widgets theme; do
   source "$DOTFILES_PATH/lib/$script.zsh"
   source_if_exists "$DOTFILES_PATH/custom/$script.zsh"
 done
