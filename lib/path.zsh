@@ -1,41 +1,55 @@
 #!/usr/bin/env zsh
 
-arr_push() { eval "export $1=\"$2:\$$1\""; }
-
-# user binaries
-arr_push PATH "$HOME/bin"
-arr_push PATH "$HOME/.local/bin"
-# Rust binaries
-arr_push PATH "$HOME/.cargo/bin"
-# global Yarn packages
-arr_push PATH "$HOME/.config/yarn/global/node_modules/.bin"
-
-# path to libraries installed with Homebrew
-arr_push LIBRARY_PATH "/usr/local/lib"
+# make these variables unique (-U) arrays (-a)
+typeset -aU fpath manpath path
 
 if is_macos; then
-  # Haskell packages
-  arr_push PATH "$HOME/Library/Haskell/bin"
+  path=(
+    ~/Library/Python/bin
+    ~/Library/Haskell/bin
+    /usr/local/opt/file-formula/bin         # file
+    /usr/local/opt/gnu-sed/libexec/gnubin   # GNU sed
+    /usr/local/opt/gnu-tar/libexec/gnubin   # GNU tar
+    /usr/local/opt/unzip/bin                # GNU unzip
+    /usr/local/opt/openssl/bin              # openssl
+    /usr/local/opt/gnu-getopt/bin           # getopt
+    /usr/local/opt/findutils/libexec/gnubin # GNU findutils
+    /usr/local/opt/binutils/bin             # GNU binutils
+    /usr/local/opt/coreutils/libexec/gnubin # GNU coreutils
+    "${path[@]}"
+  )
 
-  # GNU sed
-  arr_push PATH    "/usr/local/opt/gnu-tar/libexec/gnubin"
-  arr_push MANPATH "/usr/local/opt/gnu-tar/libexec/gnuman"
-  # GNU tar
-  arr_push PATH    "/usr/local/opt/gnu-sed/libexec/gnubin"
-  arr_push MANPATH "/usr/local/opt/gnu-sed/libexec/gnuman"
-  # GNU coreutils
-  arr_push PATH    "/usr/local/opt/coreutils/libexec/gnubin"
-  arr_push MANPATH "/usr/local/opt/coreutils/libexec/gnuman"
+  manpath=(
+    /usr/local/opt/file-formula/share/man   # file
+    /usr/local/opt/gnu-sed/libexec/gnuman   # GNU sed
+    /usr/local/opt/gnu-tar/libexec/gnuman   # GNU tar
+    /usr/local/opt/unzip/share/man          # GNU unzip
+    /usr/local/opt/openssl/share/man        # openssl
+    /usr/local/opt/gnu-getopt/share/man     # getopt
+    /usr/local/opt/findutils/libexec/gnuman # GNU findutils
+    /usr/local/opt/binutils/share/man       # GNU binutils
+    /usr/local/opt/coreutils/libexec/gnuman # GNU coreutils
+    "${manpath[@]}"
+  )
 fi
 
-arr_push FPATH "$DOTFILES_PATH/completions"
+# add user binaries
+path=(~/bin ~/.local/bin "${path[@]}")
 
-# Rust
-if command_exists rustc; then
-  rust_sysroot="$(rustc --print sysroot)"
-  arr_push FPATH "${rust_sysroot}/share/zsh/site-functions"
-  arr_push MANPATH "${rust_sysroot}/share/man"
-  unset rust_sysroot
+# add my completions
+fpath=("$DOTFILES_PATH/completions" "${fpath[@]}")
+
+# check for Rust installed via rustup
+rust_sysroot="$(~/.cargo/bin/rustc --print sysroot)"
+if [[ "$?" == 0 ]]; then
+  # add paths to the current Rust toolchain
+  path=(~/.cargo/bin "${path[@]}")
+  fpath=("$rust_sysroot/share/zsh/site-functions" "${fpath[@]}")
+  manpath=("$rust_sysroot/share/man" "${manpath[@]}")
 fi
+unset rust_sysroot
 
-unset arr_push
+# add colon after MANPATH so that it doesn't overwrite system MANPATH
+MANPATH="$MANPATH:"
+
+export PATH MANPATH

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-for zsh_file_name in z{shenv,shrc,login}; do
-  zsh_file="${HOME}/.${zsh_file_name}"
+for zsh_file_name in zshrc zlogin; do
+  zsh_file="$HOME/.$zsh_file_name"
 
   if [[ -f "$zsh_file" ]]; then
-    zsh_file_backup="${zsh_file}.dmitmel-dotfiles-backup"
+    zsh_file_backup="$zsh_file.dmitmel-dotfiles-backup"
     echo "Backing up $zsh_file to $zsh_file_backup"
     mv -vi "$zsh_file" "$zsh_file_backup"
   fi
