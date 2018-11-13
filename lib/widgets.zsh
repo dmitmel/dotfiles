@@ -60,10 +60,10 @@ _command-palette() {
     # may contain keybindings)
     widget="${widget%%$' '*}"
     # HACK: This small Python script is used to send simluated keystrokes to the
-    #       currentl TTY. It first executes the 'execute-named-cmd' widget, then
-    #       enters the widget name and finally types the 'Enter' key. (Python
-    #       was chosen because it supports required functionallity out of the box).
-    # NOTE! This script may not work on all platforms (especially, on Windows)!!!
+    #       current TTY. It first executes the 'execute-named-cmd' widget, then
+    #       sends the widget name and finally types the 'Enter' key. (Python was
+    #       chosen because it supports required functionallity out of the box).
+    # NOTE! This script may not work on all platforms (especially on Windows)!!!
     python -c "
 import fcntl, termios
 with open('$TTY') as tty:
