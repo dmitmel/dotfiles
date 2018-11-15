@@ -31,7 +31,6 @@ if ! zgen saved; then
   zgen oh-my-zsh
 
   zgen oh-my-zsh plugins/git
-  zgen oh-my-zsh plugins/common-aliases
   zgen oh-my-zsh plugins/extract
   zgen oh-my-zsh plugins/fasd
   is_linux && zgen oh-my-zsh plugins/command-not-found
