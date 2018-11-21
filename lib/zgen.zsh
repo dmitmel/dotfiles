@@ -37,7 +37,12 @@ if ! zgen saved; then
 
   zgen load zdharma/fast-syntax-highlighting
 
-  zgen oh-my-zsh themes/agnoster
+  # official agnoster theme is much faster than one bundled with OMZ and has
+  # more features
+  zgen load agnoster/agnoster-zsh-theme agnoster
 
   zgen save
 fi
+
+# fix prompt theme
+PLUSMINUS="$PLUSMINUS "
