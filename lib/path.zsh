@@ -33,6 +33,10 @@ if is_macos; then
   )
 fi
 
+# add Go binaries
+export GOPATH="$HOME/.go"
+path=("$GOPATH/bin" "${path[@]}")
+
 # add user binaries
 path=(~/bin ~/.local/bin "${path[@]}")
 
