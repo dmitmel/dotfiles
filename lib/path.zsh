@@ -44,7 +44,7 @@ path=(~/bin ~/.local/bin "${path[@]}")
 fpath=("$DOTFILES_PATH/completions" "${fpath[@]}")
 
 # check for Rust installed via rustup
-if rust_sysroot="$(~/.cargo/bin/rustc --print sysroot)"; then
+if rust_sysroot="$(~/.cargo/bin/rustc --print sysroot 2> /dev/null)"; then
   # add paths to the current Rust toolchain
   path=(~/.cargo/bin "${path[@]}")
   fpath=("$rust_sysroot/share/zsh/site-functions" "${fpath[@]}")
