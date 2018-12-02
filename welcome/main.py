@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import re
 
 from colors import Style, COLORS
