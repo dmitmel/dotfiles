@@ -1,6 +1,9 @@
 #!/usr/bin/env zsh
 
 configure_oh_my_zsh() {
+  # disable automatic updates because OMZ is managed by zgen
+  DISABLE_AUTO_UPDATE="true"
+
   # use hyphen-insensitive completion (makes `_` and `-` interchangeable)
   HYPHEN_INSENSITIVE="true"
 
