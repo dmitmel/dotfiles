@@ -9,3 +9,5 @@ done
 
 lazy_load rbenv 'eval "$(rbenv init -)"'
 lazy_load sdk 'source_if_exists "$SDKMAN_DIR/bin/sdkman-init.sh"'
+
+python "$DOTFILES_PATH/welcome/main.py"

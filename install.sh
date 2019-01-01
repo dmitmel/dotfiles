@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for zsh_file_name in zshrc zlogin; do
+for zsh_file_name in zshrc; do
   zsh_file="$HOME/.$zsh_file_name"
 
   if [[ -f "$zsh_file" ]]; then
