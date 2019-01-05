@@ -20,4 +20,3 @@ fi
 
 export CLICOLOR="1"
 
-export SDKMAN_DIR="$HOME/.sdkman"
