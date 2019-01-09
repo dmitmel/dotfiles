@@ -24,12 +24,9 @@ lazy_load() {
   local command="$1"
   local init_command="$2"
 
-  eval "$(cat <<EOF
-$command() {
-  unfunction $command
-  $init_command
-  $command \$@
-}
-EOF
-)"
+  eval "$command() {
+    unfunction $command
+    $init_command
+    $command \$@
+  }"
 }
