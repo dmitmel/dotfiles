@@ -53,8 +53,8 @@ unset widget_{name,info,key,keys}
 
 # command palette allows you to search for widgets
 _command-palette() {
-  # widget is selected with 'peco', a 'Simplistic interactive filtering tool'
-  local widget="$(echo "$widgets_str" | peco)"
+  # widget is selected with a fuzzy finder
+  local widget="$(echo "$widgets_str" | fzf)"
   if [[ -n "$widget" ]]; then
     # parse widget name by cutting the selected string to the first space (which
     # may contain keybindings)
