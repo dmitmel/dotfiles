@@ -6,5 +6,6 @@ cd "$DOTFILES_PATH" || exit 1
 git pull --rebase --stat origin master
 git submodule update --init --recursive --remote --progress
 
+DISABLE_AUTO_UPDATE=true
 source "./zgen/zgen.zsh"
 zgen update
