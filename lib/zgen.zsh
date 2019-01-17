@@ -25,8 +25,42 @@ configure_syntax_highlighting() {
   FAST_WORK_DIR="$DOTFILES_PATH/cache"
 }
 
+configure_prompt() {
+  SPACESHIP_PROMPT_ADD_NEWLINE=false
+
+  SPACESHIP_PROMPT_ORDER=(
+    user
+    host
+    dir
+    git
+    # hg
+    exec_time
+    line_sep
+    # vi_mode
+    jobs
+    exit_code
+    char
+  )
+
+  SPACESHIP_CHAR_SYMBOL="$ "
+  SPACESHIP_CHAR_SYMBOL_ROOT="# "
+  SPACESHIP_CHAR_SYMBOL_SECONDARY="> "
+  SPACESHIP_GIT_STATUS_DELETED="\u2718 "
+  SPACESHIP_HG_STATUS_DELETED="\u2718 "
+  SPACESHIP_EXIT_CODE_SYMBOL="\u2718 "
+  SPACESHIP_JOBS_SYMBOL="\u2726 "
+
+  SPACESHIP_USER_SHOW=always
+
+  SPACESHIP_DIR_TRUNC=0
+  SPACESHIP_DIR_TRUNC_REPO=false
+
+  SPACESHIP_EXIT_CODE_SHOW=true
+}
+
 configure_oh_my_zsh
 configure_syntax_highlighting
+configure_prompt
 
 source "$DOTFILES_PATH/zgen/zgen.zsh"
 
@@ -40,12 +74,7 @@ if ! zgen saved; then
 
   zgen load zdharma/fast-syntax-highlighting
 
-  # official agnoster theme is much faster than one bundled with OMZ and has
-  # more features
-  zgen load agnoster/agnoster-zsh-theme agnoster
+  zgen load denysdovhan/spaceship-prompt spaceship
 
   zgen save
 fi
-
-# fix prompt theme
-PLUSMINUS="$PLUSMINUS "
