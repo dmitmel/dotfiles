@@ -5,7 +5,7 @@ typeset -aU fpath manpath path
 
 if is_macos; then
   path=(
-    ~/Library/Python/bin
+    ~/Library/Python/*/bin
     ~/Library/Haskell/bin
     /usr/local/opt/file-formula/bin         # file
     /usr/local/opt/gnu-sed/libexec/gnubin   # GNU sed
