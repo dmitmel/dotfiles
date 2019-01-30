@@ -6,9 +6,7 @@ typeset -aU fpath manpath path
 if is_macos; then
   path=(
     ~/Library/Python/*/bin
-    ~/Library/Haskell/bin
     /usr/local/opt/file-formula/bin         # file
-    /usr/local/opt/gnu-sed/libexec/gnubin   # GNU sed
     /usr/local/opt/gnu-tar/libexec/gnubin   # GNU tar
     /usr/local/opt/unzip/bin                # GNU unzip
     /usr/local/opt/openssl/bin              # openssl
@@ -21,7 +19,6 @@ if is_macos; then
 
   manpath=(
     /usr/local/opt/file-formula/share/man   # file
-    /usr/local/opt/gnu-sed/libexec/gnuman   # GNU sed
     /usr/local/opt/gnu-tar/libexec/gnuman   # GNU tar
     /usr/local/opt/unzip/share/man          # GNU unzip
     /usr/local/opt/openssl/share/man        # openssl
