@@ -13,7 +13,6 @@ if is_macos; then
     /usr/local/opt/openssl/bin              # openssl
     /usr/local/opt/gnu-getopt/bin           # getopt
     /usr/local/opt/findutils/libexec/gnubin # GNU findutils
-    /usr/local/opt/binutils/bin             # GNU binutils
     /usr/local/opt/coreutils/libexec/gnubin # GNU coreutils
     "${path[@]}"
   )
@@ -26,7 +25,6 @@ if is_macos; then
     /usr/local/opt/openssl/share/man        # openssl
     /usr/local/opt/gnu-getopt/share/man     # getopt
     /usr/local/opt/findutils/libexec/gnuman # GNU findutils
-    /usr/local/opt/binutils/share/man       # GNU binutils
     /usr/local/opt/coreutils/libexec/gnuman # GNU coreutils
     "${manpath[@]}"
   )
