@@ -11,4 +11,4 @@ if command_exists rbenv; then
   eval "$(rbenv init -)"
 fi
 
-python "$DOTFILES_PATH/welcome/main.py"
+welcome

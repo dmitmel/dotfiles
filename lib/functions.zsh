@@ -30,3 +30,7 @@ lazy_load() {
     $command \$@
   }"
 }
+
+welcome() {
+  python "$DOTFILES_PATH/welcome/main.py"
+}
