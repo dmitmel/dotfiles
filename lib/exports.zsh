@@ -7,11 +7,10 @@ if [[ -z "$USER" && -n "$USERNAME" ]]; then
   export USER="$USERNAME"
 fi
 
-if [[ -n "$SSH_CONNECTION" ]]; then
-  export EDITOR="rmate"
-else
-  export EDITOR="code --wait"
-fi
+# find editor
+export EDITOR="nvim"
+export VISUAL="$EDITOR"
+alias edit="$EDITOR"
+alias e="$EDITOR"
 
 export CLICOLOR="1"
-

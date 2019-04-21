@@ -2,7 +2,7 @@
 
 import re
 
-from colors import Style, COLORS
+from colors import COLORS, Style
 from system_info import get_system_info
 
 print("")
