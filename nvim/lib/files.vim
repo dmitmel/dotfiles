@@ -116,9 +116,18 @@ set wildignore+=.git,.svn,.hg,.DS_Store,*~
     endfunction
   " }}}
 
+  " auto-format with Coc.nvim {{{
+    let g:coc_format_on_save_ignore = []
+    function s:FormatOnSave()
+      if index(g:coc_format_on_save_ignore, &filetype) < 0 && IsCocEnabled()
+        silent CocFormat
+      endif
+    endfunction
+  " }}}
+
   function s:OnSave()
     call s:FixWhitespaceOnSave()
-    if IsCocEnabled() | silent CocFormat | endif
+    call s:FormatOnSave()
     call s:CreateDirOnSave()
   endfunction
   augroup vimrc-on-save
