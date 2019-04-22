@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 
-DOTFILES_PATH="${0:h}"
+ZSH_DOTFILES="${0:h}"
 
 for script in functions path exports zgen aliases palette theme; do
-  source "$DOTFILES_PATH/zsh/$script.zsh"
-  source_if_exists "$DOTFILES_PATH/custom/$script.zsh"
+  source "$ZSH_DOTFILES/$script.zsh"
+  source_if_exists "$ZSH_DOTFILES/custom/$script.zsh"
 done
 
 if command_exists rbenv; then

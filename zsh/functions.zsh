@@ -32,5 +32,5 @@ lazy_load() {
 }
 
 welcome() {
-  python "$DOTFILES_PATH/welcome/main.py"
+  python "$ZSH_DOTFILES/welcome/main.py"
 }

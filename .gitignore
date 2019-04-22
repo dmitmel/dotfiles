@@ -1,3 +1,4 @@
-/custom
-/cache
+/zsh/custom
+/zsh/cache
+!/zsh/cache/.gitkeep
 *.pyc

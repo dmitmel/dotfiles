@@ -38,7 +38,7 @@ path=("$GOPATH/bin" "${path[@]}")
 path=(~/bin ~/.local/bin "${path[@]}")
 
 # add my completions
-fpath=("$DOTFILES_PATH/completions" "${fpath[@]}")
+fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
 
 # check for Rust installed via rustup
 if rust_sysroot="$(~/.cargo/bin/rustc --print sysroot 2> /dev/null)"; then

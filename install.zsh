@@ -15,7 +15,7 @@ install_dotfile() {
 for zsh_file_name in zshrc; do
   install_dotfile "$HOME/.$zsh_file_name" <<EOF
 #!/usr/bin/env zsh
-source "$PWD/$zsh_file_name"
+source "$PWD/zsh/$zsh_file_name"
 EOF
 done
 unset zsh_file_name

@@ -22,7 +22,7 @@ configure_oh_my_zsh() {
 }
 
 configure_syntax_highlighting() {
-  FAST_WORK_DIR="$DOTFILES_PATH/cache"
+  FAST_WORK_DIR="$ZSH_DOTFILES/cache"
 }
 
 configure_prompt() {
@@ -62,7 +62,7 @@ configure_oh_my_zsh
 configure_syntax_highlighting
 configure_prompt
 
-source "$DOTFILES_PATH/zgen/zgen.zsh"
+source "$ZSH_DOTFILES/zgen/zgen.zsh"
 
 if ! zgen saved; then
   zgen oh-my-zsh
