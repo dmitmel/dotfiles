@@ -99,8 +99,8 @@ set foldmethod=marker
   let g:indexed_search_center = 1
 
   " search inside a visual selection
-  vnoremap / <Esc>/\%><C-R>=line("'<")-1<CR>l\%<<C-R>=line("'>")+1<CR>l
-  vnoremap ? <Esc>?\%><C-R>=line("'<")-1<CR>l\%<<C-R>=line("'>")+1<CR>l
+  xnoremap / <Esc>/\%><C-R>=line("'<")-1<CR>l\%<<C-R>=line("'>")+1<CR>l
+  xnoremap ? <Esc>?\%><C-R>=line("'<")-1<CR>l\%<<C-R>=line("'>")+1<CR>l
 
   " * and # in the Visual mode will search the selected text
   function! s:VisualStarSearch(search_cmd)

@@ -25,7 +25,7 @@ set wildignore+=.git,.svn,.hg,.DS_Store,*~
   let g:loaded_netrwPlugin = 1
   " re-add Netrw's gx mappings since we've disabled them
   nnoremap <silent> gx :call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
-  vnoremap <silent> gx :<C-u>call netrw#BrowseXVis()<CR>
+  xnoremap <silent> gx :<C-u>call netrw#BrowseXVis()<CR>
 " }}}
 
 
