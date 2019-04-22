@@ -151,6 +151,8 @@ set foldmethod=marker
   let g:delimitMate_expand_space = 1
   let g:delimitMate_expand_cr = 1
 
+  let g:surround_{char2nr('*')} = "**\r**"
+
   let g:pencil#wrapModeDefault = 'soft'
   let g:pencil#conceallevel = 0
   let g:pencil#cursorwrap = 0
