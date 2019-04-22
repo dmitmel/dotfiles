@@ -3,7 +3,7 @@
 DOTFILES_PATH="${0:h}"
 
 for script in functions path exports zgen aliases palette theme; do
-  source "$DOTFILES_PATH/lib/$script.zsh"
+  source "$DOTFILES_PATH/zsh/$script.zsh"
   source_if_exists "$DOTFILES_PATH/custom/$script.zsh"
 done
 
