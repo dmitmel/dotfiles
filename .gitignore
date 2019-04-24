@@ -1,4 +1,10 @@
 /zsh/custom
 /zsh/cache
-!/zsh/cache/.gitkeep
 *.pyc
+
+/ansible/hosts
+/ansible/*.retry
+
+/smth
+/.vscode
+/hammerspoon/Spoons
