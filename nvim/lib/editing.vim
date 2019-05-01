@@ -94,7 +94,7 @@ set foldmethod=marker
   " anywhere in pattern to override these two settings)
   set ignorecase smartcase
 
-  nnoremap \ :nohlsearch<CR>
+  nnoremap \ <Cmd>nohlsearch<CR>
 
   let g:indexed_search_center = 1
 

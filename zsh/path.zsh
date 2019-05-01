@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # make these variables unique (-U) arrays (-a)
-typeset -aU fpath manpath path
+typeset -aU fpath manpath path ldflags cppflags
 
 if is_macos; then
   path=(
@@ -14,20 +14,17 @@ if is_macos; then
     /usr/local/opt/gnu-getopt/bin           # getopt
     /usr/local/opt/findutils/libexec/gnubin # GNU findutils
     /usr/local/opt/coreutils/libexec/gnubin # GNU coreutils
+    /usr/local/opt/curl/bin                 # curl
     "${path[@]}"
   )
 
   manpath=(
-    /usr/local/opt/ruby/share/man
-    /usr/local/opt/file-formula/share/man   # file
-    /usr/local/opt/gnu-tar/libexec/gnuman   # GNU tar
-    /usr/local/opt/unzip/share/man          # GNU unzip
-    /usr/local/opt/openssl/share/man        # openssl
-    /usr/local/opt/gnu-getopt/share/man     # getopt
     /usr/local/opt/findutils/libexec/gnuman # GNU findutils
-    /usr/local/opt/coreutils/libexec/gnuman # GNU coreutils
     "${manpath[@]}"
   )
+
+  export LDFLAGS="-L/usr/local/opt/ruby/lib"
+  export CPPFLAGS="-I/usr/local/opt/ruby/include"
 fi
 
 # add Go binaries

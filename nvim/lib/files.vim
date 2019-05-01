@@ -24,7 +24,7 @@ set wildignore+=.git,.svn,.hg,.DS_Store,*~
   " helper functions (which I use in my dotfiles)
   let g:loaded_netrwPlugin = 1
   " re-add Netrw's gx mappings since we've disabled them
-  nnoremap <silent> gx :call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
+  nnoremap <silent> gx <Cmd>call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
   xnoremap <silent> gx :<C-u>call netrw#BrowseXVis()<CR>
 " }}}
 
@@ -32,7 +32,7 @@ set wildignore+=.git,.svn,.hg,.DS_Store,*~
 " Ranger {{{
   let g:ranger_replace_netrw = 1
   let g:ranger_map_keys = 0
-  nnoremap <silent> <Leader>o :Ranger<CR>
+  nnoremap <silent> <Leader>o <Cmd>Ranger<CR>
   " ranger.vim relies on the Bclose.vim plugin, but I use Bbye.vim, so this
   " command is here just for compatitabilty
   command! -bang -complete=buffer -nargs=? Bclose Bdelete<bang> <args>

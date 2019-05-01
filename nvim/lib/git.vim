@@ -1,7 +1,7 @@
 " mappings {{{
   let g:gitgutter_map_keys = 0
   nnoremap <leader>gg :G
-  nnoremap <leader>g :Git<space>
+  nnoremap <leader>g  :Git<space>
   nnoremap <leader>gs :Gstatus<CR>
   nnoremap <leader>gd :Gdiff
   nnoremap <leader>gb :Gblame<CR>

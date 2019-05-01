@@ -41,16 +41,16 @@
     vmap <silent> <A-CR>     <Plug>(coc-codeaction-selected)
     " nmap <silent> <leader>qf  <Plug>(coc-fix-current)
 
-    nnoremap <silent> <space>l :CocList<CR>
-    nnoremap <silent> <space>d :CocList --auto-preview diagnostics<CR>
-    nnoremap <silent> <space>c :CocList commands<CR>
-    nnoremap <silent> <space>o :CocList --auto-preview outline<CR>
-    nnoremap <silent> <space>s :CocList --interactive symbols<CR>
-    nnoremap <silent> <space>h :CocPrev<CR>
-    nnoremap <silent> <space>k :CocPrev<CR>
-    nnoremap <silent> <space>l :CocNext<CR>
-    nnoremap <silent> <space>j :CocNext<CR>
-    nnoremap <silent> <space>p :CocListResume<CR>
+    nnoremap <silent> <space>l <Cmd>CocList<CR>
+    nnoremap <silent> <space>d <Cmd>CocList --auto-preview diagnostics<CR>
+    nnoremap <silent> <space>c <Cmd>CocList commands<CR>
+    nnoremap <silent> <space>o <Cmd>CocList --auto-preview outline<CR>
+    nnoremap <silent> <space>s <Cmd>CocList --interactive symbols<CR>
+    nnoremap <silent> <space>h <Cmd>CocPrev<CR>
+    nnoremap <silent> <space>k <Cmd>CocPrev<CR>
+    nnoremap <silent> <space>l <Cmd>CocNext<CR>
+    nnoremap <silent> <space>j <Cmd>CocNext<CR>
+    nnoremap <silent> <space>p <Cmd>CocListResume<CR>
   " }}}
 
   " CocFormat {{{

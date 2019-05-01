@@ -35,9 +35,9 @@ endif
   set diffopt+=vertical
 
   " buffer navigation {{{
-    noremap <silent> <Tab> :bnext<CR>
-    noremap <silent> <S-Tab> :bprev<CR>
-    noremap <silent> gb :buffer #<CR>
+    noremap <silent> <Tab>   <Cmd>bnext<CR>
+    noremap <silent> <S-Tab> <Cmd>bprev<CR>
+    noremap <silent> gb      <Cmd>buffer#<CR>
   " }}}
 
   " ask for confirmation when closing unsaved buffers
@@ -61,8 +61,8 @@ endif
   " }}}
 
   " closing buffers {{{
-    nnoremap <silent> <BS> :<C-u>call <SID>CloseBuffer('Bdelete')<CR>
-    nnoremap <silent> <Del> :<C-u>quit <bar> call <SID>CloseBuffer('Bdelete')<CR>
+    nnoremap <silent> <BS>  <Cmd>call <SID>CloseBuffer('Bdelete')<CR>
+    nnoremap <silent> <Del> <Cmd>quit <bar> call <SID>CloseBuffer('Bdelete')<CR>
   " }}}
 
 " }}}
@@ -83,13 +83,8 @@ endif
   " don't automatically make all windows the same size
   set noequalalways
 
-  " splitting {{{
-    noremap <silent> <leader>h :split<CR>
-    noremap <silent> <leader>v :vsplit<CR>
-  " }}}
-
   " closing windows {{{
-    nnoremap <silent> <A-BS> :quit<CR>
+    nnoremap <silent> <A-BS> <Cmd>quit<CR>
   " }}}
 
 " }}}
@@ -151,9 +146,10 @@ endif
 
 
 " FZF {{{
-  nnoremap <silent> <F1> :Helptags<CR>
-  nnoremap <silent> <leader>f :Files<CR>
-  nnoremap <silent> <leader>b :Buffers<CR>
+  noremap  <silent> <F1>      <Cmd>Helptags<CR>
+  inoremap <silent> <F1>      <Cmd>Helptags<CR>
+  nnoremap <silent> <leader>f <Cmd>Files<CR>
+  nnoremap <silent> <leader>b <Cmd>Buffers<CR>
 " }}}
 
 
