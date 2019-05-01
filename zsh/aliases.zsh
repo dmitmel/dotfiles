@@ -24,9 +24,6 @@ fi
 # fd is a simple, fast and user-friendly alternative to find - https://github.com/sharkdp/fd
 if command_exists fd; then
   alias fda="fd --hidden --no-ignore"
-else
-  alias fd="find -iname"
-  alias fda="${aliases[fd]}"
 fi
 
 # git with hub
