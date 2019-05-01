@@ -1,7 +1,9 @@
 #!/usr/bin/env zsh
 
-# This alias removes leading dollar sign. Useful when copying code from Stackoverflow
+# this alias removes leading dollar sign (useful when copying code from Stackoverflow)
 alias '$'=''
+# this alias allows aliases to work with sudo
+alias sudo='sudo '
 
 alias grep='grep --color=auto'
 
