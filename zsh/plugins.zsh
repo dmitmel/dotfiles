@@ -35,10 +35,10 @@ configure_prompt() {
     git
     # hg
     exec_time
-    line_sep
     # vi_mode
     jobs
     exit_code
+    line_sep
     char
   )
 
