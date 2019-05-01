@@ -118,29 +118,15 @@ set termguicolors
 
 " User interface {{{
 
-  call s:hi('Error',      'bg', 0x8,    '', '')
-  call s:hi('ErrorMsg',   0x8,  'NONE', '', '')
-  call s:hi('WarningMsg', 0x9,  'NONE', '', '')
-  call s:hi('TooLong',    0x8,  '',     '', '')
-  call s:hi('Debug',      0x8,  '',     '', '')
-  hi! link ALEError                   Error
-  hi! link ALEErrorSign               ALEError
-  hi! link ALEStyleErrorSign          ALEErrorSign
-  hi! link ALEVirtualTextError        ALEError
-  hi! link ALEVirtualTextStyleError   ALEVirtualTextError
-  hi! link ALEWarning                 Todo
-  hi! link ALEWarningSign             ALEWarning
-  hi! link ALEStyleWarningSign        ALEWarningSign
-  hi! link ALEVirtualTextWarning      ALEWarning
-  hi! link ALEVirtualTextStyleWarning ALEVirtualTextWarning
-  hi! link ALEInfo                    ALEWarning
-  hi! link ALEInfoSign                ALEWarningSign
-  hi! link ALEVirtualTextInfo         ALEVirtualTextWarning
-  hi! link ALESignColumnWithErrors    ALEError
-  hi! link CocErrorSign               ALEErrorSign
-  hi! link CocWarningSign             ALEWarningSign
-  hi! link CocInfoSign                ALEInfoSign
-  hi! link CocHintSign                ALEInfoSign
+  call s:hi('Error',          'bg', 0x8,    '', '')
+  call s:hi('ErrorMsg',       0x8,  'NONE', '', '')
+  call s:hi('WarningMsg',     0x9,  'NONE', '', '')
+  call s:hi('TooLong',        0x8,  '',     '', '')
+  call s:hi('Debug',          0x8,  '',     '', '')
+  hi! link CocErrorSign Error
+  call s:hi('CocWarningSign', 'bg', 0xA,    '', '')
+  call s:hi('CocInfoSign',    'bg', 0xD,    '', '')
+  hi! link CocHintSign    CocInfoSign
 
   call s:hi('FoldColumn', 0xC, 0x1, '', '')
   call s:hi('Folded',     0x3, 0x1, '', '')
