@@ -5,7 +5,7 @@ let s:base16_theme_name = 'eighties'
 
 " Color definitions {{{
 
-  let g:base16_shell_path = get(g:, 'base16_shell_path', expand('~/.config/base16-shell'))
+  let g:base16_shell_path = get(g:, 'base16_shell_path', expand('~/.zgen/chriskempson/base16-shell-master'))
   let s:base16_shell_script = g:base16_shell_path . '/scripts/base16-' . s:base16_theme_name . '.sh'
   if filereadable(s:base16_shell_script)
     " call system(shellescape(s:base16_shell_script))

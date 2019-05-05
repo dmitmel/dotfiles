@@ -76,5 +76,7 @@ if ! zgen saved; then
 
   zgen load denysdovhan/spaceship-prompt spaceship
 
+  zgen load chriskempson/base16-shell
+
   zgen save
 fi

@@ -9,7 +9,7 @@ done
 
 command_exists rbenv && eval "$(rbenv init -)"
 
-BASE16_SHELL="$HOME/.config/base16-shell/"
+BASE16_SHELL="$HOME/.zgen/chriskempson/base16-shell-master"
 BASE16_SHELL_profile_helper="$BASE16_SHELL/profile_helper.sh"
 [[ -n "$PS1" && -r "$BASE16_SHELL_profile_helper" ]] && eval "$("$BASE16_SHELL_profile_helper")"
 
