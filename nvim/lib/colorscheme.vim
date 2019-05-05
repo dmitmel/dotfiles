@@ -7,7 +7,7 @@ let s:base16_theme_name = 'eighties'
 
   let g:base16_shell_path = get(g:, 'base16_shell_path', expand('~/.zgen/chriskempson/base16-shell-master'))
   let s:base16_shell_script = g:base16_shell_path . '/scripts/base16-' . s:base16_theme_name . '.sh'
-  if filereadable(s:base16_shell_script)
+  if filereadable(s:base16_shell_script) && !&termguicolors
     " call system(shellescape(s:base16_shell_script))
   else
     set termguicolors
