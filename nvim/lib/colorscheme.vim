@@ -1,28 +1,36 @@
-set termguicolors
-
 " modified version of base16-vim (https://github.com/chriskempson/base16-vim)
 " by Chris Kempson (http://chriskempson.com)
 
+let s:base16_theme_name = 'eighties'
+
 " Color definitions {{{
+
+  let g:base16_shell_path = get(g:, 'base16_shell_path', expand('~/.config/base16-shell'))
+  let s:base16_shell_script = g:base16_shell_path . '/scripts/base16-' . s:base16_theme_name . '.sh'
+  if filereadable(s:base16_shell_script)
+    " call system(shellescape(s:base16_shell_script))
+  else
+    set termguicolors
+  endif
 
   " Eighties scheme by Chris Kempson (http://chriskempson.com)
   let s:colors = [
   \ {'gui': '#2d2d2d', 'cterm': '00'},
-  \ {'gui': '#393939', 'cterm': '10'},
-  \ {'gui': '#515151', 'cterm': '11'},
+  \ {'gui': '#393939', 'cterm': '18'},
+  \ {'gui': '#515151', 'cterm': '19'},
   \ {'gui': '#747369', 'cterm': '08'},
-  \ {'gui': '#a09f93', 'cterm': '12'},
+  \ {'gui': '#a09f93', 'cterm': '20'},
   \ {'gui': '#d3d0c8', 'cterm': '07'},
-  \ {'gui': '#e8e6df', 'cterm': '13'},
+  \ {'gui': '#e8e6df', 'cterm': '21'},
   \ {'gui': '#f2f0ec', 'cterm': '15'},
   \ {'gui': '#f2777a', 'cterm': '01'},
-  \ {'gui': '#f99157', 'cterm': '09'},
+  \ {'gui': '#f99157', 'cterm': '16'},
   \ {'gui': '#ffcc66', 'cterm': '03'},
   \ {'gui': '#99cc99', 'cterm': '02'},
   \ {'gui': '#66cccc', 'cterm': '06'},
   \ {'gui': '#6699cc', 'cterm': '04'},
   \ {'gui': '#cc99cc', 'cterm': '05'},
-  \ {'gui': '#d27b53', 'cterm': '14'}
+  \ {'gui': '#d27b53', 'cterm': '17'}
   \ ]
 
 " }}}
@@ -42,7 +50,7 @@ set termguicolors
 " Theme setup {{{
   hi clear
   syntax reset
-  let g:colors_name = "base16-eighties"
+  let g:colors_name = 'base16-' . s:base16_theme_name
 " }}}
 
 " Highlighting function {{{
@@ -102,7 +110,7 @@ set termguicolors
   hi! link SpecialComment Comment
   call s:hi('Todo',       'bg', 0xA, 'bold', '')
   call s:hi('Function',   0xD, '', '', '')
-  call s:hi('Identifier', 0x8, '', '', '')
+  call s:hi('Identifier', 0x8, '', 'none', '')
   hi! link Variable Identifier
   call s:hi('Include',    0xF, '', '', '')
   call s:hi('PreProc',    0xA, '', '', '')
@@ -141,7 +149,7 @@ set termguicolors
   call s:hi('Visual',   '',  0x2,  '', '')
   call s:hi('WildMenu', 0x1, 'fg', '', '')
 
-  call s:hi('CursorLine',   '',  0x1, '', '')
+  call s:hi('CursorLine',   '',  0x1, 'none', '')
   hi! link CursorColumn CursorLine
   call s:hi('ColorColumn',  '',  0x1, '', '')
   call s:hi('LineNr',       0x3, 0x1, '', '')
