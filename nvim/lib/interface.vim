@@ -105,7 +105,9 @@ endif
   let g:airline#extensions#tabline#enabled = 1
   let g:airline#extensions#ale#enabled = 1
 
-  call airline#parts#define_function('coc#status', 'coc#status')
+  if exists("*coc#status")
+    call airline#parts#define_function('coc#status', 'coc#status')
+  endif
 
   function StatusLine_filesize()
     let l:bytes = getfsize(expand('%'))
