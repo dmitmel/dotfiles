@@ -5,12 +5,10 @@ let s:base16_theme_name = 'eighties'
 
 " Color definitions {{{
 
-  let g:base16_shell_path = get(g:, 'base16_shell_path', expand('~/.zgen/chriskempson/base16-shell-master'))
-  let s:base16_shell_script = g:base16_shell_path . '/scripts/base16-' . s:base16_theme_name . '.sh'
-  if filereadable(s:base16_shell_script) && !&termguicolors
-    " call system(shellescape(s:base16_shell_script))
-  else
+  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL . '/scripts/base16-' . s:base16_theme_name . '.sh') || &termguicolors
     set termguicolors
+  else
+    " call system(shellescape(s:base16_shell_script))
   endif
 
   " Eighties scheme by Chris Kempson (http://chriskempson.com)
