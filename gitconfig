@@ -1,0 +1,29 @@
+[color]
+  ui = true
+
+[log]
+  abbrevCommit = true
+  decorate = true
+[format]
+  pretty = %C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)
+
+[core]
+  pager = diff-so-fancy | less --tabs=4 -RFX
+
+[color "diff-highlight"]
+  oldNormal = red bold
+  oldHighlight = red bold 52
+  newNormal = green bold
+  newHighlight = green bold 22
+[color "diff"]
+  meta = yellow
+  frag = magenta bold
+  commit = yellow bold
+  old = red bold
+  new = green bold
+  whitespace = red reverse
+
+[alias]
+  tree = log --all --graph
+  unstage = reset HEAD
+  discard = checkout
