@@ -1,7 +1,13 @@
 #!/usr/bin/env zsh
 
-# make these variables unique (-U) arrays (-a)
-typeset -aU fpath manpath path ldflags cppflags
+# tie these env variables to zsh arrays
+typeset -T LDFLAGS ldflags ' '
+typeset -T CPPFLAGS cppflags ' '
+typeset -T PKG_CONFIG_PATH pkg_config_path ':'
+
+# keep only unique values in these arrays
+typeset -U path fpath manpath ldflags cppflags pkg_config_path
+export  -U PATH FPATH MANPATH LDFLAGS CPPFLAGS PKG_CONFIG_PATH
 
 if is_macos; then
   path=(
@@ -23,8 +29,14 @@ if is_macos; then
     "${manpath[@]}"
   )
 
-  export LDFLAGS="-L/usr/local/opt/ruby/lib"
-  export CPPFLAGS="-I/usr/local/opt/ruby/include"
+  for formula in ruby openssl curl; do
+    formula_path="/usr/local/opt/$formula"
+    if [[ -d "$formula_path" ]]; then
+      ldflags+=( -L"$formula_path"/lib )
+      cppflags+=( -L"$formula_path"/include )
+      pkg_config_path+=( "$formula_path"/lib/pkgconfig )
+    fi
+  done
 fi
 
 # add Go binaries
@@ -32,21 +44,21 @@ export GOPATH="$HOME/.go"
 path=("$GOPATH/bin" "${path[@]}")
 
 # add user binaries
-path=(~/bin ~/.local/bin "${path[@]}")
+path=(~/.local/bin "${path[@]}")
 
-# add my completions
+# add my binaries and completions
+path=("$ZSH_DOTFILES/bin" "${path[@]}")
 fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
 
 # check for Rust installed via rustup
-if rust_sysroot="$(~/.cargo/bin/rustc --print sysroot 2> /dev/null)"; then
-  # add paths of the current Rust toolchain
+rustc=~/.cargo/bin/rustc
+if [[ -f "$rustc" && -x "$rustc" ]] && rust_sysroot="$("$rustc" --print sysroot)"; then
+  # add paths of the default Rust toolchain
   path=(~/.cargo/bin "${path[@]}")
   fpath=("$rust_sysroot/share/zsh/site-functions" "${fpath[@]}")
   manpath=("$rust_sysroot/share/man" "${manpath[@]}")
 fi
-unset rust_sysroot
+unset rustc rust_sysroot
 
 # add colon after MANPATH so that it doesn't overwrite system MANPATH
 MANPATH="$MANPATH:"
-
-export PATH MANPATH
