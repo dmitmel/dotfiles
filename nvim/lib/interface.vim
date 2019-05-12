@@ -62,7 +62,7 @@ endif
 
   " closing buffers {{{
     nnoremap <silent> <BS>  <Cmd>call <SID>CloseBuffer('Bdelete')<CR>
-    nnoremap <silent> <Del> <Cmd>call <SID>CloseBuffer('Bdelete')<CR> <bar> quit
+    nnoremap <silent> <Del> <Cmd>call <SID>CloseBuffer('Bdelete')<bar>quit<CR>
   " }}}
 
 " }}}
