@@ -105,9 +105,7 @@ endif
   let g:airline#extensions#tabline#enabled = 1
   let g:airline#extensions#ale#enabled = 1
 
-  if exists("*coc#status")
-    call airline#parts#define_function('coc#status', 'coc#status')
-  endif
+  call airline#parts#define_function('coc#status', 'coc#status')
 
   function StatusLine_filesize()
     let l:bytes = getfsize(expand('%'))
@@ -134,10 +132,16 @@ endif
     let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
   endfunction
   function s:tweak_airline()
-    call s:airline_section_prepend('x', ['coc#status'])
+    if exists('*coc#status')
+      call s:airline_section_prepend('x', ['coc#status'])
+    endif
     call s:airline_section_append('y', ['filesize'])
-    call s:airline_section_prepend('error', ['coc_error_count'])
-    call s:airline_section_prepend('warning', ['coc_warning_count'])
+    if exists('*airline#extensions#coc#get_error')
+      call s:airline_section_prepend('error', ['coc_error_count'])
+    endif
+    if exists('*airline#extensions#coc#get_warning')
+      call s:airline_section_prepend('warning', ['coc_warning_count'])
+    endif
   endfunction
   augroup vimrc-interface-airline
     autocmd!
