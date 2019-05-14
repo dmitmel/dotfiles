@@ -1,116 +1,82 @@
-let s:dein_plugins_dir = expand('~/.cache/dein')
-let s:dein_dir = s:dein_plugins_dir . '/repos/github.com/Shougo/dein.vim'
+let s:vim_config_dir = expand('~/.config/nvim')
+let s:vim_plug_script = s:vim_config_dir . '/autoload/plug.vim'
+let s:vim_plug_home = s:vim_config_dir . '/plugged'
 
-if !isdirectory(s:dein_dir)
-  echo 'Installing Dein...'
-  call system('git clone https://github.com/Shougo/dein.vim ' . shellescape(s:dein_dir))
+let s:just_installed_vim_plug = 0
+if !filereadable(s:vim_plug_script)
+  exe '!curl -fL https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim --create-dirs -o' shellescape(s:vim_plug_script)
+  autocmd VimEnter * PlugInstall --sync
 endif
 
-let &runtimepath .= ',' . s:dein_dir
+call plug#begin(s:vim_config_dir . '/plugged')
 
-if dein#load_state(s:dein_plugins_dir)
-  call dein#begin(s:dein_plugins_dir)
+Plug 'junegunn/vim-plug'
 
-  command! -nargs=+ -bar Plugin call dein#add(<args>)
-
-  " Let dein manage itself
-  Plugin s:dein_dir
-
-  " Files {{{
-    Plugin 'tpope/vim-eunuch'
-    Plugin 'francoiscabrol/ranger.vim'
-  " }}}
-
-  " Editing {{{
-    Plugin 'easymotion/vim-easymotion'
-    Plugin 'junegunn/vim-easy-align'
-    Plugin 'Raimondi/delimitMate'
-    Plugin 'tpope/vim-repeat'
-    Plugin 'tpope/vim-commentary'
-    Plugin 'tpope/vim-surround'
-    Plugin 'Yggdroot/indentLine'
-    Plugin 'henrik/vim-indexed-search'
-    Plugin 'andymass/vim-matchup'
-    Plugin 'tommcdo/vim-exchange'
-    Plugin 'inkarkat/vim-ingo-library'  " required by LineJuggler
-    Plugin 'inkarkat/vim-LineJuggler', { 'rev': 'stable' }
-    Plugin 'reedes/vim-pencil'
-  " }}}
-
-  " Text objects {{{
-    Plugin 'kana/vim-textobj-user'
-    Plugin 'kana/vim-textobj-entire'
-    Plugin 'kana/vim-textobj-line'
-    Plugin 'kana/vim-textobj-indent'
-    " Plugin 'kana/vim-textobj-fold'
-  " }}}
-
-  " UI {{{
-    Plugin 'moll/vim-bbye'
-    Plugin 'gerw/vim-HiLinkTrace'
-    Plugin 'vim-airline/vim-airline'
-    Plugin 'vim-airline/vim-airline-themes'
-    Plugin 'wincent/terminus'
-    Plugin 'tpope/vim-obsession'
-    Plugin 'romainl/vim-qf'
-    Plugin 'dyng/ctrlsf.vim'
-  " }}}
-
-  " Git {{{
-    Plugin 'tpope/vim-fugitive'
-    Plugin 'tpope/vim-rhubarb'
-    Plugin 'airblade/vim-gitgutter'
-  " }}}
-
-  " FZF {{{
-    Plugin 'junegunn/fzf', { 'build': './install --bin' }
-    Plugin 'junegunn/fzf.vim'
-  " }}}
-
-  " Programming {{{
-    Plugin 'sheerun/vim-polyglot'
-    Plugin 'neoclide/coc.nvim', { 'build': 'yarn install' }
-    Plugin 'dag/vim2hs'
-  " }}}
-
-  delcommand Plugin
-
-  call dein#end()
-  call dein#save_state()
-endif
-
-" enable full plugin support
-filetype plugin indent on
-syntax enable
-
-" Automatically install/clean plugins (because I'm a programmer) {{{
-
-  " the following two lines were copied directly from dein's source code
-  let s:dein_cache_dir = get(g:, 'dein#cache_directory', g:dein#_base_path)
-  let s:dein_state_file = s:dein_cache_dir . '/state_' . g:dein#_progname . '.vim'
-
-  let s:current_file = expand('<sfile>')
-
-  " gettftime() returns the last modification time of a given file
-  let s:plugins_file_changed = getftime(s:current_file) > getftime(s:dein_state_file)
-  if s:plugins_file_changed
-    echo "plugins.vim was changed, clearing Dein state..."
-    call dein#clear_state()
-
-    let s:unused_plugins = dein#check_clean()
-    if !empty(s:unused_plugins)
-      echo "Cleaning up unused plugins..."
-      for s:plugin in s:unused_plugins
-        echo "deleting" s:plugin
-        call delete(s:plugin, 'rf')
-      endfor
-    endif
-  endif
-
-  if dein#check_install() || s:plugins_file_changed
-    echo "Installing plugins..."
-    call dein#install()
-    echo
-  endif
-
+" Files {{{
+  Plug 'tpope/vim-eunuch'
+  Plug 'francoiscabrol/ranger.vim'
 " }}}
+
+" Editing {{{
+  Plug 'easymotion/vim-easymotion'
+  Plug 'junegunn/vim-easy-align'
+  Plug 'Raimondi/delimitMate'
+  Plug 'tpope/vim-repeat'
+  Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-surround'
+  Plug 'Yggdroot/indentLine'
+  Plug 'henrik/vim-indexed-search'
+  Plug 'andymass/vim-matchup'
+  Plug 'tommcdo/vim-exchange'
+  Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler
+  Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
+  Plug 'reedes/vim-pencil'
+" }}}
+
+" Text objects {{{
+  Plug 'kana/vim-textobj-user'
+  Plug 'kana/vim-textobj-entire'
+  Plug 'kana/vim-textobj-line'
+  Plug 'kana/vim-textobj-indent'
+  " Plug 'kana/vim-textobj-fold'
+" }}}
+
+" UI {{{
+  Plug 'moll/vim-bbye'
+  Plug 'gerw/vim-HiLinkTrace'
+  Plug 'vim-airline/vim-airline'
+  Plug 'vim-airline/vim-airline-themes'
+  Plug 'wincent/terminus'
+  Plug 'tpope/vim-obsession'
+  Plug 'romainl/vim-qf'
+  Plug 'dyng/ctrlsf.vim'
+" }}}
+
+" Git {{{
+  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-rhubarb'
+  Plug 'airblade/vim-gitgutter'
+" }}}
+
+" FZF {{{
+  Plug 'junegunn/fzf', { 'do': './install --bin' }
+  Plug 'junegunn/fzf.vim'
+" }}}
+
+" Programming {{{
+  Plug 'sheerun/vim-polyglot'
+  Plug 'neoclide/coc.nvim', { 'do': 'yarn install' }
+  Plug 'dag/vim2hs'
+" }}}
+
+call plug#end()
+
+" " Automatically install/clean plugins (because I'm a programmer) {{{
+  augroup vimrc-plugins
+    autocmd!
+    autocmd VimEnter *
+      \  if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+      \|   PlugInstall --sync | q
+      \| endif
+  augroup END
+" " }}}
