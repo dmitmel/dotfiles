@@ -3,6 +3,10 @@ set fileformats=unix,dos,mac
 
 set wildignore+=.git,.svn,.hg,.DS_Store,*~
 
+" arguably one of the most useful mappings
+nnoremap <silent><expr> <CR> &buftype is# '' ? ":write\<CR>" : "\<CR>"
+
+
 " ripgrep (rg) {{{
   if executable('rg')
     let s:rg_cmd = "rg --hidden --follow"

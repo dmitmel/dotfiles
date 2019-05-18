@@ -61,9 +61,6 @@ set foldmethod=marker
 
 " Mappings {{{
 
-  " arguably one of the most useful mappings
-  nnoremap <silent><expr> <CR> &buftype is# '' ? ":update\<CR>" : "\<CR>"
-
   " stay in the Visual mode when using shift commands
   xnoremap < <gv
   xnoremap > >gv
