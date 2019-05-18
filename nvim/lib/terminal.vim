@@ -1,4 +1,5 @@
 augroup vimrc-terminal
   autocmd!
-  autocmd TermOpen * setl nocursorline | IndentLinesDisable
+  autocmd TermOpen  * setlocal nocursorline | IndentLinesDisable
+  autocmd TermClose * setlocal   cursorline
 augroup END
