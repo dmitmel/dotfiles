@@ -5,6 +5,8 @@ alias '$'=''
 # this alias allows aliases to work with sudo
 alias sudo='sudo '
 
+alias cdd='dirs -v'
+
 alias grep='grep --color=auto'
 
 # exa is a modern replacement for ls - https://the.exa.website/
@@ -20,6 +22,7 @@ else
   alias l="${aliases[ls]} -l --human-readable"
   alias la="${aliases[l]} --almost-all"
 fi
+unalias ll  # remove this Oh-My-Zsh alias
 
 # fd is a simple, fast and user-friendly alternative to find - https://github.com/sharkdp/fd
 if command_exists fd; then
