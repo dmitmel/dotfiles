@@ -1,3 +1,3 @@
 # dotfiles
 
-My dotfiles for Mac OS X, Ubuntu and Raspbian.
+My dotfiles for macOS, Ubuntu, Linux Mint, Manjaro and Raspbian
