@@ -1,5 +1,10 @@
 #!/usr/bin/env zsh
 
+# remove Oh-My-Zsh correction aliases
+for cmd in cp ebuild gist heroku hpodder man mkdir mv mysql sudo; do
+  unalias $cmd
+done
+
 # this alias removes leading dollar sign (useful when copying code from Stackoverflow)
 alias '$'=''
 # this alias allows aliases to work with sudo
