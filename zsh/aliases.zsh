@@ -48,5 +48,6 @@ alias chown='chown -v'
 # print file sizes in human readable format
 alias du='du -h'
 alias df='df -h'
+alias free='free -h'
 
 alias apt-get="echo -e \"use 'apt' instead of 'apt-get'\nif you really want to use 'apt-get', type '"'\\\\'"apt-get'\" #"
