@@ -110,7 +110,8 @@ chooser:rows(9)
 
 hs.hotkey.bind({"cmd", "shift"}, "a", function()
   app = hs.application.frontmostApplication()
-  if app:name():lower():match("term") then
+  app_name = app:name():lower()
+  if app_name:match("term") or app_name:match("kitty") then
     chooser:show()
   end
 end)

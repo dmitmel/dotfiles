@@ -15,12 +15,18 @@ install_dotfile() {
 }
 
 # ZSH
-for zsh_file_name in zshrc; do
-  zsh_file_path="$DOTFILES_PATH/zsh/$zsh_file_name"
-  install_dotfile "$HOME/.$zsh_file_name" "source ${(q)zsh_file_path}"
+for file_name in zshrc; do
+  file_path="$DOTFILES_PATH/zsh/$file_name"
+  install_dotfile "$HOME/.$file_name" "source ${(q)file_path}"
 done
-unset zsh_file_name zsh_file_path
 
 # Neovim
-install_dotfile ~/.config/nvim/init.vim "source $DOTFILES_PATH/nvim/init.vim"
-install_dotfile ~/.config/nvim/ginit.vim "source $DOTFILES_PATH/nvim/ginit.vim"
+for file_name in {init,ginit}.vim; do
+  file_path="$DOTFILES_PATH/nvim/$file_name"
+  install_dotfile "$HOME/.config/nvim/$file_name" "source ${(q)file_path}"
+done
+
+# Kitty
+file_name=kitty.conf
+file_path="$DOTFILES_PATH/$file_name"
+install_dotfile "$HOME/.config/kitty/$file_name" "include ${(q)file_path}"
