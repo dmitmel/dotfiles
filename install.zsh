@@ -28,5 +28,5 @@ done
 
 # Kitty
 file_name=kitty.conf
-file_path="$DOTFILES_PATH/$file_name"
+file_path="$DOTFILES_PATH/kitty/$file_name"
 install_dotfile "$HOME/.config/kitty/$file_name" "include ${(q)file_path}"

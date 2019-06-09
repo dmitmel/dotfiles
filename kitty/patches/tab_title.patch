@@ -1,0 +1,57 @@
+--- kitty/tab_bar.py	2019-06-09 11:10:02.000000000 +0300
++++ kitty/tab_bar.py	2019-06-09 17:50:11.605996845 +0300
+@@ -25,7 +25,7 @@
+     return (x << 8) | 2
+
+
+-def draw_title(draw_data, screen, tab, index):
++def draw_title(draw_data, screen, tab, index, max_title_text_length):
+     if tab.needs_attention and draw_data.bell_on_tab:
+         fg = screen.cursor.fg
+         screen.cursor.fg = draw_data.bell_fg
+@@ -38,19 +38,20 @@
+             draw_title.template_failure_reported = True
+             log_error('Invalid tab title template: "{}" with error: {}'.format(draw_data.title_template, e))
+         title = tab.title
++    extra = len(title) - max_title_text_length
++    if extra > 0:
++        title = '…' + title[1 + extra:]
+     screen.draw(title)
++    return extra
+
+
+ def draw_tab_with_separator(draw_data, screen, tab, before, max_title_length, index):
+     if draw_data.leading_spaces:
+         screen.draw(' ' * draw_data.leading_spaces)
+-    draw_title(draw_data, screen, tab, index)
++    max_title_text_length = max_title_length - draw_data.leading_spaces - draw_data.trailing_spaces
++    draw_title(draw_data, screen, tab, index, max_title_text_length)
+     trailing_spaces = min(max_title_length - 1, draw_data.trailing_spaces)
+     max_title_length -= trailing_spaces
+-    extra = screen.cursor.x - before - max_title_length
+-    if extra > 0:
+-        screen.cursor.x -= extra + 1
+-        screen.draw('…')
+     if trailing_spaces:
+         screen.draw(' ' * trailing_spaces)
+     end = screen.cursor.x
+@@ -66,15 +67,12 @@
+     for bg in fade_colors:
+         screen.cursor.bg = bg
+         screen.draw(' ')
+-    draw_title(draw_data, screen, tab, index)
+-    extra = screen.cursor.x - before - max_title_length
++    max_title_text_length = max_title_length - len(fade_colors) * 2
++    extra = draw_title(draw_data, screen, tab, index, max_title_text_length)
+     if extra > 0:
+         screen.cursor.x = before
+-        draw_title(draw_data, screen, tab, index)
+-        extra = screen.cursor.x - before - max_title_length
+-        if extra > 0:
+-            screen.cursor.x -= extra + 1
+-            screen.draw('…')
++        max_title_text_length = max_title_length
++        extra = draw_title(draw_data, screen, tab, index, max_title_text_length)
+     for bg in reversed(fade_colors):
+         if extra >= 0:
+             break
