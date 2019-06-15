@@ -14,6 +14,10 @@ alias cdd='dirs -v'
 
 alias grep='grep --color=auto'
 
+if ! command_exists colordiff; then
+  alias colordiff='diff --color'
+fi
+
 # exa is a modern replacement for ls - https://the.exa.website/
 if command_exists exa; then
   alias ls="exa --classify --group-directories-first"
