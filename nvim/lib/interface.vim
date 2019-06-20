@@ -12,7 +12,9 @@ set belloff=
 
 " title {{{
 set title
-let &titlestring = '%F%{&modified ? g:airline_symbols.modified : ""} (nvim)'
+let s:username = $USER
+let s:hostname = substitute(hostname(), '\v^([^.]*).*$', '\1', '')  " get hostname up to the first '.'
+let &titlestring = $USER . '@' . s:hostname . ': %F%{&modified ? g:airline_symbols.modified : ""} (nvim)'
 " }}}
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
@@ -132,9 +134,9 @@ endif
     let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
   endfunction
   function s:tweak_airline()
-    if exists('*coc#status')
-      call s:airline_section_prepend('x', ['coc#status'])
-    endif
+    " if exists('*coc#status')
+    "   call s:airline_section_prepend('x', ['coc#status'])
+    " endif
     call s:airline_section_append('y', ['filesize'])
     if exists('*airline#extensions#coc#get_error')
       call s:airline_section_prepend('error', ['coc_error_count'])
