@@ -123,7 +123,7 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write\<CR>" : "\<CR>"
   " auto-format with Coc.nvim {{{
     let g:coc_format_on_save_ignore = []
     function s:FormatOnSave()
-      if index(g:coc_format_on_save_ignore, &filetype) < 0 && IsCocEnabled()
+      if IsCocEnabled() && index(g:coc_format_on_save_ignore, &filetype) < 0
         silent CocFormat
       endif
     endfunction

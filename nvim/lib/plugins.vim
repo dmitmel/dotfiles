@@ -14,7 +14,9 @@ Plug 'junegunn/vim-plug'
 
 " Files {{{
   Plug 'tpope/vim-eunuch'
-  Plug 'francoiscabrol/ranger.vim'
+  if g:vim_ide
+    Plug 'francoiscabrol/ranger.vim'
+  endif
 " }}}
 
 " Editing {{{
@@ -27,7 +29,7 @@ Plug 'junegunn/vim-plug'
   Plug 'Yggdroot/indentLine'
   Plug 'henrik/vim-indexed-search'
   Plug 'andymass/vim-matchup'
-  Plug 'tommcdo/vim-exchange'
+  " Plug 'tommcdo/vim-exchange'
   Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler
   Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
   Plug 'reedes/vim-pencil'
@@ -38,7 +40,6 @@ Plug 'junegunn/vim-plug'
   Plug 'kana/vim-textobj-entire'
   Plug 'kana/vim-textobj-line'
   Plug 'kana/vim-textobj-indent'
-  " Plug 'kana/vim-textobj-fold'
 " }}}
 
 " UI {{{
@@ -46,10 +47,11 @@ Plug 'junegunn/vim-plug'
   Plug 'gerw/vim-HiLinkTrace'
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
-  Plug 'wincent/terminus'
   Plug 'tpope/vim-obsession'
   Plug 'romainl/vim-qf'
-  Plug 'dyng/ctrlsf.vim'
+  if g:vim_ide
+    Plug 'dyng/ctrlsf.vim'
+  endif
 " }}}
 
 " Git {{{
@@ -65,8 +67,10 @@ Plug 'junegunn/vim-plug'
 
 " Programming {{{
   Plug 'sheerun/vim-polyglot'
-  Plug 'neoclide/coc.nvim', { 'do': 'yarn install' }
-  Plug 'dag/vim2hs'
+  if g:vim_ide
+    Plug 'neoclide/coc.nvim', { 'do': 'yarn install' }
+    Plug 'dag/vim2hs'
+  endif
 " }}}
 
 call plug#end()

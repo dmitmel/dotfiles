@@ -5,6 +5,13 @@
   imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 " }}}
 
+if !g:vim_ide
+  function IsCocEnabled()
+    return 0
+  endfunction
+  finish
+endif
+
 " coc.nvim {{{
   " list of filetypes (that are added in language-specific scripts) for which
   " coc mappings are enabled

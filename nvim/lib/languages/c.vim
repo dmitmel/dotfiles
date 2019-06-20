@@ -1,3 +1,5 @@
+if !g:vim_ide | finish | endif
+
 let s:filetypes = ['c', 'cpp', 'objc', 'objcpp']
 let g:coc_filetypes += s:filetypes
 
