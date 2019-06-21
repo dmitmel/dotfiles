@@ -76,7 +76,7 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write\<CR>" : "\<CR>"
   " }}}
 
   " Open {{{
-    " opens file with a system program
+    " opens file or URL with a system program
     function s:Open(path)
       " HACK: 2nd parameter of this function is called 'remote', it tells
       " whether to open a remote (1) or local (0) file. However, it doesn't work
@@ -88,7 +88,7 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write\<CR>" : "\<CR>"
       " if-statement which contains the 'gf' command.
       call netrw#BrowseX(a:path, 2)
     endfunction
-    command Open call s:Open(expand('%'))
+    command -nargs=* -complete=file Open call s:Open(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
 " }}}
