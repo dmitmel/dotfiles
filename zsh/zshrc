@@ -7,6 +7,9 @@ for script in functions path env plugins aliases palette theme; do
   source_if_exists "$ZSH_DOTFILES/custom/$script.zsh"
 done
 
+# add colon after MANPATH so that it doesn't overwrite system MANPATH
+MANPATH="$MANPATH:"
+
 command_exists rbenv && eval "$(rbenv init -)"
 
 BASE16_SHELL_profile_helper="$BASE16_SHELL/profile_helper.sh"

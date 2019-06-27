@@ -59,6 +59,3 @@ if [[ -f "$rustc" && -x "$rustc" ]] && rust_sysroot="$("$rustc" --print sysroot)
   manpath=("$rust_sysroot/share/man" "${manpath[@]}")
 fi
 unset rustc rust_sysroot
-
-# add colon after MANPATH so that it doesn't overwrite system MANPATH
-MANPATH="$MANPATH:"
