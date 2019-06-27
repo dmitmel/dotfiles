@@ -75,5 +75,10 @@ endif
   " }}}
 
   call coc#add_extension('coc-snippets')
-  call coc#config('diagnostic', { 'virtualText': v:true, 'enableMessage': 'jump' })
+  call coc#config('diagnostic', {
+  \ 'virtualText': v:true,
+  \ 'enableMessage': 'jump',
+  \ 'errorSign': 'XX',
+  \ 'warningSign': '!!',
+  \ })
 " }}}
