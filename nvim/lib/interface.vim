@@ -107,6 +107,8 @@ endif
   let g:airline#extensions#tabline#enabled = 1
   let g:airline#extensions#ale#enabled = 1
 
+  let g:coc_status_error_sign = 'E:'
+  let g:coc_status_warning_sign = 'W:'
   call airline#parts#define_function('coc#status', 'coc#status')
 
   function StatusLine_filesize()
@@ -134,9 +136,9 @@ endif
     let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
   endfunction
   function s:tweak_airline()
-    " if exists('*coc#status')
-    "   call s:airline_section_prepend('x', ['coc#status'])
-    " endif
+    if exists('*coc#status')
+      call s:airline_section_prepend('x', ['coc#status'])
+    endif
     call s:airline_section_append('y', ['filesize'])
     if exists('*airline#extensions#coc#get_error')
       call s:airline_section_prepend('error', ['coc_error_count'])
