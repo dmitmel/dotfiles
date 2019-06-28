@@ -105,7 +105,7 @@ endif
 
   let g:airline#extensions#branch#enabled = 1
   let g:airline#extensions#tabline#enabled = 1
-  let g:airline#extensions#ale#enabled = 1
+  let g:airline#extensions#coc#enabled = 1
 
   let g:coc_status_error_sign = 'E:'
   let g:coc_status_warning_sign = 'W:'
@@ -140,12 +140,6 @@ endif
       call s:airline_section_prepend('x', ['coc#status'])
     endif
     call s:airline_section_append('y', ['filesize'])
-    if exists('*airline#extensions#coc#get_error')
-      call s:airline_section_prepend('error', ['coc_error_count'])
-    endif
-    if exists('*airline#extensions#coc#get_warning')
-      call s:airline_section_prepend('warning', ['coc_warning_count'])
-    endif
   endfunction
   augroup vimrc-interface-airline
     autocmd!
