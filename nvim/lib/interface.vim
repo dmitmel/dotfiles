@@ -150,8 +150,7 @@ endif
 
 
 " FZF {{{
-  noremap  <silent> <F1>      <Cmd>Helptags<CR>
-  inoremap <silent> <F1>      <Cmd>Helptags<CR>
+  nnoremap <silent> <F1>      <Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
   nnoremap <silent> <leader>b <Cmd>Buffers<CR>
 " }}}
