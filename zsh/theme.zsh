@@ -7,4 +7,59 @@ configure_dircolors() {
   zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
 }
 
+prompt_preexec_hook() {
+  typeset -g -i _PROMPT_EXEC_START_TIME
+  _PROMPT_EXEC_START_TIME="$(date +%s.%N)"
+}
+
+prompt_precmd_hook() {
+  if [[ -v _PROMPT_EXEC_START_TIME ]]; then
+    local -F stop_time duration
+    stop_time="$(date +%s.%N)"
+    duration="$((stop_time - _PROMPT_EXEC_START_TIME))"
+    unset _PROMPT_EXEC_START_TIME
+
+    if (( duration > 1 )); then
+      local -i t="$duration" d h m s
+      typeset -g _PROMPT_EXEC_TIME=""
+      d="$((t/60/60/24))"
+      h="$((t/60/60%24))"
+      m="$((t/60%60))"
+      s="$((t%60))"
+      (( d > 0 )) && _PROMPT_EXEC_TIME+="${d}d"
+      (( h > 0 )) && _PROMPT_EXEC_TIME+="${h}h"
+      (( m > 0 )) && _PROMPT_EXEC_TIME+="${m}m"
+      _PROMPT_EXEC_TIME+="${s}s"
+    else
+      unset _PROMPT_EXEC_TIME
+    fi
+  fi
+}
+
+setup_prompt() {
+  setopt nopromptbang promptcr promptsp promptpercent promptsubst
+
+  if [[ "$(date +%N)" != "N" ]]; then
+    preexec_functions+=(prompt_preexec_hook)
+    precmd_functions+=(prompt_precmd_hook)
+  else
+    echo "Please, install GNU coreutils to get command execution time in the prompt"
+  fi
+
+  PROMPT='%F{8}┌─%f%B'
+  PROMPT+='%F{%(!.red.yellow)}%n%f'
+  PROMPT+=' at %F{${SSH_CONNECTION:+blue}${SSH_CONNECTION:-green}}%m%f'
+  PROMPT+=' in %F{cyan}%~%f'
+  PROMPT+=' '
+  PROMPT+='${_PROMPT_EXEC_TIME:+" %F{yellow}$_PROMPT_EXEC_TIME%f"}'
+  PROMPT+='%(?.. %F{red}EXIT:%?%f)'
+  PROMPT+='%1(j. %F{blue}JOBS:%j%f.)'
+  PROMPT+=$'\n'
+  PROMPT+='%b%F{8}└─%f'
+  PROMPT+='%F{%(?.green.red)}%(!.#.\$)%f '
+
+  PROMPT2='    %_> '
+}
+
 configure_dircolors
+setup_prompt
