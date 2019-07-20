@@ -43,19 +43,13 @@ _ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 
 # basic logging {{{
 
-  _ZPLG_ANSI_BOLD="$(tput bold)"
-  _ZPLG_ANSI_RED="$(tput setaf 1)"
-  _ZPLG_ANSI_GREEN="$(tput setaf 2)"
-  _ZPLG_ANSI_BLUE="$(tput setaf 4)"
-  _ZPLG_ANSI_RESET="$(tput sgr0)"
-
   _zplg_log() {
-    print >&2 "${_ZPLG_ANSI_BLUE}${_ZPLG_ANSI_BOLD}[zplg]${_ZPLG_ANSI_RESET} $@"
+    print >&2 "${fg_bold[blue]}[zplg]${reset_color} $@"
   }
 
   _zplg_debug() {
     if [[ -n "$ZPLG_DEBUG" ]]; then
-      _zplg_log "${_ZPLG_ANSI_GREEN}debug:${_ZPLG_ANSI_RESET} $@"
+      _zplg_log "${fg[green]}debug:${reset_color} $@"
     fi
   }
 
@@ -69,14 +63,14 @@ _ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
         # relative to the beginning of a function/file here. I use it here
         # only for consistency with the shell, TODO might change this in the
         # future.
-        _zplg_log "${_ZPLG_ANSI_RED}error:${_ZPLG_ANSI_RESET} ${functrace[$i]}: $@"
+        _zplg_log "${fg[red]}error:${reset_color} ${functrace[$i]}: $@"
         return 1
       fi
     done
 
     # if for whatever reason we couldn't find the caller, simply print the
     # error without it
-    _zplg_log "${_ZPLG_ANSI_RED}error:${_ZPLG_ANSI_RESET} $@"
+    _zplg_log "${fg[red]}error:${reset_color} $@"
     return 1
   }
 
