@@ -1,11 +1,6 @@
 #!/usr/bin/env zsh
 
-export LANG="en_US.UTF-8"
-export LC_ALL="$LANG"
-
-if [[ -z "$USER" && -n "$USERNAME" ]]; then
-  export USER="$USERNAME"
-fi
+export USER="${USER:-$USERNAME}"
 
 # find editor
 export EDITOR="nvim"
