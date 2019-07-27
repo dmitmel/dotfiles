@@ -2,13 +2,13 @@
 
 ZSH_DOTFILES="${0:h}"
 
+# add colon after MANPATH so that it doesn't overwrite system MANPATH
+export MANPATH="$MANPATH:"
+
 for script in functions path env plugins aliases palette theme; do
   source "$ZSH_DOTFILES/$script.zsh"
   source_if_exists "$ZSH_DOTFILES/custom/$script.zsh"
 done
-
-# add colon after MANPATH so that it doesn't overwrite system MANPATH
-MANPATH="$MANPATH:"
 
 command_exists rbenv && eval "$(rbenv init -)"
 
