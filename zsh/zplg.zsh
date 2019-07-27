@@ -28,6 +28,10 @@
 
 _ZPLG_SCRIPT_PATH="${(%):-%N}"
 
+# load dependencies {{{
+  autoload -Uz colors && colors
+# }}}
+
 
 # $ZPLG_HOME is a directory where all your plugins are downloaded, it also
 # might contain in the future some kind of state/lock/database files. It is
