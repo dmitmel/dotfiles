@@ -58,7 +58,7 @@ setup_prompt() {
   PROMPT+='%b%F{8}└─%f'
   PROMPT+='%F{%(?.green.red)}%(!.#.\$)%f '
 
-  PROMPT2='    %_> '
+  PROMPT2='  %_> '
 }
 
 configure_dircolors
