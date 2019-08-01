@@ -35,10 +35,15 @@ _ZPLG_SCRIPT_PATH="${(%):-%N}"
 
 # $ZPLG_HOME is a directory where all your plugins are downloaded, it also
 # might contain in the future some kind of state/lock/database files. It is
-# recommended to change it before `source`-ing this script for compatitability
-# with future versions.
+# recommended to change it before `source`-ing this script because you may end
+# up with a broken plugin directory.
 if [[ -z "$ZPLG_HOME" ]]; then
   ZPLG_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zplg"
+fi
+
+# Default plugin source, see the `plugin` function for description.
+if [[ -z "$ZPLG_DEFAULT_SOURCE" ]]; then
+  ZPLG_DEFAULT_SOURCE="github"
 fi
 
 # Directory in which plugins are stored. It is separate from $ZPLG_HOME for
@@ -117,7 +122,8 @@ _zplg_expand_pattern() {
   local pattern="$1" out_var_name="$2"
   # ${~var_name} turns on globbing for this expansion, note lack of quotes: as
   # it turns out glob expansions are automatically quoted by design, and when
-  # you explicitly write "${~pattern}" it is basically the same as "$pattern"
+  # you explicitly write `"${~pattern}"` it is basically the same as
+  # `"$pattern"`
   eval "$out_var_name=(\${~pattern})"
 }
 
@@ -189,7 +195,7 @@ _zplg_load() {
 #   function must, well, download a plugin from the given URL into the given
 #   directory, ugrade one, obviously, upgrades plugin inside of the given
 #   directory. Please note that neither of these functions is executed INSIDE
-#   of the plugin directory.
+#   of the plugin directory (i.e. current working directory is not changed).
 #
 # build (+)
 #   Command which builds/compiles the plugin, executed INSIDE of $plugin_dir
@@ -207,7 +213,7 @@ _zplg_load() {
 #
 # Neat trick when using options: if you want to assign values using an array,
 # write it like this: option=${^array}. That way `option=` is prepended to
-# each value of `array`.
+# each element of `array`.
 #
 # For examples see my dotfiles: https://github.com/dmitmel/dotfiles/blob/master/zsh/plugins.zsh
 # You may ask me why did I choose to merge loading and downloading behavior
@@ -251,7 +257,7 @@ plugin() {
 
   # parse options {{{
 
-    local plugin_from="github"
+    local plugin_from="$ZPLG_DEFAULT_SOURCE"
     local -a plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
 
     local option key value; shift 2; for option in "$@"; do
@@ -386,105 +392,110 @@ _zplg_is_plugin_loaded() {
   (( ${ZPLG_LOADED_PLUGINS[(ie)$plugin_id]} <= ${#ZPLG_LOADED_PLUGINS} ))
 }
 
-# Here are some useful commands for managing plugins. I chose to make them
-# functions because:
-# 1. automatic completion
-# 2. automatic correction
+# Useful commands for managing plugins {{{
 
-# Prints IDs of all loaded plugins.
-plugin-list() {
-  # (F) modifier joins an array with newlines
-  print "${(F)ZPLG_LOADED_PLUGINS}"
-}
+  # I chose to make each of these commands as a separate function because:
+  # 1. automatic completion
+  # 2. automatic correction
+  # 3. hyphen is a single keystroke, just like space, so `zplg-list` is not
+  #    hard to type fast.
 
-# Upgrades all plugins if no arguments are given, otherwise upgrades plugins by
-# their IDs.
-plugin-upgrade() {
-  local plugin_ids_var
-  if (( $# > 0 )); then
-    plugin_ids_var="@"
-  else
-    plugin_ids_var="ZPLG_LOADED_PLUGINS"
-  fi
+  # Prints IDs of all loaded plugins.
+  zplg-list() {
+    # (F) modifier joins an array with newlines
+    print "${(F)ZPLG_LOADED_PLUGINS}"
+  }
 
-  local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
-  # for description of the (P) modifier see _zplg_run_commands
-  for plugin_id in "${(@P)plugin_ids_var}"; do
-    if ! _zplg_is_plugin_loaded "$plugin_id"; then
-      _zplg_error "unknown plugin $plugin_id"
+  # Upgrades all plugins if no arguments are given, otherwise upgrades plugins by
+  # their IDs.
+  zplg-upgrade() {
+    local plugin_ids_var
+    if (( $# > 0 )); then
+      plugin_ids_var="@"
+    else
+      plugin_ids_var="ZPLG_LOADED_PLUGINS"
+    fi
+
+    local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
+    # for description of the (P) modifier see `_zplg_run_commands`
+    for plugin_id in "${(@P)plugin_ids_var}"; do
+      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+        _zplg_error "unknown plugin $plugin_id"
+        return 1
+      fi
+
+      plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
+      plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
+      plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+
+      _zplg_log "upgrading $plugin_id"
+      _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
+
+      if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
+        # TERRIBLE HACK continued: this monstrosity is used to "decode" build
+        # commands. See ending of the `plugin` function for "encoding" procedure.
+        # First, I get encoded string. Then with the (z) modifier I split it into
+        # array taking into account quoting. Then with the (Q) modifier I unquote
+        # every value.
+        plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
+        _zplg_log "building $plugin_id"
+        ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
+      fi
+    done
+  }
+
+  # Reinstall plugins by IDs.
+  zplg-reinstall() {
+    if (( $# == 0 )); then
+      _zplg_error "usage: $0 <plugin...>"
       return 1
     fi
 
-    plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
-    plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-    plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+    local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
+    for plugin_id in "$@"; do
+      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+        _zplg_error "unknown plugin $plugin_id"
+        return 1
+      fi
 
-    _zplg_log "upgrading $plugin_id"
-    _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
+      plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
+      plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
+      plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
 
-    if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
-      # TERRIBLE HACK continued: this monstrosity is used to "decode" build
-      # commands. See ending of the `plugin` function for "encoding" procedure.
-      # First, I get encoded string. Then with the (z) modifier I split it into
-      # array taking into account quoting. Then with the (Q) modifier I unquote
-      # every value.
-      plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
-      _zplg_log "building $plugin_id"
-      ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
-    fi
-  done
-}
+      _zplg_log "removing $plugin_id"
+      rm -rf "$plugin_dir"
 
-# Reinstall plugins by IDs.
-plugin-reinstall() {
-  if (( $# == 0 )); then
-    _zplg_error "usage: $0 <plugin...>"
-    return 1
-  fi
+      _zplg_log "downloading $plugin_id"
+      _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
 
-  local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
-  for plugin_id in "$@"; do
-    if ! _zplg_is_plugin_loaded "$plugin_id"; then
-      _zplg_error "unknown plugin $plugin_id"
+      if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
+        # for description of this terrible hack see the ending of the
+        # `zplg-upgrade` function
+        plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
+        _zplg_log "building $plugin_id"
+        ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
+      fi
+    done
+  }
+
+  # Clears directories of plugins by their IDs.
+  zplg-purge() {
+    if (( $# == 0 )); then
+      _zplg_error "usage: $0 <plugin...>"
       return 1
     fi
 
-    plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
-    plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-    plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+    for plugin_id in "$@"; do
+      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+        _zplg_error "unknown plugin $plugin_id"
+        return 1
+      fi
 
-    _zplg_log "removing $plugin_id"
-    rm -rf "$plugin_dir"
+      local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
 
-    _zplg_log "downloading $plugin_id"
-    _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
+      _zplg_log "removing $plugin_id"
+      rm -rf "$plugin_dir"
+    done
+  }
 
-    if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
-      # for description of this terrible hack see the ending of the
-      # `plugin-upgrade` function
-      plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
-      _zplg_log "building $plugin_id"
-      ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
-    fi
-  done
-}
-
-# Clears directories of plugins by their IDs.
-plugin-purge() {
-  if (( $# == 0 )); then
-    _zplg_error "usage: $0 <plugin...>"
-    return 1
-  fi
-
-  for plugin_id in "$@"; do
-    if ! _zplg_is_plugin_loaded "$plugin_id"; then
-      _zplg_error "unknown plugin $plugin_id"
-      return 1
-    fi
-
-    local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
-
-    _zplg_log "removing $plugin_id"
-    rm -rf "$plugin_dir"
-  done
-}
+# }}}
