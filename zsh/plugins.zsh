@@ -1,9 +1,5 @@
 #!/usr/bin/env zsh
 
-# https://github.com/zdharma/zplugin/blob/master/doc/mod-install.sh
-# https://github.com/zdharma/zplugin/blob/master/zmodules/Src/Makefile.in
-# https://github.com/zsh-users/zsh/blob/master/Etc/zsh-development-guide
-
 source "$ZSH_DOTFILES/zplg.zsh"
 
 plugin completions 'zsh-users/zsh-completions'
