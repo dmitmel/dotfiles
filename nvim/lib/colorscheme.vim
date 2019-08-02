@@ -333,7 +333,8 @@ let s:base16_theme_name = 'eighties'
   hi! link luaBraces   Delimiter
 " }}}
 
-" Zsh {{{
+" Shell {{{
+  hi! link shQuote     String
   hi! link zshFunction Function
   hi! link zshVariable Variable
 " }}}
