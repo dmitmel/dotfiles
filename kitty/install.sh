@@ -36,7 +36,7 @@ if [ ! -f "$release_src_filename" ]; then
   log "downloading $release_src_filename from $release_src_url"
   curl --show-error --fail --location "$release_src_url" -o "$release_src_filename"
 else
-  log "$release_src_filename had already downloaded"
+  log "$release_src_filename has already been downloaded"
 fi
 
 release_src_dir="${release_src_filename%.tar.xz}"
@@ -51,7 +51,7 @@ cd "$release_src_dir"
 
 log "patching"
 for patch in ../../patches/*.patch; do
-  log "applying patch $patch"
+  log "applying $(basename "$patch")"
   patch --unified --strip 0 < "$patch"
 done
 
