@@ -8,4 +8,4 @@ git pull --rebase --stat origin master
 git submodule update --init --recursive --remote --progress
 
 source "$ZSH_DOTFILES/plugins.zsh"
-plugin-upgrade
+zplg-upgrade
