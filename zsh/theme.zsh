@@ -37,8 +37,9 @@ setup_prompt() {
   setopt nopromptbang promptcr promptsp promptpercent promptsubst
 
   zmodload zsh/datetime
-  preexec_functions+=(prompt_preexec_hook)
-  precmd_functions+=(prompt_precmd_hook)
+  autoload -Uz add-zsh-hook
+  add-zsh-hook preexec prompt_preexec_hook
+  add-zsh-hook precmd prompt_precmd_hook
 
   PROMPT='%F{8}┌─%f%B'
   PROMPT+='%F{%(!.red.yellow)}%n%f'
