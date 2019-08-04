@@ -8,15 +8,12 @@ configure_dircolors() {
 }
 
 prompt_preexec_hook() {
-  typeset -g -i _PROMPT_EXEC_START_TIME
-  _PROMPT_EXEC_START_TIME="$(date +%s.%N)"
+  typeset -gF _PROMPT_EXEC_START_TIME="$EPOCHREALTIME"
 }
 
 prompt_precmd_hook() {
   if [[ -v _PROMPT_EXEC_START_TIME ]]; then
-    local -F stop_time duration
-    stop_time="$(date +%s.%N)"
-    duration="$((stop_time - _PROMPT_EXEC_START_TIME))"
+    local -F duration="$((EPOCHREALTIME - _PROMPT_EXEC_START_TIME))"
     unset _PROMPT_EXEC_START_TIME
 
     if (( duration > 1 )); then
@@ -39,12 +36,9 @@ prompt_precmd_hook() {
 setup_prompt() {
   setopt nopromptbang promptcr promptsp promptpercent promptsubst
 
-  if [[ "$(date +%N)" != "N" ]]; then
-    preexec_functions+=(prompt_preexec_hook)
-    precmd_functions+=(prompt_precmd_hook)
-  else
-    echo "Please, install GNU coreutils to get command execution time in the prompt"
-  fi
+  zmodload zsh/datetime
+  preexec_functions+=(prompt_preexec_hook)
+  precmd_functions+=(prompt_precmd_hook)
 
   PROMPT='%F{8}┌─%f%B'
   PROMPT+='%F{%(!.red.yellow)}%n%f'
