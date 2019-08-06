@@ -7,6 +7,10 @@ configure_dircolors() {
   zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
 }
 
+prompt_escape() {
+  echo "${@//'%'/%%}"
+}
+
 prompt_preexec_hook() {
   typeset -gF _PROMPT_EXEC_START_TIME="$EPOCHREALTIME"
 }
@@ -33,6 +37,22 @@ prompt_precmd_hook() {
   fi
 }
 
+prompt_vcs_info() {
+  if [[ $(command git rev-parse --is-inside-work-tree) != true ]]; then
+    return
+  fi
+
+  local branch="(no branches)" line
+  git branch | while IFS= read -r line; do
+    if [[ "$line" == "* "* ]]; then
+      branch="${line#\* }"
+      break
+    fi
+  done
+
+  print -n ' %F{blue}git:(%F{magenta}'"$(prompt_escape "$branch")"'%F{blue})%f'
+}
+
 setup_prompt() {
   setopt nopromptbang promptcr promptsp promptpercent promptsubst
 
@@ -45,8 +65,9 @@ setup_prompt() {
   PROMPT+='%F{%(!.red.yellow)}%n%f'
   PROMPT+=' at %F{${SSH_CONNECTION:+blue}${SSH_CONNECTION:-green}}%m%f'
   PROMPT+=' in %F{cyan}%~%f'
+  PROMPT+='$(prompt_vcs_info 2>/dev/null)'
   PROMPT+=' '
-  PROMPT+='${_PROMPT_EXEC_TIME:+" %F{yellow}$_PROMPT_EXEC_TIME%f"}'
+  PROMPT+='${_PROMPT_EXEC_TIME:+" %F{yellow}$(prompt_escape "$_PROMPT_EXEC_TIME")%f"}'
   PROMPT+='%(?.. %F{red}EXIT:%?%f)'
   PROMPT+='%1(j. %F{blue}JOBS:%j%f.)'
   PROMPT+=$'\n'
