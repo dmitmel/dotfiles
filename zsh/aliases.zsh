@@ -49,6 +49,7 @@ alias rmdir='rmdir -v'
 alias chmod='chmod -v'
 alias chown='chown -v'
 alias ln='ln -iv'
+alias mkdir='mkdir -v'
 
 # print file sizes in human readable format
 alias du='du -h'
