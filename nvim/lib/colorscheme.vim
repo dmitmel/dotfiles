@@ -5,31 +5,15 @@ let s:base16_theme_name = 'eighties'
 
 " Color definitions {{{
 
-  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL . '/scripts/base16-' . s:base16_theme_name . '.sh') || &termguicolors
+  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL.'/scripts/base16-'.s:base16_theme_name.'.sh') || &termguicolors
     set termguicolors
   else
     " call system(shellescape(s:base16_shell_script))
   endif
 
-  " Eighties scheme by Chris Kempson (http://chriskempson.com)
-  let s:colors = [
-  \ {'gui': '#2d2d2d', 'cterm': '00'},
-  \ {'gui': '#393939', 'cterm': '18'},
-  \ {'gui': '#515151', 'cterm': '19'},
-  \ {'gui': '#747369', 'cterm': '08'},
-  \ {'gui': '#a09f93', 'cterm': '20'},
-  \ {'gui': '#d3d0c8', 'cterm': '07'},
-  \ {'gui': '#e8e6df', 'cterm': '21'},
-  \ {'gui': '#f2f0ec', 'cterm': '15'},
-  \ {'gui': '#f2777a', 'cterm': '01'},
-  \ {'gui': '#f99157', 'cterm': '16'},
-  \ {'gui': '#ffcc66', 'cterm': '03'},
-  \ {'gui': '#99cc99', 'cterm': '02'},
-  \ {'gui': '#66cccc', 'cterm': '06'},
-  \ {'gui': '#6699cc', 'cterm': '04'},
-  \ {'gui': '#cc99cc', 'cterm': '05'},
-  \ {'gui': '#d27b53', 'cterm': '17'}
-  \ ]
+  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
+  let s:colors = g:colorscheme_base16_colors
+  unlet g:colorscheme_base16_colors
 
 " }}}
 
