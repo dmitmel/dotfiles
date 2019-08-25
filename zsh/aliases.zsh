@@ -13,10 +13,7 @@ alias sudo='sudo '
 alias cdd='dirs -v'
 
 alias grep='grep --color=auto'
-
-if ! command_exists colordiff; then
-  alias colordiff='diff --color'
-fi
+alias diff='diff --color=auto'
 
 # exa is a modern replacement for ls - https://the.exa.website/
 if command_exists exa; then
@@ -24,7 +21,7 @@ if command_exists exa; then
   alias lsa="${aliases[ls]} --all"
   alias l="${aliases[ls]} --long --header --binary --group"
   alias la="${aliases[l]} --all"
-  alias tree="exa -T"
+  alias tree="${aliases[ls]} --tree"
 else
   alias ls="ls --classify --group-directories-first --color=auto"
   alias lsa="${aliases[ls]} --almost-all"
