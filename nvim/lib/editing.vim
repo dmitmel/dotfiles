@@ -154,6 +154,6 @@ set foldmethod=marker
   let g:pencil#conceallevel = 0
   let g:pencil#cursorwrap = 0
 
-  xmap ga <Plug>(LiveEasyAlign)
-  nmap ga <Plug>(LiveEasyAlign)
+  xmap <leader>ga <Plug>(LiveEasyAlign)
+  nmap <leader>ga <Plug>(LiveEasyAlign)
 " }}}
