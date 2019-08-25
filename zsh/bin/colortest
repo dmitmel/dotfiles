@@ -1,0 +1,2 @@
+#!/bin/sh
+exec awk -f "$(dirname "$0")/colortest.awk"
