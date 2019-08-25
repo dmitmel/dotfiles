@@ -151,6 +151,18 @@
 
 " }}}
 
+" AWK {{{
+  hi! link awkArrayElement Number
+  hi! link awkBoolLogic    Operator
+  hi! link awkComma        Delimiter
+  hi! link awkExpression   Operator
+  hi! link awkFieldVars    awkVariables
+  hi! link awkOperator     Operator
+  hi! link awkPatterns     Label
+  hi! link awkSemicolon    Delimiter
+  hi! link awkVariables    Variable
+" }}}
+
 " Diff {{{
   " diff mode
   call s:hi('DiffAdd',     0xB, 0x1, '', '')
