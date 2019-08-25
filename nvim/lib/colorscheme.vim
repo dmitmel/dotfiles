@@ -1,19 +1,19 @@
 " modified version of base16-vim (https://github.com/chriskempson/base16-vim)
 " by Chris Kempson (http://chriskempson.com)
 
-let s:base16_theme_name = 'eighties'
-
 " Color definitions {{{
+
+  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
+  let s:colors = g:my_colorscheme_base16_colors
+  let s:theme_name = g:my_colorscheme_name
+  let s:base16_theme_name = g:my_colorscheme_base16_name
+  unlet g:my_colorscheme_name g:my_colorscheme_base16_name g:my_colorscheme_base16_colors
 
   if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL.'/scripts/base16-'.s:base16_theme_name.'.sh') || &termguicolors
     set termguicolors
   else
-    " call system(shellescape(s:base16_shell_script))
+    " call system(shellescape($BASE16_SHELL.'/scripts/base16-'.s:base16_theme_name.'.sh'))
   endif
-
-  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
-  let s:colors = g:colorscheme_base16_colors
-  unlet g:colorscheme_base16_colors
 
 " }}}
 
@@ -32,7 +32,7 @@ let s:base16_theme_name = 'eighties'
 " Theme setup {{{
   hi clear
   syntax reset
-  let g:colors_name = 'base16-' . s:base16_theme_name
+  let g:colors_name = s:theme_name
 " }}}
 
 " Highlighting function {{{

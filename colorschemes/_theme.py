@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 # base16-eighties by Chris Kempson (http://chriskempson.com)
+base16_name = "eighties"
+name = "base16-" + base16_name
 base16_colors = [
     "#2d2d2d",  # 0
     "#393939",  # 1
