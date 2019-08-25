@@ -10,7 +10,8 @@ install_dotfile() {
     mv -vi "$dest" "$dest.dmitmel-dotfiles-backup"
   fi
 
-  mkdir -p "${dest:h}"
+  mkdir -pv "${dest:h}"
+  echo "installing dotfile '$dest'"
   echo "$contents" > "$dest"
 }
 
@@ -30,3 +31,8 @@ done
 file_name=kitty.conf
 file_path="$DOTFILES_PATH/kitty/$file_name"
 install_dotfile "$HOME/.config/kitty/$file_name" "include ${(q)file_path}"
+
+# tmux
+file_name=tmux.conf
+file_path="$DOTFILES_PATH/tmux/$file_name"
+install_dotfile "$HOME/.$file_name" "source-file ${(q)file_path}"
