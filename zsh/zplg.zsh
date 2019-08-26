@@ -322,7 +322,9 @@ plugin() {
           fi
         done
         _zplg_debug "sourcing $script_path"
-        _zplg_load "$script_path" || return "$?"
+        if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
+          _zplg_load "$script_path" || return "$?"
+        fi
       done
     done; unset load_pattern ignore_pattern script_path
 
