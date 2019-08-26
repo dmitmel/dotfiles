@@ -1,0 +1,16 @@
+--- kitty/glfw.c	2019-07-29 07:15:02.000000000 +0300
++++ kitty/glfw.c	2019-08-01 23:38:47.259980678 +0300
+@@ -842,13 +842,9 @@
+     double now = monotonic();
+     if (now - last_bell_at <= 0.1) return;
+     last_bell_at = now;
+-#ifdef __APPLE__
+     if (w->handle) {
+         glfwWindowBell(w->handle);
+     }
+-#else
+-    play_canberra_sound("bell", "kitty bell");
+-#endif
+ }
+
+ static PyObject*
