@@ -59,7 +59,7 @@ function test_true_color() {
   print "24-bit true color test:"
   colors_count = 360;
   for (h = 0; h < colors_count; h++) {
-    hsv_to_rgb(h / colors_count, 1, 1, rgb);
+    hsv2rgb(h / colors_count, 1, 1, rgb);
     for (i = 0; i < 3; i++) rgb[i] = int(rgb[i] * 255);
     r = rgb[0];
     g = rgb[1];
@@ -70,9 +70,9 @@ function test_true_color() {
   print "";
 }
 
-function hsv_to_rgb(h, s, v, rgb) {
+function hsv2rgb(h, s, v, rgb) {
   if (s == 0) {
-    rgb[0] = rgb[1] = rgb[2] = v;
+    r = g = b = v;
   } else {
     h *= 6;
     i = int(h);
@@ -80,31 +80,19 @@ function hsv_to_rgb(h, s, v, rgb) {
     p = v * (1 - s);
     q = v * (1 - s * f);
     t = v * (1 - s * (1 - f));
-
     if (i == 0) {
-      rgb[0] = v;
-      rgb[1] = t;
-      rgb[2] = p;
+      r = v; g = t; b = p;
     } else if (i == 1) {
-      rgb[0] = q;
-      rgb[1] = v;
-      rgb[2] = p;
+      r = q; g = v; b = p;
     } else if (i == 2) {
-      rgb[0] = p;
-      rgb[1] = v;
-      rgb[2] = t;
+      r = p; g = v; b = t;
     } else if (i == 3) {
-      rgb[0] = p;
-      rgb[1] = q;
-      rgb[2] = v;
+      r = p; g = q; b = v;
     } else if (i == 4) {
-      rgb[0] = t;
-      rgb[1] = p;
-      rgb[2] = v;
+      r = t; g = p; b = v;
     } else if (i == 5) {
-      rgb[0] = v;
-      rgb[1] = p;
-      rgb[2] = q;
+      r = v; g = p; b = q;
     }
   }
+  rgb[0] = r; rgb[1] = g; rgb[2] = b;
 }
