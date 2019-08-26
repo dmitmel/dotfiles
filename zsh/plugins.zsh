@@ -4,31 +4,35 @@ source "$ZSH_DOTFILES/zplg.zsh"
 
 plugin completions 'zsh-users/zsh-completions'
 
-run_compinit() {
-  autoload -U compinit
+# compinit {{{
+  # note that completion system must be initialized after zsh-completions and
+  # before oh-my-zsh
+  run_compinit() {
+    autoload -U compinit
 
-  local match run_compdump=1
-  # glob qualifiers description:
-  #   N    turn on NULL_GLOB for this expansion
-  #   .    match only plain files
-  #   m-1  check if the file was modified today
-  # see "Filename Generation" in zshexpn(1)
-  for match in $HOME/.zcompdump(N.m-1); do
-    run_compdump=
-    break
-  done
+    local match run_compdump=1
+    # glob qualifiers description:
+    #   N    turn on NULL_GLOB for this expansion
+    #   .    match only plain files
+    #   m-1  check if the file was modified today
+    # see "Filename Generation" in zshexpn(1)
+    for match in $HOME/.zcompdump(N.m-1); do
+      run_compdump=
+      break
+    done
 
-  if [[ -n "$run_compdump" ]]; then
-    # -D flag turns off compdump loading
-    compinit -D
-    compdump
-  else
-    # -C flag disables some checks performed by compinit - they are not needed
-    # because we already have a fresh compdump
-    compinit -C
-  fi
-}
-run_compinit
+    if [[ -n "$run_compdump" ]]; then
+      # -D flag turns off compdump loading
+      compinit -D
+      compdump
+    else
+      # -C flag disables some checks performed by compinit - they are not needed
+      # because we already have a fresh compdump
+      compinit -C
+    fi
+  }
+  run_compinit
+# }}}
 
 # Oh-My-Zsh {{{
 
