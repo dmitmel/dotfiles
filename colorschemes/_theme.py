@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # base16-eighties by Chris Kempson (http://chriskempson.com)
 base16_name = "eighties"

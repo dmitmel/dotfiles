@@ -1,6 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import _theme as theme
+
+
+def print_color(key_name, color):
+    print("{} {}".format(key_name, color))
+
 
 print("background", theme.bg)
 print("foreground", theme.fg)
