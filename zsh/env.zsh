@@ -8,4 +8,6 @@ export VISUAL="$EDITOR"
 alias edit="$EDITOR"
 alias e="$EDITOR"
 
-export CLICOLOR="1"
+export CLICOLOR=1
+
+READNULLCMD=cat
