@@ -1,5 +1,10 @@
 #!/usr/bin/env zsh
 
+ZSH_CACHE_DIR="$HOME/.cache/dotfiles"
+if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
+  mkdir -pv "$ZSH_CACHE_DIR"
+fi
+
 source "$ZSH_DOTFILES/zplg.zsh"
 
 plugin completions 'zsh-users/zsh-completions'
@@ -35,8 +40,6 @@ plugin completions 'zsh-users/zsh-completions'
 # }}}
 
 # Oh-My-Zsh {{{
-
-  ZSH_CACHE_DIR="$ZSH_DOTFILES/cache"
 
   # disable automatic updates because OMZ is managed by my plugin manager
   DISABLE_AUTO_UPDATE=true
