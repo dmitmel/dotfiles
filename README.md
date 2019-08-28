@@ -1,3 +1,3 @@
-# dotfiles
+# .dotfiles
 
-My dotfiles for macOS, Ubuntu, Linux Mint, Manjaro and Raspbian
+My dotfiles for macOS, Arch Linux, Raspbian and Android (Termux).
