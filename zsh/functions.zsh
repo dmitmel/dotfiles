@@ -35,6 +35,8 @@ welcome() {
   python "$ZSH_DOTFILES/welcome/main.py"
 }
 
-if is_linux && command_exists xdg-open; then
+if is_android; then
+  alias open='termux-open'
+elif is_linux && command_exists xdg-open; then
   open() { nohup xdg-open "$@" &> /dev/null; }
 fi
