@@ -47,7 +47,7 @@ path=("$GOPATH/bin" "${path[@]}")
 path=(~/.local/bin "${path[@]}")
 
 # add my binaries and completions
-path=("$ZSH_DOTFILES/bin" "${path[@]}")
+path=("$ZSH_DOTFILES/../scripts" "${path[@]}")
 fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
 
 # check for Rust installed via rustup
