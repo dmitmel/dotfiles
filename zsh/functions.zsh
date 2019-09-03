@@ -40,3 +40,7 @@ if is_android; then
 elif is_linux && command_exists xdg-open; then
   open() { nohup xdg-open "$@" &> /dev/null; }
 fi
+
+set-my-syntax-theme() {
+  fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini"
+}
