@@ -8,6 +8,6 @@ declare -A faces=(
 
 if IFS=$'\n' face_name="$(echo -e "${!faces[*]}" | rofi -dmenu)"; then
   face="${faces[$face_name]}"
-  xsel --clipboard --input <<< "$face"
+  echo -n "$face" | xsel --clipboard --input
   notify-send --icon=utilities-terminal --expire-time=2500 "$0" "$face_name copied to clipboard"
 fi
