@@ -42,5 +42,5 @@ elif is_linux && command_exists xdg-open; then
 fi
 
 set-my-syntax-theme() {
-  fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini"
+  fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"
 }
