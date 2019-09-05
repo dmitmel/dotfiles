@@ -94,6 +94,8 @@ endif
 
 " Airline (statusline) {{{
 
+  let g:airline_theme = 'dotfiles'
+
   let g:airline_symbols = {
     \ 'readonly': 'RO',
     \ 'whitespace': "\u21e5 ",

@@ -46,7 +46,6 @@ Plug 'junegunn/vim-plug'
   Plug 'moll/vim-bbye'
   Plug 'gerw/vim-HiLinkTrace'
   Plug 'vim-airline/vim-airline'
-  Plug 'vim-airline/vim-airline-themes'
   Plug 'tpope/vim-obsession'
   Plug 'romainl/vim-qf'
   if g:vim_ide
