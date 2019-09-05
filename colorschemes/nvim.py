@@ -2,9 +2,9 @@
 
 import _theme as theme
 
-print("let my_colorscheme_name = '{}'".format(theme.name))
-print("let my_colorscheme_base16_name = '{}'".format(theme.base16_name))
-print("let my_colorscheme_base16_colors = [")
+print("let dotfiles_colorscheme_name = '{}'".format(theme.name))
+print("let dotfiles_colorscheme_base16_name = '{}'".format(theme.base16_name))
+print("let dotfiles_colorscheme_base16_colors = [")
 gui_to_cterm_mapping = [0, 18, 19, 8, 20, 7, 21, 15, 1, 16, 3, 2, 6, 4, 5, 17]
 for colors_pair in zip(theme.base16_colors, gui_to_cterm_mapping):
     print("\\ {{'gui': '{}', 'cterm': '{:>02}'}},".format(*colors_pair))

@@ -1,6 +1,6 @@
-let my_colorscheme_name = 'base16-eighties'
-let my_colorscheme_base16_name = 'eighties'
-let my_colorscheme_base16_colors = [
+let dotfiles_colorscheme_name = 'base16-eighties'
+let dotfiles_colorscheme_base16_name = 'eighties'
+let dotfiles_colorscheme_base16_colors = [
 \ {'gui': '#2d2d2d', 'cterm': '00'},
 \ {'gui': '#393939', 'cterm': '18'},
 \ {'gui': '#515151', 'cterm': '19'},

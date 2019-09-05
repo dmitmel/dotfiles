@@ -4,35 +4,17 @@
 " Color definitions {{{
 
   execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
-  let s:colors = g:my_colorscheme_base16_colors
-  let s:theme_name = g:my_colorscheme_name
-  let s:base16_theme_name = g:my_colorscheme_base16_name
-  unlet g:my_colorscheme_name g:my_colorscheme_base16_name g:my_colorscheme_base16_colors
 
-  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL.'/scripts/base16-'.s:base16_theme_name.'.sh') || &termguicolors
+  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL.'/scripts/base16-'.g:dotfiles_colorscheme_base16_name.'.sh') || &termguicolors
     set termguicolors
-  else
-    " call system(shellescape($BASE16_SHELL.'/scripts/base16-'.s:base16_theme_name.'.sh'))
   endif
 
-" }}}
-
-" Neovim terminal colors {{{
-  let s:i = 0
-  for s:color in [0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5, 0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7]
-    let g:terminal_color_{s:i} = s:colors[s:color].gui
-    let s:i += 1
-  endfor
-  unlet s:i
-
-  let g:terminal_color_background = g:terminal_color_0
-  let g:terminal_color_foreground = g:terminal_color_5
 " }}}
 
 " Theme setup {{{
   hi clear
   syntax reset
-  let g:colors_name = s:theme_name
+  let g:colors_name = g:dotfiles_colorscheme_name
 " }}}
 
 " Highlighting function {{{
@@ -40,6 +22,7 @@
     return type(a:value) == v:t_number
   endfunction
 
+  let s:colors = g:dotfiles_colorscheme_base16_colors
   function s:hi(group, fg, bg, attr, guisp)
     let l:args = ''
     if a:fg isnot ''
