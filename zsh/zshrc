@@ -2,7 +2,7 @@
 
 ZSH_DOTFILES="${0:h}"
 
-for script in functions path env plugins aliases palette theme; do
+for script in functions path env plugins aliases palette prompt; do
   source "$ZSH_DOTFILES/$script.zsh"
   source_if_exists "$ZSH_DOTFILES/custom/$script.zsh"
 done
@@ -14,5 +14,7 @@ command_exists rbenv && eval "$(rbenv init -)"
 
 BASE16_SHELL_profile_helper="$BASE16_SHELL/profile_helper.sh"
 [[ -n "$PS1" && -r "$BASE16_SHELL_profile_helper" ]] && eval "$("$BASE16_SHELL_profile_helper")"
+
+setopt noclobber
 
 welcome
