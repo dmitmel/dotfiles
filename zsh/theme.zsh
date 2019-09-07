@@ -1,12 +1,5 @@
 #!/usr/bin/env zsh
 
-configure_dircolors() {
-  [[ -f ~/.dircolors ]] && eval "$(dircolors ~/.dircolors)"
-  [[ -z "$LS_COLORS" ]] && eval "$(dircolors -b)"
-
-  zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
-}
-
 prompt_escape() {
   echo "${@//'%'/%%}"
 }
@@ -77,5 +70,4 @@ setup_prompt() {
   PROMPT2='  %_> '
 }
 
-configure_dircolors
 setup_prompt
