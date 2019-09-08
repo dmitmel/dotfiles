@@ -43,7 +43,7 @@ _palette_widget() {
   # try to fill in a placeholder if there're any, otherwise pick a snippet
   if ! _palette_fill_in_placeholder; then
     local selected
-    if selected="$(_palette_parse_tldr_pages | fzf --ansi --cycle --height 50% --reverse)"
+    if selected="$(_palette_parse_tldr_pages | fzf --height 40% --reverse --ansi)"
     then
       # paste selected snippet without its description
       zle -U "${selected%%$PALETTE_SNIPPET_COMMENT*}"

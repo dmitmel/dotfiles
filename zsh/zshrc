@@ -2,7 +2,7 @@
 
 ZSH_DOTFILES="${0:h}"
 
-for script in functions path env plugins aliases palette prompt; do
+for script in functions path env plugins aliases zle palette prompt; do
   source "$ZSH_DOTFILES/$script.zsh"
   source_if_exists "$ZSH_DOTFILES/custom/$script.zsh"
 done
