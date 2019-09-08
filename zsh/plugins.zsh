@@ -85,4 +85,6 @@ plugin base16-shell 'chriskempson/base16-shell' \
   after_load='export BASE16_SHELL="$plugin_dir"'
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
-plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
+if [[ "$TERM" != "linux" ]]; then
+  plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
+fi
