@@ -60,6 +60,10 @@ plugin completions 'zsh-users/zsh-completions'
   # command execution time stamp shown in the history
   HIST_STAMPS=dd.mm.yyyy
 
+  # ls colors are handled by my dotfiles, so disable that part of OMZ to avoid
+  # wasting time
+  DISABLE_LS_COLORS=true
+
   omz_plugins=(git extract fasd)
 
   plugin oh-my-zsh 'robbyrussell/oh-my-zsh' \

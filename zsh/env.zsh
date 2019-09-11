@@ -11,3 +11,7 @@ alias e="$EDITOR"
 export CLICOLOR=1
 
 READNULLCMD=cat
+
+if [[ -z "$LS_COLORS" ]] && command_exists dircolors; then
+  eval "$(dircolors --bourne-shell)"
+fi
