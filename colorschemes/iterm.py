@@ -40,7 +40,7 @@ print_color("Cursor", theme.cursor_bg)
 print_color("Cursor Text", theme.cursor_fg)
 print_color("Selection Color", theme.selection_bg)
 print_color("Selected Text Color", theme.selection_fg)
-for index, color in enumerate(theme.ansi_colors):
+for index, color in enumerate(theme.ansi_colors[:16]):
     print_color("Ansi " + str(index), color)
 print_color("Link", theme.link_color)
 
