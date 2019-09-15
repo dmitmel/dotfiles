@@ -51,7 +51,7 @@ prompt_vcs_info() {
     fi
   done
 
-  print -n ' %F{blue}git:(%F{magenta}'"$(prompt_escape "$branch")"'%F{blue})%f'
+  print -n ' %F{blue}git:%F{magenta}'"$(prompt_escape "$branch")"'%F{blue}%f'
 }
 
 # configure prompt expansion
