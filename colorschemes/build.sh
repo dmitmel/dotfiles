@@ -7,9 +7,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 mkdir -p out
 
 declare -A apps=(
-  [nvim]=vim
   [iterm]=itermcolors
   [kitty]=conf
+  [nvim]=vim
+  [shell]=zsh
   [termux]=properties
 )
 
