@@ -229,56 +229,56 @@ plugin() {
 
   # parse basic arguments {{{
 
-    if (( $# < 2 )); then
-      _zplg_error "usage: $0 <id> <url> [option...]"
-      return 1
-    fi
+  if (( $# < 2 )); then
+    _zplg_error "usage: $0 <id> <url> [option...]"
+    return 1
+  fi
 
-    local plugin_id="$1"
-    local plugin_url="$2"
-    if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
-      _zplg_error "invalid plugin ID"
-      return 1
-    fi
-    if [[ -z "$plugin_url" ]]; then
-      _zplg_error "invalid plugin URL"
-      return 1
-    fi
+  local plugin_id="$1"
+  local plugin_url="$2"
+  if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
+    _zplg_error "invalid plugin ID"
+    return 1
+  fi
+  if [[ -z "$plugin_url" ]]; then
+    _zplg_error "invalid plugin URL"
+    return 1
+  fi
 
-    # Don't even try to continue if the plugin has already been loaded. This is
-    # not or problem. Plugin manager loads plugins and shouldn't bother
-    # unloading them.
-    if _zplg_is_plugin_loaded "$plugin_id"; then
-      _zplg_error "plugin $plugin_id has already been loaded"
-      return 1
-    fi
+  # Don't even try to continue if the plugin has already been loaded. This is
+  # not or problem. Plugin manager loads plugins and shouldn't bother
+  # unloading them.
+  if _zplg_is_plugin_loaded "$plugin_id"; then
+    _zplg_error "plugin $plugin_id has already been loaded"
+    return 1
+  fi
 
   # }}}
 
   # parse options {{{
 
-    local plugin_from="$ZPLG_DEFAULT_SOURCE"
-    local -a plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
+  local plugin_from="$ZPLG_DEFAULT_SOURCE"
+  local -a plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
 
-    local option key value; shift 2; for option in "$@"; do
-      # globs are faster than regular expressions
-      if [[ "$option" != *?=?* ]]; then
-        _zplg_error "options must have the following format: <key>=<value>"
-        return 1
-      fi
+  local option key value; shift 2; for option in "$@"; do
+    # globs are faster than regular expressions
+    if [[ "$option" != *?=?* ]]; then
+      _zplg_error "options must have the following format: <key>=<value>"
+      return 1
+    fi
 
-      # split 'option' at the first occurence of '='
-      key="${option%%=*}" value="${option#*=}"
-      case "$key" in
-        from)
-          eval "plugin_$key=\"\$value\"" ;;
-        build|before_load|after_load|load|ignore)
-          eval "plugin_$key+=(\"\$value\")" ;;
-        *)
-          _zplg_error "unknown option: $key"
-          return 1 ;;
-      esac
-    done; unset option key value
+    # split 'option' at the first occurence of '='
+    key="${option%%=*}" value="${option#*=}"
+    case "$key" in
+      from)
+        eval "plugin_$key=\"\$value\"" ;;
+      build|before_load|after_load|load|ignore)
+        eval "plugin_$key+=(\"\$value\")" ;;
+      *)
+        _zplg_error "unknown option: $key"
+        return 1 ;;
+    esac
+  done; unset option key value
 
   # }}}
 
@@ -293,21 +293,23 @@ plugin() {
 
   # download plugin {{{
 
-    local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
-    # simple check whether the plugin directory exists is enough for me
-    if [[ ! -d "$plugin_dir" ]]; then
-      _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
+  local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+  # simple check whether the plugin directory exists is enough for me
+  if [[ ! -d "$plugin_dir" ]]; then
+    _zplg_log "downloading $plugin_id"
+    _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
 
-      if (( ${#plugin_build} > 0 )); then
-        _zplg_log "building $plugin_id"
-        ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
-      fi
+    if (( ${#plugin_build} > 0 )); then
+      _zplg_log "building $plugin_id"
+      ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
     fi
+  fi
 
   # }}}
 
   # load plugin {{{
+
+  {
 
     _zplg_run_commands plugin_before_load || return "$?"
 
@@ -345,6 +347,12 @@ plugin() {
       ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${${(@q)plugin_build}}"
       unset plugin_build_quoted
     fi
+
+  } always {
+    if [[ "$?" != 0 ]]; then
+      _zplg_error "an error occured while loading $plugin_id"
+    fi
+  }
 
   # }}}
 
