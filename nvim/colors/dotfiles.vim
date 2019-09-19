@@ -5,8 +5,8 @@
 
   execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
 
-  if empty($BASE16_SHELL) || !filereadable($BASE16_SHELL.'/scripts/base16-'.g:dotfiles_colorscheme_base16_name.'.sh') || &termguicolors
-    set termguicolors
+  if !&termguicolors && exists('$_COLORSCHEME_TERMINAL')
+    set notermguicolors
   endif
 
 " }}}
