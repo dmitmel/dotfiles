@@ -32,7 +32,7 @@ lazy_load() {
 }
 
 welcome() {
-  python "$ZSH_DOTFILES/welcome/main.py"
+  "$ZSH_DOTFILES/welcome/main.py"
 }
 
 if is_android; then
