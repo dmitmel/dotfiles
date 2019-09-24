@@ -12,31 +12,30 @@ plugin completions 'zsh-users/zsh-completions'
 # compinit {{{
   # note that completion system must be initialized after zsh-completions and
   # before oh-my-zsh
-  run_compinit() {
-    autoload -U compinit
+  autoload -U compinit
 
-    local match run_compdump=1
-    # glob qualifiers description:
-    #   N    turn on NULL_GLOB for this expansion
-    #   .    match only plain files
-    #   m-1  check if the file was modified today
-    # see "Filename Generation" in zshexpn(1)
-    for match in $HOME/.zcompdump(N.m-1); do
-      run_compdump=
-      break
-    done
+  run_compdump=1
+  # glob qualifiers description:
+  #   N    turn on NULL_GLOB for this expansion
+  #   .    match only plain files
+  #   m-1  check if the file was modified today
+  # see "Filename Generation" in zshexpn(1)
+  for match in $HOME/.zcompdump(N.m-1); do
+    run_compdump=0
+    break
+  done; unset match
 
-    if [[ -n "$run_compdump" ]]; then
-      # -D flag turns off compdump loading
-      compinit -D
-      compdump
-    else
-      # -C flag disables some checks performed by compinit - they are not needed
-      # because we already have a fresh compdump
-      compinit -C
-    fi
-  }
-  run_compinit
+  if (( $run_compdump )); then
+    echo "$0: rebuilding zsh completion dump"
+    # -D flag turns off compdump loading
+    compinit -D
+    compdump
+  else
+    # -C flag disables some checks performed by compinit - they are not needed
+    # because we already have a fresh compdump
+    compinit -C
+  fi
+  unset run_compdump
 # }}}
 
 # Oh-My-Zsh {{{
@@ -64,11 +63,12 @@ plugin completions 'zsh-users/zsh-completions'
   # wasting time
   DISABLE_LS_COLORS=true
 
+  omz_features=(key-bindings termsupport)
   omz_plugins=(git extract fasd)
 
   plugin oh-my-zsh 'robbyrussell/oh-my-zsh' \
-    load='lib/*.zsh' load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
-    ignore='lib/(compfix|diagnostics).zsh' \
+    load='lib/'${^omz_features}'.zsh' \
+    load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
     before_load='ZSH="$plugin_dir"' \
     after_load='plugin-cfg-path fpath prepend completions functions' \
     after_load='plugin-cfg-path fpath prepend plugins/'${^omz_plugins}
@@ -83,9 +83,8 @@ plugin fzf 'junegunn/fzf' build='./install --bin' \
 
 plugin alias-tips 'djui/alias-tips'
 
-plugin ssh 'zpm-zsh/ssh'
-
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
   plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
+  set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
 fi

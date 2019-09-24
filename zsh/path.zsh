@@ -40,22 +40,25 @@ if is_macos; then
 fi
 
 # add Go binaries
-export GOPATH="$HOME/.go"
+export GOPATH=~/.go
 path=("$GOPATH/bin" "${path[@]}")
 
-# add user binaries
-path=(~/.local/bin "${path[@]}")
-
-# add my binaries and completions
-path=("$ZSH_DOTFILES/../scripts" "${path[@]}")
-fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
-
-# check for Rust installed via rustup
-rustc=~/.cargo/bin/rustc
-if [[ -f "$rustc" && -x "$rustc" ]] && rust_sysroot="$("$rustc" --print sysroot)"; then
-  # add paths of the default Rust toolchain
-  path=(~/.cargo/bin "${path[@]}")
+# Rust
+path=(~/.cargo/bin "${path[@]}")
+# check if the Rust toolchain was installed via rustup
+if rustup_home="$(rustup show home 2> /dev/null)" &&
+   rust_sysroot="$(rustc --print sysroot 2> /dev/null)" &&
+  [[ -d "$rustup_home" && -d "$rust_sysroot" && "$rust_sysroot" == "$rustup_home"/* ]]
+then
+  # add paths of the selected Rust toolchain
   fpath=("$rust_sysroot/share/zsh/site-functions" "${fpath[@]}")
   manpath=("$rust_sysroot/share/man" "${manpath[@]}")
 fi
-unset rustc rust_sysroot
+unset rustup_home rust_sysroot
+
+# add my binaries and completions
+path=("${ZSH_DOTFILES:h}/scripts" "${path[@]}")
+fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
+
+# add user binaries
+path=(~/.local/bin "${path[@]}")

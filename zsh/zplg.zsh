@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # This... is my DIY plugin manager for Zsh. "Why did I reinvent the wheel yet
 # again and created my own plugin manager?" you might ask. Well, some of them
 # are too slow (antigen, zplug), some are too complicated (antigen-hs, zplugin)
@@ -22,15 +24,11 @@
 #    means "put all elements of the array in separate quotes".
 # 2. I often use the following snippet to exit functions on errors:
 #    eval "$some_user_command_that_might_fail" || return "$?"
-#    I do this instead of `setopt localoptions errexit` because some plugins
+#    I do this instead of `setopt local_options err_exit` because some plugins
 #    may not be compatitable with ERREXIT.
 
 
 _ZPLG_SCRIPT_PATH="${(%):-%N}"
-
-# load dependencies {{{
-  autoload -Uz colors && colors
-# }}}
 
 
 # $ZPLG_HOME is a directory where all your plugins are downloaded, it also
@@ -118,7 +116,7 @@ _zplg_run_commands() {
 # inside a function which reverts NULL_GLOB to its previous value as soon as
 # the function returns.
 _zplg_expand_pattern() {
-  setopt localoptions nullglob
+  setopt local_options null_glob
   local pattern="$1" out_var_name="$2"
   # ${~var_name} turns on globbing for this expansion, note lack of quotes: as
   # it turns out glob expansions are automatically quoted by design, and when

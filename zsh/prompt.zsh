@@ -3,7 +3,7 @@
 # Escapes `%` in all arguments by replacing it with `%%`. Escaping is needed so
 # that untrusted input (e.g. git branch names) doesn't affect prompt rendering.
 prompt_escape() {
-  echo "${@//'%'/%%}"
+  print -n "${@//\%/%%}"
 }
 
 prompt_preexec_hook() {
@@ -65,7 +65,7 @@ prompt_vcs_info() {
 #   enable normal prompt expansion sequences which begin with a `%`.
 # promptsubst
 #   enable parameter/command/arithmetic expansion/substitution in the prompt.
-setopt nopromptbang promptcr promptsp promptpercent promptsubst
+setopt no_prompt_bang prompt_cr prompt_sp prompt_percent prompt_subst
 
 zmodload zsh/datetime
 autoload -Uz add-zsh-hook

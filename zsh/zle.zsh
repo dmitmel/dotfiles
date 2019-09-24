@@ -1,9 +1,13 @@
 #!/usr/bin/env zsh
 
+# http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html
+# http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Zle-Builtins
+# http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets
+
 # _fzf_history_widget {{{
   # taken from https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh
   _fzf_history_widget() {
-    setopt localoptions pipefail
+    setopt local_options pipe_fail
     local selected
     selected=(
       $(fc -rl 1 |
@@ -126,4 +130,21 @@
   # finally, bind the widget to Alt+Shift+P (or Esc+Shift+P)
   zle -N _palette_widget
   bindkey "^[P" _palette_widget
+# }}}
+
+# expand-or-complete-with-dots {{{
+  expand-or-complete-with-dots() {
+    local wrap_ctrl_supported
+    if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
+      wrap_ctrl_supported=1
+    fi
+    # toggle line-wrapping off and back on again
+    if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
+    print -Pn "%F{red}...%f"
+    if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
+    zle expand-or-complete
+    zle redisplay
+  }
+  zle -N expand-or-complete-with-dots
+  bindkey "^I" expand-or-complete-with-dots
 # }}}

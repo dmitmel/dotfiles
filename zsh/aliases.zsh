@@ -1,14 +1,11 @@
 #!/usr/bin/env zsh
 
-# remove Oh-My-Zsh correction aliases
-for cmd in cp ebuild gist heroku hpodder man mkdir mv mysql sudo; do
-  unalias $cmd
-done
-
 # this alias removes leading dollar sign (useful when copying code from Stackoverflow)
 alias '$'=''
 # this alias allows aliases to work with sudo
 alias sudo='sudo '
+
+alias history='fc -i -l 1'
 
 alias cdd='dirs -v'
 
@@ -18,17 +15,16 @@ alias diff='diff --color=auto'
 # exa is a modern replacement for ls - https://the.exa.website/
 if command_exists exa; then
   alias ls="exa --classify --group-directories-first"
-  alias lsa="${aliases[ls]} --all"
-  alias l="${aliases[ls]} --long --header --binary --group"
-  alias la="${aliases[l]} --all"
-  alias tree="${aliases[ls]} --tree"
+  alias lsa="ls --all"
+  alias l="ls --long --header --binary --group"
+  alias la="l --all"
+  alias tree="ls --tree"
 else
   alias ls="ls --classify --group-directories-first --color=auto"
-  alias lsa="${aliases[ls]} --almost-all"
-  alias l="${aliases[ls]} -l --human-readable"
-  alias la="${aliases[l]} --almost-all"
+  alias lsa="ls --almost-all"
+  alias l="ls -l --human-readable"
+  alias la="l --almost-all"
 fi
-unalias ll  # remove this Oh-My-Zsh alias
 
 # fd is a simple, fast and user-friendly alternative to find - https://github.com/sharkdp/fd
 if command_exists fd; then
@@ -36,17 +32,28 @@ if command_exists fd; then
 fi
 
 # git with hub
-command_exists hub && alias git="hub"
+if command_exists hub; then
+  alias git="hub"
+fi
 
 # make these utils more verbose
 alias cp='cp -iv'
 alias mv='mv -iv'
 alias rm='rm -iv'
-alias rmdir='rmdir -v'
+alias rmdir='rmdir -v' rd='rmdir'
 alias chmod='chmod -v'
 alias chown='chown -v'
 alias ln='ln -iv'
-alias mkdir='mkdir -v'
+alias mkdir='mkdir -v' md='mkdir -p'
+
+for n in {1..9}; do
+  alias "$n"="cd +$n"
+done; unset n
+
+alias ...='../..'
+alias ....='../../..'
+alias .....='../../../..'
+alias ......='../../../../..'
 
 # print file sizes in human readable format
 alias du='du -h'
