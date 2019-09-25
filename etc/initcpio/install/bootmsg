@@ -1,0 +1,11 @@
+#!/bin/bash
+
+build() {
+  add_file /etc/bootmsg && add_runscript
+}
+
+help() {
+  cat <<HELPEOF
+This hooks allows to output an arbitrary boot message.
+HELPEOF
+}
