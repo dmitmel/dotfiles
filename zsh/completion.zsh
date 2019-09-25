@@ -38,4 +38,11 @@ zstyle ':completion:*:processes' command "ps xo pid,user,cmd"
 zstyle ':completion:*:processes-names' command "ps xho comm="
 zstyle ':completion:*:processes' force-list always
 
-zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(awk "match(\$0, /^Host[[:blank:]]*/) { print substr(\$0, RLENGTH+1); }" ~/.ssh/config)}")'
+_completion_get_hosts() {
+  print localhost
+  if [[ -f ~/.ssh/config ]]; then
+    awk "match(\$0, /^Host[[:blank:]]*/) { print substr(\$0, RLENGTH+1); }" ~/.ssh/config
+  fi
+}
+zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")
+'
