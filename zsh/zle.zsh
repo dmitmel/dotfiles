@@ -132,19 +132,19 @@
   bindkey "^[P" _palette_widget
 # }}}
 
-# expand-or-complete-with-dots {{{
-  expand-or-complete-with-dots() {
-    local wrap_ctrl_supported
-    if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
-      wrap_ctrl_supported=1
-    fi
-    # toggle line-wrapping off and back on again
-    if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
-    print -Pn "%F{red}...%f"
-    if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
-    zle expand-or-complete
-    zle redisplay
-  }
-  zle -N expand-or-complete-with-dots
-  bindkey "^I" expand-or-complete-with-dots
-# }}}
+# # expand-or-complete-with-dots {{{
+#   expand-or-complete-with-dots() {
+#     local wrap_ctrl_supported
+#     if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
+#       wrap_ctrl_supported=1
+#     fi
+#     # toggle line-wrapping off and back on again
+#     if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
+#     print -Pn "%F{red}...%f"
+#     if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
+#     zle expand-or-complete
+#     zle redisplay
+#   }
+#   zle -N expand-or-complete-with-dots
+#   bindkey "^I" expand-or-complete-with-dots
+# # }}}
