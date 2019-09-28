@@ -2,9 +2,9 @@
 
 count() { echo "$#"; }
 
-mkcd() {
-  mkdir -p "$@" && cd "${@[-1]}"
-}
+bytecount() { wc -c "$@" | numfmt --to=iec-i; }
+
+mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
 
 is_linux()   { [[ "$OSTYPE" == linux*        ]]; }
 is_macos()   { [[ "$OSTYPE" == darwin*       ]]; }
