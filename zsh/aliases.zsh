@@ -14,26 +14,26 @@ alias diff='diff --color=auto'
 
 # exa is a modern replacement for ls - https://the.exa.website/
 if command_exists exa; then
-  alias ls="exa --classify --group-directories-first"
-  alias lsa="ls --all"
-  alias l="ls --long --header --binary --group"
-  alias la="l --all"
-  alias tree="ls --tree"
+  alias ls='exa --classify --group-directories-first'
+  alias lsa='ls --all'
+  alias l='ls --long --header --binary --group'
+  alias la='l --all'
+  alias tree='ls --tree'
 else
-  alias ls="ls --classify --group-directories-first --color=auto"
-  alias lsa="ls --almost-all"
-  alias l="ls -l --human-readable"
-  alias la="l --almost-all"
+  alias ls='ls --classify --group-directories-first --color=auto'
+  alias lsa='ls --almost-all'
+  alias l='ls -l --human-readable'
+  alias la='l --almost-all'
 fi
 
 # fd is a simple, fast and user-friendly alternative to find - https://github.com/sharkdp/fd
 if command_exists fd; then
-  alias fda="fd --hidden --no-ignore"
+  alias fda='fd --hidden --no-ignore'
 fi
 
 # git with hub
 if command_exists hub; then
-  alias git="hub"
+  alias git='hub'
 fi
 
 # make these utils more verbose
