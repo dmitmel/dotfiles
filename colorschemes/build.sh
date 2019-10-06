@@ -10,6 +10,7 @@ declare -A apps=(
   [iterm]=itermcolors
   [kitty]=conf
   [nvim]=vim
+  [setvtrgb]=txt
   [shell]=zsh
   [termux]=properties
 )
