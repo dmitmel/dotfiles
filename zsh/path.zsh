@@ -9,6 +9,21 @@ typeset -T PKG_CONFIG_PATH pkg_config_path ':'
 typeset -U path fpath manpath ldflags cppflags pkg_config_path
 export  -U PATH FPATH MANPATH LDFLAGS CPPFLAGS PKG_CONFIG_PATH
 
+path_append() {
+  local arr_name="$1" value="$2"
+  if eval "if (( \${${arr_name}[(ie)\$value]} > \${#${arr_name}} ))"; then
+    eval "${arr_name}+=(\"\$value\")"
+    eval "${arr_name}=(\"\${${arr_name}[@]}\" \"\$value\")"
+  fi
+}
+
+path_prepend() {
+  local arr_name="$1" value="$2"
+  if eval "if (( \${${arr_name}[(ie)\$value]} > \${#${arr_name}} ))"; then
+    eval "${arr_name}=(\"\$value\" \"\${${arr_name}[@]}\")"
+  fi
+}
+
 if is_macos; then
   path=(
     ~/Library/Python/*/bin
@@ -39,7 +54,10 @@ if is_macos; then
   done
 fi
 
-# add Go binaries
+# Yarn global packages
+path=(~/.yarn/bin "${path[@]}")
+
+# Go
 export GOPATH=~/.go
 path=("$GOPATH/bin" "${path[@]}")
 
