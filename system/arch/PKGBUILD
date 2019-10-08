@@ -1,0 +1,28 @@
+# Maintainer: Dmytro Meleshko <dmytro.meleshko@gmail.com>
+pkgname=dmitmel-dotfiles
+pkgver=0
+pkgrel=1
+pkgdesc="dmitmel's dotfiles"
+arch=('any')
+url="https://github.com/dmitmel/dotfiles"
+license=('MIT')
+backup=()
+
+package() {
+  cd "$(dirname "${BASH_SOURCE[0]}")/../files"
+  install -Dm644 ../../LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  _install_files *
+}
+
+_install_files() {
+  local path real_path mode; for path in "$@"; do
+    real_path="$(realpath "$path")"
+    mode="$(stat --format "%a" "$real_path")"
+    if [[ -d "$path" ]]; then
+      install --directory --mode "$mode" "$pkgdir/$path"
+      _install_files "$path"/*
+    else
+      install --mode "$mode" "$real_path" "$pkgdir/$path"
+    fi
+  done
+}
