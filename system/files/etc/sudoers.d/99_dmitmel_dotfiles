@@ -1,1 +1,11 @@
-Defaults pwfeedback, env_editor
+# Show asterisks when typing passwords.
+Defaults pwfeedback
+
+# Disable launching arbitrary editors from the EDITOR, VISUAL and SUDO_EDITOR
+# variables when using visudo because this is a potential security hole.
+Defaults !env_editor
+# Whitelist of editors which visudo is allowed to run.
+Defaults editor=/usr/bin/nvim:/usr/bin/vim:/usr/bin/nano:/bin/nano
+# Pass-through the editor environment variables so that visudo will be able to
+# see them.
+Defaults env_keep+="EDITOR VISUAL SUDO_EDITOR"
