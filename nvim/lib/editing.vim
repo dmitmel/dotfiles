@@ -82,6 +82,11 @@ set foldmethod=marker
     " noremap <leader>cx "+d
   " }}}
 
+  " make the default Vim mappings more consistent
+  " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
+  nnoremap U <C-r>
+  nnoremap Y y$
+
 " }}}
 
 
