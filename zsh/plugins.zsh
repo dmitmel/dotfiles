@@ -40,29 +40,6 @@ plugin completions 'zsh-users/zsh-completions'
 
 # Oh-My-Zsh {{{
 
-  # disable automatic updates because OMZ is managed by my plugin manager
-  DISABLE_AUTO_UPDATE=true
-
-  # use hyphen-insensitive completion (makes `_` and `-` interchangeable)
-  HYPHEN_INSENSITIVE=true
-
-  # enable command auto-correction
-  ENABLE_CORRECTION=true
-
-  # display red dots while waiting for completion
-  COMPLETION_WAITING_DOTS=true
-
-  # disable marking untracked files under VCS as dirty (this makes repository
-  # status check for large repositories much faster)
-  DISABLE_UNTRACKED_FILES_DIRTY=true
-
-  # command execution time stamp shown in the history
-  HIST_STAMPS=dd.mm.yyyy
-
-  # ls colors are handled by my dotfiles, so disable that part of OMZ to avoid
-  # wasting time
-  DISABLE_LS_COLORS=true
-
   omz_features=(key-bindings termsupport)
   omz_plugins=(git extract fasd)
 
