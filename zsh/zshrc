@@ -4,13 +4,46 @@ ZSH_DOTFILES="${0:h}"
 
 autoload -U colors && colors
 
+# Performance {{{
+
+  zmodload zsh/datetime
+  typeset -A _perf_timers
+
+  _perf_timer_start() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+      print >&2 "$0: usage: $0 <name>"
+      return 1
+    fi
+    _perf_timers[$name]="$EPOCHREALTIME"
+  }
+
+  _perf_timer_stop() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+      print >&2 "$0: usage: $0 <name>"
+      return 1
+    fi
+    local stop_time="$EPOCHREALTIME" start_time="${_perf_timers[$name]}"
+    local -i duration="$(( (stop_time - start_time) * 1000 ))"
+    print -- "\e[${color[faint]}m==>${reset_color} ${name}: ${duration}ms"
+  }
+
+# }}}
+
+_perf_timer_start "total"
+
 for script in functions options path env aliases plugins completion zle prompt colorscheme; do
+  _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
+  _perf_timer_stop "$script.zsh"
 done
 
 # add colon after MANPATH so that it doesn't overwrite system MANPATH
 MANPATH="$MANPATH:"
 
 command_exists rbenv && eval "$(rbenv init -)"
+
+_perf_timer_stop "total"
 
 welcome

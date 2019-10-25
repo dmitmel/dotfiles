@@ -7,7 +7,13 @@ fi
 
 source "$ZSH_DOTFILES/zplg.zsh"
 
-plugin completions 'zsh-users/zsh-completions'
+_plugin() {
+  _perf_timer_start "plugin $1"
+  plugin "$@"
+  _perf_timer_stop "plugin $1"
+}
+
+_plugin completions 'zsh-users/zsh-completions'
 
 # compinit {{{
   # note that completion system must be initialized after zsh-completions and
@@ -43,7 +49,7 @@ plugin completions 'zsh-users/zsh-completions'
   omz_features=(key-bindings termsupport)
   omz_plugins=(git extract fasd)
 
-  plugin oh-my-zsh 'robbyrussell/oh-my-zsh' \
+  _plugin oh-my-zsh 'robbyrussell/oh-my-zsh' \
     load='lib/'${^omz_features}'.zsh' \
     load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
     before_load='ZSH="$plugin_dir"' \
@@ -54,14 +60,14 @@ plugin completions 'zsh-users/zsh-completions'
 
 # }}}
 
-plugin fzf 'junegunn/fzf' build='./install --bin' \
+_plugin fzf 'junegunn/fzf' build='./install --bin' \
   after_load='plugin-cfg-path path prepend bin' \
   after_load='plugin-cfg-path manpath prepend man'
 
-plugin alias-tips 'djui/alias-tips'
+_plugin alias-tips 'djui/alias-tips'
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
+  _plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
   set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
 fi
