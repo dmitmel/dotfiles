@@ -146,12 +146,23 @@ _zplg_load() {
 
   _zplg_source_git_download() {
     local plugin_url="$1" plugin_dir="$2"
-    git clone --depth=1 --recurse-submodules -- "$plugin_url" "$plugin_dir"
+    git clone --recurse-submodules -- "$plugin_url" "$plugin_dir"
   }
 
   _zplg_source_git_upgrade() {
     local plugin_url="$1" plugin_dir="$2"
     ( cd "$plugin_dir" && git pull && git submodule update --init --recursive )
+  }
+
+  # small helper for the git source
+  plugin-git-checkout-latest-version() {
+    local latest_tag
+    git tag --list --sort -version:refname | read -r latest_tag
+    if (( ${#tags} == 0 )); then
+      _zplg_error "$0: no tags in the Git repository"
+      return 1
+    fi
+    # git checkout
   }
 
   _zplg_source_github_download() {
@@ -343,7 +354,6 @@ plugin() {
       # extra ${...} is needed to turn array into a string by joining it with
       # spaces
       ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${${(@q)plugin_build}}"
-      unset plugin_build_quoted
     fi
 
   } always {
