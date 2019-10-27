@@ -20,7 +20,8 @@ def get_system_info():
         info_lines.append(line)
 
     username = getuser()
-    hostname, local_ip = _get_hostname()
+    # hostname, local_ip = _get_hostname()
+    hostname = _get_hostname()
 
     info_lines.append(
         bright_colored(username, Fore.BLUE) + "@" + bright_colored(hostname, Fore.RED)
@@ -44,7 +45,7 @@ def get_system_info():
 
     info("Shell", _get_shell())
 
-    info("IP address", local_ip)
+    # info("IP address", local_ip)
 
     info_lines.append("")
 
@@ -63,8 +64,9 @@ def get_system_info():
 
 def _get_hostname():
     hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    return hostname, local_ip
+    # local_ip = socket.gethostbyname(hostname)
+    # return hostname, local_ip
+    return hostname
 
 
 def _get_uptime():
