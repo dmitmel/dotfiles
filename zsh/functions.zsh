@@ -6,6 +6,16 @@ bytecount() { wc -c "$@" | numfmt --to=iec-i; }
 
 mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
 
+viscd() {
+  local temp_file chosen_dir
+  temp_file="$(mktemp)"
+  ranger --choosedir="$temp_file" -- "${@:-$PWD}"
+  if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" ]]; then
+    cd -- "$chosen_dir"
+  fi
+  rm -f -- "$temp_file"
+}
+
 is_linux()   { [[ "$OSTYPE" == linux*        ]]; }
 is_macos()   { [[ "$OSTYPE" == darwin*       ]]; }
 is_android() { [[ "$OSTYPE" == linux-android ]]; }
