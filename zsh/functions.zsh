@@ -8,9 +8,9 @@ mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
 
 viscd() {
   local temp_file chosen_dir
-  temp_file="$(mktemp)"
+  temp_file="$(mktemp -t ranger_cd.XXXXXXXXXX)"
   ranger --choosedir="$temp_file" -- "${@:-$PWD}"
-  if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" ]]; then
+  if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" && "$chosen_dir" != "$PWD" ]]; then
     cd -- "$chosen_dir"
   fi
   rm -f -- "$temp_file"
