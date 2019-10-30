@@ -42,7 +42,7 @@ prompt_vcs_info() {
   fi
 
   local branch="(no branches)" line
-  git branch | while IFS= read -r line; do
+  command git branch | while IFS= read -r line; do
     # find a line which starts with `* `, it contains the current branch name
     if [[ "$line" == "* "* ]]; then
       # remove the `* ` prefix

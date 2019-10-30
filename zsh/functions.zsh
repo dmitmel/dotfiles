@@ -61,3 +61,18 @@ else
 fi
 eval "clipcopy(){$copy_cmd;};clippaste(){$paste_cmd;}"
 unset copy_cmd paste_cmd
+
+# for compatibility with Oh-My-Zsh plugins
+# Source: https://github.com/robbyrussell/oh-my-zsh/blob/5911aea46c71a2bcc6e7c92e5bebebf77b962233/lib/git.zsh#L58-L71
+git_current_branch() {
+  if [[ "$(command git rev-parse --is-inside-work-tree)" != true ]]; then
+    return 1
+  fi
+
+  local ref
+  ref="$(
+    command git symbolic-ref --quiet HEAD 2> /dev/null ||
+    command git rev-parse --short HEAD 2> /dev/null
+  )" || return
+  echo "${ref#refs/heads/}"
+}
