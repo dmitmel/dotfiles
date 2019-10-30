@@ -20,7 +20,6 @@ def get_system_info():
         info_lines.append(line)
 
     username = getuser()
-    # hostname, local_ip = _get_hostname()
     hostname = _get_hostname()
 
     info_lines.append(
@@ -45,8 +44,6 @@ def get_system_info():
 
     info("Shell", _get_shell())
 
-    # info("IP address", local_ip)
-
     info_lines.append("")
 
     info("CPU Usage", "%s", _get_cpu_usage())
@@ -59,13 +56,16 @@ def get_system_info():
     if battery_info is not None:
         info("Battery", "%s (%s)", *battery_info)
 
+    info_lines.append("")
+
+    for local_ip_address in _get_local_ipv4_addresses():
+        info("Local IPv4 Address (%s)", "%s", *local_ip_address)
+
     return logo_lines, info_lines
 
 
 def _get_hostname():
     hostname = socket.gethostname()
-    # local_ip = socket.gethostbyname(hostname)
-    # return hostname, local_ip
     return hostname
 
 
@@ -121,6 +121,7 @@ def _get_memory():
 
 def _get_disks():
     result = []
+
     for disk in psutil.disk_partitions(all=False):
         if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
             # skip cd-rom drives with no disk in it on Windows; they may raise
@@ -137,6 +138,7 @@ def _get_disks():
                 colorize_percent(usage.percent, warning=70, critical=85),
             )
         )
+
     return result
 
 
@@ -159,6 +161,23 @@ def _get_battery():
     else:
         status = "%s left" % humanize_timedelta(timedelta(seconds=battery.secsleft))
     return colorize_percent(percent, critical=10, warning=20, inverse=True), status
+
+
+def _get_local_ipv4_addresses():
+    result = []
+
+    for interface, addresses in psutil.net_if_addrs().items():
+        for address in addresses:
+            if address.family != socket.AF_INET:
+                # allow only IPv4 addresses (skip IPv6 and MAC, for example)
+                continue
+            if interface.startswith("lo"):
+                # skip loopback interfaces
+                continue
+
+            result.append((interface, address.address))
+
+    return result
 
 
 def _get_distro_info():
