@@ -166,8 +166,10 @@
 " XML {{{
   call s:hi('xmlTagName', 0x8, '', '', '')
   call s:hi('xmlAttrib',  0x9, '', '', '')
-  hi! link xmlTag NONE
-  hi! link xmlEndTag xmlTag
+  hi! link xmlTag Delimiter
+  hi! link xmlEndTag Delimiter
+  hi! link xmlAttribPunct Delimiter
+  hi! link xmlProcessingDelim Delimiter
 " }}}
 
 " Git {{{
