@@ -274,6 +274,7 @@
   hi! link jsUndefined         Constant
   hi! link jsOperatorKeyword   Keyword
   hi! link jsObjectKey         Identifier
+  hi! link jsEnvComment        Special
 " }}}
 
 " Markdown {{{
