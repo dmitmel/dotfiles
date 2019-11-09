@@ -15,4 +15,5 @@ call coc#config('prettier', {
 \ 'trailingComma': 'all',
 \ 'jsxBracketSameLine': v:true,
 \ 'eslintIntegration': v:true,
+\ 'disableSuccessMessage': v:true
 \ })
