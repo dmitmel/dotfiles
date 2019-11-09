@@ -91,6 +91,20 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write<bar>wall\<CR>" : "\<CR>"
     command -nargs=* -complete=file Open call s:Open(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
+  " EditGlob {{{
+    " Yes, I know about the existence of :args, however it modifies the
+    " argument list, so it doesn't play well with Obsession.vim because it
+    " saves the argument list in the session file.
+    function s:EditGlob(...)
+      for l:glob in a:000
+        for l:name in glob(l:glob, 0, 1)
+          execute 'edit' fnameescape(l:name)
+        endfor
+      endfor
+    endfunction
+    command -nargs=* -complete=file -bar EditGlob call s:EditGlob(<f-args>)
+  " }}}
+
 " }}}
 
 
