@@ -26,7 +26,7 @@ autoload -U colors && colors
     fi
     local stop_time="$EPOCHREALTIME" start_time="${_perf_timers[$name]}"
     local -i duration="$(( (stop_time - start_time) * 1000 ))"
-    print -- "\e[${color[faint]}m==>${reset_color} ${name}: ${duration}ms"
+    print -- "$(print -P '%F{8}==>%f') ${name}: ${duration}ms"
   }
 
 # }}}
