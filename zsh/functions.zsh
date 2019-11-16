@@ -35,15 +35,17 @@ lazy_load() {
 
 welcome() { "$ZSH_DOTFILES/welcome/main.py"; }
 
-if is_android; then
-  open_cmd='termux-open'
-elif command_exists xdg-open; then
-  open_cmd='nohup xdg-open &> /dev/null'
-else
-  open_cmd='print >&2 "open: Platform $OSTYPE is not supported"; return 1'
+if ! is_macos; then
+  if is_android; then
+    open_cmd='termux-open'
+  elif command_exists xdg-open; then
+    open_cmd='nohup xdg-open &> /dev/null'
+  else
+    open_cmd='print >&2 "open: Platform $OSTYPE is not supported"; return 1'
+  fi
+  eval "open(){$open_cmd \"\$@\";}"
+  unset open_cmd
 fi
-eval "open(){$open_cmd \"\$@\";}"
-unset open_cmd
 
 if is_macos; then
   copy_cmd='pbcopy' paste_cmd='pbpaste'
