@@ -109,6 +109,9 @@ endif
   let g:airline#extensions#tabline#enabled = 1
   let g:airline#extensions#coc#enabled = 1
 
+  let g:airline#extensions#tabline#left_sep = ' '
+  let g:airline#extensions#tabline#left_alt_sep = ''
+
   let g:coc_status_error_sign = 'E:'
   let g:coc_status_warning_sign = 'W:'
   call airline#parts#define_function('coc#status', 'coc#status')
