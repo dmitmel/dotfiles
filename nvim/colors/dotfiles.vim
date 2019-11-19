@@ -65,12 +65,12 @@
   hi! link Structure    Keyword
   hi! link Conditional  Keyword
   call s:hi('Constant',   0x9, '', '', '')
-  call s:hi('Boolean',    0x9, '', '', '')
-  call s:hi('Float',      0x9, '', '', '')
-  call s:hi('Number',     0x9, '', '', '')
+  hi! link Boolean Constant
+  hi! link Float   Constant
+  hi! link Number  Constant
   call s:hi('String',     0xB, '', '', '')
   hi! link Character String
-  hi! link Quote String
+  hi! link Quote     String
   call s:hi('Comment',    0x3,  '',  '', '')
   hi! link SpecialComment Comment
   call s:hi('Todo',       'bg', 0xA, 'bold', '')
@@ -256,7 +256,9 @@
 
 " JavaScript {{{
   hi! link javaScriptBraces    Delimiter
+  hi! link jsParens            Delimiter
   hi! link jsOperator          Operator
+  hi! link jsStorageClass      StorageClass
   hi! link jsThis              Variable
   hi! link jsSuper             jsThis
   hi! link jsClassDefinition   Type
@@ -275,6 +277,36 @@
   hi! link jsOperatorKeyword   Keyword
   hi! link jsObjectKey         Identifier
   hi! link jsEnvComment        Special
+  hi! link jsImport            Include
+  hi! link jsExport            Include
+" }}}
+
+" TypeScript {{{
+  let g:yats_host_keyword = 0
+  hi! link typescriptParens              jsParens
+  hi! link typescriptBraces              javaScriptBraces
+  hi! link typescriptOperator            jsOperatorKeyword
+  hi! link typescriptCastKeyword         typescriptOperator
+  hi! link typescriptMappedIn            typescriptOperator
+  hi! link typescriptBinaryOp            jsOperator
+  hi! link typescriptOptionalMark        typescriptBinaryOp
+  hi! link typescriptIdentifier          jsThis
+  hi! link typescriptArrowFunc           jsArrowFunction
+  hi! link typescriptFuncTypeArrow       typescriptArrowFunc
+  hi! link typescriptCall                Variable
+  hi! link typescriptArrowFuncArg        typescriptCall
+  hi! link typescriptFuncType            typescriptCall
+  hi! link typescriptVariable            jsStorageClass
+  hi! link typescriptAmbientDeclaration  typescriptVariable
+  hi! link typescriptVariableDeclaration Variable
+  hi! link typescriptTypeReference       Type
+  hi! link typescriptTypeParameter       typescriptTypeReference
+  hi! link typescriptConstructSignature  Keyword
+  hi! link typescriptConstructorType     typescriptConstructSignature
+  hi! link typescriptEndColons           Delimiter
+  hi! link typescriptImport              jsImport
+  hi! link typescriptExport              jsExport
+  hi! link typescriptNull                jsNull
 " }}}
 
 " Markdown {{{
