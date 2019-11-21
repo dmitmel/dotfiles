@@ -6,6 +6,8 @@ set virtualedit=onemore
 
 set foldmethod=marker
 
+set commentstring=//%s
+
 
 " Indentination {{{
 
