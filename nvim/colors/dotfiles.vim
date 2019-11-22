@@ -307,6 +307,7 @@
   hi! link typescriptImport              jsImport
   hi! link typescriptExport              jsExport
   hi! link typescriptNull                jsNull
+  hi! link typescriptObjectLabel         jsObjectKey
 " }}}
 
 " Markdown {{{
