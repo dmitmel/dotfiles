@@ -1,5 +1,5 @@
 augroup vimrc-javascript
-  autocmd FileType javascript setlocal matchpairs-=<:>
+  autocmd FileType javascript,typescript setlocal matchpairs-=<:>
 augroup END
 
 if !g:vim_ide | finish | endif
