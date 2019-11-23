@@ -299,6 +299,7 @@
   hi! link typescriptVariable            jsStorageClass
   hi! link typescriptAmbientDeclaration  typescriptVariable
   hi! link typescriptVariableDeclaration Variable
+  hi! link typescriptGlobal              typescriptVariableDeclaration
   hi! link typescriptTypeReference       Type
   hi! link typescriptTypeParameter       typescriptTypeReference
   hi! link typescriptConstructSignature  Keyword
@@ -308,6 +309,9 @@
   hi! link typescriptExport              jsExport
   hi! link typescriptNull                jsNull
   hi! link typescriptObjectLabel         jsObjectKey
+  hi! link typescriptMethodAccessor      Keyword
+  hi! link typescriptClassName           jsClassDefinition
+  hi! link typescriptClassHeritage       jsClassDefinition
 " }}}
 
 " Markdown {{{
