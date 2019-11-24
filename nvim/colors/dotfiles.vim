@@ -270,6 +270,7 @@
   hi! link jsRegexpString      Special
   hi! link jsGlobalObjects     Type
   hi! link jsGlobalNodeObjects Type
+  hi! link jsException         Exception
   hi! link jsExceptions        Type
   hi! link jsBuiltins          jsFuncName
   hi! link jsNull              Constant
@@ -312,6 +313,7 @@
   hi! link typescriptMethodAccessor      Keyword
   hi! link typescriptClassName           jsClassDefinition
   hi! link typescriptClassHeritage       jsClassDefinition
+  hi! link typescriptExceptions          jsException
 " }}}
 
 " Markdown {{{
