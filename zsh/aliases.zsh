@@ -61,3 +61,10 @@ alias df='df -h'
 alias free='free -h'
 
 alias apt-get="echo -e \"use 'apt' instead of 'apt-get'\nif you really want to use 'apt-get', type '"'\\\\'"apt-get'\" #"
+
+# editor
+alias edit="$EDITOR"
+alias e="$EDITOR"
+if [[ "$EDITOR" == *vim ]]; then
+  alias es="e -S"
+fi

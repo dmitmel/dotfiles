@@ -3,8 +3,6 @@
 # find editor
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
-alias edit="$EDITOR"
-alias e="$EDITOR"
 
 export PAGER='less'
 export LESS='--RAW-CONTROL-CHARS'
