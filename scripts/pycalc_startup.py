@@ -1,4 +1,5 @@
 from math import *
+from fractions import Fraction
 
 
 def factors(n):
