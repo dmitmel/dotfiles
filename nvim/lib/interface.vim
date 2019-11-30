@@ -168,3 +168,11 @@ endif
   nmap ]l <Plug>(qf_loc_next)
   let g:qf_mapping_ack_style = 1
 " }}}
+
+
+" Terminal {{{
+  augroup vimrc-terminal
+    autocmd!
+    autocmd TermOpen * IndentLinesDisable
+  augroup END
+" }}}
