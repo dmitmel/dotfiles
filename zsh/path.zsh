@@ -1,13 +1,11 @@
 #!/usr/bin/env zsh
 
 # tie these env variables to zsh arrays
-typeset -T LDFLAGS ldflags ' '
-typeset -T CPPFLAGS cppflags ' '
 typeset -T PKG_CONFIG_PATH pkg_config_path ':'
 
 # keep only unique values in these arrays
-typeset -U path fpath manpath ldflags cppflags pkg_config_path
-export  -U PATH FPATH MANPATH LDFLAGS CPPFLAGS PKG_CONFIG_PATH
+typeset -U path fpath manpath pkg_config_path
+export  -U PATH FPATH MANPATH PKG_CONFIG_PATH
 
 path_append() {
   local arr_name="$1" value="$2"
@@ -47,8 +45,6 @@ if is_macos; then
   for formula in ruby openssl curl; do
     formula_path="/usr/local/opt/$formula"
     if [[ -d "$formula_path" ]]; then
-      ldflags+=( -L"$formula_path"/lib )
-      cppflags+=( -L"$formula_path"/include )
       pkg_config_path+=( "$formula_path"/lib/pkgconfig )
     fi
   done
