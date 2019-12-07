@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "dependencies": {
+    "argparse": "^1.0.10",
+    "github-slugger": "^1.2.1",
+    "markdown-it": "*",
+    "markdown-it-emoji": "*",
+    "markdown-it-task-checkbox": "*",
+    "prismjs": "^1.17.1"
+  },
+  "devDependencies": {
+    "eslint": "*",
+    "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel"
+  },
+  "eslintConfig": {
+    "extends": "eslint-config-dmitmel/presets/node",
+    "rules": {
+      "node/shebang": "off"
+    }
+  }
+}
