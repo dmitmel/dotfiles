@@ -6,4 +6,4 @@ for python in bpython python3; do
   fi
 done
 echo "using Python '$python'"
-PYTHONSTARTUP="$(dirname "$0")/pycalc_startup.py" "$python" "$@"
+PYTHONSTARTUP="$(dirname "$0")/../script-resources/pycalc_startup.py" "$python" "$@"

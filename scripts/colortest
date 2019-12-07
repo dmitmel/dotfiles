@@ -4,4 +4,4 @@ set -e
 
 script_dir="$(dirname "$0")"
 
-exec awk -f "${script_dir}/colortest.awk"
+exec awk -f "${script_dir}/../script-resources/colortest.awk"
