@@ -17,7 +17,9 @@ if command_exists exa; then
   alias ls='exa --classify --group-directories-first'
   alias lsa='ls --all'
   alias l='ls --long --header --binary --group'
+  alias lt='l --tree'
   alias la='l --all'
+  alias lat='la --tree'
   alias tree='ls --tree'
 else
   alias ls='ls --classify --group-directories-first --color=auto'
