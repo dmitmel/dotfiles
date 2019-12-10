@@ -33,8 +33,6 @@ lazy_load() {
   }"
 }
 
-welcome() { "$ZSH_DOTFILES/welcome/main.py"; }
-
 if ! is_macos; then
   if is_android; then
     open_cmd='termux-open'
