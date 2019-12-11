@@ -28,8 +28,9 @@ let md = markdownIt({
   highlight: (str, lang) => {
     if (lang.length > 0) {
       loadPrismLanguages([lang]);
-      let h = Prism.highlight(str, Prism.languages[lang], lang);
-      return h;
+      if (Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
+        return Prism.highlight(str, Prism.languages[lang], lang);
+      }
     }
     return str;
   },
