@@ -1,7 +1,7 @@
 " pop-up (completion) menu mappings {{{
-  imap <silent><expr> <CR> pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
-  imap <silent><expr> <Esc> pumvisible() ? "\<C-e>" : "\<Esc>"
-  imap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+  imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
+  imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"
+  imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
   imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 " }}}
 
@@ -81,4 +81,7 @@ endif
   \ 'errorSign': 'XX',
   \ 'warningSign': '!!',
   \ })
+
+  runtime! coc-languages/*.vim
+
 " }}}

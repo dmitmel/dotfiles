@@ -164,3 +164,13 @@ set commentstring=//%s
   xmap <leader>ga <Plug>(LiveEasyAlign)
   nmap <leader>ga <Plug>(LiveEasyAlign)
 " }}}
+
+" language-specific settings {{{
+
+  let g:rust_recommended_style = 0
+
+  let g:haskell_conceal = 0
+  let g:haskell_conceal_enumerations = 0
+  let g:haskell_multiline_strings = 1
+
+" }}}
