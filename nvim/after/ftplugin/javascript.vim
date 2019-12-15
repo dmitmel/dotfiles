@@ -1,2 +1,1 @@
-" verbose set matchpairs?
-" setlocal matchpairs-=<:>
+setlocal matchpairs-=<:>
