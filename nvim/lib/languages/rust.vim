@@ -1,9 +1,5 @@
 let g:rust_recommended_style = 0
 
-augroup vimrc-rust
-  autocmd FileType rust setlocal matchpairs-=<:>
-augroup END
-
 if !g:vim_ide | finish | endif
 
 call coc#add_extension('coc-rls')

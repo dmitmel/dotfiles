@@ -1,7 +1,3 @@
-augroup vimrc-javascript
-  autocmd FileType javascript,typescript setlocal matchpairs-=<:>
-augroup END
-
 if !g:vim_ide | finish | endif
 
 call coc#add_extension('coc-tsserver', 'coc-eslint', 'coc-prettier')

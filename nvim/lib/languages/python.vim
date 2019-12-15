@@ -1,10 +1,3 @@
-augroup vimrc-language-python
-  autocmd!
-  autocmd FileType python Indent 4
-augroup END
-
-let g:python_highlight_all = 1
-
 if !g:vim_ide | finish | endif
 
 call coc#add_extension('coc-python')
