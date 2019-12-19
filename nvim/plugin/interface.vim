@@ -170,3 +170,6 @@ endif
     autocmd TermOpen * IndentLinesDisable
   augroup END
 " }}}
+
+
+nnoremap <silent> <F9> <Cmd>make<CR>
