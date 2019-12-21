@@ -17,7 +17,7 @@ _plugin completions 'zsh-users/zsh-completions'
 
 # compinit {{{
   # note that completion system must be initialized after zsh-completions and
-  # before oh-my-zsh
+  # before Oh My Zsh
   autoload -U compinit
 
   run_compdump=1
@@ -44,12 +44,12 @@ _plugin completions 'zsh-users/zsh-completions'
   unset run_compdump
 # }}}
 
-# Oh-My-Zsh {{{
+# Oh My Zsh {{{
 
   omz_features=(key-bindings termsupport)
   omz_plugins=(git extract fasd)
 
-  _plugin oh-my-zsh 'robbyrussell/oh-my-zsh' \
+  _plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
     load='lib/'${^omz_features}'.zsh' \
     load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
     before_load='ZSH="$plugin_dir"' \

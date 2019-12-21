@@ -1,5 +1,5 @@
 # http://zsh.sourceforge.net/Doc/Release/Completion-System.html
-# https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/completion.zsh
+# https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/completion.zsh
 
 # load fancier completion menu which (most notably) supports `list-colors`
 zmodload zsh/complist

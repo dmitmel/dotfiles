@@ -62,8 +62,8 @@ fi
 eval "clipcopy(){$copy_cmd;};clippaste(){$paste_cmd;}"
 unset copy_cmd paste_cmd
 
-# for compatibility with Oh-My-Zsh plugins
-# Source: https://github.com/robbyrussell/oh-my-zsh/blob/5911aea46c71a2bcc6e7c92e5bebebf77b962233/lib/git.zsh#L58-L71
+# for compatibility with Oh My Zsh plugins
+# Source: https://github.com/ohmyzsh/ohmyzsh/blob/5911aea46c71a2bcc6e7c92e5bebebf77b962233/lib/git.zsh#L58-L71
 git_current_branch() {
   if [[ "$(command git rev-parse --is-inside-work-tree)" != true ]]; then
     return 1

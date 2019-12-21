@@ -293,8 +293,8 @@ plugin() {
 
   if (( ${#plugin_load} == 0 )); then
     # default loading patterns:
-    # - *.plugin.zsh for most plugins and Oh-My-Zsh ones
-    # - *.zsh-theme for most themes and Oh-My-Zsh ones
+    # - *.plugin.zsh for most plugins and Oh My Zsh ones
+    # - *.zsh-theme for most themes and Oh My Zsh ones
     # - init.zsh for Prezto plugins
     # ([1]) means "expand only to the first match"
     plugin_load=("(*.plugin.zsh|*.zsh-theme|init.zsh)([1])")
