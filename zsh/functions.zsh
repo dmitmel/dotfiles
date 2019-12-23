@@ -41,7 +41,7 @@ if ! is_macos; then
   else
     open_cmd='print >&2 "open: Platform $OSTYPE is not supported"; return 1'
   fi
-  eval "open(){$open_cmd \"\$@\";}"
+  eval "open(){local f; for f in \"\$@\"; do $open_cmd \"\$f\"; done;}"
   unset open_cmd
 fi
 
