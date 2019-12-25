@@ -6,9 +6,8 @@
 
 [log]
   abbrevCommit = true
-  ; decorate = true
-; [format]
-  ; pretty = %C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)
+[format]
+  pretty = %C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ar)%C(reset)
 
 [core]
   pager = diff-so-fancy | less --tabs=4 --RAW-CONTROL-CHARS
