@@ -33,7 +33,7 @@ autoload -U colors && colors
 
 _perf_timer_start "total"
 
-for script in functions options path env aliases plugins completion zle prompt colorscheme; do
+for script in functions options path env plugins aliases completion zle prompt colorscheme; do
   _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
   _perf_timer_stop "$script.zsh"

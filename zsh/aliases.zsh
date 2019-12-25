@@ -70,3 +70,9 @@ alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
 fi
+
+# some amendments to Oh My Zsh's git plugin
+# https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
+alias glo="git log --decorate --abbrev-commit --date=relative --pretty='%C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ad)%C(reset)'"
+alias glog='glo --graph'
+alias gloga='glog --all'

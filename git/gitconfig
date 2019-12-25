@@ -4,11 +4,6 @@
 [pull]
   rebase = true
 
-[log]
-  abbrevCommit = true
-[format]
-  pretty = %C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ar)%C(reset)
-
 [core]
   pager = diff-so-fancy | less --tabs=4 --RAW-CONTROL-CHARS
 
