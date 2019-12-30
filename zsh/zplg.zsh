@@ -395,6 +395,27 @@ plugin() {
     esac
   }
 
+  plugin-cfg-git-checkout-version() {
+    if (( $# < 1 )); then
+      _zplg_error "usage: $0 <pattern>"
+      return 1
+    fi
+
+    local pattern="$1" tag no_tags=1
+
+    command git tag --sort=-version:refname | while IFS= read -r tag; do
+      no_tags=0
+      if [[ "$tag" == ${~pattern} ]]; then
+        break
+      fi
+    done
+
+    if (( ! no_tags )); then
+      _zplg_log "the latest version is $tag"
+      command git checkout --quiet "$tag"
+    fi
+  }
+
 # }}}
 
 # Exits with success code 0 if the plugin is loaded, otherwise exits with error

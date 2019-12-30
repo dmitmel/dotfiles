@@ -13,7 +13,9 @@ _plugin() {
   _perf_timer_stop "plugin $1"
 }
 
-_plugin completions 'zsh-users/zsh-completions'
+_checkout_latest_version='build=plugin-cfg-git-checkout-version "*"'
+
+_plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 
 # compinit {{{
   # note that completion system must be initialized after zsh-completions and
@@ -60,14 +62,19 @@ _plugin completions 'zsh-users/zsh-completions'
 
 # }}}
 
-_plugin fzf 'junegunn/fzf' build='./install --bin' \
+_plugin fzf 'junegunn/fzf' "$_checkout_latest_version" \
+  build='./install --bin' \
   after_load='plugin-cfg-path path prepend bin' \
   after_load='plugin-cfg-path manpath prepend man'
 
-_plugin alias-tips 'djui/alias-tips'
+if command_exists python; then
+  _plugin alias-tips 'djui/alias-tips'
+fi
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  _plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting'
+  _plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting' "$_checkout_latest_version"
   set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
 fi
+
+unset _checkout_latest_version
