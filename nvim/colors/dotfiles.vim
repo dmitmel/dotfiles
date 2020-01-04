@@ -282,6 +282,10 @@
   hi! link jsExport            Include
 " }}}
 
+" JSON {{{
+  hi! link jsonNull Constant
+" }}}
+
 " TypeScript {{{
   let g:yats_host_keyword = 0
   hi! link typescriptParens              jsParens
