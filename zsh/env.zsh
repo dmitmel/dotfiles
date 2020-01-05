@@ -22,10 +22,10 @@ jq_colors=(
   "0;38;5;16" # false
   "0;38;5;16" # true
   "0;38;5;16" # numbers
-  "0;32"    # strings
-  "0;39"    # arrays
-  "0;39"    # objects
+  "0;32"      # strings
+  "0;39"      # arrays
+  "0;39"      # objects
 )
 # join all values from jq_colors with a semicolon
 export JQ_COLORS="${(j.:.)jq_colors}"
-# unset jq_colors
+unset jq_colors
