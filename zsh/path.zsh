@@ -17,7 +17,7 @@ path_prepend() {
   done
 }
 
-if is_macos; then
+if (( _is_macos )); then
   # local Python binaries (for some reason they don't go into ~/.local/bin, but
   # instead into the garbage ~/Library directory)
   path_prepend path ~/Library/Python/*/bin(OnN)

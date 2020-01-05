@@ -16,10 +16,6 @@ viscd() {
   rm -f -- "$temp_file"
 }
 
-is_linux()   { [[ "$OSTYPE" == linux*        ]]; }
-is_macos()   { [[ "$OSTYPE" == darwin*       ]]; }
-is_android() { [[ "$OSTYPE" == linux-android ]]; }
-
 command_exists() { command -v "$1" &>/dev/null; }
 
 lazy_load() {
@@ -33,8 +29,8 @@ lazy_load() {
   }"
 }
 
-if ! is_macos; then
-  if is_android; then
+if (( ! _is_macos )); then
+  if (( _is_android )); then
     open_cmd='termux-open'
   elif command_exists xdg-open; then
     open_cmd='nohup xdg-open &> /dev/null'
@@ -45,7 +41,7 @@ if ! is_macos; then
   unset open_cmd
 fi
 
-if is_macos; then
+if (( _is_macos )); then
   copy_cmd='pbcopy' paste_cmd='pbpaste'
 elif command_exists xclip; then
   copy_cmd='xclip -in -selection clipboard' paste_cmd='xclip -out -selection clipboard'

@@ -33,6 +33,19 @@ autoload -U colors && colors
 
 _perf_timer_start "total"
 
+# platform identification {{{
+  if [[ "$OSTYPE" == linux* ]]; then
+    _is_linux=1
+    if [[ "$OSTYPE" == linux-android ]]; then
+      _is_android=1
+    fi
+  fi
+
+  if [[ "$OSTYPE" == darwin* ]]; then
+    _is_macos=1
+  fi
+# }}}
+
 for script in functions options path env plugins aliases completion zle prompt colorscheme; do
   _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
