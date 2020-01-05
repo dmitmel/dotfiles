@@ -2,77 +2,74 @@
 
 # tie these env variables to zsh arrays
 typeset -T PKG_CONFIG_PATH pkg_config_path ':'
-
-# keep only unique values in these arrays
-typeset -U path fpath manpath pkg_config_path
-export  -U PATH FPATH MANPATH PKG_CONFIG_PATH
-
-path_append() {
-  local arr_name="$1" value="$2"
-  if eval "if (( \${${arr_name}[(ie)\$value]} > \${#${arr_name}} ))"; then
-    eval "${arr_name}+=(\"\$value\")"
-    eval "${arr_name}=(\"\${${arr_name}[@]}\" \"\$value\")"
-  fi
-}
+export PKG_CONFIG_PATH
 
 path_prepend() {
-  local arr_name="$1" value="$2"
-  if eval "if (( \${${arr_name}[(ie)\$value]} > \${#${arr_name}} ))"; then
-    eval "${arr_name}=(\"\$value\" \"\${${arr_name}[@]}\")"
+  if (( $# < 2 )); then
+    print >&2 "usage: $0 <var_name> <value...>"
+    return 1
   fi
+  local var_name="$1"; shift
+  local value; for value in "$@"; do
+    if eval "(( \${${var_name}[(ie)\$value]} > \${#${var_name}} ))"; then
+      eval "${var_name}=(\"\$value\" \"\${${var_name}[@]}\")"
+    fi
+  done
 }
 
 if is_macos; then
-  path=(
-    ~/Library/Python/*/bin
-    /usr/local/opt/ruby/bin
-    /usr/local/opt/file-formula/bin         # file
-    /usr/local/opt/gnu-tar/libexec/gnubin   # GNU tar
-    /usr/local/opt/unzip/bin                # GNU unzip
-    /usr/local/opt/openssl/bin              # openssl
-    /usr/local/opt/gnu-getopt/bin           # getopt
-    /usr/local/opt/findutils/libexec/gnubin # GNU findutils
-    /usr/local/opt/coreutils/libexec/gnubin # GNU coreutils
-    /usr/local/opt/curl/bin                 # curl
-    "${path[@]}"
-  )
+  # local Python binaries (for some reason they don't go into ~/.local/bin, but
+  # instead into the garbage ~/Library directory)
+  path_prepend path ~/Library/Python/*/bin(OnN)
 
-  manpath=(
-    /usr/local/opt/findutils/libexec/gnuman # GNU findutils
-    "${manpath[@]}"
-  )
+  # GNU counterparts of command line utilities
+  path_prepend path /usr/local/opt/*/libexec/gnubin(N)
+  path_prepend manpath /usr/local/opt/*/libexec/gnuman(N)
 
-  for formula in ruby openssl curl; do
+  # add some keg-only Homebrew formulas
+  for formula in curl file-formula openssl ruby; do
     formula_path="/usr/local/opt/$formula"
-    if [[ -d "$formula_path" ]]; then
-      pkg_config_path+=( "$formula_path"/lib/pkgconfig )
+    if [[ ! -d "$formula_path" ]]; then
+      continue
+    fi
+
+    if [[ -d "$formula_path/bin" ]]; then
+      path_prepend path "$formula_path/bin"
+    fi
+
+    if [[ -d "$formula_path/lib/pkgconfig" ]]; then
+      path_prepend pkg_config_path "$formula_path/lib/pkgconfig"
     fi
   done
+
+  unset formula
 fi
 
 # Yarn global packages
-path=(~/.yarn/bin "${path[@]}")
+path_prepend path ~/.yarn/bin
 
 # Go
 export GOPATH=~/.go
-path=("$GOPATH/bin" "${path[@]}")
+path_prepend path "$GOPATH/bin"
 
 # Rust
-path=(~/.cargo/bin "${path[@]}")
+path_prepend path ~/.cargo/bin
 # check if the Rust toolchain was installed via rustup
 if rustup_home="$(rustup show home 2> /dev/null)" &&
    rust_sysroot="$(rustc --print sysroot 2> /dev/null)" &&
   [[ -d "$rustup_home" && -d "$rust_sysroot" && "$rust_sysroot" == "$rustup_home"/* ]]
 then
   # add paths of the selected Rust toolchain
-  fpath=("$rust_sysroot/share/zsh/site-functions" "${fpath[@]}")
-  manpath=("$rust_sysroot/share/man" "${manpath[@]}")
+  path_prepend fpath "$rust_sysroot/share/zsh/site-functions"
+  path_prepend manpath "$rust_sysroot/share/man"
 fi
 unset rustup_home rust_sysroot
 
 # add my binaries and completions
-path=("${ZSH_DOTFILES:h}/scripts" "${path[@]}")
-fpath=("$ZSH_DOTFILES/completions" "${fpath[@]}")
+path_prepend path "${ZSH_DOTFILES:h}/scripts"
+path_prepend fpath "$ZSH_DOTFILES/completions"
 
 # add user binaries
-path=(~/.local/bin "${path[@]}")
+path_prepend path ~/.local/bin
+
+unfunction path_prepend

@@ -381,18 +381,26 @@ plugin() {
       return 1
     fi
 
-    local var_name="$1" operator="$2"; shift 2; local values=("$@")
+    local var_name="$1" operator="$2"; shift 2
 
     if [[ "$var_name" != *path || "${(Pt)var_name}" != array* ]]; then
       _zplg_error "unknown path variable $var_name"
       return 1
     fi
 
-    case "$operator" in
-      prepend) eval "$var_name=(\"\$plugin_dir/\"\${^values} \${$var_name[@]})" ;;
-       append) eval "$var_name=(\${$var_name[@]} \"\$plugin_dir/\"\${^values})" ;;
-            *) _zplg_error "unknown $0 operator $operator"
-    esac
+    if [[ "$operator" != (prepend|append) ]]; then
+      _zplg_error "unknown operator $operator"
+      return 1
+    fi
+
+    local value; for value in "$plugin_dir/"${^@}; do
+      if eval "(( \${${var_name}[(ie)\$value]} > \${#${var_name}} ))"; then
+        case "$operator" in
+          prepend) eval "$var_name=(\"\$value\" \${$var_name[@]})" ;;
+           append) eval "$var_name=(\${$var_name[@]} \"\$value\")" ;;
+        esac
+      fi
+    done
   }
 
   plugin-cfg-git-checkout-version() {
