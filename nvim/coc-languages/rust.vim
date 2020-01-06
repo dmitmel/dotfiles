@@ -1,3 +1,3 @@
-call coc#add_extension('coc-rls')
+let g:coc_global_extensions += ['coc-rls']
 let g:coc_filetypes += ['rust']
-call coc#config('rust', { 'clippy_preference': 'on' })
+let g:coc_user_config['rust'] = { 'clippy_preference': 'on' }

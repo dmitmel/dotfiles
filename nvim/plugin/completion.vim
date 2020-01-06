@@ -74,13 +74,16 @@ endif
     command! -nargs=0 -range -bar CocFormat call s:CocFormat(<range>, <line1>, <line2>)
   " }}}
 
-  call coc#add_extension('coc-snippets')
-  call coc#config('diagnostic', {
+  let g:coc_global_extensions = []
+  let g:coc_user_config = {}
+
+  let g:coc_global_extensions += ['coc-snippets']
+  let g:coc_user_config['diagnostic'] = {
   \ 'virtualText': v:true,
   \ 'enableMessage': 'jump',
   \ 'errorSign': 'XX',
   \ 'warningSign': '!!',
-  \ })
+  \ }
 
   runtime! coc-languages/*.vim
 

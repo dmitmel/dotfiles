@@ -135,7 +135,7 @@ endif
     let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
   endfunction
   function s:tweak_airline()
-    if exists('*coc#status')
+    if g:vim_ide
       call s:airline_section_prepend('x', ['coc#status'])
     endif
     call s:airline_section_append('y', ['filesize'])
