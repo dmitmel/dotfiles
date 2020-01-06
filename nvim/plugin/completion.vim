@@ -84,6 +84,7 @@ endif
   \ 'errorSign': 'XX',
   \ 'warningSign': '!!',
   \ }
+  let g:coc_user_config['suggest.floatEnable'] = v:false
 
   runtime! coc-languages/*.vim
 
