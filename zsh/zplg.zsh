@@ -151,7 +151,7 @@ _zplg_load() {
 
   _zplg_source_git_upgrade() {
     local plugin_url="$1" plugin_dir="$2"
-    ( cd "$plugin_dir" && git pull && git submodule update --init --recursive )
+    ( cd "$plugin_dir" && (git pull || git fetch) && git submodule update --init --recursive )
   }
 
   # small helper for the git source
