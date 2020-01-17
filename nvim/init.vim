@@ -36,10 +36,10 @@ Plug 'junegunn/vim-plug'
   Plug 'Yggdroot/indentLine'
   Plug 'henrik/vim-indexed-search'
   Plug 'andymass/vim-matchup'
-  " Plug 'tommcdo/vim-exchange'
   Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler
   Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
   Plug 'reedes/vim-pencil'
+  Plug 'ciaranm/detectindent'
 " }}}
 
 " Text objects {{{

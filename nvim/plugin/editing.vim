@@ -6,6 +6,7 @@ set virtualedit=onemore
 
 set foldmethod=marker
 
+" use line C-style comments instead of block ones (/* ... */)
 set commentstring=//%s
 
 
@@ -29,6 +30,15 @@ set commentstring=//%s
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
+
+  let g:detectindent_preferred_indent = 2
+  let g:detectindent_preferred_expandtab = 1
+  " let g:detectindent_verbosity = 0
+
+  augroup vimrc-detect-indent
+    autocmd!
+    autocmd FileType * if empty(&bt) | DetectIndent | endif
+  augroup END
 
 " }}}
 
