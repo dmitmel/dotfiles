@@ -5,7 +5,7 @@ let g:vim_ide = get(g:, 'vim_ide', 0)
 let &runtimepath = g:nvim_dotfiles_dir.','.&runtimepath.','.g:nvim_dotfiles_dir.'/after'
 
 
-let s:vim_config_dir = expand('~/.config/nvim')
+let s:vim_config_dir = stdpath("config")
 let s:vim_plug_script = s:vim_config_dir . '/autoload/plug.vim'
 let s:vim_plug_home = s:vim_config_dir . '/plugged'
 
