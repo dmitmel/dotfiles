@@ -175,6 +175,7 @@ set commentstring=//%s
   nmap <leader>ga <Plug>(LiveEasyAlign)
 " }}}
 
+
 " language-specific settings {{{
 
   let g:rust_recommended_style = 0
@@ -182,5 +183,8 @@ set commentstring=//%s
   let g:haskell_conceal = 0
   let g:haskell_conceal_enumerations = 0
   let g:haskell_multiline_strings = 1
+
+  let g:vim_markdown_conceal = 0
+  let g:vim_markdown_conceal_code_blocks = 0
 
 " }}}
