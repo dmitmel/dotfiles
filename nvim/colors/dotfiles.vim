@@ -341,9 +341,10 @@
 " }}}
 
 " Python {{{
-  hi! link pythonBuiltinType Type
-  hi! link pythonBuiltinObj  pythonFunction
-  hi! link pythonClassVar    Variable
+  hi! link pythonBuiltinType     Type
+  hi! link pythonBuiltinObj      pythonFunction
+  hi! link pythonClassVar        Variable
+  hi! link pythonOperatorKeyword Keyword
 " }}}
 
 " Ruby {{{
