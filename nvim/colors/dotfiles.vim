@@ -134,6 +134,11 @@
 
 " }}}
 
+" CtrlSF {{{
+  hi! link ctrlsfMatch     Search
+  hi! link ctrlsfLnumMatch ctrlsfMatch
+" }}}
+
 " AWK {{{
   hi! link awkArrayElement Number
   hi! link awkBoolLogic    Operator
