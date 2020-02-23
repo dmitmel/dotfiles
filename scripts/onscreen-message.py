@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+import gi
+import argparse
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, Pango  # noqa: E402
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("message", type=str, nargs="+")
+args = parser.parse_args()
+
+message = " ".join(args.message)
+
+
+window = Gtk.ApplicationWindow()
+window.set_keep_above(True)
+window.set_decorated(False)
+window.set_default_size(800, 100)
+
+scrolled_window = Gtk.ScrolledWindow()
+label = Gtk.Label(label=message)
+scrolled_window.add(label)
+window.add(scrolled_window)
+
+
+def on_key_release(target, event):
+    key = event.keyval
+    if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
+        window.close()
+
+
+def on_configure(target, event):
+    if target != window or event.type != Gdk.EventType.CONFIGURE:
+        return
+    font_desc = Pango.FontDescription()
+    font_desc.set_size(Pango.SCALE * event.height * 2 / 3)
+    label.override_font(font_desc)
+
+
+window.connect("configure-event", on_configure)
+window.connect("key-release-event", on_key_release)
+window.show_all()
+window.connect("destroy", Gtk.main_quit)
+Gtk.main()
