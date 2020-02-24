@@ -323,6 +323,7 @@
   hi! link typescriptClassName           jsClassDefinition
   hi! link typescriptClassHeritage       jsClassDefinition
   hi! link typescriptExceptions          jsException
+  hi! link typescriptTry                 typescriptExceptions
 " }}}
 
 " Markdown {{{
