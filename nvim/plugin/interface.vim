@@ -101,14 +101,14 @@ endif
 
   let g:airline#extensions#branch#enabled = 1
   let g:airline#extensions#tabline#enabled = 1
-  let g:airline#extensions#coc#enabled = 1
+  let g:airline#extensions#coc#enabled = 0
 
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
 
   let g:coc_status_error_sign = 'E:'
   let g:coc_status_warning_sign = 'W:'
-  call airline#parts#define_function('coc#status', 'coc#status')
+  call airline#parts#define('coc#status', { 'function': 'coc#status', 'accent': 'airline_term' })
 
   function StatusLine_filesize()
     let l:bytes = getfsize(expand('%'))
@@ -126,7 +126,7 @@ endif
       let l:factor = l:next_factor
     endfor
   endfunction
-  call airline#parts#define_function('filesize', 'StatusLine_filesize')
+  call airline#parts#define('filesize', { 'function': 'StatusLine_filesize' })
 
   function s:airline_section_prepend(section, items)
     let g:airline_section_{a:section} = airline#section#create_right(a:items + ['']) . g:airline_section_{a:section}
