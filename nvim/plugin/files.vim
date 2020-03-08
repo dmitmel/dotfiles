@@ -110,13 +110,16 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write<bar>wall\<CR>" : "\<CR>"
 
 " on save (BufWritePre) {{{
 
+  function s:IsUrl(str)
+    return a:str =~# '\v^\w+://'
+  endfunction
+
   " create directory {{{
     " Creates the parent directory of the file if it doesn't exist
     function s:CreateDirOnSave()
-      " <afile> is the filename of the buffer where the autocommand is executed
       let l:file = expand('<afile>')
       " check if this is a regular file and its path is not a URL
-      if empty(&buftype) && l:file !~# '\v^\w+://'
+      if empty(&buftype) && !s:IsUrl(l:file)
         let l:dir = fnamemodify(l:file, ':h')
         if !isdirectory(l:dir) | call mkdir(l:dir, 'p') | endif
       endif
@@ -137,7 +140,8 @@ nnoremap <silent><expr> <CR> &buftype is# '' ? ":write<bar>wall\<CR>" : "\<CR>"
   " auto-format with Coc.nvim {{{
     let g:coc_format_on_save_ignore = []
     function s:FormatOnSave()
-      if IsCocEnabled() && index(g:coc_format_on_save_ignore, &filetype) < 0
+      let l:file = expand('<afile>')
+      if IsCocEnabled() && !s:IsUrl(l:file) && index(g:coc_format_on_save_ignore, &filetype) < 0
         silent CocFormat
       endif
     endfunction
