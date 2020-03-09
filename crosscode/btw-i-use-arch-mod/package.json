@@ -2,5 +2,6 @@
   "name": "btw I use Arch",
   "version": "0.0.0",
   "description": "A mod for masochists like myself",
-  "prestart": "prestart.js"
+  "prestart": "prestart.js",
+  "preload": "preload.js"
 }
