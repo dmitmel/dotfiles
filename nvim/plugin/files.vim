@@ -4,7 +4,7 @@ set fileformats=unix,dos,mac
 set wildignore+=.git,.svn,.hg,.DS_Store,*~
 
 " arguably one of the most useful mappings
-nnoremap <silent><expr> <CR> &buftype is# '' ? ":write<bar>wall\<CR>" : "\<CR>"
+nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
 
 " ripgrep (rg) {{{

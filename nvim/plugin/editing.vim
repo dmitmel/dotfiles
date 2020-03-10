@@ -31,13 +31,16 @@ set commentstring=//%s
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
 
-  let g:detectindent_preferred_indent = 2
-  let g:detectindent_preferred_expandtab = 1
-  " let g:detectindent_verbosity = 0
+  function s:DetectIndent()
+    if !empty(&bt) | return | endif
+    let g:detectindent_preferred_indent = &l:shiftwidth
+    let g:detectindent_preferred_expandtab = &l:expandtab
+    DetectIndent
+  endfunction
 
   augroup vimrc-detect-indent
     autocmd!
-    autocmd FileType * if empty(&bt) | DetectIndent | endif
+    autocmd BufReadPost * call s:DetectIndent()
   augroup END
 
 " }}}
