@@ -101,14 +101,10 @@ endif
 
   let g:airline#extensions#branch#enabled = 1
   let g:airline#extensions#tabline#enabled = 1
-  let g:airline#extensions#coc#enabled = 0
+  let g:airline#extensions#coc#enabled = 1
 
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
-
-  let g:coc_status_error_sign = 'E:'
-  let g:coc_status_warning_sign = 'W:'
-  call airline#parts#define('coc#status', { 'function': 'coc#status', 'accent': 'airline_term' })
 
   function StatusLine_filesize()
     let l:bytes = getfsize(expand('%'))
@@ -135,9 +131,6 @@ endif
     let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
   endfunction
   function s:tweak_airline()
-    if g:vim_ide
-      call s:airline_section_prepend('x', ['coc#status'])
-    endif
     call s:airline_section_append('y', ['filesize'])
   endfunction
   augroup vimrc-interface-airline
