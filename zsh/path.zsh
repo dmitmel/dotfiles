@@ -2,7 +2,8 @@
 
 # tie these env variables to zsh arrays
 typeset -T PKG_CONFIG_PATH pkg_config_path ':'
-export PKG_CONFIG_PATH
+
+export PKG_CONFIG_PATH PATH MANPATH
 
 path_prepend() {
   if (( $# < 2 )); then

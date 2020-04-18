@@ -1,0 +1,3 @@
+#!/bin/sh
+
+man $(apropos '' | fzf --no-multi --tiebreak=begin | sed -n 's/^\([^ ]\+\) (\([^)]\+\)).*$/\2 \1/p')
