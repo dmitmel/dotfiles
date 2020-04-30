@@ -52,10 +52,10 @@ for n in {1..9}; do
   alias "$n"="cd +$n"
 done; unset n
 
-alias ...='../..'
-alias ....='../../..'
-alias .....='../../../..'
-alias ......='../../../../..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
 
 # print file sizes in human readable format
 alias du='du -h'
