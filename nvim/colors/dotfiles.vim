@@ -296,6 +296,7 @@
   hi! link typescriptParens              jsParens
   hi! link typescriptBraces              javaScriptBraces
   hi! link typescriptOperator            jsOperatorKeyword
+  hi! link typescriptKeywordOp           typescriptOperator
   hi! link typescriptCastKeyword         typescriptOperator
   hi! link typescriptMappedIn            typescriptOperator
   hi! link typescriptBinaryOp            jsOperator
@@ -324,6 +325,8 @@
   hi! link typescriptClassHeritage       jsClassDefinition
   hi! link typescriptExceptions          jsException
   hi! link typescriptTry                 typescriptExceptions
+  hi! link typescriptEnumKeyword         typescriptClassKeyword
+  hi! link typescriptModule              jsImport
 " }}}
 
 " Markdown {{{
