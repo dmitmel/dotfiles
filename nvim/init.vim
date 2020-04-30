@@ -27,8 +27,10 @@ Plug 'junegunn/vim-plug'
 " }}}
 
 " Editing {{{
-  Plug 'easymotion/vim-easymotion'
-  Plug 'junegunn/vim-easy-align'
+  if g:vim_ide
+    Plug 'easymotion/vim-easymotion'
+    Plug 'junegunn/vim-easy-align'
+  endif
   Plug 'Raimondi/delimitMate'
   Plug 'tpope/vim-repeat'
   Plug 'tpope/vim-commentary'
@@ -61,9 +63,11 @@ Plug 'junegunn/vim-plug'
 " }}}
 
 " Git {{{
-  Plug 'tpope/vim-fugitive'
-  Plug 'tpope/vim-rhubarb'
-  Plug 'airblade/vim-gitgutter'
+  if g:vim_ide
+    Plug 'tpope/vim-fugitive'
+    Plug 'tpope/vim-rhubarb'
+    Plug 'airblade/vim-gitgutter'
+  endif
 " }}}
 
 " FZF {{{
