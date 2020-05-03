@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+
+# helper script for query-bookmarks.sh
+# currently supports only Firefox
+# folder support would be nice, though I doubt it is really useful
+# useful links:
+# http://kb.mozillazine.org/Profiles.ini_file
+# https://stackoverflow.com/a/740183/12005228
+# https://wiki.mozilla.org/Places:BookmarksComments
+
+import sys
+import os
+from pathlib import Path
+from configparser import ConfigParser
+import tempfile
+import shutil
+import sqlite3
+import subprocess
+
+
+# TODO: somehow merge `chooser_program` selection with the logic in `zsh/functions.zsh`
+if sys.platform == "darwin":
+    firefox_home = Path.home() / "Library" / "Application Support" / "Firefox"
+    chooser_program = ["choose", "-i"]
+    clipboard_copy_program = ["pbcopy"]
+
+    def notify_program_args(title, message, url):
+        return ["terminal-notifier", "-title", title, "-message", message, "-open", url]
+
+
+elif os.name == "posix":
+    firefox_home = Path.home() / ".mozilla" / "firefox"
+    chooser_program = ["rofi", "-dmenu", "-i", "-p", "bookmark", "-format", "i"]
+    clipboard_copy_program = ["xsel", "--clipboard", "--input"]
+    # clipboard_copy_program = ["xclip", "-in", "-selection", "clipboard"]
+
+    def notify_program_args(title, message, url):
+        return [
+            "notify-send",
+            "--icon=utilities-terminal",
+            "--expire-time=3000",
+            title,
+            message,
+        ]
+
+
+else:
+    raise Exception("platform '{}' is not supported!".format(sys.platform))
+
+
+profiles_config = ConfigParser(interpolation=None)
+profiles_config.read(firefox_home / "profiles.ini")
+
+installs_sections = [s for s in profiles_config.sections() if s.startswith("Install")]
+if not installs_sections:
+    raise Exception("no Firefox installations detected!")
+if len(installs_sections) > 1:
+    raise Exception("multiple Firefox installations are not supported!")
+profile_dir = firefox_home / profiles_config.get(installs_sections[0], "Default")
+
+db_path = profile_dir / "weave" / "bookmarks.sqlite"
+if not db_path.is_file():
+    raise Exception("'{}' is not a file".format(db_path))
+
+
+# Firefox holds a lock over the database file, so I can't connect to it even
+# in the readonly mode: https://stackoverflow.com/a/7857866/12005228
+# as a workaround I copy the file
+db_copy_fd, db_copy_path = tempfile.mkstemp(prefix="bookmarks.", suffix=".sqlite")
+os.close(db_copy_fd)
+
+chooser_entries = []
+
+try:
+    shutil.copyfile(db_path, db_copy_path)
+    db = sqlite3.connect(db_copy_path)
+
+    urls = {}
+    for urlId, url in db.execute("SELECT id, url FROM urls"):
+        urls[urlId] = url
+
+    for title, urlId, keyword in db.execute(
+        "SELECT title, urlId, keyword FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
+    ):
+        url = urls[urlId]
+        chooser_entries.append((title, url))
+        if keyword is not None:
+            chooser_entries.append((keyword, url))
+
+finally:
+    os.remove(db_copy_path)
+
+
+chooser_process = subprocess.Popen(
+    chooser_program, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+)
+
+with chooser_process.stdin as pipe:
+    for title, url in chooser_entries:
+        pipe.write("{} \u2014\u2014 {}\n".format(title, url).encode())
+
+exit_code = chooser_process.wait()
+if exit_code == 0:
+    chosen_index = int(
+        # an extra newline is inserted by rofi for whatever reason
+        chooser_process.stdout.read().rstrip(b"\n")
+    )
+    _title, url = chooser_entries[chosen_index]
+    print(url)
+
+    subprocess.run(clipboard_copy_program, input=url.encode(), check=True)
+    subprocess.run(
+        notify_program_args(
+            "query-bookmarks.py", "bookmark URL copied to clipboard!", url
+        ),
+        input=url.encode(),
+        check=True,
+    )
