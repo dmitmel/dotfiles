@@ -7,8 +7,8 @@ zstyle ':completion:*' menu select
 # show even more completion results
 zstyle ':completion:*' verbose yes
 
-zstyle ':completion::complete:*' use-cache yes
-zstyle ':completion::complete:*' cache-path "$ZSH_CACHE_DIR"
+zstyle ':completion:*' use-cache yes
+zstyle ':completion::*' cache-path "$ZSH_CACHE_DIR"
 
 # group completion result based on their categories
 zstyle ':completion:*' group-name ''
@@ -44,5 +44,6 @@ _completion_get_hosts() {
     awk "match(\$0, /^Host[[:blank:]]*/) { print substr(\$0, RLENGTH+1); }" ~/.ssh/config
   fi
 }
-zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")
-'
+zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")'
+
+autoload -U +X bashcompinit && bashcompinit

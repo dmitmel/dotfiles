@@ -26,6 +26,6 @@ jq_colors=(
   "0;39"      # arrays
   "0;39"      # objects
 )
-# join all values from jq_colors with a semicolon
+# join all values from jq_colors with a colon
 export JQ_COLORS="${(j.:.)jq_colors}"
 unset jq_colors
