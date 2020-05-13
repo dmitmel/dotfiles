@@ -22,7 +22,7 @@
   }
 
   zle -N _fzf_history_widget
-  bindkey '^[r' _fzf_history_widget
+  bindkey '\er' _fzf_history_widget
 # }}}
 
 # palette {{{
@@ -129,22 +129,35 @@
 
   # finally, bind the widget to Alt+Shift+P (or Esc+Shift+P)
   zle -N _palette_widget
-  bindkey "^[P" _palette_widget
+  bindkey '\eP' _palette_widget
 # }}}
 
-# # expand-or-complete-with-dots {{{
-#   expand-or-complete-with-dots() {
-#     local wrap_ctrl_supported
-#     if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
-#       wrap_ctrl_supported=1
-#     fi
-#     # toggle line-wrapping off and back on again
-#     if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
-#     print -Pn "%F{red}...%f"
-#     if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
-#     zle expand-or-complete
-#     zle redisplay
-#   }
-#   zle -N expand-or-complete-with-dots
-#   bindkey "^I" expand-or-complete-with-dots
-# # }}}
+# expand-or-complete-with-dots {{{
+  # expand-or-complete-with-dots() {
+  #   local wrap_ctrl_supported
+  #   if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
+  #     wrap_ctrl_supported=1
+  #   fi
+  #   # toggle line-wrapping off and back on again
+  #   if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
+  #   print -Pn "%F{red}...%f"
+  #   if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
+  #   zle expand-or-complete
+  #   zle redisplay
+  # }
+  # zle -N expand-or-complete-with-dots
+  # bindkey "^I" expand-or-complete-with-dots
+# }}}
+
+# find man page widget {{{
+  _widget_find_man_page() {
+    local words=("${(@z)BUFFER}")
+    local cmd_name="${words[1]}"
+    zle push-line
+    BUFFER="visman ${(q)cmd_name}"
+    zle accept-line
+  }
+  zle -N find-man-page _widget_find_man_page
+  # bind to F1
+  bindkey '\eOP' find-man-page
+# }}}
