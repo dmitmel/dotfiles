@@ -80,6 +80,7 @@ endif
   let g:coc_global_extensions += ['coc-snippets']
   let g:coc_user_config['diagnostic'] = {
   \ 'virtualText': v:true,
+  \ 'virtualTextCurrentLineOnly': v:false,
   \ 'enableMessage': 'jump',
   \ 'errorSign': 'XX',
   \ 'warningSign': '!!',
