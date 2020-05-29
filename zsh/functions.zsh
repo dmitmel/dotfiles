@@ -55,7 +55,7 @@ else
   paste_cmd='print >&2 "clippaste: '"$error_msg"'"; return 1'
   unset error_msg
 fi
-eval "clipcopy(){$copy_cmd;};clippaste(){$paste_cmd;}"
+eval "clipcopy(){ $copy_cmd; }; clippaste(){ $paste_cmd; }"
 unset copy_cmd paste_cmd
 
 # for compatibility with Oh My Zsh plugins

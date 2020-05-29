@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+# https://discord.com/developers/docs/resources/user#user-object
+# https://discord.com/developers/docs/resources/user#user-object#get-user
+# https://discord.com/developers/docs/reference
+
+import sys
+import os
+import requests
+import colorama
+import time
+
+DISCORD_EPOCH = 1420070400000  # milliseconds
+# https://discord.com/developers/docs/resources/user#user-object-user-flags
+DISCORD_FLAGS = {
+    "Discord Employee": 1 << 0,
+    "Discord Partner": 1 << 1,
+    "HypeSquad Events": 1 << 2,
+    "Bug Hunter Level 1": 1 << 3,
+    "House of Bravery": 1 << 6,
+    "House of Brilliance": 1 << 7,
+    "House of Balance": 1 << 8,
+    "Early Supporter": 1 << 9,
+    "Team User": 1 << 10,
+    "System": 1 << 12,
+    "Bug Hunter Level 2": 1 << 14,
+    "Verified Bot": 1 << 16,
+    "Verified Bot Developer": 1 << 17,
+}
+
+with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
+    bot_token = f.read().strip()
+
+user_snowflake = int(sys.argv[1])
+
+# no timeout here, sadly, due to this genius: https://github.com/psf/requests/issues/3099#issuecomment-215522806
+response = requests.get(
+    "https://discordapp.com/api/users/{}".format(user_snowflake),
+    headers={"Authorization": "Bot {}".format(bot_token)},
+)
+try:
+    response.raise_for_status()
+except requests.HTTPError as err:
+    print(response.json())
+    raise err
+
+data = response.json()
+
+
+def print_field(name, value):
+    print(
+        "{}{}:{} {}".format(
+            colorama.Style.BRIGHT, name.rjust(12), colorama.Style.RESET_ALL, value
+        )
+    )
+
+
+def bool_to_yes_no(value):
+    return "yes" if value else "no"
+
+
+print_field("ID", data["id"])
+print_field("Name", "{}#{}".format(data["username"], data["discriminator"]))
+print_field(
+    "Avatar",
+    "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
+        data["id"], data["avatar"], "gif" if data["avatar"].startswith("a_") else "png"
+    ),
+)
+print_field("Bot", bool_to_yes_no(data.get("bot", False)))
+print_field("System user", bool_to_yes_no(data.get("system", False)))
+
+# https://discord.com/developers/docs/reference#convert-snowflake-to-datetime
+snowflake_creation_time = (user_snowflake >> 22) + DISCORD_EPOCH
+print_field(
+    "Created at",
+    "{}.{}".format(
+        time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)
+        ),
+        snowflake_creation_time % 1000,
+    ),
+)
+
+user_flags = data["public_flags"]
+if user_flags == 0:
+    print_field("Flags", "none")
+else:
+    user_flag_names = []
+    for flag_name, bitmask in DISCORD_FLAGS.items():
+        if user_flags & bitmask:
+            user_flag_names.append(flag_name)
+    print_field("Flags", ", ".join(user_flag_names))
