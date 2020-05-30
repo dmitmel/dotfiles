@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+import discord
+import sys
+import os
+
+guild_id = int(sys.argv[1])
+voice_channel_id = int(sys.argv[2])
+
+with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
+    bot_token = f.read().strip()
+
+
+bot = discord.Client()
+
+
+@bot.event
+async def on_ready():
+    print("logged in as {0} ({0.id})".format(bot.user))
+
+    guild: discord.Guild = bot.get_guild(guild_id)
+    if guild is None:
+        raise Exception("guild not found")
+    voice_channel: discord.VoiceChannel = guild.get_channel(voice_channel_id)
+    if voice_channel is None:
+        raise Exception("channel not found")
+
+    voice_client = await voice_channel.connect()
+    print("connected to {0} ({0.id}) in {1} ({1.id})".format(voice_channel, guild))
+
+    source = discord.FFmpegPCMAudio("default", before_options="-f pulse")
+    voice_client.play(
+        source, after=lambda e: print("Player error: %s" % e) if e else None
+    )
+
+
+bot.run(bot_token)
