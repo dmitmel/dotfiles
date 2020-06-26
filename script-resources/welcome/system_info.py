@@ -42,7 +42,9 @@ def get_system_info():
     if users_info:
         info("Users", users_info)
 
-    info("Shell", _get_shell())
+    shell = _get_shell()
+    if shell is not None:
+        info("Shell", shell)
 
     info_lines.append("")
 
@@ -101,7 +103,7 @@ def _get_users():
 
 
 def _get_shell():
-    return os.environ["SHELL"]
+    return os.environ.get("SHELL")
 
 
 def _get_cpu_usage():
