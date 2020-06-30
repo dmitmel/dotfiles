@@ -92,7 +92,9 @@ def _get_users():
         terminals = users[name]
 
         colored_name = bright_colored(name, Fore.BLUE)
-        colored_terminals = [colored(term, Style.DIM, Fore.WHITE) for term in terminals]
+        colored_terminals = [
+            colored(str(term), Style.DIM, Fore.WHITE) for term in terminals
+        ]
 
         terminals_str = ", ".join(colored_terminals)
         if len(colored_terminals) > 1:
