@@ -19,8 +19,3 @@
   old = red bold
   new = green bold
   whitespace = red reverse
-
-[alias]
-  tree = log --all --graph
-  unstage = reset HEAD
-  discard = checkout
