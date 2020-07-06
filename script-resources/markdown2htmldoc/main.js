@@ -41,6 +41,12 @@ md.use(markdownItHeaderAnchors);
 
 let markdownDocument = fs.readFileSync(args.get('inputFile', 0), 'utf-8');
 let renderedMarkdown = md.render(markdownDocument);
+let githubMarkdownCSS = fs.readFileSync(
+  require.resolve('github-markdown-css/github-markdown.css'),
+);
+let syntaxHighlightingThemeCSS = fs.readFileSync(
+  require.resolve('prismjs/themes/prism.css'),
+);
 
 let renderedHtmlDocument = `
 <!DOCTYPE html>
@@ -49,8 +55,12 @@ let renderedHtmlDocument = `
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css" integrity="sha256-HbgiGHMLxHZ3kkAiixyvnaaZFNjNWLYKD/QG6PWaQPc=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism.min.css" integrity="sha256-77qGXu2p8NpfcBpTjw4jsMeQnz0vyh74f5do0cWjQ/Q=" crossorigin="anonymous" />
+<style>
+${githubMarkdownCSS}
+</style>
+<style>
+${syntaxHighlightingThemeCSS}
+</style>
 <style>
 html, body {
   padding: 0;
