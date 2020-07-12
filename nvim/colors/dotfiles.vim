@@ -327,6 +327,7 @@
   hi! link typescriptTry                 typescriptExceptions
   hi! link typescriptEnumKeyword         typescriptClassKeyword
   hi! link typescriptModule              jsImport
+  hi! link typescriptAbstract            Keyword
 " }}}
 
 " Markdown {{{
