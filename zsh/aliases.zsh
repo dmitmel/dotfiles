@@ -2,8 +2,12 @@
 
 # this alias removes leading dollar sign (useful when copying code from Stackoverflow)
 alias '$'=''
-# this alias allows aliases to work with sudo
+
+# the following aliases allow alias expansion in common programs which take
+# commands as their arguments
 alias sudo='sudo '
+alias watch='watch '
+alias xargs='xargs '
 
 alias history='fc -i -l 1'
 

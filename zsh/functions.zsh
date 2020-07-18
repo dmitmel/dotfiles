@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 
+
 count() { echo "$#"; }
 
 bytecount() { wc -c "$@" | numfmt --to=iec-i; }
@@ -71,4 +72,12 @@ git_current_branch() {
     command git rev-parse --short HEAD 2> /dev/null
   )" || return
   echo "${ref#refs/heads/}"
+}
+
+date-fmt-iso() {
+  date --utc +'%Y-%m-%dT%H:%M:%SZ' "$@"
+}
+
+date-fmt-compact() {
+  date --utc +'%Y%m%d%H%M%S' "$@"
 }
