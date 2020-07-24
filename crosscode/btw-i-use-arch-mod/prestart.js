@@ -1,11 +1,7 @@
-ig.module('game.feature.masochist.keyboard-controls')
-  .requires('game.main')
-  .defines(() => {
-    sc.CrossCode.inject({
-      init() {
-        this.parent();
-        ig.input.bind(ig.KEY.J, 'aim');
-        ig.input.bind(ig.KEY.K, 'dash');
-      },
-    });
-  });
+sc.OPTIONS_DEFINITION['keys-btw-i-use-arch.open-map-menu'] = {
+  type: 'CONTROLS',
+  cat: sc.OPTION_CATEGORY.CONTROLS,
+  init: { key1: ig.KEY.M },
+  hasDivider: true,
+  header: 'btw-i-use-arch',
+};

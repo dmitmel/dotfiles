@@ -1,0 +1,16 @@
+{
+  "labels": {
+    "options": {
+      "headers": {
+        "btw-i-use-arch": "btw I use Arch"
+      },
+      "controls": {
+        "keys": {
+          "btw-i-use-arch": {
+            "open-map-menu": "Open/Close Map Menu"
+          }
+        }
+      }
+    }
+  }
+}
