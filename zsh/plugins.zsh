@@ -62,10 +62,10 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 
 # }}}
 
-_plugin fzf 'junegunn/fzf' "$_checkout_latest_version" \
-  build='./install --bin' \
-  after_load='plugin-cfg-path path prepend bin' \
-  after_load='plugin-cfg-path manpath prepend man'
+# _plugin fzf 'junegunn/fzf' "$_checkout_latest_version" \
+#   build='./install --bin' \
+#   after_load='plugin-cfg-path path prepend bin' \
+#   after_load='plugin-cfg-path manpath prepend man'
 
 if command_exists python; then
   _plugin alias-tips 'djui/alias-tips'
