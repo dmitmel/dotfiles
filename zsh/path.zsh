@@ -6,7 +6,7 @@ typeset -T PKG_CONFIG_PATH pkg_config_path ':'
 export PKG_CONFIG_PATH PATH MANPATH
 
 path_prepend() {
-  if (( $# < 2 )); then
+  if (( $# < 1 )); then
     print >&2 "usage: $0 <var_name> <value...>"
     return 1
   fi
