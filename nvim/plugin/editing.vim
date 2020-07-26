@@ -86,21 +86,21 @@ set commentstring=//%s
 
   command! -nargs=+ -complete=command PutOutput execute 'put =execute(' . escape(string(<q-args>), '|"') . ')'
 
-  " Clipboard {{{
-    " ,c is easier to type than "+ because it doesn't require pressing Shift
-    noremap <leader>c "+
-    " these 3 mappings are equivalent to Ctrl+C, Ctrl+V, and Ctrl+X in GUI
-    " editors (hence the names)
-    " noremap <leader>cc "+y
-    " noremap <leader>cv "+gP
-    " noremap <leader>cV "+gp
-    " noremap <leader>cx "+d
-  " }}}
+  " ,c is easier to type than "+ because it doesn't require pressing Shift
+  noremap <leader>c "+
 
   " make the default Vim mappings more consistent
   " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
   nnoremap U <C-r>
   nnoremap Y y$
+
+  " <C-i> is treated as <tab> in terminals, so the original function of <C-i>
+  " is inaccessible when something is bound to <tab> (buffer switching in my
+  " case). <C-n> and <C-p> are basically useless because they are equivalent
+  " to j and k respectively, but now they go to newer or older recorded cursor
+  " position in the jump list.
+  nnoremap <C-n> <C-i>
+  nnoremap <C-p> <C-o>
 
 " }}}
 
