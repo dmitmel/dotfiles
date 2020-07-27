@@ -42,6 +42,7 @@ Plug 'junegunn/vim-plug'
   Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
   Plug 'reedes/vim-pencil'
   Plug 'ciaranm/detectindent'
+  Plug 'tommcdo/vim-exchange'
 " }}}
 
 " Text objects {{{
