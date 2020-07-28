@@ -214,6 +214,34 @@ sc.PlayerCrossHairController.inject({
   },
 });
 
+const PLAYER_LOCATION_IN_ROOM_ICON = {
+  x: 280,
+  y: 436,
+  w: 10,
+  h: 9,
+};
+
+sc.MapCurrentRoomWrapper.inject({
+  updateDrawables(renderer) {
+    this.parent(renderer);
+
+    let player = ig.game.playerEntity;
+    let x = player.coll.pos.x * (this.hook.size.x / ig.game.size.x);
+    let y = player.coll.pos.y * (this.hook.size.y / ig.game.size.y);
+
+    let sprite = PLAYER_LOCATION_IN_ROOM_ICON;
+    renderer.addGfx(
+      this.gfx,
+      Math.round(x - sprite.w / 2),
+      Math.round(y - sprite.h / 2),
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
+    );
+  },
+});
+
 function openMapMenu() {
   // Check for the common conditions upfront, because opening and then
   // immediately closing the quick menu causes the element indicator in the top
