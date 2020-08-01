@@ -77,7 +77,8 @@
   call s:hi('Function',   0xD, '', '', '')
   call s:hi('Identifier', 0x8, '', 'none', '')
   hi! link Variable Identifier
-  call s:hi('Include',    0xF, '', '', '')
+  " call s:hi('Include',    0xF, '', '', '')
+  hi! link Include Keyword
   call s:hi('PreProc',    0xA, '', '', '')
   call s:hi('Label',      0xA, '', '', '')
   hi! link Operator NONE
@@ -285,6 +286,7 @@
   hi! link jsEnvComment        Special
   hi! link jsImport            Include
   hi! link jsExport            Include
+  hi! link jsTemplateBraces    PreProc
 " }}}
 
 " JSON {{{
@@ -328,6 +330,7 @@
   hi! link typescriptEnumKeyword         typescriptClassKeyword
   hi! link typescriptModule              jsImport
   hi! link typescriptAbstract            Keyword
+  hi! link typescriptTemplateSB          PreProc
 " }}}
 
 " Markdown {{{
@@ -353,15 +356,15 @@
 " }}}
 
 " Ruby {{{
-  hi! link rubyPseudoVariable  Variable
-  hi! link rubyClassName       Type
-  hi! link rubyAttribute       rubyFunction
-  hi! link rubyConstant        Constant
-  call s:hi('rubyInterpolationDelimiter', 0xF, '', '', '')
-  hi! link rubySymbol          String
-  hi! link rubyStringDelimiter rubyString
-  hi! link rubyRegexp          Special
-  hi! link rubyRegexpDelimiter rubyRegexp
+  hi! link rubyPseudoVariable         Variable
+  hi! link rubyClassName              Type
+  hi! link rubyAttribute              rubyFunction
+  hi! link rubyConstant               Constant
+  hi! link rubyInterpolationDelimiter PreProc
+  hi! link rubySymbol                 String
+  hi! link rubyStringDelimiter        rubyString
+  hi! link rubyRegexp                 Special
+  hi! link rubyRegexpDelimiter        rubyRegexp
 " }}}
 
 " Lua {{{
