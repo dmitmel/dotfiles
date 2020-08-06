@@ -379,8 +379,8 @@
 " }}}
 
 " Spelling {{{
-  call s:hi('SpellBad',   '', '', 'undercurl', 0x8)
-  call s:hi('SpellLocal', '', '', 'undercurl', 0xC)
-  call s:hi('SpellCap',   '', '', 'undercurl', 0xD)
-  call s:hi('SpellRare',  '', '', 'undercurl', 0xE)
+  call s:hi('SpellBad',   'bg', '', 'undercurl', 0x8)
+  call s:hi('SpellLocal', 'bg', '', 'undercurl', 0xC)
+  call s:hi('SpellCap',   'bg', '', 'undercurl', 0xD)
+  call s:hi('SpellRare',  'bg', '', 'undercurl', 0xE)
 " }}}
