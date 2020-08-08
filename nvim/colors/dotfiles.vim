@@ -69,8 +69,9 @@
   hi! link Float   Constant
   hi! link Number  Constant
   call s:hi('String',     0xB, '', '', '')
-  hi! link Character String
-  hi! link Quote     String
+  hi! link Character       String
+  hi! link Quote           String
+  hi! link StringDelimiter String
   call s:hi('Comment',    0x3,  '',  '', '')
   hi! link SpecialComment Comment
   call s:hi('Todo',       'bg', 0xA, 'bold', '')
@@ -362,7 +363,7 @@
   hi! link rubyConstant               Constant
   hi! link rubyInterpolationDelimiter PreProc
   hi! link rubySymbol                 String
-  hi! link rubyStringDelimiter        rubyString
+  hi! link rubyStringDelimiter        StringDelimiter
   hi! link rubyRegexp                 Special
   hi! link rubyRegexpDelimiter        rubyRegexp
 " }}}
