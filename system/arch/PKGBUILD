@@ -10,19 +10,20 @@ backup=()
 
 package() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../files"
-  install -Dm644 ../../LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
-  _install_files *
+
+  install -vDm644 ../../LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  _install_my_file -vDm644 etc/initcpio/hooks/bootmsg
+  _install_my_file -vDm644 etc/initcpio/install/bootmsg
+  _install_my_file -vDm644 etc/initcpio/hooks/consolecolors
+  _install_my_file -vDm644 etc/initcpio/install/consolecolors
+  install -vdm750 "$pkgdir/etc/sudoers.d"
+  _install_my_file -vDm640 etc/sudoers.d/99_dmitmel_dotfiles
+  _install_my_file -vDm644 etc/sysctl.d/50-dmitmel.conf
+  _install_my_file -vDm644 etc/bootmsg
+  install -vDm644 ../../colorschemes/out/setvtrgb.txt "$pkgdir/etc/consolecolors"
+  _install_my_file -vDm644 etc/locale.conf
 }
 
-_install_files() {
-  local path real_path mode; for path in "$@"; do
-    real_path="$(realpath "$path")"
-    mode="$(stat --format "%a" "$real_path")"
-    if [[ -d "$path" ]]; then
-      install --directory --mode "$mode" "$pkgdir/$path"
-      _install_files "$path"/*
-    else
-      install --mode "$mode" "$real_path" "$pkgdir/$path"
-    fi
-  done
+_install_my_file() {
+  install "$@" "$pkgdir/${*: -1}"
 }

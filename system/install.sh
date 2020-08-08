@@ -6,7 +6,7 @@ distro="$(lsb_release -si)"
 case "$distro" in
   Arch)
     cd arch
-    makepkg --syncdeps --force --install
+    makepkg --syncdeps --force --install --clean
     ;;
   *)
     echo >&2 "distro '$distro' is unsupported"
