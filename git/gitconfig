@@ -19,3 +19,6 @@
   old = red bold
   new = green bold
   whitespace = red reverse
+
+[alias]
+  unstage = restore --staged
