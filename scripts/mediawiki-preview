@@ -141,6 +141,19 @@ rendered_html = """\
     </div>
 
     <div id="footer" role="contentinfo"></div>
+
+    <script>(function(){{
+        var anchorHrefPrefix = window.location.href.replace(/#.+$/, "")
+
+        var links = document.getElementsByTagName("a")
+        for (var i = 0, len = links.length; i < len; i++) {{
+            var link = links[i]
+            var href = link.getAttribute("href")
+            if (typeof href === "string" && href[0] === "#") {{
+                link.setAttribute("href", anchorHrefPrefix + href)
+            }}
+        }}
+    }}())</script>
 </body>
 
 </html>
