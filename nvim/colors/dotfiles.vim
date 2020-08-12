@@ -234,6 +234,7 @@
   hi! link rustSelf          Variable
   hi! link rustSigil         rustOperator
   hi! link rustMacroVariable Variable
+  hi! link rustModPath       Identifier
 " }}}
 
 " HTML {{{
