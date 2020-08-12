@@ -78,6 +78,7 @@ Plug 'junegunn/vim-plug'
 
 " Programming {{{
   Plug 'sheerun/vim-polyglot'
+  Plug 'chikamichi/mediawiki.vim'
   if g:vim_ide
     Plug 'neoclide/coc.nvim', { 'branch': 'release' }
     Plug 'dag/vim2hs'
