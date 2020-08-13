@@ -10,6 +10,35 @@
 # <https://github.com/wikimedia/Vector>
 # and, most importantly: `view-source:` for any MediaWiki page
 
+# Skin-specific notes:
+
+#   citizen
+#
+#     - Fonts are not loaded due to CSP. One possible mitigation is running a
+#       local proxy and setting `Access-Control-Allow-Origin` to `*`. An example
+#       nginx configuration:
+#
+#           server {
+#               listen 80;
+#               server_name 127.155.44.48;  # This address was chosen randomly
+#               location / {
+#                   proxy_pass https://wiki.c2dl.info;  # Replace with your wiki
+#                   add_header Access-Control-Allow-Origin *;
+#               }
+#           }
+#
+#       By modifying `/etc/hosts` this can be made into its own "domain":
+#
+#           127.155.44.48  local.wiki.c2dl.info
+#
+#     - The module `skins.citizen.scripts.toc` is broken because to find and
+#       highlight the current section header in the table of contents it uses a
+#       CSS selector incompatible with the URL rewriting applied to anchor links.
+#
+#     - The module `skins.citizen.scripts` references search inputs which aren't
+#       created by this script.
+
+
 import argparse
 import mwclient
 import json
@@ -40,7 +69,16 @@ MODULES_POST_LOAD = {
         # "skins.citizen.scripts.search",
         # "skins.citizen.styles.search",
         # "skins.citizen.icons.search",
-        "skins.citizen.scripts",
+        # "skins.citizen.scripts",
+    ],
+}
+
+MODULES_POST_LOAD_BLOCKED = {
+    "citizen": [
+        "skins.citizen.scripts.toc",
+        "skins.citizen.scripts.search",
+        "skins.citizen.styles.search",
+        "skins.citizen.icons.search",
     ],
 }
 
@@ -134,6 +172,16 @@ result = site.post(
 )["parse"]
 
 
+def get_modules(page_modules, added_modules_dict, blocked_modules_dict={}):
+    modules = page_modules + added_modules_dict[cli_args.skin]
+    for blocked_module in blocked_modules_dict.get(cli_args.skin, []):
+        try:
+            modules.remove(blocked_module)
+        except ValueError:
+            pass
+    return modules
+
+
 rendered_html = """\
 <!DOCTYPE html>
 <html class="client-nojs" lang="{lang}" dir="{text_dir}">
@@ -204,13 +252,13 @@ rendered_html = """\
     ),
     page_config_json=json_dumps_compact(result["jsconfigvars"]),
     page_modules_json=json_dumps_compact(
-        result["modules"] + MODULES_POST_LOAD[cli_args.skin]
+        get_modules(result["modules"], MODULES_POST_LOAD, MODULES_POST_LOAD_BLOCKED)
     ),
     style_url=html.escape(
         get_load_script_url(
             only="styles",
             modules="|".join(
-                result["modulestyles"] + MODULES_PRELOAD_STYLES[cli_args.skin]
+                get_modules(result["modulestyles"], MODULES_PRELOAD_STYLES)
             ),
         )
     ),
@@ -218,7 +266,7 @@ rendered_html = """\
         get_load_script_url(
             only="scripts",
             modules="|".join(
-                result["modulescripts"] + MODULES_PRELOAD_SCRIPTS[cli_args.skin]
+                get_modules(result["modulescripts"], MODULES_PRELOAD_SCRIPTS)
             ),
             raw="1",
         )
