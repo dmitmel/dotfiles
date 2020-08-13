@@ -18,32 +18,64 @@ import html
 import re
 
 
-SKIN = "vector"
 LANG = "en"
 LANG_TEXT_DIRECTION = "ltr"
 
-MODULES_POST_LOAD = [
-    "site",
-    "mediawiki.page.startup",
-    "mediawiki.page.ready",
-    "mediawiki.toc",
-    # "mediawiki.searchSuggest",
-    # "mediawiki.page.watch.ajax",
-    "skins.{}.js".format(SKIN),
-]
+MODULES_POST_LOAD = {
+    "vector": [
+        "site",
+        "mediawiki.page.startup",
+        "mediawiki.page.ready",
+        "mediawiki.toc",
+        # "mediawiki.searchSuggest",
+        # "mediawiki.page.watch.ajax",
+        "skins.vector.js",
+    ],
+    "citizen": [
+        # "site",
+        # "mediawiki.page.startup",
+        # "mediawiki.page.ready",
+        # "mediawiki.toc",
+        # "skins.citizen.scripts.toc",
+        # "skins.citizen.scripts.search",
+        # "skins.citizen.styles.search",
+        # "skins.citizen.icons.search",
+        "skins.citizen.scripts",
+    ],
+}
 
-MODULES_PRELOAD_STYLES = [
-    "mediawiki.legacy.commonPrint",
-    "mediawiki.legacy.shared",
-    "mediawiki.skinning.interface",
-    "mediawiki.toc.styles",
-    "skins.{}.styles".format(SKIN),
-    "site.styles",
-]
+MODULES_PRELOAD_STYLES = {
+    "vector": [
+        "mediawiki.legacy.commonPrint",
+        "mediawiki.legacy.shared",
+        "mediawiki.skinning.interface",
+        "mediawiki.toc.styles",
+        "skins.vector.styles",
+        "site.styles",
+    ],
+    "citizen": [
+        # "mediawiki.legacy.commonPrint",
+        # "mediawiki.legacy.shared",
+        "mediawiki.skinning.content.externallinks",
+        # "mediawiki.toc.styles",
+        "skins.citizen.icons",
+        "skins.citizen.styles",
+        "skins.citizen.icons.ca",
+        "skins.citizen.icons.es",
+        "skins.citizen.icons.footer",
+        "skins.citizen.icons.n",
+        "skins.citizen.icons.pt",
+        "skins.citizen.icons.t",
+        "skins.citizen.styles.fonts",
+        "skins.citizen.styles.toc",
+        "site.styles",
+    ],
+}
 
-MODULES_PRELOAD_SCRIPTS = [
-    "startup",
-]
+MODULES_PRELOAD_SCRIPTS = {
+    "vector": ["startup"],
+    "citizen": ["startup"],
+}
 
 
 # ported from <https://github.com/wikimedia/mediawiki/blob/c15ded31a6ca79fa65c00d151a7220632ad90b6d/includes/parser/Sanitizer.php#L1205-L1222>
@@ -65,40 +97,41 @@ def json_dumps_compact(data):
 parser = argparse.ArgumentParser()
 parser.add_argument("--site", type=str, required=True)
 parser.add_argument("--scheme", type=str, default="https")
+parser.add_argument("--skin", type=str, default="vector")
 parser.add_argument(
     "--input", type=str, required=True,
 )
 parser.add_argument("--title", type=str)
 parser.add_argument("--output", type=str, required=True)
-args = parser.parse_args()
+cli_args = parser.parse_args()
 
 
-site = mwclient.Site(args.site, scheme=args.scheme)
-
-
-with open(args.input, "r") as f:
-    wikitext_str = f.read()
-
-result = site.post(
-    "parse",
-    title=args.title,
-    text=wikitext_str,
-    contentmodel="wikitext",
-    prop="text|indicators|displaytitle|modules|jsconfigvars|categorieshtml",
-    preview=True,
-    sectionpreview=False,
-    disableeditsection=True,
-    useskin=SKIN,
-    uselang=LANG,
-)["parse"]
+site = mwclient.Site(cli_args.site, scheme=cli_args.scheme)
 
 
 def get_load_script_url(**args):
     return "{path}load{ext}?{args}".format(
         path=site.path,
         ext=site.ext,
-        args=urlencode({"lang": LANG, "skin": SKIN, **args}),
+        args=urlencode({"lang": LANG, "skin": cli_args.skin, **args}),
     )
+
+
+with open(cli_args.input, "r") as f:
+    wikitext_str = f.read()
+
+result = site.post(
+    "parse",
+    title=cli_args.title,
+    text=wikitext_str,
+    contentmodel="wikitext",
+    prop="text|indicators|displaytitle|modules|jsconfigvars|categorieshtml",
+    preview=True,
+    sectionpreview=False,
+    disableeditsection=True,
+    useskin=cli_args.skin,
+    uselang=LANG,
+)["parse"]
 
 
 rendered_html = """\
@@ -166,25 +199,31 @@ rendered_html = """\
             "noscript": "ready",
             "user.options": "ready",
             "user.tokens": "loading",
-            **{name: "ready" for name in MODULES_PRELOAD_STYLES},
+            **{name: "ready" for name in MODULES_PRELOAD_STYLES[cli_args.skin]},
         }
     ),
     page_config_json=json_dumps_compact(result["jsconfigvars"]),
-    page_modules_json=json_dumps_compact(result["modules"] + MODULES_POST_LOAD),
+    page_modules_json=json_dumps_compact(
+        result["modules"] + MODULES_POST_LOAD[cli_args.skin]
+    ),
     style_url=html.escape(
         get_load_script_url(
             only="styles",
-            modules="|".join(result["modulestyles"] + MODULES_PRELOAD_STYLES),
+            modules="|".join(
+                result["modulestyles"] + MODULES_PRELOAD_STYLES[cli_args.skin]
+            ),
         )
     ),
     script_url=html.escape(
         get_load_script_url(
             only="scripts",
-            modules="|".join(result["modulescripts"] + MODULES_PRELOAD_SCRIPTS),
+            modules="|".join(
+                result["modulescripts"] + MODULES_PRELOAD_SCRIPTS[cli_args.skin]
+            ),
             raw="1",
         )
     ),
-    skin=html.escape(SKIN),
+    skin=html.escape(cli_args.skin),
     page_class=html.escape(escape_css_class(result["displaytitle"])),
     title=html.escape(result["displaytitle"]),
     indicators_html="\n".join(
@@ -200,5 +239,5 @@ rendered_html = """\
 )
 
 
-with open(args.output, "w") as f:
+with open(cli_args.output, "w") as f:
     f.write(rendered_html)
