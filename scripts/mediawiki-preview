@@ -165,8 +165,9 @@ result = site.post(
     contentmodel="wikitext",
     prop="text|indicators|displaytitle|modules|jsconfigvars|categorieshtml",
     preview=True,
+    pst=True,  # pre-save transforms
     sectionpreview=False,
-    disableeditsection=True,
+    disableeditsection=True,  # disables "[edit]" links next to headers
     useskin=cli_args.skin,
     uselang=LANG,
 )["parse"]
