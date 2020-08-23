@@ -1,3 +1,2 @@
-/zsh/custom
 *.pyc
-/hammerspoon/Spoons
+node_modules/
