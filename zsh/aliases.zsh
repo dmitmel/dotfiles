@@ -74,6 +74,7 @@ alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
 fi
+alias sue="sudo --edit"
 
 # some amendments to Oh My Zsh's git plugin
 # https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh

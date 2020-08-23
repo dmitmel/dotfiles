@@ -53,6 +53,7 @@ endif
     nnoremap <silent> <space>c <Cmd>CocList commands<CR>
     nnoremap <silent> <space>o <Cmd>CocList --auto-preview outline<CR>
     nnoremap <silent> <space>s <Cmd>CocList --interactive symbols<CR>
+    nnoremap <silent> <space>e <Cmd>CocList extensions<CR>
     nnoremap <silent> <space>h <Cmd>CocPrev<CR>
     nnoremap <silent> <space>k <Cmd>CocPrev<CR>
     nnoremap <silent> <space>l <Cmd>CocNext<CR>

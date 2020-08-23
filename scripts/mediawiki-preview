@@ -19,7 +19,7 @@
 #       nginx configuration:
 #
 #           server {
-#               listen 80;
+#               listen 127.155.44.48:80;
 #               server_name 127.155.44.48;  # This address was chosen randomly
 #               location / {
 #                   proxy_pass https://wiki.c2dl.info;  # Replace with your wiki
