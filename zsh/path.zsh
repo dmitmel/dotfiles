@@ -18,14 +18,17 @@ path_prepend() {
   done
 }
 
-if (( _is_macos )); then
-  # local Python binaries (for some reason they don't go into ~/.local/bin, but
-  # instead into the garbage ~/Library directory)
-  path_prepend path ~/Library/Python/*/bin(OnN)
+# glob modifiers used in this script:
+#
+# N - enables the null_glob option for a single glob pattern, in other words
+# ignores an error when the pattern didn't match anything
+#
+# / - matches only directories
 
+if (( _is_macos )); then
   # GNU counterparts of command line utilities
-  path_prepend path /usr/local/opt/*/libexec/gnubin(N)
-  path_prepend manpath /usr/local/opt/*/libexec/gnuman(N)
+  path_prepend path /usr/local/opt/*/libexec/gnubin(N/)
+  path_prepend manpath /usr/local/opt/*/libexec/gnuman(N/)
 
   # add some keg-only Homebrew formulas
   for formula in curl file-formula openssl ruby; do
@@ -46,11 +49,20 @@ if (( _is_macos )); then
   unset formula
 fi
 
+if (( _is_macos )); then
+  # Python packages (for some reason they don't go into ~/.local/bin, but
+  # instead into the garbage ~/Library directory)
+  path_prepend path ~/Library/Python/*/bin(N/)
+fi
+
+# Ruby gems
+path_prepend path ~/.gem/ruby/*/bin(N/)
+
 # Yarn global packages
 path_prepend path ~/.yarn/bin
 
 # Go
-export GOPATH=~/.go
+export GOPATH=~/go
 path_prepend path "$GOPATH/bin"
 
 # Rust
