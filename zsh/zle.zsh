@@ -161,3 +161,9 @@
   # bind to F1
   bindkey '\eOP' find-man-page
 # }}}
+
+# other keybindings {{{
+
+  bindkey '\ee' edit-command-line
+
+# }}}
