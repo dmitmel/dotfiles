@@ -31,6 +31,9 @@ set commentstring=//%s
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
 
+  let g:detectindent_max_lines_to_analyse = 128
+  let g:detectindent_check_comment_syntax = 1
+
   function s:DetectIndent()
     if !empty(&bt) | return | endif
     let g:detectindent_preferred_indent = &l:shiftwidth

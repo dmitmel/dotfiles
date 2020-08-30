@@ -41,7 +41,7 @@ Plug 'junegunn/vim-plug'
   Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler
   Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
   Plug 'reedes/vim-pencil'
-  Plug 'ciaranm/detectindent'
+  Plug 'idbrii/detectindent'
   Plug 'tommcdo/vim-exchange'
 " }}}
 
