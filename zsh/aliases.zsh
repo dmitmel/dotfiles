@@ -81,3 +81,5 @@ alias sue="sudo --edit"
 alias glo="git log --decorate --abbrev-commit --date=relative --pretty='%C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ad)%C(reset)'"
 alias glog='glo --graph'
 alias gloga='glog --all'
+
+alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'
