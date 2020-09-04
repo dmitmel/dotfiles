@@ -74,10 +74,16 @@ git_current_branch() {
   echo "${ref#refs/heads/}"
 }
 
-date-fmt-iso() {
-  date --utc +'%Y-%m-%dT%H:%M:%SZ' "$@"
-}
+declare -A date_formats=(
+  iso       '%Y-%m-%dT%H:%M:%SZ'
+  normal    '%Y-%m-%d %H:%M:%S'
+  compact   '%Y%m%d%H%M%S'
+  only-date '%Y-%m-%d'
+  only-time '%H:%M:%S'
+)
 
-date-fmt-compact() {
-  date --utc +'%Y%m%d%H%M%S' "$@"
-}
+for format_name format in "${(kv)date_formats[@]}"; do
+  eval "date-fmt-${format_name}() { date +${(q)format} \"\$@\"; }"
+done; unset format_name format
+
+unset date_formats
