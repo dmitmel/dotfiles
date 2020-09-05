@@ -8,13 +8,17 @@ bytecount() { wc -c "$@" | numfmt --to=iec-i; }
 mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
 
 viscd() {
+  setopt local_options err_return
   local temp_file chosen_dir
   temp_file="$(mktemp -t ranger_cd.XXXXXXXXXX)"
-  ranger --choosedir="$temp_file" -- "${@:-$PWD}"
-  if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" && "$chosen_dir" != "$PWD" ]]; then
-    cd -- "$chosen_dir"
-  fi
-  rm -f -- "$temp_file"
+  {
+    ranger --no-such-opt --choosedir="$temp_file" -- "${@:-$PWD}"
+    if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" && "$chosen_dir" != "$PWD" ]]; then
+      cd -- "$chosen_dir"
+    fi
+  } always {
+    rm -f -- "$temp_file"
+  }
 }
 
 command_exists() { command -v "$1" &>/dev/null; }
@@ -56,7 +60,7 @@ else
   paste_cmd='print >&2 "clippaste: '"$error_msg"'"; return 1'
   unset error_msg
 fi
-eval "clipcopy(){ $copy_cmd; }; clippaste(){ $paste_cmd; }"
+eval "clipcopy() { $copy_cmd; }; clippaste() { $paste_cmd; }"
 unset copy_cmd paste_cmd
 
 # for compatibility with Oh My Zsh plugins
