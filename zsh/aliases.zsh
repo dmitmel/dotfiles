@@ -37,9 +37,17 @@ if command_exists fd; then
   alias fda='fd --hidden --no-ignore'
 fi
 
+# some amendments to Oh My Zsh's git plugin
+# https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
+alias glo="git log --decorate --abbrev-commit --date=relative --pretty='%C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ad)%C(reset)'"
+alias glog='glo --graph'
+alias gloga='glog --all'
+
 # git with hub
 if command_exists hub; then
   alias git='hub'
+  alias gw='git browse'
+  alias gci='git ci-status --verbose'
 fi
 
 # make these utils more verbose
@@ -75,11 +83,5 @@ if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
 fi
 alias sue="sudo --edit"
-
-# some amendments to Oh My Zsh's git plugin
-# https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
-alias glo="git log --decorate --abbrev-commit --date=relative --pretty='%C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ad)%C(reset)'"
-alias glog='glo --graph'
-alias gloga='glog --all'
 
 alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'
