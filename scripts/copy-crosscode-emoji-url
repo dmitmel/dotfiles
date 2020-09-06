@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # shellcheck source=/dev/null
-source ~/.config/copy-crosscode-emoji-url.conf.sh
+source ~/.config/dotfiles/copy-crosscode-emoji-url.conf.sh
 
 data_refs=()
 data_urls=()
