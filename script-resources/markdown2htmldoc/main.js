@@ -51,15 +51,14 @@ parser.addArgument('--script', {
 
 let args = parser.parseArgs();
 
+loadPrismLanguages(); // loads all languages
+
 let md = markdownIt({
   html: true,
   linkify: true,
   highlight: (code, lang) => {
-    if (lang) {
-      loadPrismLanguages([lang]);
-      if (Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
-        return Prism.highlight(code, Prism.languages[lang], lang);
-      }
+    if (lang && Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
+      return Prism.highlight(code, Prism.languages[lang], lang);
     }
     return null;
   },
