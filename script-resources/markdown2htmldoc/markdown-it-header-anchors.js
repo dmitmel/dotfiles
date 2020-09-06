@@ -14,7 +14,7 @@ function markdownItHeaderAnchors(md) {
 
     let innerText = '';
     let headingContentToken = tokens[idx + 1];
-    headingContentToken.children.forEach(child => {
+    headingContentToken.children.forEach((child) => {
       switch (child.type) {
         case 'html_block':
         case 'html_inline':
@@ -28,7 +28,7 @@ function markdownItHeaderAnchors(md) {
     });
 
     if (innerText.length > 0) {
-      let id = slugger.slug(innerText);
+      let id = md.utils.escapeHtml(slugger.slug(innerText));
       renderedHeadingOpen += `<a id="${id}" class="anchor" href="#${id}" aria-hidden="true"><span class="octicon octicon-link"></span></a>`;
     }
 

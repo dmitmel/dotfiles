@@ -11,12 +11,10 @@
   },
   "devDependencies": {
     "eslint": "*",
-    "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel"
-  },
-  "eslintConfig": {
-    "extends": "eslint-config-dmitmel/presets/node",
-    "rules": {
-      "node/shebang": "off"
-    }
+    "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel",
+    "eslint-config-prettier": "*",
+    "eslint-plugin-node": "*",
+    "eslint-plugin-prettier": "*",
+    "prettier": "*"
   }
 }

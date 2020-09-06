@@ -7,19 +7,48 @@ const markdownItTaskCheckbox = require('markdown-it-task-checkbox');
 const markdownItEmoji = require('markdown-it-emoji');
 const markdownItHeaderAnchors = require('./markdown-it-header-anchors');
 const Prism = require('prismjs');
+const PRISM_COMPONENTS = require('prismjs/components.js');
 const loadPrismLanguages = require('prismjs/components/');
 
+// TODO: integrate <https://github.com/PrismJS/prism-themes>
+const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter(
+  (k) => k !== 'meta',
+);
+
 let parser = new argparse.ArgumentParser();
-parser.addArgument('inputFile', {
+
+parser.addArgument('INPUT_FILE', {
   nargs: argparse.Const.OPTIONAL,
-  metavar: 'INPUT_FILE',
   help: '(stdin by default)',
 });
-parser.addArgument('outputFile', {
+parser.addArgument('OUTPUT_FILE', {
   nargs: argparse.Const.OPTIONAL,
-  metavar: 'OUTPUT_FILE',
   help: '(stdout by default)',
 });
+
+parser.addArgument('--input-encoding', {
+  defaultValue: 'utf-8',
+  help: '(utf-8 by default)',
+});
+parser.addArgument('--output-encoding', {
+  defaultValue: 'utf-8',
+  help: '(utf-8 by default)',
+});
+
+parser.addArgument('--no-default-stylesheets', {
+  nargs: argparse.Const.SUPPRESS,
+});
+parser.addArgument('--syntax-theme', {
+  choices: PRISM_THEMES,
+});
+
+parser.addArgument('--stylesheet', {
+  nargs: argparse.Const.ZERO_OR_MORE,
+});
+parser.addArgument('--script', {
+  nargs: argparse.Const.ZERO_OR_MORE,
+});
+
 let args = parser.parseArgs();
 
 let md = markdownIt({
@@ -39,14 +68,47 @@ md.use(markdownItTaskCheckbox);
 md.use(markdownItEmoji);
 md.use(markdownItHeaderAnchors);
 
-let markdownDocument = fs.readFileSync(args.get('inputFile', 0), 'utf-8');
+let markdownDocument = fs.readFileSync(
+  args.get('INPUT_FILE', 0),
+  args.get('input_encoding'),
+);
 let renderedMarkdown = md.render(markdownDocument);
-let githubMarkdownCSS = fs.readFileSync(
-  require.resolve('github-markdown-css/github-markdown.css'),
-);
-let syntaxHighlightingThemeCSS = fs.readFileSync(
-  require.resolve('prismjs/themes/prism.css'),
-);
+
+let stylesheetsTexts = [];
+let scriptsTexts = [];
+let syntaxThemeName = null;
+
+if (!args.get('no_default_stylesheets')) {
+  syntaxThemeName = 'prism';
+  stylesheetsTexts.push(
+    fs.readFileSync(
+      require.resolve('github-markdown-css/github-markdown.css'),
+      'utf-8',
+    ),
+    fs.readFileSync(
+      require.resolve('./github-markdown-additions.css'),
+      'utf-8',
+    ),
+  );
+}
+
+syntaxThemeName = args.get('syntax_theme') || syntaxThemeName;
+if (syntaxThemeName) {
+  stylesheetsTexts.push(
+    fs.readFileSync(
+      require.resolve(`prismjs/themes/${syntaxThemeName}.css`),
+      'utf-8',
+    ),
+  );
+}
+
+for (let stylesheetPath of args.get('stylesheet', [])) {
+  stylesheetsTexts.push(fs.readFileSync(stylesheetPath));
+}
+
+for (let scriptPath of args.get('script', [])) {
+  scriptsTexts.push(fs.readFileSync(scriptPath));
+}
 
 let renderedHtmlDocument = `
 <!DOCTYPE html>
@@ -55,43 +117,19 @@ let renderedHtmlDocument = `
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
-<style>
-${githubMarkdownCSS}
-</style>
-<style>
-${syntaxHighlightingThemeCSS}
-</style>
-<style>
-html, body {
-  padding: 0;
-  margin: 0;
-}
-.markdown-body {
-  max-width: 882px;
-  margin: 0 auto;
-  padding: 32px;
-}
-.octicon-link {
-  font: normal normal 16px 'octicons-link';
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-.octicon-link::before {
-  content: '\\f05c';
-}
-</style>
+${stylesheetsTexts.map((s) => `<style>\n${s}\n</style>`).join('\n')}
 </head>
 <body>
 <article class="markdown-body">
 ${renderedMarkdown}
 </article>
+${scriptsTexts.map((s) => `<script>\n${s}\n</script>`).join('\n')}
 </body>
 </html>
 `;
 
-fs.writeFileSync(args.get('outputFile', 1), renderedHtmlDocument, 'utf-8');
+fs.writeFileSync(
+  args.get('OUTPUT_FILE', 1),
+  renderedHtmlDocument,
+  args.get('output_encoding'),
+);
