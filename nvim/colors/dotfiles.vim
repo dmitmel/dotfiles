@@ -3,7 +3,7 @@
 
 " Color definitions {{{
 
-  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/nvim.vim')
+  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/vim.vim')
 
   if !&termguicolors && exists('$_COLORSCHEME_TERMINAL')
     set notermguicolors
