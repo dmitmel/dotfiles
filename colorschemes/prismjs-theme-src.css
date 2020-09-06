@@ -1,0 +1,125 @@
+/* Based on <https://github.com/PrismJS/prism/blob/master/themes/prism.css> */
+
+.markdown-body code,
+.markdown-body pre {
+  font-family: 'Ubuntu Mono', monospace;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+}
+
+.markdown-body pre {
+  background-color: var(--dotfiles-colorscheme-bg);
+  color: var(--dotfiles-colorscheme-fg);
+}
+
+.markdown-body pre::-moz-selection,
+.markdown-body pre ::-moz-selection {
+  background-color: var(--dotfiles-colorscheme-selection-bg);
+  color: var(--dotfiles-colorscheme-selection-fg);
+}
+
+.markdown-body pre::selection,
+.markdown-body pre ::selection {
+  background-color: var(--dotfiles-colorscheme-selection-bg);
+  color: var(--dotfiles-colorscheme-selection-fg);
+}
+
+.token.symbol {
+  color: #905;
+}
+
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.url {
+  text-decoration: underline;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token.attr-equals,
+.token.punctuation,
+.token.operator,
+.token.combinator {
+  color: var(--dotfiles-colorscheme-fg);
+}
+
+.token.comment,
+.token.doctype,
+.token.doctype > .token.punctuation,
+.token.cdata,
+.token.cdata > .token.punctuation,
+.token.prolog,
+.token.blockquote,
+.token.hr {
+  color: var(--dotfiles-colorscheme-base-03);
+}
+
+.token.variable,
+.token.parameter,
+.token.constant,
+.token.tag,
+.token.property,
+.token.deleted,
+.token.selector {
+  color: var(--dotfiles-colorscheme-base-08);
+}
+
+.token.boolean,
+.token.number,
+.token.unit,
+.token.attr-name,
+.token.color.hexcode,
+.token.list {
+  color: var(--dotfiles-colorscheme-base-09);
+}
+
+.token.class-name,
+.token.maybe-class-name,
+.token.builtin,
+.token.variable.dom,
+.token.macro,
+.token.interpolation-punctuation,
+.language-json .token.property {
+  color: var(--dotfiles-colorscheme-base-0A);
+}
+
+.token.string,
+.token.char,
+.token.attr-value,
+.token.attr-value > .token.punctuation:not(.attr-equals),
+.token.inserted {
+  color: var(--dotfiles-colorscheme-base-0B);
+}
+
+.token.regex,
+.token.pseudo-class,
+.token.pseudo-element,
+.token.entity,
+.token.important {
+  color: var(--dotfiles-colorscheme-base-0C);
+}
+
+.token.function,
+.token.coord,
+.token.url,
+.token.heading,
+.token.title,
+.token.heading > .token.important,
+.token.title > .token.punctuation {
+  color: var(--dotfiles-colorscheme-base-0D);
+}
+
+.token.keyword,
+.token.operator.arrow,
+.token.rule {
+  color: var(--dotfiles-colorscheme-base-0E);
+}

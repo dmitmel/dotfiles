@@ -1,0 +1,24 @@
+:root {
+  --dotfiles-colorscheme-bg: #2d2d2d;
+  --dotfiles-colorscheme-fg: #d3d0c8;
+  --dotfiles-colorscheme-selection-bg: #515151;
+  --dotfiles-colorscheme-selection-fg: #d3d0c8;
+  --dotfiles-colorscheme-cursor-bg: #d3d0c8;
+  --dotfiles-colorscheme-cursor-fg: #2d2d2d;
+  --dotfiles-colorscheme-base-00: #2d2d2d;
+  --dotfiles-colorscheme-base-01: #393939;
+  --dotfiles-colorscheme-base-02: #515151;
+  --dotfiles-colorscheme-base-03: #747369;
+  --dotfiles-colorscheme-base-04: #a09f93;
+  --dotfiles-colorscheme-base-05: #d3d0c8;
+  --dotfiles-colorscheme-base-06: #e8e6df;
+  --dotfiles-colorscheme-base-07: #f2f0ec;
+  --dotfiles-colorscheme-base-08: #f2777a;
+  --dotfiles-colorscheme-base-09: #f99157;
+  --dotfiles-colorscheme-base-0A: #ffcc66;
+  --dotfiles-colorscheme-base-0B: #99cc99;
+  --dotfiles-colorscheme-base-0C: #66cccc;
+  --dotfiles-colorscheme-base-0D: #6699cc;
+  --dotfiles-colorscheme-base-0E: #cc99cc;
+  --dotfiles-colorscheme-base-0F: #d27b53;
+}

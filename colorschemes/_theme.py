@@ -37,3 +37,14 @@ ansi_colors = [
 ]
 
 link_color = ansi_colors[0xC]
+
+css_variables_prefix = "dotfiles-colorscheme-"
+css_variables = {
+    "bg": bg,
+    "fg": fg,
+    "selection-bg": selection_bg,
+    "selection-fg": selection_fg,
+    "cursor-bg": cursor_bg,
+    "cursor-fg": cursor_fg,
+    **{"base-{:02X}".format(index): color for index, color in enumerate(base16_colors)},
+}

@@ -39,7 +39,7 @@ parser.addArgument('--no-default-stylesheets', {
   nargs: argparse.Const.SUPPRESS,
 });
 parser.addArgument('--syntax-theme', {
-  choices: PRISM_THEMES,
+  choices: [...PRISM_THEMES, 'none', 'dotfiles'],
 });
 
 parser.addArgument('--stylesheet', {
@@ -78,7 +78,7 @@ let scriptsTexts = [];
 let syntaxThemeName = null;
 
 if (!args.get('no_default_stylesheets')) {
-  syntaxThemeName = 'prism';
+  syntaxThemeName = 'dotfiles';
   stylesheetsTexts.push(
     fs.readFileSync(
       require.resolve('github-markdown-css/github-markdown.css'),
@@ -92,10 +92,14 @@ if (!args.get('no_default_stylesheets')) {
 }
 
 syntaxThemeName = args.get('syntax_theme') || syntaxThemeName;
-if (syntaxThemeName) {
+if (syntaxThemeName && syntaxThemeName !== 'none') {
   stylesheetsTexts.push(
     fs.readFileSync(
-      require.resolve(`prismjs/themes/${syntaxThemeName}.css`),
+      require.resolve(
+        syntaxThemeName === 'dotfiles'
+          ? '../../colorschemes/out/prismjs-theme.css'
+          : `prismjs/themes/${syntaxThemeName}.css`,
+      ),
       'utf-8',
     ),
   );
@@ -125,7 +129,7 @@ ${renderedMarkdown}
 ${scriptsTexts.map((s) => `<script>\n${s}\n</script>`).join('\n')}
 </body>
 </html>
-`;
+`.trim();
 
 fs.writeFileSync(
   args.get('OUTPUT_FILE', 1),
