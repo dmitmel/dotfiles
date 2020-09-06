@@ -6,9 +6,9 @@ const markdownIt = require('markdown-it');
 const markdownItTaskCheckbox = require('markdown-it-task-checkbox');
 const markdownItEmoji = require('markdown-it-emoji');
 const markdownItHeaderAnchors = require('./markdown-it-header-anchors');
-const Prism = require('prismjs');
-const PRISM_COMPONENTS = require('prismjs/components.js');
+const Prism = require('prismjs/components/prism-core');
 const loadPrismLanguages = require('prismjs/components/');
+const PRISM_COMPONENTS = require('prismjs/components.js');
 
 // TODO: integrate <https://github.com/PrismJS/prism-themes>
 const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter(
@@ -54,14 +54,14 @@ let args = parser.parseArgs();
 let md = markdownIt({
   html: true,
   linkify: true,
-  highlight: (str, lang) => {
-    if (lang.length > 0) {
+  highlight: (code, lang) => {
+    if (lang) {
       loadPrismLanguages([lang]);
       if (Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
-        return Prism.highlight(str, Prism.languages[lang], lang);
+        return Prism.highlight(code, Prism.languages[lang], lang);
       }
     }
-    return str;
+    return null;
   },
 });
 md.use(markdownItTaskCheckbox);
