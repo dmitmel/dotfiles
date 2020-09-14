@@ -154,7 +154,9 @@
     local words=("${(@z)BUFFER}")
     local cmd_name="${words[1]}"
     zle push-line
-    BUFFER="visman ${(q)cmd_name}"
+    local manpage=""
+    manpage="$(fzf-search-manpage "$cmd_name")"
+    BUFFER="man $manpage"
     zle accept-line
   }
   zle -N find-man-page _widget_find_man_page
