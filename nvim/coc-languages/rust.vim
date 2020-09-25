@@ -6,8 +6,11 @@ let g:coc_user_config['rust-analyzer'] = {
 \   'chainingHints': v:false,
 \   },
 \ 'checkOnSave': {
-\    'command': 'clippy'
+\    'command': 'clippy',
 \   },
+\ 'cargo': {
+\   'loadOutDirsFromCheck': v:true,
+\   }
 \ }
 
 " let g:coc_global_extensions += ['coc-rls']
