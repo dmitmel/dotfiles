@@ -21,11 +21,12 @@ endif
     return index(g:coc_filetypes, &filetype) >= 0
   endfunction
 
+  command -nargs=* CocKeywordprg call CocAction('doHover')
   augroup vimrc-coc
     autocmd!
     autocmd FileType * if IsCocEnabled()
       \|let &l:formatexpr = "CocAction('formatSelected')"
-      \|let &l:keywordprg = ":call CocAction('doHover')"
+      \|let &l:keywordprg = ":CocKeywordprg"
       \|endif
     autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
   augroup end
