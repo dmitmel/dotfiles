@@ -1,0 +1,5 @@
+configuration {
+	modi: "window,run,drun,ssh";
+	font: "monospace 16";
+	kb-cancel: "Control+g,Control+bracketleft,!Escape";
+}
