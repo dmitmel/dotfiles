@@ -1,0 +1,4 @@
+#compdef prime-run
+
+_arguments \
+  '*:: : _normal -p $service'
