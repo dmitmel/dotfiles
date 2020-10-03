@@ -88,4 +88,6 @@ set-my-colorscheme() {
   fi
 }
 
-set-my-colorscheme
+if [[ -z "$DOTFILES_DISABLE_MY_COLORSCHEME" ]]; then
+  set-my-colorscheme
+fi
