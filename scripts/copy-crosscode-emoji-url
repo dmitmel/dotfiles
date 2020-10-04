@@ -1,33 +1,50 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-set -euo pipefail
+import sys
+import os
+from pathlib import Path
+from configparser import ConfigParser
+import requests
 
-# shellcheck source=/dev/null
-source ~/.config/dotfiles/copy-crosscode-emoji-url.conf.sh
-
-data_refs=()
-data_urls=()
-data_titles=()
-
-read_line() {
-  IFS= read -r "$@"
-}
-
-# https://stackoverflow.com/a/15692004/12005228
-print_lines() {
-  eval "printf '%s\n' \"\${$1[@]}\""
-}
-
-while read_line ref && read_line url && read_line title; do
-  data_refs+=("$ref")
-  data_urls+=("$url")
-  data_titles+=("$title")
-done < <(
-  curl --location --fail --max-time 10 "$CCBOT_EMOTE_REGISTRY_DUMP_URL" |
-  jq -r '.list[] | select(.safe) | .ref, .url, "\(.ref) [\(.guild_name)]"'
+sys.path.insert(
+    1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
 )
 
-if index="$(print_lines data_titles | rofi -dmenu -i -p cc-emoji -format i)"; then
-  echo -n "${data_urls[$index]}" | xsel --clipboard --input
-  notify-send --icon=utilities-terminal --expire-time=3000 "$0" "copied URL of ${data_refs[$index]} to clipboard!"
-fi
+import common_script_utils  # noqa F401
+
+
+if os.name == "posix":
+    config_path = Path.home() / ".config" / "dotfiles" / "copy-crosscode-emoji-url.ini"
+else:
+    common_script_utils.platform_not_supported_error()
+config = ConfigParser(interpolation=None)
+config.read(config_path)
+
+
+data = []
+
+
+def emote_downloader_and_iterator():
+    global data
+
+    response = requests.get(
+        config["default"]["ccbot_emote_registry_dump_url"], timeout=3
+    )
+    response.raise_for_status()
+
+    data = response.json()
+    assert data["version"] == 1
+
+    for emote in data["list"]:
+        yield "{emote[ref]} [{emote[guild_name]}]".format(emote=emote)
+
+
+chosen_index = common_script_utils.run_chooser(
+    emote_downloader_and_iterator(), prompt="emote", async_read=True
+)
+chosen_emote = data["list"][chosen_index]
+common_script_utils.set_clipboard(chosen_emote["url"])
+common_script_utils.send_notification(
+    os.path.basename(__file__),
+    "copied URL of {} to clipboard!".format(chosen_emote["ref"]),
+)

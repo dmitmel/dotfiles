@@ -15,37 +15,20 @@ from configparser import ConfigParser
 import tempfile
 import shutil
 import sqlite3
-import subprocess
+
+sys.path.insert(
+    1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
+)
+
+import common_script_utils  # noqa F401
 
 
-# TODO: somehow merge `chooser_program` selection with the logic in `zsh/functions.zsh`
 if sys.platform == "darwin":
     firefox_home = Path.home() / "Library" / "Application Support" / "Firefox"
-    chooser_program = ["choose", "-i"]
-    clipboard_copy_program = ["pbcopy"]
-
-    def notify_program_args(title, message, url):
-        return ["terminal-notifier", "-title", title, "-message", message, "-open", url]
-
-
 elif os.name == "posix":
     firefox_home = Path.home() / ".mozilla" / "firefox"
-    chooser_program = ["rofi", "-dmenu", "-i", "-p", "bookmark", "-format", "i"]
-    clipboard_copy_program = ["xsel", "--clipboard", "--input"]
-    # clipboard_copy_program = ["xclip", "-in", "-selection", "clipboard"]
-
-    def notify_program_args(title, message, url):
-        return [
-            "notify-send",
-            "--icon=utilities-terminal",
-            "--expire-time=3000",
-            title,
-            message,
-        ]
-
-
 else:
-    raise Exception("platform '{}' is not supported!".format(sys.platform))
+    common_script_utils.platform_not_supported_error()
 
 
 profiles_config = ConfigParser(interpolation=None)
@@ -91,28 +74,15 @@ finally:
     os.remove(db_copy_path)
 
 
-chooser_process = subprocess.Popen(
-    chooser_program, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+chosen_index = common_script_utils.run_chooser(
+    ("{} \u2014\u2014 {}".format(title, url) for title, url in chooser_entries),
+    prompt="bookmark",
 )
 
-with chooser_process.stdin as pipe:
-    for title, url in chooser_entries:
-        pipe.write("{} \u2014\u2014 {}\n".format(title, url).encode())
+_title, url = chooser_entries[chosen_index]
+print(url)
 
-exit_code = chooser_process.wait()
-if exit_code == 0:
-    chosen_index = int(
-        # an extra newline is inserted by rofi for whatever reason
-        chooser_process.stdout.read().rstrip(b"\n")
-    )
-    _title, url = chooser_entries[chosen_index]
-    print(url)
-
-    subprocess.run(clipboard_copy_program, input=url.encode(), check=True)
-    subprocess.run(
-        notify_program_args(
-            "query-bookmarks.py", "bookmark URL copied to clipboard!", url
-        ),
-        input=url.encode(),
-        check=True,
-    )
+common_script_utils.set_clipboard(url)
+common_script_utils.send_notification(
+    os.path.basename(__file__), "bookmark URL copied to clipboard!", url
+)

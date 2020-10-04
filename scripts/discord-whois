@@ -37,6 +37,7 @@ user_snowflake = int(sys.argv[1])
 response = requests.get(
     "https://discordapp.com/api/users/{}".format(user_snowflake),
     headers={"Authorization": "Bot {}".format(bot_token)},
+    timeout=3,
 )
 try:
     response.raise_for_status()
