@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
 
-
 count() { echo "$#"; }
 
 bytecount() { wc -c "$@" | numfmt --to=iec-i; }
@@ -91,3 +90,7 @@ for format_name format in "${(kv)date_formats[@]}"; do
 done; unset format_name format
 
 unset date_formats
+
+if (( _is_linux )) && command_exists swapoff && command_exists swapon; then
+  deswap() { sudo sh -c 'swapoff --all && swapon --all'; }
+fi
