@@ -22,3 +22,4 @@
 
 [alias]
   unstage = restore --staged
+  initial-commit = commit --message 'initial commit' --allow-empty
