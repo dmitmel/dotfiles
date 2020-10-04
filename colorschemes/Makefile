@@ -9,7 +9,7 @@ MAKEFLAGS += --no-builtin-rules
 .PHONY: all clean
 
 OUT_DIR := out
-OUT_FILES := iterm.itermcolors kitty.conf vim.vim setvtrgb.txt zsh.zsh termux.properties variables.css prismjs-theme.css vscode-colorCustomizations.json
+OUT_FILES := iterm.itermcolors kitty.conf vim.vim setvtrgb.txt zsh.zsh termux.properties variables.css prismjs-theme.css vscode-colorCustomizations.json xfce4-terminal.theme
 
 all: $(OUT_DIR) $(addprefix $(OUT_DIR)/,$(OUT_FILES))
 
