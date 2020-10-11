@@ -1,0 +1,7 @@
+{
+  "answerdiff": "All",
+  "completioninterval": 1,
+  "devel": true,
+  "removemake": "yes",
+  "sudoloop": true
+}
