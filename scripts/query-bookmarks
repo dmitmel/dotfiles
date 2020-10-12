@@ -2,7 +2,6 @@
 
 # helper script for query-bookmarks.sh
 # currently supports only Firefox
-# folder support would be nice, though I doubt it is really useful
 # useful links:
 # http://kb.mozillazine.org/Profiles.ini_file
 # https://stackoverflow.com/a/740183/12005228
@@ -15,6 +14,7 @@ from configparser import ConfigParser
 import tempfile
 import shutil
 import sqlite3
+import collections
 
 sys.path.insert(
     1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
@@ -41,6 +41,7 @@ if len(installs_sections) > 1:
     raise Exception("multiple Firefox installations are not supported!")
 profile_dir = firefox_home / profiles_config.get(installs_sections[0], "Default")
 
+# should places.sqlite be used instead?
 db_path = profile_dir / "weave" / "bookmarks.sqlite"
 if not db_path.is_file():
     raise Exception("'{}' is not a file".format(db_path))
@@ -59,27 +60,60 @@ try:
     db = sqlite3.connect(db_copy_path)
 
     urls = {}
-    for urlId, url in db.execute("SELECT id, url FROM urls"):
-        urls[urlId] = url
+    for url_id, url in db.execute("SELECT id, url FROM urls"):
+        urls[url_id] = url
 
-    for title, urlId, keyword in db.execute(
-        "SELECT title, urlId, keyword FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
+    folders = {}
+    for folder_id, parent_folder_id, folder_title in db.execute(
+        "SELECT guid, parentGuid, title FROM items WHERE kind = 3 AND validity AND NOT isDeleted"
     ):
-        url = urls[urlId]
-        chooser_entries.append((title, url))
-        if keyword is not None:
-            chooser_entries.append((keyword, url))
+        folders[folder_id] = (
+            parent_folder_id if parent_folder_id != folder_id else None,
+            folder_title,
+        )
+
+    for url_title, url_id, url_keyword, parent_folder_id in db.execute(
+        "SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
+    ):
+        url = urls[url_id]
+
+        folder_path = collections.deque()
+        while parent_folder_id is not None:
+            folder = folders.get(parent_folder_id, None)
+            if folder is None:
+                # broken folder structure?
+                folder_path.clear()
+                break
+            parent_folder_id, folder_title = folder
+            if folder_title is not None:
+                folder_path.appendleft(folder_title)
+
+        folder_path_str = (
+            ("/" + "/".join(folder_path)) if len(folder_path) > 0 else None
+        )
+
+        chooser_entries.append((url_title, url, folder_path_str))
+        if url_keyword is not None:
+            chooser_entries.append((url_keyword, url, folder_path_str))
 
 finally:
     os.remove(db_copy_path)
 
 
+def chooser_entries_iter():
+    for title, url, folder_path_str in chooser_entries:
+        entry_items = [title, url]
+        if folder_path_str is not None:
+            entry_items.append(folder_path_str)
+        entry = " \u2014\u2014 ".join(entry_items)
+        yield entry
+
+
 chosen_index = common_script_utils.run_chooser(
-    ("{} \u2014\u2014 {}".format(title, url) for title, url in chooser_entries),
-    prompt="bookmark",
+    chooser_entries_iter(), prompt="bookmark"
 )
 
-_title, url = chooser_entries[chosen_index]
+_title, url, _folder_path_str = chooser_entries[chosen_index]
 print(url)
 
 common_script_utils.set_clipboard(url)
