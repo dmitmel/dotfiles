@@ -2,9 +2,9 @@
 
 import sys
 import os
-from pathlib import Path
 from configparser import ConfigParser
 import requests
+import json
 
 sys.path.insert(
     1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
@@ -13,8 +13,16 @@ sys.path.insert(
 import common_script_utils  # noqa F401
 
 
+DEFAULT_REGISTRY_DUMP_URL = (
+    "https://stronghold.crosscode.ru/~crosscodebot/emote-registry-tmp-export.json"
+)
+
+
 if os.name == "posix":
-    config_path = Path.home() / ".config" / "dotfiles" / "copy-crosscode-emoji-url.ini"
+    config_path = (
+        common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini"
+    )
+    default_registry_dump_file = common_script_utils.DOTFILES_CACHE_DIR / "dotfiles"
 else:
     common_script_utils.platform_not_supported_error()
 config = ConfigParser(interpolation=None)
@@ -27,12 +35,26 @@ data = []
 def emote_downloader_and_iterator():
     global data
 
-    response = requests.get(
-        config["default"]["ccbot_emote_registry_dump_url"], timeout=3
+    registry_dump_file = config.get(
+        "default", "ccbot_emote_registry_dump_file", fallback=None
     )
-    response.raise_for_status()
+    if registry_dump_file is not None:
+        registry_dump_file = os.path.expanduser(registry_dump_file)
+    else:
+        registry_dump_file = default_registry_dump_file
 
-    data = response.json()
+    registry_dump_url = config.get(
+        "default", "ccbot_emote_registry_dump_url", fallback=DEFAULT_REGISTRY_DUMP_URL
+    )
+
+    try:
+        with open(registry_dump_file, "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        response = requests.get(registry_dump_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
     assert data["version"] == 1
 
     for emote in data["list"]:

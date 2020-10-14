@@ -1,6 +1,12 @@
 import sys
 import os
 import subprocess
+from pathlib import Path
+
+
+if os.name == "posix":
+    DOTFILES_CONFIG_DIR = Path.home() / ".config" / "dotfiles"
+    DOTFILES_CACHE_DIR = Path.home() / ".cache" / "dotfiles"
 
 
 def platform_not_supported_error():
