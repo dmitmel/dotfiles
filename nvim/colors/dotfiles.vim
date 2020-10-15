@@ -333,6 +333,7 @@
   hi! link typescriptModule              jsImport
   hi! link typescriptAbstract            Keyword
   hi! link typescriptTemplateSB          PreProc
+  hi! link typescriptDebugger            Keyword
 " }}}
 
 " Markdown {{{
@@ -352,6 +353,7 @@
 
 " Python {{{
   hi! link pythonBuiltinType Type
+  hi! link pythonExClass     Type
   hi! link pythonBuiltinObj  pythonFunction
   hi! link pythonClassVar    Variable
 " }}}
