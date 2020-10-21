@@ -85,3 +85,7 @@ fi
 alias sue="sudo --edit"
 
 alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'
+
+if command_exists ncdu; then
+  alias ncdu='ncdu --confirm-quit'
+fi
