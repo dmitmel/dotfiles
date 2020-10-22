@@ -13,6 +13,18 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Playerctl, Gtk, Gdk  # noqa: E402
 
 
+# Larger priority values will make the player with this name appear higher in
+# the menu. The default priority is 0.
+PLAYER_NAME_PRIORITIES = {
+    "audacious": 2,
+    "mpv": 1,
+    "vlc": 1,
+    "firefox": -1,
+    "chrome": -2,
+    "chromium": -2,
+}
+
+
 def iter_actions_for_player(player):
     if not player.props.can_control:
         yield ("This player can't be controlled!", None, False, None)
@@ -94,7 +106,13 @@ def iter_actions_for_player(player):
 
 root_menu = Gtk.Menu()
 
-for player_name in Playerctl.list_players():
+for player_name in sorted(
+    Playerctl.list_players(),
+    key=lambda player_name: (
+        -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
+        player_name.instance,
+    ),
+):
     player = Playerctl.Player.new_from_name(player_name)
 
     player_menu_item = Gtk.MenuItem(label=player_name.instance)
