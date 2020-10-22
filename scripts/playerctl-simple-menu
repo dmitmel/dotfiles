@@ -130,53 +130,62 @@ def iter_actions_for_player(player):
 
 root_menu = Gtk.Menu()
 
-for player_name in sorted(
+player_names = sorted(
     Playerctl.list_players(),
     key=lambda player_name: (
         -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
         player_name.instance,
     ),
-):
-    player = Playerctl.Player.new_from_name(player_name)
+)
 
-    player_menu_item = Gtk.ImageMenuItem.new_with_label(player_name.instance)
+if len(player_names) > 0:
+    for player_name in player_names:
+        player = Playerctl.Player.new_from_name(player_name)
 
-    player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
-    player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
-    player_menu_item.set_image(player_icon)
+        player_menu_item = Gtk.ImageMenuItem.new_with_label(player_name.instance)
 
-    actions_menu = Gtk.Menu()
+        player_icon_name = PLAYER_ICON_NAME_FIXES.get(
+            player_name.name, player_name.name
+        )
+        player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
+        player_menu_item.set_image(player_icon)
 
-    for (
-        action_name,
-        action_icon_name,
-        action_enabled,
-        action_fn,
-        *action_fn_args,
-    ) in iter_actions_for_player(player):
-        action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
+        actions_menu = Gtk.Menu()
 
-        if action_icon_name is not None:
-            action_icon = Gtk.Image.new_from_icon_name(
-                action_icon_name, Gtk.IconSize.MENU
-            )
-            action_menu_item.set_image(action_icon)
+        for (
+            action_name,
+            action_icon_name,
+            action_enabled,
+            action_fn,
+            *action_fn_args,
+        ) in iter_actions_for_player(player):
+            action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
 
-        action_menu_item.set_sensitive(action_enabled)
-        if action_fn is not None:
-            action_menu_item.connect(
-                "activate",
-                lambda _menu_item, action_fn, action_fn_args: action_fn(
-                    *action_fn_args
-                ),
-                action_fn,
-                action_fn_args,
-            )
+            if action_icon_name is not None:
+                action_icon = Gtk.Image.new_from_icon_name(
+                    action_icon_name, Gtk.IconSize.MENU
+                )
+                action_menu_item.set_image(action_icon)
 
-        actions_menu.append(action_menu_item)
+            action_menu_item.set_sensitive(action_enabled)
+            if action_fn is not None:
+                action_menu_item.connect(
+                    "activate",
+                    lambda _menu_item, action_fn, action_fn_args: action_fn(
+                        *action_fn_args
+                    ),
+                    action_fn,
+                    action_fn_args,
+                )
 
-    player_menu_item.set_submenu(actions_menu)
-    root_menu.append(player_menu_item)
+            actions_menu.append(action_menu_item)
+
+        player_menu_item.set_submenu(actions_menu)
+        root_menu.append(player_menu_item)
+else:
+    menu_item = Gtk.MenuItem.new_with_label("No players were detected!")
+    menu_item.set_sensitive(False)
+    root_menu.append(menu_item)
 
 
 root_menu.connect("selection-done", Gtk.main_quit)
