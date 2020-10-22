@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+
+# A simple graphical menu to control MPRIS-compatible players through Playerctl.
+# <https://wiki.archlinux.org/index.php/MPRIS>
+# <https://lazka.github.io/pgi-docs/Playerctl-2.0/>
+# <https://github.com/altdesktop/playerctl/blob/master/playerctl/playerctl-cli.c>
+# TODO: Update the menu on player status changes.
+
+import gi
+
+gi.require_version("Playerctl", "2.0")
+gi.require_version("Gtk", "3.0")
+from gi.repository import Playerctl, Gtk, Gdk  # noqa: E402
+
+
+def iter_actions_for_player(player):
+    if not player.props.can_control:
+        yield ("This player can't be controlled!", None, False, None)
+        return
+
+    playback_status = player.props.playback_status
+    if playback_status == Playerctl.PlaybackStatus.PLAYING:
+        yield ("Pause", "media-playback-pause", player.props.can_pause, player.pause)
+    elif playback_status == Playerctl.PlaybackStatus.PAUSED:
+        yield ("Resume", "media-playback-start", player.props.can_play, player.play)
+    elif playback_status == Playerctl.PlaybackStatus.STOPPED:
+        yield ("Play", "media-playback-start", player.props.can_play, player.play)
+
+    # See <https://github.com/altdesktop/playerctl/blob/c83a12a97031f64b260ea7f1be03386c3886b2d4/playerctl/playerctl-cli.c#L231-L235>
+    yield (
+        "Stop",
+        "media-playback-stop",
+        player.props.can_play and playback_status != Playerctl.PlaybackStatus.STOPPED,
+        player.stop,
+    )
+
+    yield (
+        "Mute" if player.props.volume != 0.0 else "Normal volume",
+        "audio-volume-muted" if player.props.volume != 0.0 else "audio-volume-high",
+        True,
+        lambda volume: player.set_volume(volume),
+        0.0 if player.props.volume != 0.0 else 1.0,
+    )
+    yield (
+        "Volume +10%",
+        "audio-volume-medium",
+        True,
+        lambda: player.set_volume(min(player.props.volume + 0.1, 1.0)),
+    )
+    yield (
+        "Volume -10%",
+        "audio-volume-low",
+        True,
+        lambda: player.set_volume(max(player.props.volume - 0.1, 0.0)),
+    )
+
+    yield (
+        "Next",
+        "media-skip-forward",
+        player.props.can_go_next,
+        player.next,
+    )
+    yield (
+        "Previous",
+        "media-skip-backward",
+        player.props.can_go_previous,
+        player.previous,
+    )
+
+    shuffle = player.props.shuffle
+    yield (
+        "Don't shuffle" if shuffle else "Shuffle",
+        "media-playlist-shuffle",
+        True,
+        lambda: player.set_shuffle(not shuffle),
+    )
+
+    loop_status = player.props.loop_status
+    for loop_action_name, loop_action_status in [
+        ("Don't loop", Playerctl.LoopStatus.NONE),
+        ("Loop one", Playerctl.LoopStatus.TRACK),
+        ("Loop all", Playerctl.LoopStatus.PLAYLIST),
+    ]:
+        if loop_action_status == loop_status:
+            continue
+        yield (
+            loop_action_name,
+            "media-playlist-repeat",
+            True,
+            lambda loop_action_status: player.set_loop_status(loop_action_status),
+            loop_action_status,
+        )
+
+
+root_menu = Gtk.Menu()
+
+for player_name in Playerctl.list_players():
+    player = Playerctl.Player.new_from_name(player_name)
+
+    player_menu_item = Gtk.MenuItem(label=player_name.instance)
+    actions_menu = Gtk.Menu()
+
+    for (
+        action_name,
+        action_icon_name,
+        action_enabled,
+        action_fn,
+        *action_fn_args,
+    ) in iter_actions_for_player(player):
+        action_menu_item = Gtk.ImageMenuItem(label=action_name)
+
+        if action_icon_name is not None:
+            icon = Gtk.Image.new_from_icon_name(action_icon_name, Gtk.IconSize.MENU)
+            action_menu_item.set_image(icon)
+
+        action_menu_item.set_sensitive(action_enabled)
+        if action_fn is not None:
+            action_menu_item.connect(
+                "activate",
+                lambda _menu_item, action_fn, action_fn_args: action_fn(
+                    *action_fn_args
+                ),
+                action_fn,
+                action_fn_args,
+            )
+
+        actions_menu.append(action_menu_item)
+
+    player_menu_item.set_submenu(actions_menu)
+    root_menu.append(player_menu_item)
+
+
+root_menu.connect("selection-done", Gtk.main_quit)
+root_menu.connect("deactivate", Gtk.main_quit)
+root_menu.connect("destroy", Gtk.main_quit)
+
+root_menu.show_all()
+root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
+
+Gtk.main()
