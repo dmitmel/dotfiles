@@ -24,6 +24,10 @@ PLAYER_NAME_PRIORITIES = {
     "chromium": -2,
 }
 
+PLAYER_ICON_NAME_FIXES = {
+    "chrome": "google-chrome",
+}
+
 
 def iter_actions_for_player(player):
     if not player.props.can_control:
@@ -115,7 +119,12 @@ for player_name in sorted(
 ):
     player = Playerctl.Player.new_from_name(player_name)
 
-    player_menu_item = Gtk.MenuItem(label=player_name.instance)
+    player_menu_item = Gtk.ImageMenuItem(label=player_name.instance)
+
+    player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
+    player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
+    player_menu_item.set_image(player_icon)
+
     actions_menu = Gtk.Menu()
 
     for (
@@ -128,8 +137,10 @@ for player_name in sorted(
         action_menu_item = Gtk.ImageMenuItem(label=action_name)
 
         if action_icon_name is not None:
-            icon = Gtk.Image.new_from_icon_name(action_icon_name, Gtk.IconSize.MENU)
-            action_menu_item.set_image(icon)
+            action_icon = Gtk.Image.new_from_icon_name(
+                action_icon_name, Gtk.IconSize.MENU
+            )
+            action_menu_item.set_image(action_icon)
 
         action_menu_item.set_sensitive(action_enabled)
         if action_fn is not None:
