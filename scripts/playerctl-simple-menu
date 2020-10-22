@@ -34,50 +34,54 @@ def iter_actions_for_player(player):
         yield ("This player can't be controlled!", None, False, None)
         return
 
+    # NOTE: Reminder about mnemonic keys: make sure that logically paired actions
+    # (play-stop, pause-resume) have the same mnemonic key if only one of the
+    # actions is available at any given moment.
+
     playback_status = player.props.playback_status
     if playback_status == Playerctl.PlaybackStatus.PLAYING:
-        yield ("Pause", "media-playback-pause", player.props.can_pause, player.pause)
+        yield ("Pau_se", "media-playback-pause", player.props.can_pause, player.pause)
     elif playback_status == Playerctl.PlaybackStatus.PAUSED:
-        yield ("Resume", "media-playback-start", player.props.can_play, player.play)
+        yield ("Re_sume", "media-playback-start", player.props.can_play, player.play)
     elif playback_status == Playerctl.PlaybackStatus.STOPPED:
-        yield ("Play", "media-playback-start", player.props.can_play, player.play)
+        yield ("_Play", "media-playback-start", player.props.can_play, player.play)
 
     # See <https://github.com/altdesktop/playerctl/blob/c83a12a97031f64b260ea7f1be03386c3886b2d4/playerctl/playerctl-cli.c#L231-L235>
     yield (
-        "Stop",
+        "Sto_p",
         "media-playback-stop",
         player.props.can_play and playback_status != Playerctl.PlaybackStatus.STOPPED,
         player.stop,
     )
 
     yield (
-        "Mute" if player.props.volume != 0.0 else "Normal volume",
+        "_Mute" if player.props.volume != 0.0 else "Nor_mal volume",
         "audio-volume-muted" if player.props.volume != 0.0 else "audio-volume-high",
         True,
         lambda volume: player.set_volume(volume),
         0.0 if player.props.volume != 0.0 else 1.0,
     )
     yield (
-        "Volume +10%",
+        "Volume _+10%",
         "audio-volume-medium",
         True,
         lambda: player.set_volume(min(player.props.volume + 0.1, 1.0)),
     )
     yield (
-        "Volume -10%",
+        "Volume _-10%",
         "audio-volume-low",
         True,
         lambda: player.set_volume(max(player.props.volume - 0.1, 0.0)),
     )
 
     yield (
-        "Next",
+        "_Next",
         "media-skip-forward",
         player.props.can_go_next,
         player.next,
     )
     yield (
-        "Previous",
+        "_Previous",
         "media-skip-backward",
         player.props.can_go_previous,
         player.previous,
@@ -85,7 +89,7 @@ def iter_actions_for_player(player):
 
     shuffle = player.props.shuffle
     yield (
-        "Don't shuffle" if shuffle else "Shuffle",
+        "Don't shu_ffle" if shuffle else "Shu_ffle",
         "media-playlist-shuffle",
         True,
         lambda: player.set_shuffle(not shuffle),
@@ -93,9 +97,9 @@ def iter_actions_for_player(player):
 
     loop_status = player.props.loop_status
     for loop_action_name, loop_action_status in [
-        ("Don't loop", Playerctl.LoopStatus.NONE),
-        ("Loop one", Playerctl.LoopStatus.TRACK),
-        ("Loop all", Playerctl.LoopStatus.PLAYLIST),
+        ("Don't _loop", Playerctl.LoopStatus.NONE),
+        ("Loop _one", Playerctl.LoopStatus.TRACK),
+        ("Loop _all", Playerctl.LoopStatus.PLAYLIST),
     ]:
         if loop_action_status == loop_status:
             continue
@@ -119,7 +123,7 @@ for player_name in sorted(
 ):
     player = Playerctl.Player.new_from_name(player_name)
 
-    player_menu_item = Gtk.ImageMenuItem(label=player_name.instance)
+    player_menu_item = Gtk.ImageMenuItem.new_with_label(player_name.instance)
 
     player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
     player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
@@ -134,7 +138,7 @@ for player_name in sorted(
         action_fn,
         *action_fn_args,
     ) in iter_actions_for_player(player):
-        action_menu_item = Gtk.ImageMenuItem(label=action_name)
+        action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
 
         if action_icon_name is not None:
             action_icon = Gtk.Image.new_from_icon_name(
