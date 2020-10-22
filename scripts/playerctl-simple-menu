@@ -81,7 +81,7 @@ def iter_actions_for_player(player):
         player.next,
     )
     yield (
-        "_Previous",
+        "P_revious",
         "media-skip-backward",
         player.props.can_go_previous,
         player.previous,
@@ -101,15 +101,20 @@ def iter_actions_for_player(player):
         ("Loop _one", Playerctl.LoopStatus.TRACK),
         ("Loop _all", Playerctl.LoopStatus.PLAYLIST),
     ]:
-        if loop_action_status == loop_status:
-            continue
         yield (
             loop_action_name,
             "media-playlist-repeat",
-            True,
+            loop_action_status != loop_status,
             lambda loop_action_status: player.set_loop_status(loop_action_status),
             loop_action_status,
         )
+
+    yield (
+        "Play a_gain",
+        "go-first",
+        player.props.can_seek,
+        lambda: player.set_position(0),
+    )
 
 
 root_menu = Gtk.Menu()
