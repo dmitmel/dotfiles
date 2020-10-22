@@ -34,21 +34,32 @@ def iter_actions_for_player(player):
         yield ("This player can't be controlled!", None, False, None)
         return
 
-    # NOTE: Reminder about mnemonic keys: make sure that logically paired actions
-    # (play-stop, pause-resume) have the same mnemonic key if only one of the
-    # actions is available at any given moment.
-
     playback_status = player.props.playback_status
     if playback_status == Playerctl.PlaybackStatus.PLAYING:
-        yield ("Pau_se", "media-playback-pause", player.props.can_pause, player.pause)
+        yield (
+            "_Pause",
+            "media-playback-pause",
+            player.props.can_pause,
+            player.pause,
+        )
     elif playback_status == Playerctl.PlaybackStatus.PAUSED:
-        yield ("Re_sume", "media-playback-start", player.props.can_play, player.play)
+        yield (
+            "Resume (_P)",
+            "media-playback-start",
+            player.props.can_play,
+            player.play,
+        )
     elif playback_status == Playerctl.PlaybackStatus.STOPPED:
-        yield ("_Play", "media-playback-start", player.props.can_play, player.play)
+        yield (
+            "_Play",
+            "media-playback-start",
+            player.props.can_play,
+            player.play,
+        )
 
     # See <https://github.com/altdesktop/playerctl/blob/c83a12a97031f64b260ea7f1be03386c3886b2d4/playerctl/playerctl-cli.c#L231-L235>
     yield (
-        "Sto_p",
+        "_Stop",
         "media-playback-stop",
         player.props.can_play and playback_status != Playerctl.PlaybackStatus.STOPPED,
         player.stop,
@@ -62,13 +73,13 @@ def iter_actions_for_player(player):
         0.0 if player.props.volume != 0.0 else 1.0,
     )
     yield (
-        "Volume _+10%",
+        "Volume +10%",
         "audio-volume-medium",
         True,
         lambda: player.set_volume(min(player.props.volume + 0.1, 1.0)),
     )
     yield (
-        "Volume _-10%",
+        "Volume -10%",
         "audio-volume-low",
         True,
         lambda: player.set_volume(max(player.props.volume - 0.1, 0.0)),
@@ -81,7 +92,7 @@ def iter_actions_for_player(player):
         player.next,
     )
     yield (
-        "P_revious",
+        "Previous (_B)",
         "media-skip-backward",
         player.props.can_go_previous,
         player.previous,
@@ -89,7 +100,7 @@ def iter_actions_for_player(player):
 
     shuffle = player.props.shuffle
     yield (
-        "Don't shu_ffle" if shuffle else "Shu_ffle",
+        "Don't shuffle (_R)" if shuffle else "Shuffle (_R)",
         "media-playlist-shuffle",
         True,
         lambda: player.set_shuffle(not shuffle),
