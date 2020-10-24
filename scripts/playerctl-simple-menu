@@ -6,11 +6,14 @@
 # <https://github.com/altdesktop/playerctl/blob/master/playerctl/playerctl-cli.c>
 # TODO: Update the menu on player status changes.
 
+import math
 import gi
 
 gi.require_version("Playerctl", "2.0")
 gi.require_version("Gtk", "3.0")
-from gi.repository import Playerctl, Gtk, Gdk  # noqa: E402
+gi.require_version("Gdk", "3.0")
+gi.require_version("Pango", "1.0")
+from gi.repository import Playerctl, Gtk, Gdk, GLib, Pango  # noqa: E402
 
 
 # Larger priority values will make the player with this name appear higher in
@@ -27,6 +30,36 @@ PLAYER_NAME_PRIORITIES = {
 PLAYER_ICON_NAME_FIXES = {
     "chrome": "google-chrome",
 }
+
+
+def humanize_duration(duration):
+    minutes, seconds = divmod(math.floor(duration), 60)
+    hours, minutes = divmod(minutes, 60)
+    text = "{:02}:{:02}".format(minutes, seconds)
+    if hours > 0:
+        text = "{}:{}".format(hours, text)
+    return text
+
+
+def iter_metadata_entries_for_player(player):
+    metadata = player.props.metadata
+
+    title = metadata.lookup_value("xesam:title")
+    if title:
+        yield title.get_string()
+
+        album = metadata.lookup_value("xesam:album")
+        if album:
+            yield album.get_string()
+
+    if player.props.can_seek:
+        position_secs = player.props.position / 1e6
+        duration = metadata.lookup_value("mpris:length")
+        if duration is not None and duration.is_of_type(GLib.VariantType.new("x")):
+            duration_secs = duration.get_int64() / 1e6
+            yield "Time: {} / {}".format(
+                humanize_duration(position_secs), humanize_duration(duration_secs)
+            )
 
 
 def iter_actions_for_player(player):
@@ -151,6 +184,21 @@ if len(player_names) > 0:
         player_menu_item.set_image(player_icon)
 
         actions_menu = Gtk.Menu()
+
+        track_metadata = player.props.metadata
+        any_metadata_was_added = False
+        for meta_entry_text in iter_metadata_entries_for_player(player):
+            meta_menu_item = Gtk.MenuItem.new_with_label(meta_entry_text)
+            meta_menu_item.set_sensitive(False)
+            meta_menu_item_label = meta_menu_item.get_child()
+            meta_menu_item_label.set_ellipsize(Pango.EllipsizeMode.END)
+            meta_menu_item_label.set_max_width_chars(20)
+
+            actions_menu.append(meta_menu_item)
+            any_metadata_was_added = True
+
+        if any_metadata_was_added:
+            actions_menu.append(Gtk.SeparatorMenuItem.new())
 
         for (
             action_name,
