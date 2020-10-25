@@ -314,6 +314,8 @@
   hi! link typescriptVariable            jsStorageClass
   hi! link typescriptAmbientDeclaration  typescriptVariable
   hi! link typescriptVariableDeclaration Variable
+  hi! link typescriptDestructureLabel    typescriptVariableDeclaration
+  hi! link typescriptDestructureVariable typescriptVariableDeclaration
   hi! link typescriptGlobal              typescriptVariableDeclaration
   hi! link typescriptTypeReference       Type
   hi! link typescriptTypeParameter       typescriptTypeReference
