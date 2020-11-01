@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if package="$(expac --sync '%r/%a/%n %v - %d' | rofi -dmenu)" && [[ -n "$package" ]]; then
-  xdg-open "https://www.archlinux.org/packages/${package%% *}/"
+if package="$(set -euo pipefail; {
+  expac --sync '%r/%a/%n %v - %d'
+  curl --silent --location --fail --max-time 3 --compressed https://aur.archlinux.org/packages.gz | awk '!/^#/ { print "aur/" $0 }'
+} | rofi -dmenu)" && [[ -n "$package" ]]; then
+
+  package="${package%% *}"
+  if [[ "$package" == aur/* ]]; then
+    package="${package#aur/}"
+    url="https://aur.archlinux.org/packages/${package}/"
+  else
+    url="https://www.archlinux.org/packages/${package}/"
+  fi
+
+  xdg-open "$url"
 fi
