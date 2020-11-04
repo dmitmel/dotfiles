@@ -145,6 +145,8 @@ endif
   nnoremap <silent> <F1>      <Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
   nnoremap <silent> <leader>b <Cmd>Buffers<CR>
+  let g:fzf_layout = { 'down': '~40%' }
+  let $FZF_DEFAULT_OPTS = '--preview-window=sharp'
 " }}}
 
 

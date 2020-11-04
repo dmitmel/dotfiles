@@ -29,3 +29,5 @@ jq_colors=(
 # join all values from jq_colors with a colon
 export JQ_COLORS="${(j.:.)jq_colors}"
 unset jq_colors
+
+export FZF_DEFAULT_OPTS='--preview-window=sharp'
