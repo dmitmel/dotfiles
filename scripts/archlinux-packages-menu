@@ -3,7 +3,7 @@ set -euo pipefail
 
 if package="$(set -euo pipefail; {
   expac --sync '%r/%a/%n %v - %d'
-  curl --silent --location --fail --max-time 3 --compressed https://aur.archlinux.org/packages.gz | awk '!/^#/ { print "aur/" $0 }'
+  curl --silent --location --fail --max-time 10 --compressed https://aur.archlinux.org/packages.gz | awk '!/^#/ { print "aur/" $0 }'
 } | rofi -dmenu)" && [[ -n "$package" ]]; then
 
   package="${package%% *}"
