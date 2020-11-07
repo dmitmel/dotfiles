@@ -188,9 +188,10 @@ def _get_distro_info():
     if psutil.WINDOWS:
         return "windows", platform.system(), platform.release(), ""
     elif psutil.OSX:
-        from plistlib import readPlist
+        import plistlib
 
-        sw_vers = readPlist("/System/Library/CoreServices/SystemVersion.plist")
+        with open("/System/Library/CoreServices/SystemVersion.plist", "rb") as f:
+            sw_vers = plistlib.load(f)
         return "mac", sw_vers["ProductName"], sw_vers["ProductVersion"], ""
     elif _is_android():
         from subprocess import check_output
