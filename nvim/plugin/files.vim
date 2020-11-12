@@ -105,6 +105,20 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     command -nargs=* -complete=file -bar EditGlob call s:EditGlob(<f-args>)
   " }}}
 
+  " DragOut {{{
+    " Shows a window for draging (-and-dropping) the currently opened file out.
+    function s:DragOut(path)
+      if empty(a:path) | return | endif
+      if !executable('dragon-drag-and-drop')
+        echoerr "Please install <https://github.com/mwh/dragon> for the DragOut command to work."
+        return
+      endif
+      execute '!dragon-drag-and-drop '.shellescape(a:path)
+    endfunction
+    command -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
+  " }}}
+
+
 " }}}
 
 
