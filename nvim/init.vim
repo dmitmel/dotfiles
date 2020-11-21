@@ -28,7 +28,7 @@ Plug 'junegunn/vim-plug'
 
 " Editing {{{
   if g:vim_ide
-    Plug 'easymotion/vim-easymotion'
+    " Plug 'easymotion/vim-easymotion'
     Plug 'junegunn/vim-easy-align'
   endif
   Plug 'Raimondi/delimitMate'
@@ -36,13 +36,14 @@ Plug 'junegunn/vim-plug'
   Plug 'tpope/vim-commentary'
   Plug 'tpope/vim-surround'
   Plug 'Yggdroot/indentLine'
+  Plug 'idbrii/detectindent'
   Plug 'henrik/vim-indexed-search'
   Plug 'andymass/vim-matchup'
   Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler
   Plug 'inkarkat/vim-LineJuggler', { 'branch': 'stable' }
   Plug 'reedes/vim-pencil'
-  Plug 'idbrii/detectindent'
   Plug 'tommcdo/vim-exchange'
+  Plug 'justinmk/vim-sneak'
 " }}}
 
 " Text objects {{{

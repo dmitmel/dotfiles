@@ -172,6 +172,7 @@ set commentstring=//%s
 
 
 " plugins {{{
+
   let g:delimitMate_expand_space = 1
   let g:delimitMate_expand_cr = 1
 
@@ -183,6 +184,15 @@ set commentstring=//%s
 
   xmap <leader>ga <Plug>(LiveEasyAlign)
   nmap <leader>ga <Plug>(LiveEasyAlign)
+
+  let g:sneak#prompt = 'sneak> '
+  map f <Plug>Sneak_f
+  map F <Plug>Sneak_F
+  map t <Plug>Sneak_t
+  map T <Plug>Sneak_T
+  noremap <leader>s s
+  noremap <leader>S S
+
 " }}}
 
 

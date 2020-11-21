@@ -17,7 +17,7 @@
   let g:colors_name = g:dotfiles_colorscheme_name
 " }}}
 
-" Highlighting function {{{
+" The highlighting function {{{
   function s:is_number(value)
     return type(a:value) == v:t_number
   endfunction
@@ -134,11 +134,18 @@
   call s:hi('PMenu',    'fg', 0x1,  '', '')
   call s:hi('PMenuSel', 0x1,  'fg', '', '')
 
-" }}}
-
-" CtrlSF {{{
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
+
+  call s:hi('SpellBad',   'bg', '', 'undercurl', 0x8)
+  call s:hi('SpellLocal', 'bg', '', 'undercurl', 0xC)
+  call s:hi('SpellCap',   'bg', '', 'undercurl', 0xD)
+  call s:hi('SpellRare',  'bg', '', 'undercurl', 0xE)
+
+  call s:hi('Sneak', 'bg', 0xB, 'bold', '')
+  hi! link SneakScope Visual
+  hi! link SneakLabel Sneak
+
 " }}}
 
 " AWK {{{
@@ -381,11 +388,4 @@
   hi! link shQuote     String
   hi! link zshFunction Function
   hi! link zshVariable Variable
-" }}}
-
-" Spelling {{{
-  call s:hi('SpellBad',   'bg', '', 'undercurl', 0x8)
-  call s:hi('SpellLocal', 'bg', '', 'undercurl', 0xC)
-  call s:hi('SpellCap',   'bg', '', 'undercurl', 0xD)
-  call s:hi('SpellRare',  'bg', '', 'undercurl', 0xE)
 " }}}
