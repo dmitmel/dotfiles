@@ -16,9 +16,7 @@ import shutil
 import sqlite3
 import collections
 
-sys.path.insert(
-    1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
-)
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 
 import common_script_utils  # noqa: E402
 

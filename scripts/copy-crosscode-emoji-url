@@ -6,9 +6,7 @@ from configparser import ConfigParser
 import requests
 import json
 
-sys.path.insert(
-    1, os.path.join(os.path.dirname(os.path.dirname(__file__)), "script-resources")
-)
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 
 import common_script_utils  # noqa: E402
 
@@ -65,7 +63,16 @@ chosen_index = common_script_utils.run_chooser(
     emote_downloader_and_iterator(), prompt="emote", async_read=True
 )
 chosen_emote = data["list"][chosen_index]
-common_script_utils.set_clipboard(chosen_emote["url"])
+
+emote_url = chosen_emote["url"]
+default_emote_image_size = config.getint(
+    "default", "default_emote_image_size", fallback=None
+)
+if default_emote_image_size is not None:
+    emote_url += "?size={}".format(default_emote_image_size)
+
+common_script_utils.set_clipboard(emote_url)
+
 common_script_utils.send_notification(
     os.path.basename(__file__),
     "copied URL of {} to clipboard!".format(chosen_emote["ref"]),
