@@ -138,8 +138,8 @@ set commentstring=//%s
   augroup vimrc-editing-visual-star-search
     autocmd!
     autocmd VimEnter *
-      \ xmap * :<C-u>call <SID>VisualStarSearch('/')<CR>n
-      \|xmap # :<C-u>call <SID>VisualStarSearch('?')<CR>N
+      \ xmap * :<Cmd>call <SID>VisualStarSearch('/')<CR>n
+      \|xmap # :<Cmd>call <SID>VisualStarSearch('?')<CR>N
   augroup END
 
 " }}}

@@ -36,6 +36,8 @@ endif
     let g:coc_snippet_prev = '<S-Tab>'
 
     inoremap <silent><expr> <C-Space> coc#refresh()
+    inoremap <silent> <A-s> <Cmd>call CocActionAsync('showSignatureHelp')<CR>
+    inoremap <F1> <A-s>
 
     nmap <silent> [c <Plug>(coc-diagnostic-prev)
     nmap <silent> ]c <Plug>(coc-diagnostic-next)
@@ -44,9 +46,9 @@ endif
     nmap <silent> <space>gt <Plug>(coc-type-definition)
     nmap <silent> <space>gi <Plug>(coc-implementation)
     nmap <silent> <space>gr <Plug>(coc-references)
-    nmap <silent> <F2>       <Plug>(coc-rename)
-    nmap <silent> <A-CR>     <Plug>(coc-codeaction)
-    vmap <silent> <A-CR>     <Plug>(coc-codeaction-selected)
+    nmap <silent> <F2>      <Plug>(coc-rename)
+    nmap <silent> <A-CR>    <Plug>(coc-codeaction-line)
+    vmap <silent> <A-CR>    <Plug>(coc-codeaction-selected)
     " nmap <silent> <leader>qf  <Plug>(coc-fix-current)
 
     nnoremap <silent> <space>l <Cmd>CocList<CR>
