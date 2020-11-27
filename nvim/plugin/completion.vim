@@ -37,7 +37,7 @@ endif
 
     inoremap <silent><expr> <C-Space> coc#refresh()
     inoremap <silent> <A-s> <Cmd>call CocActionAsync('showSignatureHelp')<CR>
-    inoremap <F1> <A-s>
+    imap <F1> <A-s>
 
     nmap <silent> [c <Plug>(coc-diagnostic-prev)
     nmap <silent> ]c <Plug>(coc-diagnostic-next)
