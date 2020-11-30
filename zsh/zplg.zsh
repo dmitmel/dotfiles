@@ -393,7 +393,12 @@ plugin() {
       return 1
     fi
 
-    local value; for value in "$plugin_dir/"${^@}; do
+    local value; for value in "$@"; do
+      if [[ -z "$value" ]]; then
+        value="${plugin_dir}"
+      else
+        value="${plugin_dir}/${value}"
+      fi
       if eval "(( \${${var_name}[(ie)\$value]} > \${#${var_name}} ))"; then
         case "$operator" in
           prepend) eval "$var_name=(\"\$value\" \${$var_name[@]})" ;;

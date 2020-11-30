@@ -31,3 +31,5 @@ export JQ_COLORS="${(j.:.)jq_colors}"
 unset jq_colors
 
 export FZF_DEFAULT_OPTS='--preview-window=sharp'
+
+export HOMEBREW_NO_AUTO_UPDATE=1
