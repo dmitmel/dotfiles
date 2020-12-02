@@ -14,12 +14,12 @@ OUT_FILES := iterm.itermcolors kitty.conf vim.vim setvtrgb.txt zsh.zsh termux.pr
 all: $(OUT_DIR) $(addprefix $(OUT_DIR)/,$(OUT_FILES))
 
 clean:
-	rm -rv out
+	rm -rv $(OUT_DIR)
 
-out:
+$(OUT_DIR):
 	mkdir -p $@
 
-$(OUT_DIR)/%: %.py _theme.py
+$(OUT_DIR)/%: %.py _theme.py $(OUT_DIR)
 	python3 ./$< > $@
 
 $(OUT_DIR)/prismjs-theme.css: prismjs-theme-src.css
