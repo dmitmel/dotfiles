@@ -109,6 +109,8 @@ set commentstring=//%s
   nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
   nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
 
+  nnoremap Q <nop>
+
 " }}}
 
 
