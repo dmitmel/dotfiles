@@ -27,11 +27,11 @@ config = ConfigParser(interpolation=None)
 config.read(config_path)
 
 
-data = []
+emotes = []
 
 
 def emote_downloader_and_iterator():
-    global data
+    global emotes
 
     registry_dump_file = config.get(
         "default", "ccbot_emote_registry_dump_file", fallback=None
@@ -47,22 +47,24 @@ def emote_downloader_and_iterator():
 
     try:
         with open(registry_dump_file, "r") as f:
-            data = json.load(f)
+            emote_registry_data = json.load(f)
     except FileNotFoundError:
         response = requests.get(registry_dump_url, timeout=10)
         response.raise_for_status()
-        data = response.json()
+        emote_registry_data = response.json()
 
-    assert data["version"] == 1
+    assert emote_registry_data["version"] == 1
 
-    for emote in data["list"]:
+    emotes = [emote for emote in emote_registry_data["list"] if emote["safe"]]
+
+    for emote in emotes:
         yield "{emote[ref]} [{emote[guild_name]}]".format(emote=emote)
 
 
 chosen_index = common_script_utils.run_chooser(
     emote_downloader_and_iterator(), prompt="emote", async_read=True
 )
-chosen_emote = data["list"][chosen_index]
+chosen_emote = emotes[chosen_index]
 
 emote_url = chosen_emote["url"]
 default_emote_image_size = config.getint(
