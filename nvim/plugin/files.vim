@@ -29,7 +29,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   let g:loaded_netrwPlugin = 1
   " re-add Netrw's gx mappings since we've disabled them
   nnoremap <silent> gx <Cmd>call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
-  xnoremap <silent> gx :<Cmd>call netrw#BrowseXVis()<CR>
+  xnoremap <silent> gx <Cmd>call netrw#BrowseXVis()<CR>
 " }}}
 
 
