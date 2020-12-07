@@ -131,7 +131,7 @@ set commentstring=//%s
   " * and # in the Visual mode will search the selected text
   function! s:VisualStarSearch(search_cmd)
     let l:tmp = @"
-    normal! gvy
+    normal! y
     let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')
     let @" = l:tmp
   endfunction
@@ -140,8 +140,8 @@ set commentstring=//%s
   augroup vimrc-editing-visual-star-search
     autocmd!
     autocmd VimEnter *
-      \ xmap * :<Cmd>call <SID>VisualStarSearch('/')<CR>n
-      \|xmap # :<Cmd>call <SID>VisualStarSearch('?')<CR>N
+      \ xmap * <Cmd>call <SID>VisualStarSearch('/')<CR>n
+      \|xmap # <Cmd>call <SID>VisualStarSearch('?')<CR>N
   augroup END
 
 " }}}
