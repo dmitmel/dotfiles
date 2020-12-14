@@ -48,7 +48,9 @@ def get_system_info():
 
     info_lines.append("")
 
-    info("CPU Usage", "%s", _get_cpu_usage())
+    cpu_usage_info = _get_cpu_usage()
+    if cpu_usage_info is not None:
+        info("CPU Usage", "%s", cpu_usage_info)
     info("Memory", "%s / %s (%s)", *_get_memory())
 
     for disk_info in _get_disks():
@@ -109,7 +111,11 @@ def _get_shell():
 
 
 def _get_cpu_usage():
-    percent = psutil.cpu_percent()
+    try:
+        percent = psutil.cpu_percent()
+    except Exception as e:
+        print("Error in _get_cpu_usage:", e)
+        return None
 
     return colorize_percent(percent, warning=60, critical=80)
 
@@ -153,7 +159,7 @@ def _get_battery():
     try:
         battery = psutil.sensors_battery()
     except Exception as e:
-        print(e)
+        print("Error in _get_battery:", e)
         return None
 
     if battery is None:
