@@ -53,6 +53,7 @@ set commentstring=//%s
   set list
   let &listchars = "tab:\u2192 ,extends:>,precedes:<,eol:\u00ac,trail:\u00b7"
   let &showbreak = '>'
+  set display+=uhex
 " }}}
 
 
