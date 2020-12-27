@@ -51,7 +51,7 @@ data = response.json()
 def print_field(name, value):
     print(
         "{}{}:{} {}".format(
-            colorama.Style.BRIGHT, name.rjust(12), colorama.Style.RESET_ALL, value
+            colorama.Style.BRIGHT, name.rjust(15), colorama.Style.RESET_ALL, value
         )
     )
 
@@ -66,6 +66,12 @@ print_field(
     "Avatar",
     "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
         data["id"], data["avatar"], "gif" if data["avatar"].startswith("a_") else "png"
+    ),
+)
+print_field(
+    "Default avatar",
+    "https://cdn.discordapp.com/embed/avatars/{}.png".format(
+        int(data["discriminator"], 10) % 5
     ),
 )
 print_field("Bot", bool_to_yes_no(data.get("bot", False)))
