@@ -112,6 +112,13 @@ set commentstring=//%s
 
   nnoremap Q <nop>
 
+  " normal mode
+  nnoremap <leader>dg :.diffget<CR>
+  nnoremap <leader>dp :.diffput<CR>
+  " visual mode
+  xnoremap <leader>dg :diffget<CR>
+  xnoremap <leader>dp :diffput<CR>
+
 " }}}
 
 
