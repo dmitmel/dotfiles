@@ -2,6 +2,7 @@
   Plug 'tpope/vim-eunuch'
   if g:vim_ide
     Plug 'francoiscabrol/ranger.vim'
+    Plug 'rbgrouleff/bclose.vim'
   endif
 " }}}
 

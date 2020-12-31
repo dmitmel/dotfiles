@@ -7,7 +7,7 @@ import os
 guild_id = int(sys.argv[1])
 voice_channel_id = int(sys.argv[2])
 
-with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
+with open(os.path.expanduser("~/.config/dotfiles/discord-tools-user-token.txt")) as f:
     bot_token = f.read().strip()
 
 
@@ -34,4 +34,4 @@ async def on_ready():
     )
 
 
-bot.run(bot_token)
+bot.run(bot_token, bot=False)
