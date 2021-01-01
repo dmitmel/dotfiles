@@ -62,18 +62,20 @@ def bool_to_yes_no(value):
 
 print_field("ID", data["id"])
 print_field("Name", "{}#{}".format(data["username"], data["discriminator"]))
-print_field(
-    "Avatar",
+
+default_avatar_url = "https://cdn.discordapp.com/embed/avatars/{}.png".format(
+    int(data["discriminator"], 10) % 5
+)
+avatar_url = (
     "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
         data["id"], data["avatar"], "gif" if data["avatar"].startswith("a_") else "png"
-    ),
+    )
+    if data["avatar"] is not None
+    else default_avatar_url
 )
-print_field(
-    "Default avatar",
-    "https://cdn.discordapp.com/embed/avatars/{}.png".format(
-        int(data["discriminator"], 10) % 5
-    ),
-)
+
+print_field("Avatar", avatar_url)
+print_field("Default avatar", default_avatar_url)
 print_field("Bot", bool_to_yes_no(data.get("bot", False)))
 print_field("System user", bool_to_yes_no(data.get("system", False)))
 
