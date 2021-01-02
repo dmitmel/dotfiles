@@ -53,7 +53,9 @@ def emote_downloader_and_iterator():
 
     assert emote_registry_data["version"] == 1
 
-    emotes = [emote for emote in emote_registry_data["list"] if emote["safe"]]
+    emotes = [emote for emote in emote_registry_data["list"]
+              # if emote["safe"]
+              ]
 
     for emote in emotes:
         yield "{emote[ref]} [{emote[guild_name]}]".format(emote=emote)
