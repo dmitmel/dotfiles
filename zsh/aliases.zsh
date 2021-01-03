@@ -89,3 +89,11 @@ alias rsync-backup='rsync --archive --compress --verbose --human-readable --part
 if command_exists ncdu; then
   alias ncdu='ncdu --confirm-quit'
 fi
+
+alias bin-disassemble='objdump -M intel-mnemonics -d'
+alias bin-list-symbols='nm'
+alias bin-list-dylib-symbols='nm -gD'
+
+# Duplicated as an alias to prevent autocorrection of the real "command" part.
+# See also scripts/prime-run
+alias prime-run='__NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia '
