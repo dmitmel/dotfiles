@@ -11,9 +11,7 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resourc
 import common_script_utils  # noqa: E402
 
 
-DEFAULT_REGISTRY_DUMP_URL = (
-    "https://stronghold.crosscode.ru/~crosscodebot/emote-registry.json"
-)
+DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.crosscode.ru/~ccbot/emote-registry.json"
 
 
 if os.name == "posix":
