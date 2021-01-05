@@ -14,7 +14,7 @@ alias history='fc -i -l 1'
 alias cdd='dirs -v'
 
 alias grep='grep --color=auto'
-alias diff='diff --color=auto'
+alias diff='diff --color=auto --unified'
 
 # exa is a modern replacement for ls - https://the.exa.website/
 if command_exists exa; then
