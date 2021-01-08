@@ -62,6 +62,27 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 
 # }}}
 
+# fasd {{{
+
+unalias j
+j() {
+  local _fasd_ret
+  _fasd_ret="$(
+    # -l: list all paths in the database (without scores)
+    # -d: list only directories
+    # -R: in the reverse order
+    fasd -l -d -R |
+      fzf --height=40% --layout=reverse --tiebreak=index --query="$*"
+  )"
+  if [[ -d "$_fasd_ret" ]]; then
+    cd -- "$_fasd_ret"
+  elif [[ -n "$_fasd_ret" ]]; then
+    print -- "$_fasd_ret"
+  fi
+}
+
+# }}}
+
 # _plugin fzf 'junegunn/fzf' "$_checkout_latest_version" \
 #   build='./install --bin' \
 #   after_load='plugin-cfg-path path prepend bin' \
