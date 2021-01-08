@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+# Taken from <https://unix.stackexchange.com/a/509417/411555>
+
+import gi
+import sys
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gio, GLib  # noqa E402
+
+rec_mgr = Gtk.RecentManager.get_default()
+for arg in sys.argv[1:]:
+    rec_mgr.add_item(Gio.File.new_for_path(arg).get_uri())
+GLib.idle_add(Gtk.main_quit)
+Gtk.main()
