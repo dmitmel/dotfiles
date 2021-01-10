@@ -25,7 +25,6 @@ endif
   augroup vimrc-coc
     autocmd!
     autocmd FileType * if IsCocEnabled()
-      \|let &l:formatexpr = "CocAction('formatSelected')"
       \|let &l:keywordprg = ":CocKeywordprg"
       \|endif
     autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
