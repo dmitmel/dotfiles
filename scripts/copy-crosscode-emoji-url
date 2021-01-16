@@ -5,6 +5,7 @@ import os
 from configparser import ConfigParser
 import requests
 import json
+import urllib.parse
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 
@@ -64,12 +65,20 @@ chosen_index = common_script_utils.run_chooser(
 )
 chosen_emote = emotes[chosen_index]
 
-emote_url = chosen_emote["url"]
+emote_url = urllib.parse.urlparse(chosen_emote["url"])
+emote_url_query = urllib.parse.parse_qs(emote_url.query)
+
 default_emote_image_size = config.getint(
     "default", "default_emote_image_size", fallback=None
 )
 if default_emote_image_size is not None:
-    emote_url += "?size={}".format(default_emote_image_size)
+    emote_url_query["size"] = [str(default_emote_image_size)]
+
+if config.getboolean("default", "add_emote_name_to_url", fallback=False):
+    emote_url_query["name"] = [chosen_emote["name"]]
+
+emote_url_query = urllib.parse.urlencode(emote_url_query, doseq=True)
+emote_url = urllib.parse.urlunparse(emote_url._replace(query=emote_url_query))
 
 common_script_utils.set_clipboard(emote_url)
 
