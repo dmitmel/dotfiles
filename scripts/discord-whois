@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
-# https://discord.com/developers/docs/resources/user#user-object
-# https://discord.com/developers/docs/resources/user#user-object#get-user
-# https://discord.com/developers/docs/reference
+# <https://discord.com/developers/docs/resources/user#user-object>
+# <https://discord.com/developers/docs/resources/user#user-object#get-user>
+# <https://discord.com/developers/docs/reference>
 
 import sys
 import os
 import requests
 import colorama
 import time
+import argparse
+
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
 # https://discord.com/developers/docs/resources/user#user-object-user-flags
@@ -28,12 +30,29 @@ DISCORD_FLAGS = {
     "Verified Bot Developer": 1 << 17,
 }
 
-with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
-    bot_token = f.read().strip()
 
-user_snowflake = int(sys.argv[1])
+parser = argparse.ArgumentParser()
+parser.add_argument("user_snowflake", type=int)
+parser.add_argument("--bot-token", type=str)
+parser.add_argument("--image-size", type=int)
+parser.add_argument("--get-prop", type=str)
+cli_args = parser.parse_args()
 
-# no timeout here, sadly, due to this genius: https://github.com/psf/requests/issues/3099#issuecomment-215522806
+user_snowflake = cli_args.user_snowflake
+
+bot_token = cli_args.bot_token
+if bot_token is None:
+    with open(
+        os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")
+    ) as f:
+        bot_token = f.read().strip()
+
+image_size = cli_args.image_size
+if not (image_size is None or (image_size > 0 and image_size & (image_size - 1)) == 0):
+    parser.error("image_size must be greater than zero and a power of two")
+
+
+# no timeout here, sadly, due to this genius: <https://github.com/psf/requests/issues/3099#issuecomment-215522806>
 response = requests.get(
     "https://discordapp.com/api/users/{}".format(user_snowflake),
     headers={"Authorization": "Bot {}".format(bot_token)},
@@ -42,61 +61,71 @@ response = requests.get(
 try:
     response.raise_for_status()
 except requests.HTTPError as err:
-    print(response.json())
+    print(response.json(), file=sys.stderr)
     raise err
 
-data = response.json()
+raw_data = response.json()
+data = {}
 
-
-def print_field(name, value):
-    print(
-        "{}{}:{} {}".format(
-            colorama.Style.BRIGHT, name.rjust(15), colorama.Style.RESET_ALL, value
-        )
-    )
-
-
-def bool_to_yes_no(value):
-    return "yes" if value else "no"
-
-
-print_field("ID", data["id"])
-print_field("Name", "{}#{}".format(data["username"], data["discriminator"]))
+data["ID"] = raw_data["id"]
+data["Name"] = "{}#{}".format(raw_data["username"], raw_data["discriminator"])
 
 default_avatar_url = "https://cdn.discordapp.com/embed/avatars/{}.png".format(
-    int(data["discriminator"], 10) % 5
+    int(raw_data["discriminator"], 10) % 5
 )
 avatar_url = (
     "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
-        data["id"], data["avatar"], "gif" if data["avatar"].startswith("a_") else "png"
+        raw_data["id"],
+        raw_data["avatar"],
+        "gif" if raw_data["avatar"].startswith("a_") else "png",
     )
-    if data["avatar"] is not None
+    if raw_data["avatar"] is not None
     else default_avatar_url
 )
+if image_size is not None:
+    avatar_url += "?size={}".format(image_size)
 
-print_field("Avatar", avatar_url)
-print_field("Default avatar", default_avatar_url)
-print_field("Bot", bool_to_yes_no(data.get("bot", False)))
-print_field("System user", bool_to_yes_no(data.get("system", False)))
+data["Avatar"] = avatar_url
+data["Default avatar"] = default_avatar_url
+
+data["Bot"] = raw_data.get("bot", False)
+data["System user"] = raw_data.get("system", False)
 
 # https://discord.com/developers/docs/reference#convert-snowflake-to-datetime
 snowflake_creation_time = (user_snowflake >> 22) + DISCORD_EPOCH
-print_field(
-    "Created at",
-    "{}.{}".format(
-        time.strftime(
-            "%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)
-        ),
-        snowflake_creation_time % 1000,
-    ),
+data["Created at"] = "{}.{} UTC".format(
+    time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)),
+    snowflake_creation_time % 1000,
 )
 
-user_flags = data["public_flags"]
+user_flags = raw_data["public_flags"]
 if user_flags == 0:
-    print_field("Flags", "none")
+    data["Flags"] = "<none>"
 else:
     user_flag_names = []
     for flag_name, bitmask in DISCORD_FLAGS.items():
         if user_flags & bitmask:
             user_flag_names.append(flag_name)
-    print_field("Flags", ", ".join(user_flag_names))
+    data["Flags"] = ", ".join(user_flag_names)
+
+
+if cli_args.get_prop is None:
+    max_name_length = max(map(len, data.keys()))
+    for name, value in data.items():
+
+        if value is True:
+            value = "yes"
+        elif value is False:
+            value = "no"
+
+        print(
+            "{}{:>{}}:{} {}".format(
+                colorama.Style.BRIGHT,
+                name,
+                max_name_length + 1,
+                colorama.Style.RESET_ALL,
+                value,
+            )
+        )
+else:
+    print(data[cli_args.get_prop])
