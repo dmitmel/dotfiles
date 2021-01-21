@@ -59,6 +59,7 @@
 " Programming {{{
   Plug 'sheerun/vim-polyglot'
   Plug 'chikamichi/mediawiki.vim'
+  Plug 'ron-rs/ron.vim'
   if g:vim_ide
     Plug 'neoclide/coc.nvim', { 'branch': 'release' }
     Plug 'dag/vim2hs'
