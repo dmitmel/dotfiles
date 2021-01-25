@@ -12,7 +12,7 @@ path_prepend() {
   fi
   local var_name="$1"; shift
   local value; for value in "$@"; do
-    if eval "(( \${${var_name}[(ie)\$value]} > \${#${var_name}} ))"; then
+    if eval "(( \${${var_name}[(ie)\$value]-1} > \${#${var_name}} ))"; then
       eval "${var_name}=(\"\$value\" \"\${${var_name}[@]}\")"
     fi
   done

@@ -399,7 +399,7 @@ plugin() {
       else
         value="${plugin_dir}/${value}"
       fi
-      if eval "(( \${${var_name}[(ie)\$value]} > \${#${var_name}} ))"; then
+      if eval "(( \${${var_name}[(ie)\$value]-1} > \${#${var_name}} ))"; then
         case "$operator" in
           prepend) eval "$var_name=(\"\$value\" \${$var_name[@]})" ;;
            append) eval "$var_name=(\${$var_name[@]} \"\$value\")" ;;
