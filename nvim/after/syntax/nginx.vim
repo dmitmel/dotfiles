@@ -5,4 +5,4 @@
 " set in `ftplugin/nginx.vim` and sets `comments` to some garbage. This script
 " undoes that damage.
 let &l:comments = &g:comments
-let &l:commentstring = '# %s'
+let &l:commentstring = '#%s'
