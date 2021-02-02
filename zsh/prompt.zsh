@@ -1,7 +1,5 @@
 #!/usr/bin/env zsh
 
-export VIRTUAL_ENV_DISABLE_PROMPT=false
-
 # Escapes `%` in all arguments by replacing it with `%%`. Escaping is needed so
 # that untrusted input (e.g. git branch names) doesn't affect prompt rendering.
 prompt_escape() {
@@ -102,6 +100,11 @@ PROMPT+='$(prompt_vcs_info 2>/dev/null)'
 
 # Python's virtualenv
 PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}${VIRTUAL_ENV:t}%f"}'
+VIRTUAL_ENV_DISABLE_PROMPT=true
+
+# pyenv
+PROMPT+='${PYENV_VERSION:+" %F{blue}pyenv:%F{magenta}${PYENV_VERSION:t}%f"}'
+PYENV_VIRTUAL_ENV_DISABLE_PROMPT=true
 
 PROMPT+=' '
 
