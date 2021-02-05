@@ -83,6 +83,7 @@ declare -A date_formats=(
   compact   '%Y%m%d%H%M%S'
   only-date '%Y-%m-%d'
   only-time '%H:%M:%S'
+  timestamp '%s'
 )
 
 for format_name format in "${(kv)date_formats[@]}"; do
