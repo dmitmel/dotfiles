@@ -144,9 +144,9 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     function s:FixWhitespaceOnSave()
       let l:pos = getpos('.')
       " remove trailing whitespace
-      %s/\s\+$//e
+      keeppatterns %s/\s\+$//e
       " remove trailing newlines
-      %s/\($\n\s*\)\+\%$//e
+      keeppatterns %s/\($\n\s*\)\+\%$//e
       call setpos('.', l:pos)
     endfunction
   " }}}
