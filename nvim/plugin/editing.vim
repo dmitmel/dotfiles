@@ -152,6 +152,11 @@ set commentstring=//%s
       \|xmap # <Cmd>call <SID>VisualStarSearch('?')<CR>N
   augroup END
 
+  " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
+  command! -nargs=+ Search let @/ = escape(<q-args>, '/') | normal /<C-R>/<CR>
+  " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
+  command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal /<C-R>/<CR>
+
 " }}}
 
 
