@@ -44,9 +44,11 @@ if (( _is_macos )); then
     if [[ -d "$formula_path/lib/pkgconfig" ]]; then
       path_prepend pkg_config_path "$formula_path/lib/pkgconfig"
     fi
-  done
+  done; unset formula
 
-  unset formula
+  # Use Python 3 executables by default, i.e. when a version suffix (`python3`)
+  # is not specified.
+  path_prepend path /usr/local/opt/python@3/libexec/bin
 fi
 
 if (( _is_macos )); then
