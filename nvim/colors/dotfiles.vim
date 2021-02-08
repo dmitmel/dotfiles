@@ -137,10 +137,15 @@
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
 
-  call s:hi('SpellBad',   'bg', '', 'undercurl', 0x8)
-  call s:hi('SpellLocal', 'bg', '', 'undercurl', 0xC)
-  call s:hi('SpellCap',   'bg', '', 'undercurl', 0xD)
-  call s:hi('SpellRare',  'bg', '', 'undercurl', 0xE)
+  let s:is_kitty = $TERM ==# 'xterm-kitty'
+  let s:spell_fg   = s:is_kitty ? ''          : 'bg'
+  let s:spell_bg   = s:is_kitty ? 'NONE'      : ''
+  let s:spell_attr = s:is_kitty ? 'undercurl' : ''
+  call s:hi('SpellBad',   s:spell_fg, s:spell_bg, s:spell_attr, 0x8)
+  call s:hi('SpellLocal', s:spell_fg, s:spell_bg, s:spell_attr, 0xC)
+  call s:hi('SpellCap',   s:spell_fg, s:spell_bg, s:spell_attr, 0xD)
+  call s:hi('SpellRare',  s:spell_fg, s:spell_bg, s:spell_attr, 0xE)
+  unlet s:is_kitty s:spell_fg s:spell_bg s:spell_attr
 
   call s:hi('Sneak', 'bg', 0xB, 'bold', '')
   hi! link SneakScope Visual

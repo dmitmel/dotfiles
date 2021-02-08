@@ -44,9 +44,9 @@ endif
       let l:cmd = a:cmd
       if &modified
         let l:answer = confirm("Save changes?", "&Yes\n&No\n&Cancel")
-        if l:answer is# 1      " Yes
+        if l:answer ==# 1      " Yes
           write
-        elseif l:answer is# 2  " No
+        elseif l:answer ==# 2  " No
           let l:cmd .= '!'
         else                   " Cancel/Other
           return
