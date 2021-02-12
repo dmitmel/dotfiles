@@ -68,17 +68,32 @@ export GOPATH=~/go
 path_prepend path "$GOPATH/bin"
 
 # Rust
-path_prepend path ~/.cargo/bin
-# check if the Rust toolchain was installed via rustup
-if rustup_home="$(rustup show home 2> /dev/null)" &&
-   rust_sysroot="$(rustc --print sysroot 2> /dev/null)" &&
-  [[ -d "$rustup_home" && -d "$rust_sysroot" && "$rust_sysroot" == "$rustup_home"/* ]]
-then
-  # add paths of the selected Rust toolchain
-  path_prepend fpath "$rust_sysroot/share/zsh/site-functions"
-  path_prepend manpath "$rust_sysroot/share/man"
+if [[ -f ~/.rustup/settings.toml ]]; then
+  # Make a low-effort attempt at quickly extracting the selected Rust toolchain
+  # from rustup's settings. The TOML file is obviously assumed to be well-formed
+  # and syntactically correct because virtually always it's manipulated with the
+  # use of rustup's CLI. Also a shortcut is taken: strings aren't unescaped
+  # because Rust toolchain names don't need escaping in strings.
+  # See also <https://github.com/toml-lang/toml/blob/master/toml.abnf>.
+  if rust_toolchain="$(
+    awk '
+      match($0, /^default_toolchain = "(.+)"$/, matches) {
+        print matches[1];
+        exit;
+      }
+      /^\[.+\]$/ {
+        exit;
+      }
+    ' ~/.rustup/settings.toml
+  )" && [[ -n "$rust_toolchain" ]]; then
+    rust_sysroot=~/.rustup/toolchains/"$rust_toolchain"
+    path_prepend path "$rust_sysroot"/bin
+    path_prepend fpath "$rust_sysroot"/zsh/site-functions
+    path_prepend manpath "$rust_sysroot"/share/man
+  fi
+  unset rust_toolchain rust_sysroot
 fi
-unset rustup_home rust_sysroot
+path_prepend path ~/.cargo/bin
 
 # add my binaries and completions
 path_prepend path "${ZSH_DOTFILES:h}/scripts"
