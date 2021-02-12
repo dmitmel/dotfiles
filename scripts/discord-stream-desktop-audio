@@ -6,6 +6,7 @@ import os
 
 guild_id = int(sys.argv[1])
 voice_channel_id = int(sys.argv[2])
+pulseaudio_device = sys.argv[3]
 
 with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
     bot_token = f.read().strip()
@@ -28,7 +29,7 @@ async def on_ready():
     voice_client = await voice_channel.connect()
     print("connected to {0} ({0.id}) in {1} ({1.id})".format(voice_channel, guild))
 
-    source = discord.FFmpegPCMAudio("default", before_options="-f pulse")
+    source = discord.FFmpegPCMAudio(pulseaudio_device, before_options="-f pulse")
     voice_client.play(
         source, after=lambda e: print("Player error: %s" % e) if e else None
     )
