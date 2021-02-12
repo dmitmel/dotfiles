@@ -5,10 +5,18 @@ let g:coc_user_config['eslint'] = {
 \ 'filetypes': s:filetypes,
 \ 'autoFixOnSave': v:true,
 \ }
+" See <https://github.com/dmitmel/eslint-config-dmitmel/blob/9b14f45aef7efbf333b38a06277296f5b0304484/prettier.config.js>
 let g:coc_user_config['prettier'] = {
+\ 'printWidth': 100,
+\ 'tabWidth': 2,
+\ 'useTabs': v:false,
+\ 'semi': v:true,
 \ 'singleQuote': v:true,
+\ 'quoteProps': 'as-needed',
+\ 'jsxSingleQuote': v:false,
 \ 'trailingComma': 'all',
+\ 'bracketSpacing': v:true,
 \ 'jsxBracketSameLine': v:true,
-\ 'eslintIntegration': v:true,
-\ 'disableSuccessMessage': v:true
+\ 'arrowParens': 'always',
+\ 'disableSuccessMessage': v:true,
 \ }
