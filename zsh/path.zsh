@@ -1,9 +1,11 @@
 #!/usr/bin/env zsh
 
-# tie these env variables to zsh arrays
-typeset -T PKG_CONFIG_PATH pkg_config_path ':'
+export PATH
+export MANPATH
 
-export PKG_CONFIG_PATH PATH MANPATH
+# tie these env variables to zsh arrays
+export -T PKG_CONFIG_PATH pkg_config_path ':'
+export -T LD_LIBRARY_PATH ld_library_path ':'
 
 path_prepend() {
   if (( $# < 1 )); then
@@ -90,6 +92,7 @@ if [[ -f ~/.rustup/settings.toml ]]; then
     path_prepend path "$rust_sysroot"/bin
     path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
+    path_prepend ld_library_path "$rust_sysroot"/lib
   fi
   unset rust_toolchain rust_sysroot
 fi
@@ -103,3 +106,12 @@ path_prepend fpath "$ZSH_DOTFILES/completions"
 path_prepend path ~/.local/bin
 
 unfunction path_prepend
+
+# For some reason manpath is not always set when logging with ssh for instance.
+# Let's ensure that it is always set and exported. The additional colon ensures
+# that the system manpath isn't overwritten (see manpath(1)).
+if [[ -n "$MANPATH" && "$MANPATH" != *: ]]; then
+  # Append a colon if MANPATH isn't empty and doesn't end with a colon already
+  MANPATH="$MANPATH:"
+fi
+export MANPATH="$MANPATH"

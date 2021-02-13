@@ -46,14 +46,6 @@ _perf_timer_start "total"
   fi
 # }}}
 
-# For some reason manpath is not always set when logging with ssh for instance.
-# Let's ensure that it is always set and exported. The additional colon ensures
-# that the system manpath isn't overwritten (see manpath(1)), though in reality
-# two colons get added for some reason, which is also valid, but means
-# something slightly different (again, see manpath(1)). Hope this won't cause
-# any problems in the future.
-export MANPATH="$MANPATH:"
-
 for script in functions options path env plugins aliases completion zle prompt colorscheme; do
   _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
