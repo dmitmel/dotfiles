@@ -77,25 +77,28 @@ if [[ -f ~/.rustup/settings.toml ]]; then
   # use of rustup's CLI. Also a shortcut is taken: strings aren't unescaped
   # because Rust toolchain names don't need escaping in strings.
   # See also <https://github.com/toml-lang/toml/blob/master/toml.abnf>.
-  if rust_toolchain="$(
-    awk '
-      match($0, /^default_toolchain = "(.+)"$/, matches) {
-        print matches[1];
-        exit;
-      }
-      /^\[.+\]$/ {
-        exit;
-      }
-    ' ~/.rustup/settings.toml
-  )" && [[ -n "$rust_toolchain" ]]; then
+  rust_toolchain=""
+  < ~/.rustup/settings.toml while IFS= read -r line; do
+    if [[ "$line" =~ '^default_toolchain = "(.+)"$' ]]; then
+      rust_toolchain="${match[1]}"
+      break
+    elif [[ "$line" == \[*\] ]]; then
+      break
+    fi
+  done; unset line
+
+  if [[ -n "$rust_toolchain" ]]; then
     rust_sysroot=~/.rustup/toolchains/"$rust_toolchain"
     path_prepend path "$rust_sysroot"/bin
     path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
     path_prepend ld_library_path "$rust_sysroot"/lib
+    unset rust_sysroot
   fi
-  unset rust_toolchain rust_sysroot
+
+  unset rust_toolchain
 fi
+
 path_prepend path ~/.cargo/bin
 
 # add my binaries and completions
