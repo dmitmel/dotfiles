@@ -74,7 +74,12 @@ alias du='du -h'
 alias df='df -h'
 alias free='free -h'
 
-alias apt-get="echo -e \"use 'apt' instead of 'apt-get'\nif you really want to use 'apt-get', type '"'\\\\'"apt-get'\" #"
+if command_exists apt && command_exists apt-get; then
+  apt_get_message="use 'apt' instead of 'apt-get'
+if you really want to use 'apt-get', type '\\apt-get'"
+  alias apt-get="echo -E ${(qqq)apt_get_message} #"
+  unset apt_get_message
+fi
 
 # editor
 alias edit="$EDITOR"
@@ -97,3 +102,9 @@ alias bin-list-dylib-symbols='nm -gD'
 # Duplicated as an alias to prevent autocorrection of the real "command" part.
 # See also scripts/prime-run
 alias prime-run='__NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia '
+
+if ! command_exists update-grub; then
+  # Doesn't exist on Arch by default. Probably implementing this command was
+  # left as a challenge to the documentation reader.
+  alias update-grub="grub-mkconfig -o /boot/grub/grub.cfg"
+fi
