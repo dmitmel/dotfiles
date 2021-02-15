@@ -2,11 +2,12 @@
   let g:gitgutter_map_keys = 0
   nnoremap <leader>gg :G
   nnoremap <leader>g  :Git<space>
-  nnoremap <leader>gs :vertical Gstatus<CR>
-  nnoremap <leader>gd :Gdiff
-  nnoremap <leader>gb :Gblame<CR>
-  nnoremap <leader>gw :Gbrowse<CR>
+  nnoremap <leader>gs :vertical Git<CR>
+  nnoremap <leader>gd :Gdiffsplit
+  nnoremap <leader>gb :Git blame<CR>
+  nnoremap <leader>gw :GBrowse<CR>
+  nnoremap <leader>gW :.GBrowse<CR>
   nnoremap <leader>gc :Gcommit %
-  nnoremap <leader>gl :Glog<CR>
-  nnoremap <leader>gp :Gpush
+  nnoremap <leader>gl :Gclog<CR>
+  nnoremap <leader>gp :Git push
 " }}}
