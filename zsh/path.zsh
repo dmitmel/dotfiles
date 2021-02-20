@@ -89,7 +89,7 @@ if [[ -f ~/.rustup/settings.toml ]]; then
 
   if [[ -n "$rust_toolchain" ]]; then
     rust_sysroot=~/.rustup/toolchains/"$rust_toolchain"
-    path_prepend path "$rust_sysroot"/bin
+    # path_append path "$rust_sysroot"/bin
     path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
     path_prepend ld_library_path "$rust_sysroot"/lib
