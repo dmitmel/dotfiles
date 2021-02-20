@@ -7,7 +7,7 @@
   nnoremap <leader>gb :Git blame<CR>
   nnoremap <leader>gw :GBrowse<CR>
   nnoremap <leader>gW :.GBrowse<CR>
-  nnoremap <leader>gc :Gcommit %
+  nnoremap <leader>gc :Git commit %
   nnoremap <leader>gl :Gclog<CR>
   nnoremap <leader>gp :Git push
 " }}}
