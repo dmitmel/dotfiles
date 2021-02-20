@@ -63,5 +63,6 @@
   if g:vim_ide
     Plug 'neoclide/coc.nvim', { 'branch': 'release' }
     Plug 'dag/vim2hs'
+    Plug 'norcalli/nvim-colorizer.lua'
   endif
 " }}}
