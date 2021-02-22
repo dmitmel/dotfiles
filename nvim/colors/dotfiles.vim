@@ -50,7 +50,7 @@
   call s:hi('Italic',     0xE,  '',     'italic',    '')
   call s:hi('Bold',       0xA,  '',     'bold',      '')
   call s:hi('Underlined', 0x8,  '',     'underline', '')
-  call s:hi('Title',      0xD,  '',     '',          '')
+  call s:hi('Title',      0xD,  '',     'NONE',      '')
   hi! link Directory Title
   call s:hi('Conceal',    0xC,  'NONE', '',          '')
   call s:hi('NonText',    0x3,  '',     '',          '')
