@@ -119,6 +119,22 @@ set commentstring=//%s
   xnoremap <leader>dg :diffget<CR>
   xnoremap <leader>dp :diffput<CR>
 
+  " Horizontal scroll
+  " normal mode
+  nnoremap <M-h> zh
+  nnoremap <M-H> zH
+  nnoremap <M-Left> zh
+  nnoremap <M-l> zl
+  nnoremap <M-L> zL
+  nnoremap <M-Right> zl
+  " visual mode
+  xnoremap <M-h> zh
+  xnoremap <M-H> zH
+  xnoremap <M-Left> zh
+  xnoremap <M-l> zl
+  xnoremap <M-L> zL
+  xnoremap <M-Right> zl
+
 " }}}
 
 
