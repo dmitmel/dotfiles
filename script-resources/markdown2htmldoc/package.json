@@ -7,7 +7,7 @@
     "markdown-it": "*",
     "markdown-it-emoji": "*",
     "markdown-it-task-checkbox": "*",
-    "prismjs": "^1.21.0"
+    "prismjs": "^1.23.0"
   },
   "devDependencies": {
     "eslint": "*",
