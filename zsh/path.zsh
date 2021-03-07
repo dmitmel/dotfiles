@@ -70,7 +70,8 @@ export GOPATH=~/go
 path_prepend path "$GOPATH/bin"
 
 # Rust
-if [[ -f ~/.rustup/settings.toml ]]; then
+rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
+if [[ -f "$rustup_home"/settings.toml ]]; then
   # Make a low-effort attempt at quickly extracting the selected Rust toolchain
   # from rustup's settings. The TOML file is obviously assumed to be well-formed
   # and syntactically correct because virtually always it's manipulated with the
@@ -78,7 +79,7 @@ if [[ -f ~/.rustup/settings.toml ]]; then
   # because Rust toolchain names don't need escaping in strings.
   # See also <https://github.com/toml-lang/toml/blob/master/toml.abnf>.
   rust_toolchain=""
-  < ~/.rustup/settings.toml while IFS= read -r line; do
+  < "$rustup_home"/settings.toml while IFS= read -r line; do
     if [[ "$line" =~ '^default_toolchain = "(.+)"$' ]]; then
       rust_toolchain="${match[1]}"
       break
@@ -88,16 +89,20 @@ if [[ -f ~/.rustup/settings.toml ]]; then
   done; unset line
 
   if [[ -n "$rust_toolchain" ]]; then
-    rust_sysroot=~/.rustup/toolchains/"$rust_toolchain"
+    rust_sysroot="$rustup_home"/toolchains/"$rust_toolchain"
     # path_append path "$rust_sysroot"/bin
     path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
-    path_prepend ld_library_path "$rust_sysroot"/lib
-    unset rust_sysroot
   fi
 
-  unset rust_toolchain
+  for rust_sysroot in "$rustup_home"/toolchains/*(/); do
+    # The filenames of all libraries in toolchain dirs are suffixed with their
+    # build hashes or the compiler identifier, so in practice conflicts are
+    # insanely unlikely.
+    path_prepend ld_library_path "$rust_sysroot"/lib
+  done
 fi
+unset rustup_home rust_toolchain rust_sysroot
 
 path_prepend path ~/.cargo/bin
 
