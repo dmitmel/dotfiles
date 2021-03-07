@@ -49,7 +49,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 # Oh My Zsh {{{
 
   omz_features=(key-bindings termsupport)
-  omz_plugins=(git extract fasd)
+  omz_plugins=(git)
 
   _plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
     load='lib/'${^omz_features}'.zsh' \
@@ -64,22 +64,35 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 
 # fasd {{{
 
-unalias j
-j() {
-  local _fasd_ret
-  _fasd_ret="$(
-    # -l: list all paths in the database (without scores)
-    # -d: list only directories
-    # -R: in the reverse order
-    fasd -l -d -R |
-      fzf --height=40% --layout=reverse --tiebreak=index --query="$*"
-  )"
-  if [[ -d "$_fasd_ret" ]]; then
-    cd -- "$_fasd_ret"
-  elif [[ -n "$_fasd_ret" ]]; then
-    print -- "$_fasd_ret"
+  if command_exists fasd; then
+    # Initialization taken from <https://github.com/ohmyzsh/ohmyzsh/blob/6fbad5bf72fad4ecf30ba4d4ffee62bac582f0ed/plugins/fasd/fasd.plugin.zsh>
+    fasd_cache="${ZSH_CACHE_DIR}/fasd-init-cache"
+    if [[ "${commands[fasd]}" -nt "$fasd_cache" || ! -s "$fasd_cache" ]]; then
+      fasd --init posix-alias zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install >| "$fasd_cache"
+    fi
+    source "$fasd_cache"
+    unset fasd_cache
+
+    alias v='f -e "$EDITOR"'
+    alias o='a -e xdg-open'
+
+    # alias j='zz'
+    j() {
+      local _fasd_ret
+      _fasd_ret="$(
+        # -l: list all paths in the database (without scores)
+        # -d: list only directories
+        # -R: in the reverse order
+        fasd -l -d -R |
+          fzf --height=40% --layout=reverse --tiebreak=index --query="$*"
+      )"
+      if [[ -d "$_fasd_ret" ]]; then
+        cd -- "$_fasd_ret"
+      elif [[ -n "$_fasd_ret" ]]; then
+        print -- "$_fasd_ret"
+      fi
+    }
   fi
-}
 
 # }}}
 
