@@ -36,6 +36,10 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 " Ranger {{{
   let g:ranger_replace_netrw = 1
   let g:ranger_map_keys = 0
+  " The default path (/tmp/chosenfile) is inaccessible at least on
+  " Android/Termux, so the tempname() function was chosen because it respects
+  " $TMPDIR.
+  let g:ranger_choice_file = tempname()
   nnoremap <silent> <Leader>o <Cmd>Ranger<CR>
   " ranger.vim relies on the Bclose.vim plugin, but I use Bbye.vim, so this
   " command is here just for compatitabilty
