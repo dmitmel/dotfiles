@@ -55,7 +55,7 @@ function dotfiles#indent_motion#run(direction)
 endfunction
 
 " <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim#L120-L127>
-function dotfiles#indent_motion#indent_level_of(linenr)  "{{{2
+function dotfiles#indent_motion#indent_level_of(linenr)
   if getline(a:linenr) ==# ""
     return -1
   endif

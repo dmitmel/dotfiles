@@ -106,10 +106,6 @@ set commentstring=//%s
   nnoremap <C-n> <C-i>
   nnoremap <C-p> <C-o>
 
-  nnoremap <leader>kk <Cmd>set keymap&<CR>
-  nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
-  nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
-
   nnoremap Q <nop>
 
   " normal mode
@@ -134,6 +130,19 @@ set commentstring=//%s
   xnoremap <M-l> zl
   xnoremap <M-L> zL
   xnoremap <M-Right> zl
+
+" }}}
+
+
+" Keymap switcher {{{
+
+  nnoremap <leader>kk <Cmd>set keymap&<CR>
+  nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
+  nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
+
+  nnoremap <C-o> <Cmd>DotfilesSwapKeymaps<CR>
+  let g:dotfiles_prev_keymap = &keymap
+  command! -nargs=0 DotfilesSwapKeymaps let [g:dotfiles_prev_keymap, &keymap] = [&keymap, g:dotfiles_prev_keymap]
 
 " }}}
 
