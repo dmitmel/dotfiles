@@ -8,6 +8,7 @@
   nnoremap <leader>gw :GBrowse<CR>
   nnoremap <leader>gW :.GBrowse<CR>
   nnoremap <leader>gc :Git commit %
+  nnoremap <leader>gC :Git commit --amend
   nnoremap <leader>gl :Gclog<CR>
   nnoremap <leader>gp :Git push
 " }}}
