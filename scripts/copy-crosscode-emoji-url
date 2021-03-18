@@ -3,9 +3,9 @@
 import sys
 import os
 from configparser import ConfigParser
-import requests
 import json
 import urllib.parse
+import urllib.request
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 
@@ -48,9 +48,8 @@ def emote_downloader_and_iterator():
         with open(registry_dump_file, "r") as f:
             emote_registry_data = json.load(f)
     except FileNotFoundError:
-        response = requests.get(registry_dump_url, timeout=10)
-        response.raise_for_status()
-        emote_registry_data = response.json()
+        with urllib.request.urlopen(registry_dump_url, timeout=10) as response:
+            emote_registry_data = json.load(response)
 
     assert emote_registry_data["version"] == 1
 

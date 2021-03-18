@@ -6,10 +6,13 @@
 
 import sys
 import os
-import requests
+import urllib.request
+import urllib.error
 import colorama
 import time
 import argparse
+import json
+import typing
 
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
@@ -52,19 +55,23 @@ if not (image_size is None or (image_size > 0 and image_size & (image_size - 1))
     parser.error("image_size must be greater than zero and a power of two")
 
 
-# no timeout here, sadly, due to this genius: <https://github.com/psf/requests/issues/3099#issuecomment-215522806>
-response = requests.get(
-    "https://discordapp.com/api/users/{}".format(user_snowflake),
-    headers={"Authorization": "Bot {}".format(bot_token)},
-    timeout=3,
-)
 try:
-    response.raise_for_status()
-except requests.HTTPError as err:
-    print(response.json(), file=sys.stderr)
+    opener = urllib.request.build_opener()
+    # Don't send the User-Agent header, Discord blocks the default one
+    opener.addheaders = []
+    with opener.open(
+        urllib.request.Request(
+            "http://discord.com/api/users/{}".format(user_snowflake),
+            headers={"Authorization": "Bot {}".format(bot_token)},
+        ),
+        timeout=10,
+    ) as response:
+        raw_data = json.load(response)
+except urllib.error.HTTPError as err:
+    print(err, file=sys.stderr)
+    print(err.read(), file=sys.stderr)
     raise err
 
-raw_data = response.json()
 data = {}
 
 data["ID"] = raw_data["id"]
