@@ -61,6 +61,7 @@ fi
 
 # Ruby gems
 path_prepend path ~/.gem/ruby/*/bin(N/)
+path_prepend path ~/.local/share/gem/ruby/*/bin(N/)
 
 # Yarn global packages
 path_prepend path ~/.yarn/bin
