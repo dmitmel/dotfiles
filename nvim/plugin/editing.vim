@@ -95,7 +95,7 @@ set commentstring=//%s
 
   " make the default Vim mappings more consistent
   " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
-  nnoremap U <C-r>
+  nmap U <C-r>
   nnoremap Y y$
 
   " <C-i> is treated as <tab> in terminals, so the original function of <C-i>
