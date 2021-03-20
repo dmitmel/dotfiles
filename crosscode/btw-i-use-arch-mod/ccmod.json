@@ -1,7 +1,6 @@
 {
   "id": "btw-i-use-arch",
   "title": "btw I use Arch",
-  "version": "0.0.0",
   "description": "A mod for masochists like myself",
   "prestart": "prestart.js",
   "poststart": "poststart.js"
