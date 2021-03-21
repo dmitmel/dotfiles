@@ -1,6 +1,7 @@
 let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 
 let g:vim_ide = get(g:, 'vim_ide', 0)
+let g:vim_ide_treesitter = get(g:, 'vim_ide_treesitter', 0)
 
 let &runtimepath = g:nvim_dotfiles_dir.','.&runtimepath.','.g:nvim_dotfiles_dir.'/after'
 
@@ -19,6 +20,9 @@ call plug#begin(s:vim_plug_home)
 Plug 'junegunn/vim-plug'
 runtime! dotfiles/plugins-list.vim
 call plug#end()
+if g:vim_ide_treesitter
+  runtime! dotfiles/treesitter.vim
+endif
 
 " Automatically install/clean plugins (because I'm a programmer) {{{
   augroup vimrc-plugins
@@ -29,6 +33,5 @@ call plug#end()
       \| endif
   augroup END
 " }}}
-
 
 colorscheme dotfiles

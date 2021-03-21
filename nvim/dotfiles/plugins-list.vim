@@ -64,5 +64,8 @@
     Plug 'neoclide/coc.nvim', { 'branch': 'release' }
     Plug 'dag/vim2hs'
     Plug 'norcalli/nvim-colorizer.lua'
+    if g:vim_ide_treesitter
+      Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+    endif
   endif
 " }}}
