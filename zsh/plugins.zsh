@@ -64,7 +64,16 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
 
 # fasd {{{
 
+  if ! command_exists fasd; then
+    _plugin fasd 'clvv/fasd' \
+      build='mkdir -pv man1 && cp -v ./fasd.1 man1/'
+      after_load='plugin-cfg-path path prepend ""' \
+      after_load='plugin-cfg-path manpath prepend ""'
+  fi
+
   if command_exists fasd; then
+    export _FASD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/fasd_db.csv"
+
     # Initialization taken from <https://github.com/ohmyzsh/ohmyzsh/blob/6fbad5bf72fad4ecf30ba4d4ffee62bac582f0ed/plugins/fasd/fasd.plugin.zsh>
     fasd_cache="${ZSH_CACHE_DIR}/fasd-init-cache"
     if [[ "${commands[fasd]}" -nt "$fasd_cache" || ! -s "$fasd_cache" ]]; then
