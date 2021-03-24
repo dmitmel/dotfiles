@@ -4,5 +4,5 @@
 " sourced in `syntax/nginx.vim` in vim-polyglot, which resets the `commentstring`
 " set in `ftplugin/nginx.vim` and sets `comments` to some garbage. This script
 " undoes that damage.
-let &l:comments = &g:comments
-let &l:commentstring = '#%s'
+setlocal comments<
+setlocal commentstring=#%s
