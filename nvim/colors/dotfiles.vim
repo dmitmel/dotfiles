@@ -262,7 +262,8 @@
 " CSS {{{
   hi! link cssBraces        Delimiter
   hi! link cssTagName       htmlTagName
-  hi! link cssPseudoClassId Special
+  hi! link cssPseudoClassId Type
+  hi! link cssPseudoClass   cssPseudoClassId
   hi! link cssClassName     Type
   hi! link cssClassNameDot  cssClassName
   hi! link cssAtRule        Keyword
