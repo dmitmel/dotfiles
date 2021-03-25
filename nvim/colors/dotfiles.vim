@@ -275,6 +275,12 @@
   hi! link cssAttrRegion    cssAttr
 " }}}
 
+" SCSS {{{
+  hi! link scssSelectorName cssClassName
+  hi! link scssSelectorChar cssClassnameDot
+  hi! link scssAmpersand    cssSelectorOp
+" }}}
+
 " JavaScript {{{
   hi! link javaScriptBraces    Delimiter
   hi! link jsParens            Delimiter
