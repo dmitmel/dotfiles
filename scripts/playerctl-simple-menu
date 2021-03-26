@@ -31,6 +31,12 @@ PLAYER_ICON_NAME_FIXES = {
     "chrome": "google-chrome",
 }
 
+PLAYER_PLAYBACK_STATUS_EMOJIS = {
+    Playerctl.PlaybackStatus.PLAYING: "\u25B6",
+    Playerctl.PlaybackStatus.PAUSED: "\u23F8",
+    Playerctl.PlaybackStatus.STOPPED: "\u23F9",
+}
+
 
 def humanize_duration(duration):
     minutes, seconds = divmod(math.floor(duration), 60)
@@ -163,19 +169,37 @@ def iter_actions_for_player(player):
 
 root_menu = Gtk.Menu()
 
-player_names = sorted(
-    Playerctl.list_players(),
-    key=lambda player_name: (
-        -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
-        player_name.instance,
-    ),
-)
+player_names = Playerctl.list_players()
 
 if len(player_names) > 0:
+    players = []
     for player_name in player_names:
         player = Playerctl.Player.new_from_name(player_name)
+        players.append(
+            {
+                "player": player,
+                "player_name": player_name,
+                "sorting_key": (
+                    player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
+                    -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
+                    player_name.instance,
+                ),
+            }
+        )
+    players = sorted(
+        players, key=lambda player_and_meta: player_and_meta["sorting_key"]
+    )
 
-        player_menu_item = Gtk.ImageMenuItem.new_with_label(player_name.instance)
+    for player_and_meta in players:
+        player_name = player_and_meta["player_name"]
+        player = player_and_meta["player"]
+
+        player_menu_item = Gtk.ImageMenuItem.new_with_label(
+            "{} [{}]".format(
+                player_name.instance,
+                PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
+            )
+        )
 
         player_icon_name = PLAYER_ICON_NAME_FIXES.get(
             player_name.name, player_name.name
