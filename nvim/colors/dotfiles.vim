@@ -24,23 +24,23 @@
 
   let s:colors = g:dotfiles_colorscheme_base16_colors
   function s:hi(group, fg, bg, attr, guisp)
-    let l:args = ''
+    let args = ''
     if a:fg isnot ''
-      let l:fg = s:is_number(a:fg) ? s:colors[a:fg] : {'gui': a:fg, 'cterm': a:fg}
-      let l:args .= ' guifg=' . l:fg.gui . ' ctermfg=' . l:fg.cterm
+      let fg = s:is_number(a:fg) ? s:colors[a:fg] : {'gui': a:fg, 'cterm': a:fg}
+      let args .= ' guifg=' . fg.gui . ' ctermfg=' . fg.cterm
     endif
     if a:bg isnot ''
-      let l:bg = s:is_number(a:bg) ? s:colors[a:bg] : {'gui': a:bg, 'cterm': a:bg}
-      let l:args .= ' guibg=' . l:bg.gui . ' ctermbg=' . l:bg.cterm
+      let bg = s:is_number(a:bg) ? s:colors[a:bg] : {'gui': a:bg, 'cterm': a:bg}
+      let args .= ' guibg=' . bg.gui . ' ctermbg=' . bg.cterm
     endif
     if a:attr isnot ''
-      let l:args .= ' gui=' . a:attr . ' cterm=' . a:attr
+      let args .= ' gui=' . a:attr . ' cterm=' . a:attr
     endif
     if a:guisp isnot ''
-      let l:guisp = s:is_number(a:guisp) ? s:colors[a:guisp].gui : a:guisp
-      let l:args .= ' guisp=' . l:guisp
+      let guisp = s:is_number(a:guisp) ? s:colors[a:guisp].gui : a:guisp
+      let args .= ' guisp=' . guisp
     endif
-    exec 'hi' a:group l:args
+    exec 'hi' a:group args
   endfunction
 " }}}
 

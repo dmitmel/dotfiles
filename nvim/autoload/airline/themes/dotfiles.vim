@@ -10,9 +10,9 @@ let s:palette = {
 
 let s:colors = g:dotfiles_colorscheme_base16_colors
 function! s:base16_color(fg, bg)
-  let l:fg = s:colors[a:fg]
-  let l:bg = s:colors[a:bg]
-  return [l:fg.gui, l:bg.gui, l:fg.cterm, l:bg.cterm]
+  let fg = s:colors[a:fg]
+  let bg = s:colors[a:bg]
+  return [fg.gui, bg.gui, fg.cterm, bg.cterm]
 endfunction
 
 let s:section_a = s:base16_color(0x1, 0xB)

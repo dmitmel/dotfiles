@@ -163,10 +163,10 @@ set commentstring=//%s
 
   " * and # in the Visual mode will search the selected text
   function! s:VisualStarSearch(search_cmd)
-    let l:tmp = @"
+    let tmp = @"
     normal! y
     let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')
-    let @" = l:tmp
+    let @" = tmp
   endfunction
   " HACK: my mappings are added on VimEnter to override mappings from the
   " vim-indexed-search plugin

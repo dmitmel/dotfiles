@@ -52,12 +52,12 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   " DiffWithSaved {{{
     " Compare current buffer with the actual (saved) file on disk
     function s:DiffWithSaved()
-      let l:filetype = &filetype
+      let filetype = &filetype
       diffthis
       vnew | read # | normal! ggdd
       diffthis
       setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile readonly nomodifiable
-      let &filetype = l:filetype
+      let &filetype = filetype
     endfunction
     command DiffWithSaved call s:DiffWithSaved()
   " }}}
@@ -100,9 +100,9 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     " argument list, so it doesn't play well with Obsession.vim because it
     " saves the argument list in the session file.
     function s:EditGlob(...)
-      for l:glob in a:000
-        for l:name in glob(l:glob, 0, 1)
-          execute 'edit' fnameescape(l:name)
+      for glob in a:000
+        for name in glob(glob, 0, 1)
+          execute 'edit' fnameescape(name)
         endfor
       endfor
     endfunction
@@ -135,31 +135,31 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   " create directory {{{
     " Creates the parent directory of the file if it doesn't exist
     function s:CreateDirOnSave()
-      let l:file = expand('<afile>')
+      let file = expand('<afile>')
       " check if this is a regular file and its path is not a URL
-      if empty(&buftype) && !s:IsUrl(l:file)
-        let l:dir = fnamemodify(l:file, ':h')
-        if !isdirectory(l:dir) | call mkdir(l:dir, 'p') | endif
+      if empty(&buftype) && !s:IsUrl(file)
+        let dir = fnamemodify(file, ':h')
+        if !isdirectory(dir) | call mkdir(dir, 'p') | endif
       endif
     endfunction
   " }}}
 
   " fix whitespace {{{
     function s:FixWhitespaceOnSave()
-      let l:pos = getpos('.')
+      let pos = getpos('.')
       " remove trailing whitespace
       keeppatterns %s/\s\+$//e
       " remove trailing newlines
       keeppatterns %s/\($\n\s*\)\+\%$//e
-      call setpos('.', l:pos)
+      call setpos('.', pos)
     endfunction
   " }}}
 
   " auto-format with Coc.nvim {{{
     let g:coc_format_on_save_ignore = []
     function s:FormatOnSave()
-      let l:file = expand('<afile>')
-      if IsCocEnabled() && !s:IsUrl(l:file) && index(g:coc_format_on_save_ignore, &filetype) < 0
+      let file = expand('<afile>')
+      if IsCocEnabled() && !s:IsUrl(file) && index(g:coc_format_on_save_ignore, &filetype) < 0
         silent CocFormat
       endif
     endfunction

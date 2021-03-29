@@ -41,18 +41,18 @@ endif
 
   " Bbye with confirmation, or fancy buffer closer {{{
     function s:CloseBuffer(cmd) abort
-      let l:cmd = a:cmd
+      let cmd = a:cmd
       if &modified
-        let l:answer = confirm("Save changes?", "&Yes\n&No\n&Cancel")
-        if l:answer ==# 1      " Yes
+        let answer = confirm("Save changes?", "&Yes\n&No\n&Cancel")
+        if answer ==# 1      " Yes
           write
-        elseif l:answer ==# 2  " No
-          let l:cmd .= '!'
+        elseif answer ==# 2  " No
+          let cmd .= '!'
         else                   " Cancel/Other
           return
         endif
       endif
-      execute l:cmd
+      execute cmd
     endfunction
   " }}}
 
@@ -108,19 +108,19 @@ endif
   let g:airline#extensions#tabline#left_alt_sep = ''
 
   function StatusLine_filesize()
-    let l:bytes = getfsize(expand('%'))
-    if l:bytes < 0 | return '' | endif
+    let bytes = getfsize(expand('%'))
+    if bytes < 0 | return '' | endif
 
-    let l:factor = 1
-    for l:unit in ['B', 'K', 'M', 'G']
-      let l:next_factor = l:factor * 1024
-      if l:bytes < l:next_factor
-        let l:number_str = printf('%.2f', (l:bytes * 1.0) / l:factor)
+    let factor = 1
+    for unit in ['B', 'K', 'M', 'G']
+      let next_factor = factor * 1024
+      if bytes < next_factor
+        let number_str = printf('%.2f', (bytes * 1.0) / factor)
         " remove trailing zeros
-        let l:number_str = substitute(l:number_str, '\v\.?0+$', '', '')
-        return l:number_str . l:unit
+        let number_str = substitute(number_str, '\v\.?0+$', '', '')
+        return number_str . unit
       endif
-      let l:factor = l:next_factor
+      let factor = next_factor
     endfor
   endfunction
   call airline#parts#define('filesize', { 'function': 'StatusLine_filesize' })
