@@ -9,7 +9,7 @@ export -T LD_LIBRARY_PATH ld_library_path ':'
 
 path_prepend() {
   if (( $# < 1 )); then
-    print >&2 "usage: $0 <var_name> <value...>"
+    print >&2 -r -- "usage: $0 <var_name> <value...>"
     return 1
   fi
   local var_name="$1"; shift

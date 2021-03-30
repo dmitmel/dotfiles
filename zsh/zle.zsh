@@ -60,9 +60,9 @@
   _palette_widget() {
     # download "TLDR pages" if we don't have them
     if [[ ! -d "$PALETTE_TLDR_PAGES_DIR" ]]; then
-      echo
+      print -r
       _palette_download_tldr_pages
-      echo
+      print -r
     fi
 
     # try to fill in a placeholder if there're any, otherwise pick a snippet
@@ -118,12 +118,12 @@
   # This function downloads the "TLDR pages"
   _palette_download_tldr_pages() {
     mkdir -pv "$PALETTE_TLDR_PAGES_DIR"
-    echo "Downloading tldr pages..."
+    print -r -- "Downloading tldr pages..."
 
     if curl -Lf https://github.com/tldr-pages/tldr/archive/master.tar.gz |
       tar -C "$PALETTE_TLDR_PAGES_DIR" --gzip --strip-components 2 --extract tldr-master/pages
     then
-      echo "Done!"
+      print -r -- "Done!"
     fi
   }
 

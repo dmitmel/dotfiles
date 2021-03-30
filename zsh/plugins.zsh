@@ -34,7 +34,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
   done; unset match
 
   if (( $run_compdump )); then
-    echo "$0: rebuilding zsh completion dump"
+    print -r -- "$0: rebuilding zsh completion dump"
     # -D flag turns off compdump loading
     compinit -D
     compdump
@@ -98,7 +98,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
       if [[ -d "$_fasd_ret" ]]; then
         cd -- "$_fasd_ret"
       elif [[ -n "$_fasd_ret" ]]; then
-        print -- "$_fasd_ret"
+        print -r -- "$_fasd_ret"
       fi
     }
   fi

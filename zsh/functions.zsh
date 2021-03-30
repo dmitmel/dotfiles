@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-count() { echo "$#"; }
+count() { print -r -- "$#"; }
 
 bytecount() { wc -c "$@" | numfmt --to=iec-i; }
 
@@ -39,7 +39,7 @@ if (( ! _is_macos )); then
   elif command_exists xdg-open; then
     open_cmd='nohup xdg-open &> /dev/null'
   else
-    open_cmd='print >&2 "open: Platform $OSTYPE is not supported"; return 1'
+    open_cmd='print >&2 -r -- "open: Platform $OSTYPE is not supported"; return 1'
   fi
   eval "open(){local f; for f in \"\$@\"; do $open_cmd \"\$f\"; done;}"
   unset open_cmd
@@ -55,8 +55,8 @@ elif command_exists termux-clipboard-set && command_exists termux-clipboard-get;
   copy_cmd='termux-clipboard-set' paste_cmd='termux-clipboard-get'
 else
   error_msg='Platform $OSTYPE is not supported'
-  copy_cmd='print >&2 "clipcopy: '"$error_msg"'"; return 1'
-  paste_cmd='print >&2 "clippaste: '"$error_msg"'"; return 1'
+  copy_cmd='print >&2 -r -- "clipcopy: '"$error_msg"'"; return 1'
+  paste_cmd='print >&2 -r -- "clippaste: '"$error_msg"'"; return 1'
   unset error_msg
 fi
 eval "clipcopy() { $copy_cmd; }; clippaste() { $paste_cmd; }"
@@ -74,7 +74,7 @@ git_current_branch() {
     command git symbolic-ref --quiet HEAD 2> /dev/null ||
     command git rev-parse --short HEAD 2> /dev/null
   )" || return
-  echo "${ref#refs/heads/}"
+  print -r -- "${ref#refs/heads/}"
 }
 
 declare -A date_formats=(

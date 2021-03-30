@@ -39,11 +39,11 @@ zstyle ':completion:*:processes-names' command "ps xho comm="
 zstyle ':completion:*:processes' force-list always
 
 _completion_get_hosts() {
-  print localhost
+  print -r -- localhost
   local line
   < ~/.ssh/config while IFS= read -r line; do
     if [[ "$line" =~ '^Host[[:blank:]]+(.*)[[:blank:]]*' ]]; then
-      print -- "${match[1]}"
+      print -r -- "${match[1]}"
     fi
   done
 }

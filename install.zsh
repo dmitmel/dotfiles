@@ -11,8 +11,8 @@ install_dotfile() {
   fi
 
   mkdir -pv "${dest:h}"
-  echo "installing dotfile '$dest'"
-  echo "$contents" > "$dest"
+  print -r -- "installing dotfile '$dest'"
+  print -r -- "$contents" > "$dest"
 }
 
 # ZSH

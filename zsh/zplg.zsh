@@ -51,7 +51,7 @@ _ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 # basic logging {{{
 
   _zplg_log() {
-    print >&2 "${fg_bold[blue]}[zplg]${reset_color} $@"
+    print >&2 -r -- "${fg_bold[blue]}[zplg]${reset_color} $@"
   }
 
   _zplg_debug() {
@@ -455,7 +455,7 @@ _zplg_is_plugin_loaded() {
   # Prints IDs of all loaded plugins.
   zplg-list() {
     # (F) modifier joins an array with newlines
-    print "${(F)ZPLG_LOADED_PLUGINS}"
+    print -r -- "${(F)ZPLG_LOADED_PLUGINS}"
   }
 
   # Upgrades all plugins if no arguments are given, otherwise upgrades plugins by

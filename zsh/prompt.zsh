@@ -3,7 +3,7 @@
 # Escapes `%` in all arguments by replacing it with `%%`. Escaping is needed so
 # that untrusted input (e.g. git branch names) doesn't affect prompt rendering.
 prompt_escape() {
-  print -n "${@//\%/%%}"
+  print -rn -- "${@//\%/%%}"
 }
 
 prompt_preexec_hook() {
@@ -51,7 +51,7 @@ prompt_vcs_info() {
     fi
   done
 
-  print -n ' %F{blue}git:%F{magenta}'"$(prompt_escape "$branch")"'%f'
+  print -rn -- ' %F{blue}git:%F{magenta}'"$(prompt_escape "$branch")"'%f'
 }
 
 # configure prompt expansion
