@@ -8,8 +8,7 @@ import urllib.parse
 import urllib.request
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
-
-import common_script_utils  # noqa: E402
+import common_script_utils
 
 
 DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.crosscode.ru/~ccbot/emote-registry.json"
