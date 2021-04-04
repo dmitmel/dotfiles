@@ -2,6 +2,9 @@
   "id": "btw-i-use-arch",
   "title": "btw I use Arch",
   "description": "A mod for masochists like myself",
+  "icons": {
+    "24": "icon24.png"
+  },
   "prestart": "prestart.js",
   "poststart": "poststart.js"
 }
