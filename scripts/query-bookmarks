@@ -110,10 +110,11 @@ chosen_index = common_script_utils.run_chooser(
     chooser_entries_iter(), prompt="bookmark"
 )
 
-_title, url, _folder_path_str = chooser_entries[chosen_index]
-print(url)
+if chosen_index >= 0:
+    _title, url, _folder_path_str = chooser_entries[chosen_index]
+    print(url)
 
-common_script_utils.set_clipboard(url)
-common_script_utils.send_notification(
-    os.path.basename(__file__), "bookmark URL copied to clipboard!", url
-)
+    common_script_utils.set_clipboard(url)
+    common_script_utils.send_notification(
+        os.path.basename(__file__), "bookmark URL copied to clipboard!", url
+    )
