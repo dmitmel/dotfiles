@@ -14,7 +14,17 @@ def platform_not_supported_error():
 
 
 def run_chooser(choices, prompt=None, async_read=False):
-    if sys.platform == "darwin":
+    supports_result_index = True
+    if os.isatty(sys.stderr.fileno()):
+        process_args = [
+            "fzf",
+            "--with-nth=2..",
+            "--height=50%",
+            "--reverse",
+            "--tiebreak=index",
+        ]
+        supports_result_index = False
+    elif sys.platform == "darwin":
         process_args = ["choose", "-i"]
     elif os.name == "posix":
         process_args = ["rofi", "-dmenu", "-i", "-format", "i"]
@@ -30,8 +40,11 @@ def run_chooser(choices, prompt=None, async_read=False):
     )
 
     with chooser_process.stdin as pipe:
-        for choice in choices:
+        for index, choice in enumerate(choices):
             assert "\n" not in choice
+            if not supports_result_index:
+                pipe.write(str(index).encode())
+                pipe.write(b" ")
             pipe.write(choice.encode())
             pipe.write(b"\n")
 
@@ -39,11 +52,7 @@ def run_chooser(choices, prompt=None, async_read=False):
     if exit_code != 0:
         raise Exception("chooser process failed with exit code {}".format(exit_code))
 
-    chosen_index = int(
-        # an extra newline is inserted by rofi for whatever reason
-        chooser_process.stdout.read().rstrip(b"\n")
-    )
-
+    chosen_index = int(chooser_process.stdout.read().strip().split()[0])
     return chosen_index
 
 
