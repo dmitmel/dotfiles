@@ -24,10 +24,11 @@ def humanize_bytes(bytes):
     units = ["B", "kB", "MB", "GB"]
 
     factor = 1
-    for _unit in units:
+    unit = ""
+    for unit in units:
         next_factor = factor << 10
         if bytes < next_factor:
             break
         factor = next_factor
 
-    return "%.2f %s" % (float(bytes) / factor, _unit)
+    return "%.2f %s" % (float(bytes) / factor, unit)

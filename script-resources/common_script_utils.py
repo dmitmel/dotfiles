@@ -2,18 +2,21 @@ import sys
 import os
 import subprocess
 from pathlib import Path
+from typing import Iterable, NoReturn
 
 
 if os.name == "posix":
-    DOTFILES_CONFIG_DIR = Path.home() / ".config" / "dotfiles"
-    DOTFILES_CACHE_DIR = Path.home() / ".cache" / "dotfiles"
+    DOTFILES_CONFIG_DIR: Path = Path.home() / ".config" / "dotfiles"
+    DOTFILES_CACHE_DIR: Path = Path.home() / ".cache" / "dotfiles"
 
 
-def platform_not_supported_error():
+def platform_not_supported_error() -> NoReturn:
     raise Exception("platform '{}' is not supported!".format(sys.platform))
 
 
-def run_chooser(choices, prompt=None, async_read=False):
+def run_chooser(
+    choices: Iterable[str], prompt: str = None, async_read: bool = False
+) -> int:
     supports_result_index = True
     if os.isatty(sys.stderr.fileno()):
         process_args = [
@@ -48,7 +51,7 @@ def run_chooser(choices, prompt=None, async_read=False):
             pipe.write(choice.encode())
             pipe.write(b"\n")
 
-    exit_code = chooser_process.wait()
+    exit_code: int = chooser_process.wait()
     if exit_code != 0:
         raise Exception("chooser process failed with exit code {}".format(exit_code))
 
@@ -56,7 +59,7 @@ def run_chooser(choices, prompt=None, async_read=False):
     return chosen_index
 
 
-def send_notification(title, message, url=None):
+def send_notification(title: str, message: str, url: str = None) -> None:
     if sys.platform == "darwin":
         process_args = [
             "terminal-notifier",
@@ -82,7 +85,7 @@ def send_notification(title, message, url=None):
     subprocess.run(process_args, check=True)
 
 
-def set_clipboard(text):
+def set_clipboard(text: str) -> None:
     # TODO: somehow merge program selection with the logic in `zsh/functions.zsh`
     if sys.platform == "darwin":
         process_args = ["pbcopy"]

@@ -16,6 +16,10 @@ import factorio.property_tree
 
 with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
 
+    version_main: int
+    version_major: int
+    version_minor: int
+    version_developer: int
     version_main, version_major, version_minor, version_developer = struct.unpack(
         "<HHHH", f.read(8)
     )

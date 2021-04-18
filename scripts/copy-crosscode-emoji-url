@@ -2,8 +2,10 @@
 
 import sys
 import os
+from pathlib import Path
 from configparser import ConfigParser
 import json
+from typing import Any, Generator, Optional, Union
 import urllib.parse
 import urllib.request
 
@@ -15,23 +17,25 @@ DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.crosscode.ru/~ccbot/emote-regist
 
 
 if os.name == "posix":
-    config_path = (
+    config_path: Path = (
         common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini"
     )
-    default_registry_dump_file = common_script_utils.DOTFILES_CACHE_DIR / "dotfiles"
+    default_registry_dump_file: Path = (
+        common_script_utils.DOTFILES_CACHE_DIR / "dotfiles"
+    )
 else:
     common_script_utils.platform_not_supported_error()
 config = ConfigParser(interpolation=None)
 config.read(config_path)
 
 
-emotes = []
+emotes: list[dict[str, Any]] = []
 
 
-def emote_downloader_and_iterator():
+def emote_downloader_and_iterator() -> Generator[str, None, None]:
     global emotes
 
-    registry_dump_file = config.get(
+    registry_dump_file: Optional[Union[str, Path]] = config.get(
         "default", "ccbot_emote_registry_dump_file", fallback=None
     )
     if registry_dump_file is not None:
@@ -43,6 +47,7 @@ def emote_downloader_and_iterator():
         "default", "ccbot_emote_registry_dump_url", fallback=DEFAULT_REGISTRY_DUMP_URL
     )
 
+    emote_registry_data: dict[str, Any]
     try:
         with open(registry_dump_file, "r") as f:
             emote_registry_data = json.load(f)
@@ -64,8 +69,8 @@ chosen_index = common_script_utils.run_chooser(
 if chosen_index >= 0:
     chosen_emote = emotes[chosen_index]
 
-    emote_url = urllib.parse.urlparse(chosen_emote["url"])
-    emote_url_query = urllib.parse.parse_qs(emote_url.query)
+    emote_url: urllib.parse.ParseResult = urllib.parse.urlparse(chosen_emote["url"])
+    emote_url_query: dict[str, list[str]] = urllib.parse.parse_qs(emote_url.query)
 
     if config.getboolean("default", "add_emote_name_to_url", fallback=False):
         emote_url_query["name"] = [chosen_emote["name"]]
@@ -76,10 +81,12 @@ if chosen_index >= 0:
     if default_emote_image_size is not None:
         emote_url_query["size"] = [str(default_emote_image_size)]
 
-    emote_url_query = urllib.parse.urlencode(emote_url_query, doseq=True)
-    emote_url = urllib.parse.urlunparse(emote_url._replace(query=emote_url_query))
+    emote_url_query_str = urllib.parse.urlencode(emote_url_query, doseq=True)
+    emote_url_str = urllib.parse.urlunparse(
+        emote_url._replace(query=emote_url_query_str)
+    )
 
-    common_script_utils.set_clipboard(emote_url)
+    common_script_utils.set_clipboard(emote_url_str)
 
     common_script_utils.send_notification(
         os.path.basename(__file__),

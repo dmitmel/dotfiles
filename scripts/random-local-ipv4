@@ -3,7 +3,7 @@
 import random
 
 
-def randbyte():
+def randbyte() -> int:
     return random.randrange(0, 256)
 
 

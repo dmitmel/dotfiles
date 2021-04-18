@@ -5,21 +5,22 @@
 # <https://www.devdungeon.com/content/working-binary-data-python>
 
 import struct
+from typing import Any, IO
 
 
-def read_bool(buf):
+def read_bool(buf: IO[bytes]) -> bool:
     return buf.read(1)[0] == 1
 
 
-def read_number(buf):
+def read_number(buf: IO[bytes]) -> float:
     return struct.unpack("<d", buf.read(8))[0]
 
 
-def _read_length(buf):
+def _read_length(buf: IO[bytes]) -> int:
     return struct.unpack("<I", buf.read(4))[0]
 
 
-def read_string(buf):
+def read_string(buf: IO[bytes]) -> str:
     is_empty = read_bool(buf)
     if is_empty:
         return ""
@@ -29,25 +30,25 @@ def read_string(buf):
     return buf.read(len_).decode("utf8")
 
 
-def read_dictionary(buf):
+def read_dictionary(buf: IO[bytes]) -> dict[str, Any]:
     len_ = _read_length(buf)
-    value = {}
+    value: dict[str, Any] = {}
     for _ in range(len_):
         key = read_string(buf)
         value[key] = read(buf)
     return value
 
 
-def read_list(buf):
+def read_list(buf: IO[bytes]) -> list[Any]:
     len_ = _read_length(buf)
-    value = []
+    value: list[Any] = []
     for _ in range(len_):
         read_string(buf)
         value.append(read(buf))
     return value
 
 
-def read(buf):
+def read(buf: IO[bytes]) -> Any:
     type_, _any_type_flag = buf.read(2)
     if type_ == 0:
         return None
