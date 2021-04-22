@@ -330,6 +330,7 @@
   hi! link typescriptCall                Variable
   hi! link typescriptArrowFuncArg        typescriptCall
   hi! link typescriptFuncType            typescriptCall
+  hi! link typescriptMessage             NONE
   hi! link typescriptVariable            jsStorageClass
   hi! link typescriptAmbientDeclaration  typescriptVariable
   hi! link typescriptVariableDeclaration Variable
@@ -342,6 +343,7 @@
   hi! link typescriptConstructorType     typescriptConstructSignature
   hi! link typescriptEndColons           Delimiter
   hi! link typescriptImport              jsImport
+  hi! link typescriptImportType          typescriptImport
   hi! link typescriptExport              jsExport
   hi! link typescriptNull                jsNull
   hi! link typescriptObjectLabel         jsObjectKey
