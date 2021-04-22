@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+from typing import Union
+import plyvel
+import json
+from sys import stdout
+import base64
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--encode",
+    "-e",
+    choices=["utf8", "base16", "base32", "base64", "base85"],
+    default="utf8",
+)
+parser.add_argument("db_path", type=Path)
+cli_args = parser.parse_args()
+
+
+def bytes_to_json(b: bytes) -> Union[str, list[int]]:
+    if cli_args.encode == "utf8":
+        try:
+            return b.decode("utf8")
+        except UnicodeDecodeError:
+            return list(b)
+    elif cli_args.encode == "base16":
+        return base64.b16encode(b).decode("ascii")
+    elif cli_args.encode == "base32":
+        return base64.b32encode(b).decode("ascii")
+    elif cli_args.encode == "base64":
+        return base64.b64encode(b).decode("ascii")
+    elif cli_args.encode == "base85":
+        return base64.b85encode(b).decode("ascii")
+    else:
+        assert False
+
+
+db = plyvel.DB(str(cli_args.db_path), create_if_missing=False)
+with db.iterator() as iterator:
+    for key, value in iterator:
+        json.dump({"key": bytes_to_json(key), "value": bytes_to_json(value)}, stdout)
+        stdout.write("\n")
