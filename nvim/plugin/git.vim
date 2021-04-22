@@ -11,4 +11,5 @@
   nnoremap <leader>gC :Git commit --amend
   nnoremap <leader>gl :Gclog<CR>
   nnoremap <leader>gp :Git push
+  nnoremap <leader>gP :Git push --force-with-lease
 " }}}
