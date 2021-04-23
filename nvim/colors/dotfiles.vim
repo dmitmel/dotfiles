@@ -375,8 +375,9 @@
 " }}}
 
 " Python {{{
-  hi! link pythonBuiltinType Type
-  hi! link pythonExClass     Type
+  hi! link pythonClass       Type
+  hi! link pythonBuiltinType pythonClass
+  hi! link pythonExClass     pythonClass
   hi! link pythonBuiltinObj  pythonFunction
   hi! link pythonClassVar    Variable
 " }}}
