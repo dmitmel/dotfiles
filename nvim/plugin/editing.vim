@@ -233,6 +233,18 @@ set commentstring=//%s
   noremap <leader>s s
   noremap <leader>S S
 
+  " Remove the mappings that I won't use
+  let g:tcomment_maps = 0
+
+  nmap <silent> gc  <Plug>TComment_gc
+  nmap <silent> gcc <Plug>TComment_gcc
+  nmap <silent> gC  <Plug>TComment_gcb
+  " The default block commenting mapping refuses to work on a single line, as
+  " a workaround I give it another empty one to work with.
+  nmap <silent> gCC m'o<Esc>''<Plug>TComment_gcb+
+  xnoremap <silent> gc :TCommentMaybeInline<CR>
+  xnoremap <silent> gC :TCommentBlock<CR>
+
 " }}}
 
 

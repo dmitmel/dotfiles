@@ -12,7 +12,11 @@
   endif
   Plug 'Raimondi/delimitMate'
   Plug 'tpope/vim-repeat'
-  Plug 'tpope/vim-commentary'
+  " if g:vim_ide
+  Plug 'tomtom/tcomment_vim'
+  " else
+  "   Plug 'tpope/vim-commentary'
+  " endif
   Plug 'tpope/vim-surround'
   Plug 'Yggdroot/indentLine'
   Plug 'idbrii/detectindent'
