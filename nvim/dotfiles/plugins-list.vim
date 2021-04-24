@@ -14,6 +14,7 @@
   Plug 'tpope/vim-repeat'
   " if g:vim_ide
   Plug 'tomtom/tcomment_vim'
+  Plug 'glts/vim-textobj-comment'
   " else
   "   Plug 'tpope/vim-commentary'
   " endif

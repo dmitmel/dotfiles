@@ -236,6 +236,7 @@ set commentstring=//%s
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
 
+  " Closely replicate the behavior of tpope/vim-commentary
   nmap <silent> gc  <Plug>TComment_gc
   nmap <silent> gcc <Plug>TComment_gcc
   nmap <silent> gC  <Plug>TComment_gcb
@@ -244,6 +245,8 @@ set commentstring=//%s
   nmap <silent> gCC m'o<Esc>''<Plug>TComment_gcb+
   xnoremap <silent> gc :TCommentMaybeInline<CR>
   xnoremap <silent> gC :TCommentBlock<CR>
+  " Make an alias for the comment text object
+  omap <silent> gc ac
 
 " }}}
 
