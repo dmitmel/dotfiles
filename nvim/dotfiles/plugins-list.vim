@@ -43,9 +43,6 @@
   Plug 'vim-airline/vim-airline'
   Plug 'tpope/vim-obsession'
   Plug 'romainl/vim-qf'
-  if g:vim_ide
-    Plug 'dyng/ctrlsf.vim'
-  endif
 " }}}
 
 " Git {{{

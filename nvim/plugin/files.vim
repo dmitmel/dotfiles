@@ -20,6 +20,23 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     command! -bang -nargs=* Rg call fzf#vim#grep(s:rg_cmd . ' --column --line-number --no-heading --fixed-strings --smart-case --color always ' . shellescape(<q-args>), 1, <bang>0)
     command! -bang -nargs=* Find Rg<bang> <args>
   endif
+
+  nnoremap <leader>/ :<C-u>grep<space>
+
+  function! s:grep_mapping_star_normal()
+    let word = expand("<cword>")
+    if !empty(word)
+      call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b'), 'n')
+    endif
+  endfunction
+  function! s:grep_mapping_star_visual()
+    let tmp = @"
+    normal! y
+    call feedkeys(":\<C-u>grep " . shellescape(@"), 'n')
+    let @" = tmp
+  endfunction
+  nnoremap <leader>* <Cmd>call <SID>grep_mapping_star_normal()<CR>
+  xnoremap <leader>* <Cmd>call <SID>grep_mapping_star_visual()<CR>
 " }}}
 
 
@@ -29,7 +46,10 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   let g:loaded_netrwPlugin = 1
   " re-add Netrw's gx mappings since we've disabled them
   nnoremap <silent> gx <Cmd>call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
-  xnoremap <silent> gx <Cmd>call netrw#BrowseXVis()<CR>
+  " This one can be rewritten in a way to not clobber the yank register...
+  " Most notably, the built-in mapping, which uses netrw#BrowseXVis(), doesn't
+  " work and breaks the editor, at least for me.
+  xnoremap <silent> gx y:<C-u>call netrw#BrowseX(@",netrw#CheckIfRemote())<CR>
 " }}}
 
 
@@ -175,11 +195,4 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     autocmd BufWritePre * call s:OnSave()
   augroup END
 
-" }}}
-
-
-" CtrlSF {{{
-  nmap <leader>/ <Plug>CtrlSFPrompt
-  nmap <leader>* <Plug>CtrlSFCwordPath
-  xmap <leader>* <Plug>CtrlSFVwordPath
 " }}}
