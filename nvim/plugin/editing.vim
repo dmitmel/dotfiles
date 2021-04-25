@@ -58,23 +58,17 @@ set commentstring=//%s
 
 
 " Cursor and Scrolling {{{
-
-  set number
-  set relativenumber
-  set cursorline
-
+  set number relativenumber cursorline
   " remember cursor position
   augroup vimrc-editing-remember-cursor-position
     autocmd!
     autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exec "normal! g`\"" | endif
   augroup END
-
 " }}}
 
 
 " Wrapping {{{
-  set nowrap
-  set colorcolumn=81,101,121
+  set nowrap colorcolumn=81,101,121
 " }}}
 
 

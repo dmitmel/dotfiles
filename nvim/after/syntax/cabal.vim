@@ -1,2 +1,1 @@
-setlocal foldmethod<
-setlocal foldtext<
+setlocal foldmethod< foldtext<
