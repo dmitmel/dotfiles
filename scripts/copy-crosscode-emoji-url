@@ -51,7 +51,8 @@ def emote_downloader_and_iterator() -> Generator[str, None, None]:
 
   assert emote_registry_data["version"] == 1
 
-  emotes = [emote for emote in emote_registry_data["list"] if emote["safe"]]
+  allow_nsfw = config.getboolean("default", "allow_nsfw", fallback=False)
+  emotes = [emote for emote in emote_registry_data["list"] if emote["safe"] or allow_nsfw]
 
   for emote in emotes:
     yield "{emote[ref]} [{emote[guild_name]}]".format(emote=emote)
