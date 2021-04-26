@@ -2,6 +2,7 @@
 
 import _theme as theme
 
+
 print(
     """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -13,7 +14,7 @@ print(
 
 
 def print_color(key_name, color):
-    r, g, b = [float(int(color[2 * i + 1 : 2 * i + 3], 16)) / 255 for i in range(3)]
+    r, g, b = [float(int(color[2 * i + 1:2 * i + 3], 16)) / 255 for i in range(3)]
     print(
         """\
     <key>{} Color</key>
@@ -27,9 +28,7 @@ def print_color(key_name, color):
         <key>Blue Component</key>
         <real>{}</real>
     </dict>\
-""".format(
-            key_name, r, g, b
-        )
+""".format(key_name, r, g, b)
     )
 
 
@@ -44,9 +43,7 @@ for index, color in enumerate(theme.ansi_colors[:16]):
     print_color("Ansi " + str(index), color)
 print_color("Link", theme.link_color)
 
-print(
-    """\
+print("""\
 </dict>
 </plist>\
-"""
-)
+""")

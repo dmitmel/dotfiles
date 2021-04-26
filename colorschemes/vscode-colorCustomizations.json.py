@@ -25,11 +25,7 @@ colors = {
 
 for color_brightness in [False, True]:
     for color_index, color_name in enumerate(ANSI_COLOR_NAMES):
-        color = theme.ansi_colors[
-            color_index + int(color_brightness) * len(ANSI_COLOR_NAMES)
-        ]
-        colors[
-            "terminal.ansi" + ("Bright" if color_brightness else "") + color_name
-        ] = color
+        color = theme.ansi_colors[color_index + int(color_brightness) * len(ANSI_COLOR_NAMES)]
+        colors["terminal.ansi" + ("Bright" if color_brightness else "") + color_name] = color
 
 print(json.dumps(colors, ensure_ascii=False, indent=2))

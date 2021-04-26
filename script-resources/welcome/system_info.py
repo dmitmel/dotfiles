@@ -94,9 +94,7 @@ def _get_users():
         terminals = users[name]
 
         colored_name = bright_colored(name, Fore.BLUE)
-        colored_terminals = [
-            colored(str(term), Style.DIM, Fore.WHITE) for term in terminals
-        ]
+        colored_terminals = [colored(str(term), Style.DIM, Fore.WHITE) for term in terminals]
 
         terminals_str = ", ".join(colored_terminals)
         if len(colored_terminals) > 1:
@@ -140,14 +138,12 @@ def _get_disks():
             continue
 
         usage = psutil.disk_usage(disk.mountpoint)
-        result.append(
-            (
-                disk.mountpoint,
-                humanize_bytes(usage.used),
-                humanize_bytes(usage.total),
-                colorize_percent(usage.percent, warning=70, critical=85),
-            )
-        )
+        result.append((
+            disk.mountpoint,
+            humanize_bytes(usage.used),
+            humanize_bytes(usage.total),
+            colorize_percent(usage.percent, warning=70, critical=85),
+        ))
 
     return result
 

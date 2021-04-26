@@ -32,8 +32,7 @@ selection_bg = base16_colors[0x2]
 selection_fg = fg
 
 ansi_colors = [
-    base16_colors[int(i, 16)]
-    for i in "0 8 B A D E C 5 3 8 B A D E C 7 9 F 1 2 4 6".split()
+    base16_colors[int(i, 16)] for i in "0 8 B A D E C 5 3 8 B A D E C 7 9 F 1 2 4 6".split()
 ]
 
 link_color = ansi_colors[0xC]

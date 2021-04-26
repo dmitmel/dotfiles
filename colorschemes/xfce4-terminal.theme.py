@@ -2,6 +2,7 @@
 
 import _theme as theme
 
+
 print("[Scheme]")
 print("Name=dmitmel's dotfiles colorscheme")
 print("ColorForeground={}".format(theme.fg))

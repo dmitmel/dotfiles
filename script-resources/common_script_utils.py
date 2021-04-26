@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 from typing import Iterable, NoReturn
 
-
 if os.name == "posix":
     DOTFILES_CONFIG_DIR: Path = Path.home() / ".config" / "dotfiles"
     DOTFILES_CACHE_DIR: Path = Path.home() / ".cache" / "dotfiles"
@@ -14,9 +13,7 @@ def platform_not_supported_error() -> NoReturn:
     raise Exception("platform '{}' is not supported!".format(sys.platform))
 
 
-def run_chooser(
-    choices: Iterable[str], prompt: str = None, async_read: bool = False
-) -> int:
+def run_chooser(choices: Iterable[str], prompt: str = None, async_read: bool = False) -> int:
     supports_result_index = True
     if os.isatty(sys.stderr.fileno()):
         process_args = [
@@ -38,9 +35,7 @@ def run_chooser(
     else:
         platform_not_supported_error()
 
-    chooser_process = subprocess.Popen(
-        process_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
+    chooser_process = subprocess.Popen(process_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
     with chooser_process.stdin as pipe:
         for index, choice in enumerate(choices):

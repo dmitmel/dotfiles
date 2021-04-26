@@ -1,12 +1,24 @@
 let g:coc_global_extensions += ['coc-pyright']
 let g:coc_filetypes += ['python']
-" let g:coc_user_config['pyls.plugins.pycodestyle.ignore'] = ['E501']
+
+let s:ignored_errors = []
+" Indent is not a multiple of 4
+let s:ignored_errors += ['E111']
+" Indent is not a multiple of 4 for comments
+let s:ignored_errors += ['E114']
+" Line too long
+let s:ignored_errors += ['E501']
+
+" let g:coc_user_config['pyls.plugins.pycodestyle.ignore'] = s:ignored_errors
 " let g:coc_user_config['python.autocomplete.showAdvancedMembers'] = v:false
 let g:coc_user_config['python'] = {
-\ 'formatting': { 'provider': 'black' },
+\ 'formatting': {
+\   'provider': 'yapf',
+\   'yapfArgs': ['--style=' . simplify(g:nvim_dotfiles_dir.'/../python/yapf.ini')]
+\   },
 \ 'linting': {
 \   'pylintEnabled': v:false,
 \   'flake8Enabled': v:true,
-\   'flake8Args': ['--ignore', 'E501'],
+\   'flake8Args': ['--ignore=' . join(s:ignored_errors, ',')],
 \   },
 \ }

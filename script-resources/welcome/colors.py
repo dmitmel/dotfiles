@@ -1,5 +1,6 @@
 from colorama import Fore, Style, ansi
 
+
 COLORS = [ansi.code_to_chars(30 + color_index) for color_index in range(0, 8)]
 
 

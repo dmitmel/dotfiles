@@ -2,7 +2,6 @@
 
 import _theme as theme
 
-
 for attr in [
     "bg",
     "fg",

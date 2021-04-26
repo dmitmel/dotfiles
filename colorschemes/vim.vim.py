@@ -2,6 +2,7 @@
 
 import _theme as theme
 
+
 print("let dotfiles_colorscheme_name = '{}'".format(theme.name))
 print("let dotfiles_colorscheme_base16_name = '{}'".format(theme.base16_name))
 print("let dotfiles_colorscheme_base16_colors = [")
