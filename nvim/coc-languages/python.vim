@@ -6,6 +6,8 @@ let s:ignored_errors = []
 let s:ignored_errors += ['E111']
 " Indent is not a multiple of 4 for comments
 let s:ignored_errors += ['E114']
+" Indent for continuation lines is smaller than expected
+let s:ignored_errors += ['E121']
 " Line too long
 let s:ignored_errors += ['E501']
 
