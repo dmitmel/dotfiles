@@ -2,8 +2,9 @@
 import gi
 import argparse
 
+
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, Pango  # noqa: E402
+from gi.repository import Gtk, Gdk, Pango
 
 
 parser = argparse.ArgumentParser()
@@ -11,7 +12,6 @@ parser.add_argument("message", type=str, nargs="+")
 args = parser.parse_args()
 
 message = " ".join(args.message)
-
 
 window = Gtk.ApplicationWindow()
 window.set_keep_above(True)
@@ -25,17 +25,17 @@ window.add(scrolled_window)
 
 
 def on_key_release(target, event):
-    key = event.keyval
-    if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
-        window.close()
+  key = event.keyval
+  if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
+    window.close()
 
 
 def on_configure(target, event):
-    if target != window or event.type != Gdk.EventType.CONFIGURE:
-        return
-    font_desc = Pango.FontDescription()
-    font_desc.set_size(Pango.SCALE * event.height * 2 / 3)
-    label.override_font(font_desc)
+  if target != window or event.type != Gdk.EventType.CONFIGURE:
+    return
+  font_desc = Pango.FontDescription()
+  font_desc.set_size(Pango.SCALE * event.height * 2 / 3)
+  label.override_font(font_desc)
 
 
 window.connect("configure-event", on_configure)

@@ -18,21 +18,20 @@ import typing
 DISCORD_EPOCH = 1420070400000  # milliseconds
 # https://discord.com/developers/docs/resources/user#user-object-user-flags
 DISCORD_FLAGS = {
-    "Discord Employee": 1 << 0,
-    "Discord Partner": 1 << 1,
-    "HypeSquad Events": 1 << 2,
-    "Bug Hunter Level 1": 1 << 3,
-    "House of Bravery": 1 << 6,
-    "House of Brilliance": 1 << 7,
-    "House of Balance": 1 << 8,
-    "Early Supporter": 1 << 9,
-    "Team User": 1 << 10,
-    "System": 1 << 12,
-    "Bug Hunter Level 2": 1 << 14,
-    "Verified Bot": 1 << 16,
-    "Verified Bot Developer": 1 << 17,
+  "Discord Employee": 1 << 0,
+  "Discord Partner": 1 << 1,
+  "HypeSquad Events": 1 << 2,
+  "Bug Hunter Level 1": 1 << 3,
+  "House of Bravery": 1 << 6,
+  "House of Brilliance": 1 << 7,
+  "House of Balance": 1 << 8,
+  "Early Supporter": 1 << 9,
+  "Team User": 1 << 10,
+  "System": 1 << 12,
+  "Bug Hunter Level 2": 1 << 14,
+  "Verified Bot": 1 << 16,
+  "Verified Bot Developer": 1 << 17,
 }
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("user_snowflake", type=int)
@@ -45,32 +44,29 @@ user_snowflake = cli_args.user_snowflake
 
 bot_token = cli_args.bot_token
 if bot_token is None:
-    with open(
-        os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")
-    ) as f:
-        bot_token = f.read().strip()
+  with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
+    bot_token = f.read().strip()
 
 image_size = cli_args.image_size
 if not (image_size is None or (image_size > 0 and image_size & (image_size - 1)) == 0):
-    parser.error("image_size must be greater than zero and a power of two")
-
+  parser.error("image_size must be greater than zero and a power of two")
 
 try:
-    opener = urllib.request.build_opener()
-    # Don't send the User-Agent header, Discord blocks the default one
-    opener.addheaders = []
-    with opener.open(
-        urllib.request.Request(
-            "http://discord.com/api/users/{}".format(user_snowflake),
-            headers={"Authorization": "Bot {}".format(bot_token)},
-        ),
-        timeout=10,
-    ) as response:
-        raw_data = json.load(response)
+  opener = urllib.request.build_opener()
+  # Don't send the User-Agent header, Discord blocks the default one
+  opener.addheaders = []
+  with opener.open(
+    urllib.request.Request(
+      "http://discord.com/api/users/{}".format(user_snowflake),
+      headers={"Authorization": "Bot {}".format(bot_token)},
+    ),
+    timeout=10,
+  ) as response:
+    raw_data = json.load(response)
 except urllib.error.HTTPError as err:
-    print(err, file=sys.stderr)
-    print(err.read(), file=sys.stderr)
-    raise err
+  print(err, file=sys.stderr)
+  print(err.read(), file=sys.stderr)
+  raise err
 
 data = {}
 
@@ -78,19 +74,17 @@ data["ID"] = raw_data["id"]
 data["Name"] = "{}#{}".format(raw_data["username"], raw_data["discriminator"])
 
 default_avatar_url = "https://cdn.discordapp.com/embed/avatars/{}.png".format(
-    int(raw_data["discriminator"], 10) % 5
+  int(raw_data["discriminator"], 10) % 5
 )
 avatar_url = (
-    "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
-        raw_data["id"],
-        raw_data["avatar"],
-        "gif" if raw_data["avatar"].startswith("a_") else "png",
-    )
-    if raw_data["avatar"] is not None
-    else default_avatar_url
+  "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
+    raw_data["id"],
+    raw_data["avatar"],
+    "gif" if raw_data["avatar"].startswith("a_") else "png",
+  ) if raw_data["avatar"] is not None else default_avatar_url
 )
 if image_size is not None:
-    avatar_url += "?size={}".format(image_size)
+  avatar_url += "?size={}".format(image_size)
 
 data["Avatar"] = avatar_url
 data["Default avatar"] = default_avatar_url
@@ -101,38 +95,37 @@ data["System user"] = raw_data.get("system", False)
 # https://discord.com/developers/docs/reference#convert-snowflake-to-datetime
 snowflake_creation_time = (user_snowflake >> 22) + DISCORD_EPOCH
 data["Created at"] = "{}.{} UTC".format(
-    time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)),
-    snowflake_creation_time % 1000,
+  time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)),
+  snowflake_creation_time % 1000,
 )
 
 user_flags = raw_data["public_flags"]
 if user_flags == 0:
-    data["Flags"] = "<none>"
+  data["Flags"] = "<none>"
 else:
-    user_flag_names = []
-    for flag_name, bitmask in DISCORD_FLAGS.items():
-        if user_flags & bitmask:
-            user_flag_names.append(flag_name)
-    data["Flags"] = ", ".join(user_flag_names)
-
+  user_flag_names = []
+  for flag_name, bitmask in DISCORD_FLAGS.items():
+    if user_flags & bitmask:
+      user_flag_names.append(flag_name)
+  data["Flags"] = ", ".join(user_flag_names)
 
 if cli_args.get_prop is None:
-    max_name_length = max(map(len, data.keys()))
-    for name, value in data.items():
+  max_name_length = max(map(len, data.keys()))
+  for name, value in data.items():
 
-        if value is True:
-            value = "yes"
-        elif value is False:
-            value = "no"
+    if value is True:
+      value = "yes"
+    elif value is False:
+      value = "no"
 
-        print(
-            "{}{:>{}}:{} {}".format(
-                colorama.Style.BRIGHT,
-                name,
-                max_name_length + 1,
-                colorama.Style.RESET_ALL,
-                value,
-            )
-        )
+    print(
+      "{}{:>{}}:{} {}".format(
+        colorama.Style.BRIGHT,
+        name,
+        max_name_length + 1,
+        colorama.Style.RESET_ALL,
+        value,
+      )
+    )
 else:
-    print(data[cli_args.get_prop])
+  print(data[cli_args.get_prop])

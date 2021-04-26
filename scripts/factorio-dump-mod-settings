@@ -10,31 +10,29 @@ from pathlib import Path
 import struct
 import json
 
+
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import factorio.property_tree
 
-
 with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
 
-    version_main: int
-    version_major: int
-    version_minor: int
-    version_developer: int
-    version_main, version_major, version_minor, version_developer = struct.unpack(
-        "<HHHH", f.read(8)
-    )
+  version_main: int
+  version_major: int
+  version_minor: int
+  version_developer: int
+  version_main, version_major, version_minor, version_developer = struct.unpack("<HHHH", f.read(8))
 
-    always_false_flag = factorio.property_tree.read_bool(f)
-    assert not always_false_flag
+  always_false_flag = factorio.property_tree.read_bool(f)
+  assert not always_false_flag
 
-    deserialized_data = {
-        "factorio_version": {
-            "main": version_main,
-            "major": version_major,
-            "minor": version_minor,
-            "developer": version_developer,
-        },
-        "data": factorio.property_tree.read(f),
-    }
+  deserialized_data = {
+    "factorio_version": {
+      "main": version_main,
+      "major": version_major,
+      "minor": version_minor,
+      "developer": version_developer,
+    },
+    "data": factorio.property_tree.read(f),
+  }
 
-    print(json.dumps(deserialized_data, indent=2))
+  print(json.dumps(deserialized_data, indent=2))

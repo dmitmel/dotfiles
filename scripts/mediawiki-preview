@@ -38,7 +38,6 @@
 #     - The module `skins.citizen.scripts` references search inputs which aren't
 #       created by this script.
 
-
 import argparse
 import mwclient
 import json
@@ -51,85 +50,85 @@ LANG = "en"
 LANG_TEXT_DIRECTION = "ltr"
 
 MODULES_POST_LOAD = {
-    "vector": [
-        "site",
-        "mediawiki.page.startup",
-        "mediawiki.page.ready",
-        "mediawiki.toc",
-        # "mediawiki.searchSuggest",
-        # "mediawiki.page.watch.ajax",
-        "skins.vector.js",
-    ],
-    "citizen": [
-        # "site",
-        # "mediawiki.page.startup",
-        # "mediawiki.page.ready",
-        # "mediawiki.toc",
-        # "skins.citizen.scripts.toc",
-        # "skins.citizen.scripts.search",
-        # "skins.citizen.styles.search",
-        # "skins.citizen.icons.search",
-        # "skins.citizen.scripts",
-    ],
+  "vector": [
+    "site",
+    "mediawiki.page.startup",
+    "mediawiki.page.ready",
+    "mediawiki.toc",
+    # "mediawiki.searchSuggest",
+    # "mediawiki.page.watch.ajax",
+    "skins.vector.js",
+  ],
+  "citizen": [
+    # "site",
+    # "mediawiki.page.startup",
+    # "mediawiki.page.ready",
+    # "mediawiki.toc",
+    # "skins.citizen.scripts.toc",
+    # "skins.citizen.scripts.search",
+    # "skins.citizen.styles.search",
+    # "skins.citizen.icons.search",
+    # "skins.citizen.scripts",
+  ],
 }
 
 MODULES_POST_LOAD_BLOCKED = {
-    "citizen": [
-        "skins.citizen.scripts.toc",
-        "skins.citizen.scripts.search",
-        "skins.citizen.styles.search",
-        "skins.citizen.icons.search",
-    ],
+  "citizen": [
+    "skins.citizen.scripts.toc",
+    "skins.citizen.scripts.search",
+    "skins.citizen.styles.search",
+    "skins.citizen.icons.search",
+  ],
 }
 
 MODULES_PRELOAD_STYLES = {
-    "vector": [
-        "mediawiki.legacy.commonPrint",
-        "mediawiki.legacy.shared",
-        "mediawiki.skinning.interface",
-        "mediawiki.toc.styles",
-        "skins.vector.styles",
-        "site.styles",
-    ],
-    "citizen": [
-        # "mediawiki.legacy.commonPrint",
-        # "mediawiki.legacy.shared",
-        "mediawiki.skinning.content.externallinks",
-        # "mediawiki.toc.styles",
-        "skins.citizen.icons",
-        "skins.citizen.styles",
-        "skins.citizen.icons.ca",
-        "skins.citizen.icons.es",
-        "skins.citizen.icons.footer",
-        "skins.citizen.icons.n",
-        "skins.citizen.icons.pt",
-        "skins.citizen.icons.t",
-        "skins.citizen.styles.fonts",
-        "skins.citizen.styles.toc",
-        "site.styles",
-    ],
+  "vector": [
+    "mediawiki.legacy.commonPrint",
+    "mediawiki.legacy.shared",
+    "mediawiki.skinning.interface",
+    "mediawiki.toc.styles",
+    "skins.vector.styles",
+    "site.styles",
+  ],
+  "citizen": [
+    # "mediawiki.legacy.commonPrint",
+    # "mediawiki.legacy.shared",
+    "mediawiki.skinning.content.externallinks",
+    # "mediawiki.toc.styles",
+    "skins.citizen.icons",
+    "skins.citizen.styles",
+    "skins.citizen.icons.ca",
+    "skins.citizen.icons.es",
+    "skins.citizen.icons.footer",
+    "skins.citizen.icons.n",
+    "skins.citizen.icons.pt",
+    "skins.citizen.icons.t",
+    "skins.citizen.styles.fonts",
+    "skins.citizen.styles.toc",
+    "site.styles",
+  ],
 }
 
 MODULES_PRELOAD_SCRIPTS = {
-    "vector": ["startup"],
-    "citizen": ["startup"],
+  "vector": ["startup"],
+  "citizen": ["startup"],
 }
 
 
 # ported from <https://github.com/wikimedia/mediawiki/blob/c15ded31a6ca79fa65c00d151a7220632ad90b6d/includes/parser/Sanitizer.php#L1205-L1222>
 def escape_css_class(class_str):
-    class_str = re.sub(
-        r"""(^[0-9\-])|[\x00-\x20!"#$%&'()*+,.\/:;<=>?@[\]^`{|}~]|\xA0""",
-        "_",
-        class_str,
-    )
-    class_str = re.sub(r"_+", "_", class_str)
-    class_str = class_str.rstrip("_")
-    return class_str
+  class_str = re.sub(
+    r"""(^[0-9\-])|[\x00-\x20!"#$%&'()*+,.\/:;<=>?@[\]^`{|}~]|\xA0""",
+    "_",
+    class_str,
+  )
+  class_str = re.sub(r"_+", "_", class_str)
+  class_str = class_str.rstrip("_")
+  return class_str
 
 
 def json_dumps_compact(data):
-    return json.dumps(data, indent=None, separators=(",", ":"))
+  return json.dumps(data, indent=None, separators=(",", ":"))
 
 
 parser = argparse.ArgumentParser()
@@ -137,50 +136,55 @@ parser.add_argument("--site", type=str, required=True)
 parser.add_argument("--scheme", type=str, default="https")
 parser.add_argument("--skin", type=str, default="vector")
 parser.add_argument(
-    "--input", type=str, required=True,
+  "--input",
+  type=str,
+  required=True,
 )
 parser.add_argument("--title", type=str)
 parser.add_argument("--output", type=str, required=True)
 cli_args = parser.parse_args()
 
-
 site = mwclient.Site(cli_args.site, scheme=cli_args.scheme)
 
 
 def get_load_script_url(**args):
-    return "{path}load{ext}?{args}".format(
-        path=site.path,
-        ext=site.ext,
-        args=urlencode({"lang": LANG, "skin": cli_args.skin, **args}),
-    )
+  return "{path}load{ext}?{args}".format(
+    path=site.path,
+    ext=site.ext,
+    args=urlencode({
+      "lang": LANG,
+      "skin": cli_args.skin,
+      **args
+    }),
+  )
 
 
 with open(cli_args.input, "r") as f:
-    wikitext_str = f.read()
+  wikitext_str = f.read()
 
 result = site.post(
-    "parse",
-    title=cli_args.title,
-    text=wikitext_str,
-    contentmodel="wikitext",
-    prop="text|indicators|displaytitle|modules|jsconfigvars|categorieshtml",
-    preview=True,
-    pst=True,  # pre-save transforms
-    sectionpreview=False,
-    disableeditsection=True,  # disables "[edit]" links next to headers
-    useskin=cli_args.skin,
-    uselang=LANG,
+  "parse",
+  title=cli_args.title,
+  text=wikitext_str,
+  contentmodel="wikitext",
+  prop="text|indicators|displaytitle|modules|jsconfigvars|categorieshtml",
+  preview=True,
+  pst=True,  # pre-save transforms
+  sectionpreview=False,
+  disableeditsection=True,  # disables "[edit]" links next to headers
+  useskin=cli_args.skin,
+  uselang=LANG,
 )["parse"]
 
 
 def get_modules(page_modules, added_modules_dict, blocked_modules_dict={}):
-    modules = page_modules + added_modules_dict[cli_args.skin]
-    for blocked_module in blocked_modules_dict.get(cli_args.skin, []):
-        try:
-            modules.remove(blocked_module)
-        except ValueError:
-            pass
-    return modules
+  modules = page_modules + added_modules_dict[cli_args.skin]
+  for blocked_module in blocked_modules_dict.get(cli_args.skin, []):
+    try:
+      modules.remove(blocked_module)
+    except ValueError:
+      pass
+  return modules
 
 
 rendered_html = """\
@@ -240,53 +244,43 @@ rendered_html = """\
 
 </html>
 """.format(
-    lang=html.escape(LANG),
-    text_dir=html.escape(LANG_TEXT_DIRECTION),
-    base_url=html.escape("{}://{}".format(site.scheme, site.host)),
-    page_modules_state_json=json_dumps_compact(
-        {
-            "noscript": "ready",
-            "user.options": "ready",
-            "user.tokens": "loading",
-            **{name: "ready" for name in MODULES_PRELOAD_STYLES[cli_args.skin]},
-        }
-    ),
-    page_config_json=json_dumps_compact(result["jsconfigvars"]),
-    page_modules_json=json_dumps_compact(
-        get_modules(result["modules"], MODULES_POST_LOAD, MODULES_POST_LOAD_BLOCKED)
-    ),
-    style_url=html.escape(
-        get_load_script_url(
-            only="styles",
-            modules="|".join(
-                get_modules(result["modulestyles"], MODULES_PRELOAD_STYLES)
-            ),
-        )
-    ),
-    script_url=html.escape(
-        get_load_script_url(
-            only="scripts",
-            modules="|".join(
-                get_modules(result["modulescripts"], MODULES_PRELOAD_SCRIPTS)
-            ),
-            raw="1",
-        )
-    ),
-    skin=html.escape(cli_args.skin),
-    page_class=html.escape(escape_css_class(result["displaytitle"])),
-    title=html.escape(result["displaytitle"]),
-    indicators_html="\n".join(
-        [
-            '<div id="mw-indicator-{}" class="mw-indicator">{}</div>'.format(
-                indicator["name"], indicator["*"]
-            )
-            for indicator in result["indicators"]
-        ]
-    ),
-    content_html=result["text"]["*"],
-    categories_html=result["categorieshtml"]["*"],
+  lang=html.escape(LANG),
+  text_dir=html.escape(LANG_TEXT_DIRECTION),
+  base_url=html.escape("{}://{}".format(site.scheme, site.host)),
+  page_modules_state_json=json_dumps_compact({
+    "noscript": "ready",
+    "user.options": "ready",
+    "user.tokens": "loading",
+    **{name: "ready" for name in MODULES_PRELOAD_STYLES[cli_args.skin]},
+  }),
+  page_config_json=json_dumps_compact(result["jsconfigvars"]),
+  page_modules_json=json_dumps_compact(
+    get_modules(result["modules"], MODULES_POST_LOAD, MODULES_POST_LOAD_BLOCKED)
+  ),
+  style_url=html.escape(
+    get_load_script_url(
+      only="styles",
+      modules="|".join(get_modules(result["modulestyles"], MODULES_PRELOAD_STYLES)),
+    )
+  ),
+  script_url=html.escape(
+    get_load_script_url(
+      only="scripts",
+      modules="|".join(get_modules(result["modulescripts"], MODULES_PRELOAD_SCRIPTS)),
+      raw="1",
+    )
+  ),
+  skin=html.escape(cli_args.skin),
+  page_class=html.escape(escape_css_class(result["displaytitle"])),
+  title=html.escape(result["displaytitle"]),
+  indicators_html="\n".join([
+    '<div id="mw-indicator-{}" class="mw-indicator">{}</div>'.format(
+      indicator["name"], indicator["*"]
+    ) for indicator in result["indicators"]
+  ]),
+  content_html=result["text"]["*"],
+  categories_html=result["categorieshtml"]["*"],
 )
 
-
 with open(cli_args.output, "w") as f:
-    f.write(rendered_html)
+  f.write(rendered_html)

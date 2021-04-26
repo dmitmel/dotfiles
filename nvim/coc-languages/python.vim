@@ -8,6 +8,8 @@ let s:ignored_errors += ['E111']
 let s:ignored_errors += ['E114']
 " Indent for continuation lines is smaller than expected
 let s:ignored_errors += ['E121']
+" Import not at the top of the file
+let s:ignored_errors += ['E402']
 " Line too long
 let s:ignored_errors += ['E501']
 

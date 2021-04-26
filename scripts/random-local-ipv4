@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import random
 
 
 def randbyte() -> int:
-    return random.randrange(0, 256)
+  return random.randrange(0, 256)
 
 
 print("127.{}.{}.{}".format(randbyte(), randbyte(), randbyte()))

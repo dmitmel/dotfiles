@@ -7,6 +7,7 @@ import json
 from sys import stdout
 import base64
 
+
 parser = argparse.ArgumentParser()
 encoding_names = ["utf8", "base16", "base32", "base64", "base85"]
 parser.add_argument("--encoding", "-e", choices=encoding_names, default="utf8")
@@ -17,33 +18,33 @@ cli_args = parser.parse_args()
 
 
 def bytes_to_json(b: bytes, encoding: str) -> Union[str, list[int]]:
-    if encoding == "utf8":
-        try:
-            return b.decode("utf8")
-        except UnicodeDecodeError:
-            return list(b)
-    elif encoding == "base16":
-        return base64.b16encode(b).decode("ascii")
-    elif encoding == "base32":
-        return base64.b32encode(b).decode("ascii")
-    elif encoding == "base64":
-        return base64.b64encode(b).decode("ascii")
-    elif encoding == "base85":
-        return base64.b85encode(b).decode("ascii")
-    else:
-        assert False
+  if encoding == "utf8":
+    try:
+      return b.decode("utf8")
+    except UnicodeDecodeError:
+      return list(b)
+  elif encoding == "base16":
+    return base64.b16encode(b).decode("ascii")
+  elif encoding == "base32":
+    return base64.b32encode(b).decode("ascii")
+  elif encoding == "base64":
+    return base64.b64encode(b).decode("ascii")
+  elif encoding == "base85":
+    return base64.b85encode(b).decode("ascii")
+  else:
+    assert False
 
 
 key_encoding: str = cli_args.key_encoding or cli_args.encoding
 value_encoding: str = cli_args.value_encoding or cli_args.encoding
 db = plyvel.DB(str(cli_args.db_path), create_if_missing=False)
 with db.iterator() as iterator:
-    for key, value in iterator:
-        json.dump(
-            {
-                "key": bytes_to_json(key, key_encoding),
-                "value": bytes_to_json(value, value_encoding),
-            },
-            stdout,
-        )
-        stdout.write("\n")
+  for key, value in iterator:
+    json.dump(
+      {
+        "key": bytes_to_json(key, key_encoding),
+        "value": bytes_to_json(value, value_encoding),
+      },
+      stdout,
+    )
+    stdout.write("\n")

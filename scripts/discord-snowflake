@@ -6,17 +6,16 @@ import sys
 import colorama
 import time
 
+
 DISCORD_EPOCH = 1420070400000  # milliseconds
 
 user_snowflake = int(sys.argv[1])
 
 
 def print_field(name, value):
-    print(
-        "{}{}:{} {}".format(
-            colorama.Style.BRIGHT, name.rjust(21), colorama.Style.RESET_ALL, value
-        )
-    )
+  print(
+    "{}{}:{} {}".format(colorama.Style.BRIGHT, name.rjust(21), colorama.Style.RESET_ALL, value)
+  )
 
 
 creation_time = (user_snowflake >> 22) + DISCORD_EPOCH
@@ -25,11 +24,11 @@ internal_process_id = (user_snowflake >> 12) & 0x1F
 increment = user_snowflake & 0xFFF
 
 print_field(
-    "Created at",
-    "{}.{}".format(
-        time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_time // 1000)),
-        creation_time % 1000,
-    ),
+  "Created at",
+  "{}.{}".format(
+    time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_time // 1000)),
+    creation_time % 1000,
+  ),
 )
 print_field("Internal worker ID", internal_worker_id)
 print_field("Internal process ID", internal_process_id)

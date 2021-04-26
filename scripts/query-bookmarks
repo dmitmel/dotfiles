@@ -16,35 +16,31 @@ import shutil
 import sqlite3
 from typing import Optional, Tuple, Generator
 
+
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import common_script_utils
 
-
 if sys.platform == "darwin":
-    firefox_home: Path = Path.home() / "Library" / "Application Support" / "Firefox"
+  firefox_home: Path = Path.home() / "Library" / "Application Support" / "Firefox"
 elif os.name == "posix":
-    firefox_home: Path = Path.home() / ".mozilla" / "firefox"
+  firefox_home: Path = Path.home() / ".mozilla" / "firefox"
 else:
-    common_script_utils.platform_not_supported_error()
-
+  common_script_utils.platform_not_supported_error()
 
 profiles_config = ConfigParser(interpolation=None)
 profiles_config.read(firefox_home / "profiles.ini")
 
-installs_sections: list[str] = [
-    s for s in profiles_config.sections() if s.startswith("Install")
-]
+installs_sections: list[str] = [s for s in profiles_config.sections() if s.startswith("Install")]
 if not installs_sections:
-    raise Exception("no Firefox installations detected!")
+  raise Exception("no Firefox installations detected!")
 if len(installs_sections) > 1:
-    raise Exception("multiple Firefox installations are not supported!")
+  raise Exception("multiple Firefox installations are not supported!")
 profile_dir: Path = firefox_home / profiles_config.get(installs_sections[0], "Default")
 
 # should places.sqlite be used instead?
 db_path: Path = profile_dir / "weave" / "bookmarks.sqlite"
 if not db_path.is_file():
-    raise Exception("'{}' is not a file".format(db_path))
-
+  raise Exception("'{}' is not a file".format(db_path))
 
 # Firefox holds a lock over the database file, so I can't connect to it even
 # in the readonly mode: https://stackoverflow.com/a/7857866/12005228
@@ -55,78 +51,74 @@ os.close(db_copy_fd)
 chooser_entries: list[Tuple[str, str, Optional[str]]] = []
 
 try:
-    shutil.copyfile(db_path, db_copy_path)
-    db = sqlite3.connect(db_copy_path)
+  shutil.copyfile(db_path, db_copy_path)
+  db = sqlite3.connect(db_copy_path)
 
-    urls: dict[int, str] = {}
-    url_id: int
-    url: str
-    for url_id, url in db.execute("SELECT id, url FROM urls"):
-        urls[url_id] = url
+  urls: dict[int, str] = {}
+  url_id: int
+  url: str
+  for url_id, url in db.execute("SELECT id, url FROM urls"):
+    urls[url_id] = url
 
-    folders: dict[str, Tuple[Optional[str], str]] = {}
-    folder_id: str
-    parent_folder_id: str
-    folder_title: str
-    for folder_id, parent_folder_id, folder_title in db.execute(
-        "SELECT guid, parentGuid, title FROM items WHERE kind = 3 AND validity AND NOT isDeleted"
-    ):
-        folders[folder_id] = (
-            parent_folder_id if parent_folder_id != folder_id else None,
-            folder_title,
-        )
+  folders: dict[str, Tuple[Optional[str], str]] = {}
+  folder_id: str
+  parent_folder_id: str
+  folder_title: str
+  for folder_id, parent_folder_id, folder_title in db.execute(
+    "SELECT guid, parentGuid, title FROM items WHERE kind = 3 AND validity AND NOT isDeleted"
+  ):
+    folders[folder_id] = (
+      parent_folder_id if parent_folder_id != folder_id else None,
+      folder_title,
+    )
 
-    url_title: str
-    url_id: int
-    url_keyword: str
-    parent_folder_id: str
-    for url_title, url_id, url_keyword, parent_folder_id in db.execute(
-        "SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
-    ):
-        url = urls[url_id]
+  url_title: str
+  url_id: int
+  url_keyword: str
+  parent_folder_id: str
+  for url_title, url_id, url_keyword, parent_folder_id in db.execute(
+    "SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
+  ):
+    url = urls[url_id]
 
-        folder_path = list[str]()
-        parent_folder_id_2: Optional[str] = parent_folder_id
-        while parent_folder_id_2 is not None:
-            folder = folders.get(parent_folder_id_2, None)
-            if folder is None:
-                # broken folder structure?
-                folder_path.clear()
-                break
-            parent_folder_id_2, folder_title = folder
-            if folder_title is not None:
-                folder_path.append(folder_title)
+    folder_path = list[str]()
+    parent_folder_id_2: Optional[str] = parent_folder_id
+    while parent_folder_id_2 is not None:
+      folder = folders.get(parent_folder_id_2, None)
+      if folder is None:
+        # broken folder structure?
+        folder_path.clear()
+        break
+      parent_folder_id_2, folder_title = folder
+      if folder_title is not None:
+        folder_path.append(folder_title)
 
-        folder_path_str = (
-            ("/" + "/".join(reversed(folder_path))) if len(folder_path) > 0 else None
-        )
+    folder_path_str = (("/" + "/".join(reversed(folder_path))) if len(folder_path) > 0 else None)
 
-        chooser_entries.append((url_title, url, folder_path_str))
-        if url_keyword is not None:
-            chooser_entries.append((url_keyword, url, folder_path_str))
+    chooser_entries.append((url_title, url, folder_path_str))
+    if url_keyword is not None:
+      chooser_entries.append((url_keyword, url, folder_path_str))
 
 finally:
-    os.remove(db_copy_path)
+  os.remove(db_copy_path)
 
 
 def chooser_entries_iter() -> Generator[str, None, None]:
-    for title, url, folder_path_str in chooser_entries:
-        entry_items = [title, url]
-        if folder_path_str is not None:
-            entry_items.append(folder_path_str)
-        entry = " \u2014\u2014 ".join(entry_items)
-        yield entry
+  for title, url, folder_path_str in chooser_entries:
+    entry_items = [title, url]
+    if folder_path_str is not None:
+      entry_items.append(folder_path_str)
+    entry = " \u2014\u2014 ".join(entry_items)
+    yield entry
 
 
-chosen_index = common_script_utils.run_chooser(
-    chooser_entries_iter(), prompt="bookmark"
-)
+chosen_index = common_script_utils.run_chooser(chooser_entries_iter(), prompt="bookmark")
 
 if chosen_index >= 0:
-    _title, url, _folder_path_str = chooser_entries[chosen_index]
-    print(url)
+  _title, url, _folder_path_str = chooser_entries[chosen_index]
+  print(url)
 
-    common_script_utils.set_clipboard(url)
-    common_script_utils.send_notification(
-        os.path.basename(__file__), "bookmark URL copied to clipboard!", url
-    )
+  common_script_utils.set_clipboard(url)
+  common_script_utils.send_notification(
+    os.path.basename(__file__), "bookmark URL copied to clipboard!", url
+  )
