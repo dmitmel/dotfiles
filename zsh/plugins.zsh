@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-ZSH_CACHE_DIR="$HOME/.cache/dotfiles"
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
 if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
   mkdir -pv "$ZSH_CACHE_DIR"
 fi
@@ -28,7 +28,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
   #   .    match only plain files
   #   m-1  check if the file was modified today
   # see "Filename Generation" in zshexpn(1)
-  for match in $HOME/.zcompdump(N.m-1); do
+  for match in "${ZSH_CACHE_DIR}/zcompdump"(N.m-1); do
     run_compdump=0
     break
   done; unset match
@@ -36,12 +36,12 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
   if (( $run_compdump )); then
     print -r -- "$0: rebuilding zsh completion dump"
     # -D flag turns off compdump loading
-    compinit -D
+    compinit -D -d "${ZSH_CACHE_DIR}/zcompdump"
     compdump
   else
     # -C flag disables some checks performed by compinit - they are not needed
     # because we already have a fresh compdump
-    compinit -C
+    compinit -C -d "${ZSH_CACHE_DIR}/zcompdump"
   fi
   unset run_compdump
 # }}}
