@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     GitHub tab size 4
-// @version  2
-// @grant    GM_addStyle
+// @version  3
+// @grant    none
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
 // @run-at   document-start
@@ -9,11 +9,26 @@
 
 (() => {
   'use strict';
+
   const TAB_SIZE = '4';
-  GM_addStyle(`
-    * {
-      -moz-tab-size: ${TAB_SIZE} !important;
-      tab-size: ${TAB_SIZE} !important;
-    }
-  `);
+
+  function addStylesheet() {
+    let style = document.createElement('style');
+    style.append(
+      '* {\n',
+      `  -moz-tab-size: ${TAB_SIZE} !important;\n`,
+      `  tab-size: ${TAB_SIZE} !important;\n`,
+      '}\n',
+    );
+    document.head.appendChild(style);
+  }
+
+  if (document.readyState !== 'loading') {
+    addStylesheet();
+  } else {
+    document.addEventListener('readystatechange', () => {
+      if (document.readyState === 'loading') return;
+      addStylesheet();
+    });
+  }
 })();
