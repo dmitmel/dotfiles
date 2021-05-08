@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     YouTube screenshotter
-// @version  1
-// @grant    none
+// @version  2
+// @grant    GM_addElement
 // @match    https://www.youtube.com/*
 // @run-at   document-end
 // ==/UserScript==
@@ -24,7 +24,7 @@
     };
   }
 
-  let script = document.createElement('script');
-  script.append('(' + main + ')();');
-  (document.body || document.head || document.documentElement).appendChild(script);
+  GM_addElement('script', {
+    textContent: `(${main.toString()})();`,
+  });
 })();
