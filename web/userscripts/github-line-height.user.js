@@ -5,6 +5,9 @@
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
 // @run-at   document-start
+// @supportURL		https://github.com/dmitmel/dotfiles/issues
+// @updateURL		  https://github.com/dmitmel/dotfiles/raw/master/web/userscripts/github-line-height.user.js
+// @downloadURL		https://github.com/dmitmel/dotfiles/raw/master/web/userscripts/github-line-height.user.js
 // ==/UserScript==
 
 (() => {
