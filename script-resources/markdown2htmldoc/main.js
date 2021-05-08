@@ -11,45 +11,43 @@ const loadPrismLanguages = require('prismjs/components/');
 const PRISM_COMPONENTS = require('prismjs/components.js');
 
 // TODO: integrate <https://github.com/PrismJS/prism-themes>
-const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter(
-  (k) => k !== 'meta',
-);
+const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter((k) => k !== 'meta');
 
 let parser = new argparse.ArgumentParser();
 
-parser.addArgument('INPUT_FILE', {
-  nargs: argparse.Const.OPTIONAL,
+parser.add_argument('INPUT_FILE', {
+  nargs: argparse.OPTIONAL,
   help: '(stdin by default)',
 });
-parser.addArgument('OUTPUT_FILE', {
-  nargs: argparse.Const.OPTIONAL,
+parser.add_argument('OUTPUT_FILE', {
+  nargs: argparse.OPTIONAL,
   help: '(stdout by default)',
 });
 
-parser.addArgument('--input-encoding', {
-  defaultValue: 'utf-8',
+parser.add_argument('--input-encoding', {
+  default: 'utf-8',
   help: '(utf-8 by default)',
 });
-parser.addArgument('--output-encoding', {
-  defaultValue: 'utf-8',
+parser.add_argument('--output-encoding', {
+  default: 'utf-8',
   help: '(utf-8 by default)',
 });
 
-parser.addArgument('--no-default-stylesheets', {
-  nargs: argparse.Const.SUPPRESS,
+parser.add_argument('--no-default-stylesheets', {
+  action: argparse.BooleanOptionalAction,
 });
-parser.addArgument('--syntax-theme', {
+parser.add_argument('--syntax-theme', {
   choices: [...PRISM_THEMES, 'none', 'dotfiles'],
 });
 
-parser.addArgument('--stylesheet', {
-  nargs: argparse.Const.ZERO_OR_MORE,
+parser.add_argument('--stylesheet', {
+  nargs: argparse.ZERO_OR_MORE,
 });
-parser.addArgument('--script', {
-  nargs: argparse.Const.ZERO_OR_MORE,
+parser.add_argument('--script', {
+  nargs: argparse.ZERO_OR_MORE,
 });
 
-let args = parser.parseArgs();
+let args = parser.parse_args();
 
 loadPrismLanguages(); // loads all languages
 
@@ -67,31 +65,23 @@ md.use(markdownItTaskCheckbox);
 md.use(markdownItEmoji);
 md.use(markdownItHeaderAnchors);
 
-let markdownDocument = fs.readFileSync(
-  args.get('INPUT_FILE', 0),
-  args.get('input_encoding'),
-);
+let markdownDocument = fs.readFileSync(args.INPUT_FILE || 0, args.input_encoding);
 let renderedMarkdown = md.render(markdownDocument);
 
 let stylesheetsTexts = [];
 let scriptsTexts = [];
 let syntaxThemeName = null;
 
-if (!args.get('no_default_stylesheets')) {
+console.log(Object.entries(args));
+if (!args.no_default_stylesheets) {
   syntaxThemeName = 'dotfiles';
   stylesheetsTexts.push(
-    fs.readFileSync(
-      require.resolve('github-markdown-css/github-markdown.css'),
-      'utf-8',
-    ),
-    fs.readFileSync(
-      require.resolve('./github-markdown-additions.css'),
-      'utf-8',
-    ),
+    fs.readFileSync(require.resolve('github-markdown-css/github-markdown.css'), 'utf-8'),
+    fs.readFileSync(require.resolve('./github-markdown-additions.css'), 'utf-8'),
   );
 }
 
-syntaxThemeName = args.get('syntax_theme') || syntaxThemeName;
+syntaxThemeName = args.syntax_theme || syntaxThemeName;
 if (syntaxThemeName && syntaxThemeName !== 'none') {
   stylesheetsTexts.push(
     fs.readFileSync(
@@ -105,11 +95,11 @@ if (syntaxThemeName && syntaxThemeName !== 'none') {
   );
 }
 
-for (let stylesheetPath of args.get('stylesheet', [])) {
+for (let stylesheetPath of args.stylesheet || []) {
   stylesheetsTexts.push(fs.readFileSync(stylesheetPath));
 }
 
-for (let scriptPath of args.get('script', [])) {
+for (let scriptPath of args.script || []) {
   scriptsTexts.push(fs.readFileSync(scriptPath));
 }
 
@@ -131,8 +121,4 @@ ${scriptsTexts.map((s) => `<script>\n${s}\n</script>`).join('\n')}
 </html>
 `.trim();
 
-fs.writeFileSync(
-  args.get('OUTPUT_FILE', 1),
-  renderedHtmlDocument,
-  args.get('output_encoding'),
-);
+fs.writeFileSync(args.OUTPUT_FILE || 1, renderedHtmlDocument, args.output_encoding);
