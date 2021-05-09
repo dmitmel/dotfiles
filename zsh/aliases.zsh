@@ -87,7 +87,6 @@ alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
 fi
-alias sue="sudo --edit"
 
 alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'
 

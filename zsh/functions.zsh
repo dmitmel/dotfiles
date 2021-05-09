@@ -95,3 +95,10 @@ unset date_formats
 if (( _is_linux )) && command_exists swapoff && command_exists swapon; then
   deswap() { sudo sh -c 'swapoff --all && swapon --all'; }
 fi
+
+# Taken from <https://vi.stackexchange.com/a/7810/34615>
+sudoedit() {
+  SUDO_COMMAND="sudoedit $@" command sudoedit "$@"
+}
+alias sudoe="sudoedit"
+alias sue="sudoedit"
