@@ -46,7 +46,7 @@ _perf_timer_start "total"
   fi
 # }}}
 
-for script in functions options path env plugins aliases completion zle prompt colorscheme; do
+for script in functions options path env zplg plugins aliases completion zle prompt colorscheme; do
   _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
   _perf_timer_stop "$script.zsh"

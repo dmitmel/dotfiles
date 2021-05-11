@@ -1,11 +1,6 @@
 #!/usr/bin/env zsh
 
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
-if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
-  mkdir -pv "$ZSH_CACHE_DIR"
-fi
-
-source "$ZSH_DOTFILES/zplg.zsh"
+mkdir -pv "$ZSH_CACHE_DIR"
 
 _plugin() {
   _perf_timer_start "plugin $1"
