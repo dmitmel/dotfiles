@@ -52,8 +52,6 @@ for script in functions options path env plugins aliases completion zle prompt c
   _perf_timer_stop "$script.zsh"
 done
 
-command_exists rbenv && eval "$(rbenv init -)"
-
 _perf_timer_stop "total"
 
 welcome
