@@ -1,4 +1,4 @@
-function dotfiles#utils#array_remove_element(array, element)
+function! dotfiles#utils#array_remove_element(array, element) abort
   let index = index(a:array, a:element)
   if index >= 0
     call remove(a:array, index)
