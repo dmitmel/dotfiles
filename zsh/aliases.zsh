@@ -107,3 +107,7 @@ if ! command_exists update-grub; then
   # left as a challenge to the documentation reader.
   alias update-grub="grub-mkconfig -o /boot/grub/grub.cfg"
 fi
+
+if command_exists kitty && ! command_exists icat; then
+  alias icat="kitty +kitten icat"
+fi
