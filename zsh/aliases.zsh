@@ -111,3 +111,6 @@ fi
 if command_exists kitty && ! command_exists icat; then
   alias icat="kitty +kitten icat"
 fi
+
+alias bytefmt2="numfmt --to=iec-i --suffix=B"
+alias bytefmt10="numfmt --to=si --suffix=B"
