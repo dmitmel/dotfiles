@@ -72,7 +72,6 @@ let stylesheetsTexts = [];
 let scriptsTexts = [];
 let syntaxThemeName = null;
 
-console.log(Object.entries(args));
 if (!args.no_default_stylesheets) {
   syntaxThemeName = 'dotfiles';
   stylesheetsTexts.push(
