@@ -100,7 +100,8 @@ set commentstring=//%s
   nnoremap <C-n> <C-i>
   nnoremap <C-p> <C-o>
 
-  nnoremap Q <nop>
+  " Source of this trick: <https://youtu.be/bQfFvExpZDU?t=268>
+  nnoremap Q gq
 
   " normal mode
   nnoremap <leader>dg :.diffget<CR>
@@ -110,10 +111,18 @@ set commentstring=//%s
   xnoremap <leader>dp :diffput<CR>
 
   " Horizontal scroll
+  " Alt+hjkl and Alt+Arrow  - scroll one column/row
+  " Alt+Shift+hjkl          - scroll half a page
   " normal mode
   nnoremap <M-h> zh
   nnoremap <M-H> zH
   nnoremap <M-Left> zh
+  nnoremap <M-j> <C-e>
+  nnoremap <M-J> <C-d>
+  nnoremap <M-Down> <C-e>
+  nnoremap <M-k> <C-y>
+  nnoremap <M-K> <C-u>
+  nnoremap <M-Up> <C-y>
   nnoremap <M-l> zl
   nnoremap <M-L> zL
   nnoremap <M-Right> zl
@@ -121,6 +130,12 @@ set commentstring=//%s
   xnoremap <M-h> zh
   xnoremap <M-H> zH
   xnoremap <M-Left> zh
+  xnoremap <M-j> <C-e>
+  xnoremap <M-J> <C-d>
+  xnoremap <M-Down> <C-e>
+  xnoremap <M-k> <C-y>
+  xnoremap <M-K> <C-u>
+  xnoremap <M-Up> <C-y>
   xnoremap <M-l> zl
   xnoremap <M-L> zL
   xnoremap <M-Right> zl
