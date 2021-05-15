@@ -98,10 +98,12 @@
   call s:hi('WarningMsg',     0x9,  'NONE', '', '')
   call s:hi('TooLong',        0x8,  '',     '', '')
   call s:hi('Debug',          0x8,  '',     '', '')
-  hi! link CocErrorSign Error
+  hi! link CocErrorSign    Error
   call s:hi('CocWarningSign', 'bg', 0xA,    '', '')
   call s:hi('CocInfoSign',    'bg', 0xD,    '', '')
-  hi! link CocHintSign    CocInfoSign
+  hi! link CocHintSign     CocInfoSign
+  call s:hi('CocFadeOut',      0x3,    '',  '', '')
+  hi! link CocMarkdownLink Underlined
 
   call s:hi('FoldColumn', 0xC, 0x1, '', '')
   call s:hi('Folded',     0x3, 0x1, '', '')

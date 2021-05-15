@@ -93,6 +93,7 @@ endif
   let g:airline_symbols = {
     \ 'readonly': 'RO',
     \ 'whitespace': "\u21e5 ",
+    \ 'colnr': '',
     \ 'linenr': '',
     \ 'maxlinenr': ' ',
     \ 'branch': '',
@@ -103,6 +104,7 @@ endif
   let g:airline#extensions#tabline#enabled = 1
   let g:airline#extensions#coc#enabled = 1
   let g:airline#extensions#po#enabled = 0
+  let g:airline#extensions#scrollbar#enabled = 0
 
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
@@ -124,6 +126,17 @@ endif
     endfor
   endfunction
   call airline#parts#define('filesize', { 'function': 'StatusLine_filesize' })
+
+  " Undo this commit a little bit:
+  " <https://github.com/vim-airline/vim-airline/commit/8929bc72a13d358bb8369443386ac3cc4796ca16>
+  call airline#parts#define('maxlinenr', {
+  \ 'raw': '/%L%{g:airline_symbols.maxlinenr}',
+  \ 'accent': 'bold',
+  \ })
+  call airline#parts#define('colnr', {
+  \ 'raw': '%{g:airline_symbols.colnr}:%v',
+  \ 'accent': 'none',
+  \ })
 
   function s:airline_section_prepend(section, items)
     let g:airline_section_{a:section} = airline#section#create_right(a:items + ['']) . g:airline_section_{a:section}
