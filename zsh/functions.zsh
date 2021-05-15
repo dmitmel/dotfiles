@@ -2,7 +2,7 @@
 
 count() { print -r -- "$#"; }
 
-bytecount() { wc -c "$@" | numfmt --to=iec-i; }
+bytecount() { wc -c "$@" | bytefmt2; }
 
 mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
 
