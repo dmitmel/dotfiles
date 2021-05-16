@@ -15,7 +15,6 @@
   Plug 'tomtom/tcomment_vim'
   Plug 'tpope/vim-surround'
   Plug 'Yggdroot/indentLine'
-  Plug 'idbrii/detectindent'
   Plug 'henrik/vim-indexed-search'
   Plug 'andymass/vim-matchup'
   Plug 'inkarkat/vim-ingo-library'  " required by LineJuggler

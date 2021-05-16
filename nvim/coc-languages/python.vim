@@ -5,11 +5,11 @@ let g:coc_filetypes += ['python']
 let g:coc_user_config['python'] = {
 \ 'formatting': {
 \   'provider': 'yapf',
-\   'yapfArgs': ['--style=' . simplify(g:nvim_dotfiles_dir.'/../python/yapf.ini')]
+\   'yapfArgs': ['--style=' . simplify(g:dotfiles_dir.'/python/yapf.ini')]
 \   },
 \ 'linting': {
 \   'pylintEnabled': v:false,
 \   'flake8Enabled': v:true,
-\   'flake8Args': ['--config=' . simplify(g:nvim_dotfiles_dir.'/../python/flake8.ini')],
+\   'flake8Args': ['--config=' . simplify(g:dotfiles_dir.'/python/flake8.ini')],
 \   },
 \ }

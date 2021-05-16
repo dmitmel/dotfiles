@@ -38,21 +38,6 @@ set commentstring=//%s
     autocmd VimEnter * if bufname('%') == '' | IndentLinesDisable | endif
   augroup END
 
-  let g:detectindent_max_lines_to_analyse = 128
-  let g:detectindent_check_comment_syntax = 1
-
-  function s:DetectIndent()
-    if !empty(&bt) | return | endif
-    let g:detectindent_preferred_indent = &l:shiftwidth
-    let g:detectindent_preferred_expandtab = &l:expandtab
-    DetectIndent
-  endfunction
-
-  augroup vimrc-detect-indent
-    autocmd!
-    autocmd BufReadPost * call s:DetectIndent()
-  augroup END
-
 " }}}
 
 

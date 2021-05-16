@@ -3,11 +3,13 @@
 
 " Color definitions {{{
 
-  execute 'source' fnameescape(g:nvim_dotfiles_dir.'/../colorschemes/out/vim.vim')
+  execute 'source' fnameescape(g:dotfiles_dir.'/colorschemes/out/vim.vim')
 
   if !&termguicolors && exists('$_COLORSCHEME_TERMINAL')
     set notermguicolors
   endif
+
+  let s:is_kitty = $TERM ==# 'xterm-kitty'
 
 " }}}
 
@@ -102,7 +104,7 @@
   call s:hi('CocWarningSign', 'bg', 0xA,    '', '')
   call s:hi('CocInfoSign',    'bg', 0xD,    '', '')
   hi! link CocHintSign     CocInfoSign
-  call s:hi('CocFadeOut',      0x3,    '',  '', '')
+  call s:hi('CocFadeOut',      0x3, '',     '', '')
   hi! link CocMarkdownLink Underlined
 
   call s:hi('FoldColumn', 0xC, 0x1, '', '')
@@ -139,7 +141,6 @@
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
 
-  let s:is_kitty = $TERM ==# 'xterm-kitty'
   let s:spell_fg   = s:is_kitty ? ''          : 'bg'
   let s:spell_bg   = s:is_kitty ? 'NONE'      : ''
   let s:spell_attr = s:is_kitty ? 'undercurl' : ''
