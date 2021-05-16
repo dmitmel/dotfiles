@@ -87,71 +87,35 @@ endif
 
 
 " Airline (statusline) {{{
-
   let g:airline_theme = 'dotfiles'
-
   let g:airline_symbols = {
     \ 'readonly': 'RO',
-    \ 'whitespace': "\u21e5 ",
+    \ 'whitespace': '',
     \ 'colnr': '',
     \ 'linenr': '',
     \ 'maxlinenr': ' ',
     \ 'branch': '',
-    \ 'notexists': " [?]",
+    \ 'notexists': ' [?]',
     \ }
-
-  let g:airline#extensions#branch#enabled = 1
-  let g:airline#extensions#tabline#enabled = 1
-  let g:airline#extensions#coc#enabled = 1
-  let g:airline#extensions#po#enabled = 0
-  let g:airline#extensions#scrollbar#enabled = 0
-
+  let g:airline_extensions = [
+    \ 'quickfix',
+    \ 'fzf',
+    \ 'term',
+    \ 'hunks',
+    \ 'branch',
+    \ 'fugitiveline',
+    \ 'coc',
+    \ 'whitespace',
+    \ 'wordcount',
+    \ 'tabline',
+    \ 'obsession',
+    \ 'dotfiles_tweaks',
+    \ 'dotfiles_filesize',
+    \ ]
+  let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
-
-  function StatusLine_filesize()
-    let bytes = getfsize(expand('%'))
-    if bytes < 0 | return '' | endif
-
-    let factor = 1
-    for unit in ['B', 'K', 'M', 'G']
-      let next_factor = factor * 1024
-      if bytes < next_factor
-        let number_str = printf('%.2f', (bytes * 1.0) / factor)
-        " remove trailing zeros
-        let number_str = substitute(number_str, '\v\.?0+$', '', '')
-        return number_str . unit
-      endif
-      let factor = next_factor
-    endfor
-  endfunction
-  call airline#parts#define('filesize', { 'function': 'StatusLine_filesize' })
-
-  " Undo this commit a little bit:
-  " <https://github.com/vim-airline/vim-airline/commit/8929bc72a13d358bb8369443386ac3cc4796ca16>
-  call airline#parts#define('maxlinenr', {
-  \ 'raw': '/%L%{g:airline_symbols.maxlinenr}',
-  \ 'accent': 'bold',
-  \ })
-  call airline#parts#define('colnr', {
-  \ 'raw': '%{g:airline_symbols.colnr}:%v',
-  \ 'accent': 'none',
-  \ })
-
-  function s:airline_section_prepend(section, items)
-    let g:airline_section_{a:section} = airline#section#create_right(a:items + ['']) . g:airline_section_{a:section}
-  endfunction
-  function s:airline_section_append(section, items)
-    let g:airline_section_{a:section} = g:airline_section_{a:section} . airline#section#create_left([''] + a:items)
-  endfunction
-  function s:tweak_airline()
-    call s:airline_section_append('y', ['filesize'])
-  endfunction
-  augroup vimrc-interface-airline
-    autocmd!
-    autocmd user AirlineAfterInit call s:tweak_airline()
-  augroup END
-
+  let g:airline#extensions#dotfiles_filesize#update_delay = 2
 " }}}
 
 

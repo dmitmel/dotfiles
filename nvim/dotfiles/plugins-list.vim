@@ -12,12 +12,7 @@
   endif
   Plug 'Raimondi/delimitMate'
   Plug 'tpope/vim-repeat'
-  " if g:vim_ide
   Plug 'tomtom/tcomment_vim'
-  Plug 'glts/vim-textobj-comment'
-  " else
-  "   Plug 'tpope/vim-commentary'
-  " endif
   Plug 'tpope/vim-surround'
   Plug 'Yggdroot/indentLine'
   Plug 'idbrii/detectindent'
@@ -35,6 +30,7 @@
   Plug 'kana/vim-textobj-entire'
   Plug 'kana/vim-textobj-line'
   Plug 'kana/vim-textobj-indent'
+  Plug 'glts/vim-textobj-comment'
 " }}}
 
 " UI {{{
