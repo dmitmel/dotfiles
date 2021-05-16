@@ -31,6 +31,13 @@ set commentstring=//%s
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
 
+  augroup vimrc-indentlines-disable
+    autocmd!
+    autocmd TermOpen * IndentLinesDisable
+    " <https://github.com/Yggdroot/indentLine/issues/315#issuecomment-734535963>
+    autocmd VimEnter * if bufname('%') == '' | IndentLinesDisable | endif
+  augroup END
+
   let g:detectindent_max_lines_to_analyse = 128
   let g:detectindent_check_comment_syntax = 1
 
@@ -51,7 +58,7 @@ set commentstring=//%s
 
 " Invisible characters {{{
   set list
-  let &listchars = "tab:\u2192 ,extends:>,precedes:<,eol:\u00ac,trail:\u00b7"
+  let &listchars = "tab:\u2192 ,extends:>,precedes:<,eol:\u00ac,trail:\u00b7,nbsp:+"
   let &showbreak = '>'
   set display+=uhex
 " }}}

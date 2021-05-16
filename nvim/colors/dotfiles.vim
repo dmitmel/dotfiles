@@ -54,7 +54,7 @@
   hi! link Directory Title
   call s:hi('Conceal',    0xC,  'NONE', '',          '')
   call s:hi('NonText',    0x3,  '',     '',          '')
-  hi! link SpecialKey NonText
+  hi! link SpecialKey Special
   call s:hi('MatchParen', 'fg', 0x3,    '',          '')
 
   call s:hi('Keyword', 0xE, '', '', '')

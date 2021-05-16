@@ -55,6 +55,7 @@
 " }}}
 
 " Programming {{{
+  let g:polyglot_disabled = ['sensible']
   Plug 'sheerun/vim-polyglot'
   Plug 'chikamichi/mediawiki.vim'
   Plug 'ron-rs/ron.vim'

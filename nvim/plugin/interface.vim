@@ -137,12 +137,4 @@ endif
 " }}}
 
 
-" Terminal {{{
-  augroup vimrc-terminal
-    autocmd!
-    autocmd TermOpen * IndentLinesDisable
-  augroup END
-" }}}
-
-
 nnoremap <silent> <F9> <Cmd>make<CR>
