@@ -46,7 +46,7 @@ fi
 
 # Directory in which plugins are stored. It is separate from $ZPLG_HOME for
 # compatitability with future versions.
-_ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
+ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 
 # basic logging {{{
 
@@ -302,7 +302,7 @@ plugin() {
 
   # download plugin {{{
 
-  local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+  local plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
   # simple check whether the plugin directory exists is enough for me
   if [[ ! -d "$plugin_dir" ]]; then
     _zplg_log "downloading $plugin_id"
@@ -478,7 +478,7 @@ _zplg_is_plugin_loaded() {
 
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-      plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+      plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
 
       _zplg_log "upgrading $plugin_id"
       _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
@@ -512,7 +512,7 @@ _zplg_is_plugin_loaded() {
 
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-      plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+      plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
 
       _zplg_log "removing $plugin_id"
       rm -rf "$plugin_dir"
@@ -543,7 +543,7 @@ _zplg_is_plugin_loaded() {
         return 1
       fi
 
-      local plugin_dir="$_ZPLG_PLUGINS_DIR/$plugin_id"
+      local plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
 
       _zplg_log "removing $plugin_id"
       rm -rf "$plugin_dir"

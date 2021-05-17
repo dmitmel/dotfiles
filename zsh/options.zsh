@@ -58,6 +58,3 @@ setopt hist_verify
 setopt inc_append_history
 # synchronize history between active sessions
 setopt share_history
-
-# Among other things, used for compatibility with OMZ plugins.
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"

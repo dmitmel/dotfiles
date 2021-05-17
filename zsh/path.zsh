@@ -109,7 +109,8 @@ path_prepend path ~/.cargo/bin
 
 # add my binaries and completions
 path_prepend path "${ZSH_DOTFILES:h}/scripts"
-path_prepend fpath "$ZSH_DOTFILES/completions"
+path_prepend fpath "${ZSH_DOTFILES}/completions"
+path_prepend fpath "${ZSH_CACHE_DIR}/site-functions"
 
 # add user binaries
 path_prepend path ~/.local/bin

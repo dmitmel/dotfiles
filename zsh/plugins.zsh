@@ -1,7 +1,5 @@
 #!/usr/bin/env zsh
 
-mkdir -pv "$ZSH_CACHE_DIR"
-
 _plugin() {
   _perf_timer_start "plugin $1"
   plugin "$@"
@@ -11,8 +9,22 @@ _plugin() {
 _checkout_latest_version='build=plugin-cfg-git-checkout-version "*"'
 
 _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
+_plugin completions-rustc 'https://raw.githubusercontent.com/rust-lang/zsh-config/master/_rust' from=url \
+  after_load='plugin-cfg-path fpath prepend ""'
+_plugin completions-cargo 'https://raw.githubusercontent.com/rust-lang/cargo/master/src/etc/_cargo' from=url \
+  after_load='plugin-cfg-path fpath prepend ""'
+
+rustup_comp_path="${ZSH_CACHE_DIR}/site-functions/_rustup"
+if [[ "${commands[rustup]}" -nt "$rustup_comp_path" || ! -s "$rustup_comp_path" ]]; then
+  _perf_timer_start "generate rustup completions"
+  rustup completions zsh >| "$rustup_comp_path"
+  _perf_timer_stop "generate rustup completions"
+fi
+unset rustup_comp_path
 
 # compinit {{{
+  _perf_timer_start "compinit"
+
   # note that completion system must be initialized after zsh-completions and
   # before Oh My Zsh
   autoload -U compinit
@@ -39,6 +51,8 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
     compinit -C -d "${ZSH_CACHE_DIR}/zcompdump"
   fi
   unset run_compdump
+
+  _perf_timer_stop "compinit"
 # }}}
 
 # Oh My Zsh {{{
@@ -69,6 +83,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
   if command_exists fasd; then
     export _FASD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/fasd_db.csv"
 
+    _perf_timer_start "fasd init"
     # Initialization taken from <https://github.com/ohmyzsh/ohmyzsh/blob/6fbad5bf72fad4ecf30ba4d4ffee62bac582f0ed/plugins/fasd/fasd.plugin.zsh>
     fasd_cache="${ZSH_CACHE_DIR}/fasd-init-cache"
     if [[ "${commands[fasd]}" -nt "$fasd_cache" || ! -s "$fasd_cache" ]]; then
@@ -76,6 +91,7 @@ _plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
     fi
     source "$fasd_cache"
     unset fasd_cache
+    _perf_timer_stop "fasd init"
 
     alias v='f -e "$EDITOR"'
     alias o='a -e xdg-open'

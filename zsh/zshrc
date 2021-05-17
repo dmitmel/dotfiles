@@ -2,6 +2,10 @@
 
 ZSH_DOTFILES="${0:h}"
 
+# Among other things, used for compatibility with OMZ plugins.
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+mkdir -pv -- "$ZSH_CACHE_DIR" "${ZSH_CACHE_DIR}/site-functions"
+
 autoload -U colors && colors
 
 # Performance {{{
