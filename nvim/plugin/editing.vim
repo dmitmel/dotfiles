@@ -266,4 +266,6 @@ set commentstring=//%s
 
   let g:vala_syntax_folding_enabled = 0
 
+  let g:python_recommended_style = 0
+
 " }}}
