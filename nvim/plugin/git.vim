@@ -1,17 +1,21 @@
 " mappings {{{
   let g:gitgutter_map_keys = 0
-  nnoremap <leader>gg :G
-  nnoremap <leader>g  :Git<space>
-  nnoremap <leader>gs :vertical Git<CR>
-  nnoremap <leader>gd :Gdiffsplit
-  nnoremap <leader>gb :Git blame<CR>
-  nnoremap <leader>gw :GBrowse<CR>
-  nnoremap <leader>gW :.GBrowse<CR>
-  nnoremap <leader>gc :Git commit %
-  nnoremap <leader>gC :Git commit --amend
-  nnoremap <leader>gl :Gclog<CR>
-  nnoremap <leader>gp :Git push
-  nnoremap <leader>gP :Git push --force-with-lease
+  nnoremap <leader>gg :<C-u>G
+  nnoremap <leader>g  :<C-u>Git<space>
+  nnoremap <leader>gs :<C-u>vertical Git<CR>
+  nnoremap <leader>gd :<C-u>Gdiffsplit
+  nnoremap <leader>gb :<C-u>Git blame<CR>
+  nnoremap <leader>gw :<C-u>GBrowse<CR>
+  nnoremap <leader>gW :<C-u>.GBrowse<CR>
+  nnoremap <leader>gc :<C-u>Git commit %
+  nnoremap <leader>gC :<C-u>Git commit --amend
+  nnoremap <leader>gl :<C-u>Gclog<CR>
+  nnoremap <leader>gp :<C-u>Git push
+  nnoremap <leader>gP :<C-u>Git push --force-with-lease
+  " Jump to the next/previous change in the diff mode because I replace the
+  " built-in mappings with coc.nvim's for jumping through diagnostics.
+  nnoremap [g [c
+  nnoremap ]g ]c
 " }}}
 
 " Fugitive.vim handlers {{{
