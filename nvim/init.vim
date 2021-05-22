@@ -63,8 +63,17 @@ if exists(':Sleuth')
     " shiftwidth to the unreasonable value picked above, which vim-sleuth
     " internally compares with its local `s:default_shiftwidth`, sees that both
     " are the same, and proceeds to execute the indent detection algorithm.
-    " Boom, my work here is done.
-    autocmd BufEnter * let &l:shiftwidth = s:fake_default_shiftwidth | Sleuth
+    " ALSO Note how I'm not using `BufEnter` as vim-sleuth does because
+    " apparently `BufWinEnter` leads to better compatibility with the
+    " indentLine plugin and potentially less useless invocations (see the note
+    " about window splits in the docs for this event). Oh, one last thing:
+    " vim-sleuth forgets to assign the tabstop options, which I have to do as
+    " well. But anyway, boom, my work here is done.
+    autocmd BufWinEnter *
+      \  let &l:shiftwidth = s:fake_default_shiftwidth
+      \| Sleuth
+      \| let &l:tabstop = &l:shiftwidth
+      \| let &l:softtabstop = &l:shiftwidth
   augroup END
 
   " HACK: In case you are wondering why I'm using Polyglot's bundled vim-sleuth

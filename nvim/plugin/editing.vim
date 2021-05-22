@@ -15,8 +15,8 @@ set commentstring=//%s
   function SetIndent(expandtab, shiftwidth)
     let &l:expandtab = a:expandtab
     let &l:shiftwidth = str2nr(a:shiftwidth)
-    let &l:tabstop = &shiftwidth
-    let &l:softtabstop = &shiftwidth
+    let &l:tabstop = &l:shiftwidth
+    let &l:softtabstop = &l:shiftwidth
   endfunction
   command -nargs=1 Indent call SetIndent(1, <q-args>)
   command -nargs=1 IndentTabs call SetIndent(0, <q-args>)
