@@ -25,39 +25,45 @@
   endfunction
 
   let s:colors = g:dotfiles_colorscheme_base16_colors
-  function s:hi(group, fg, bg, attr, guisp)
-    let args = ''
+  function s:hi(group, fg, bg, attr, sp)
+    let fg = {}
+    let bg = {}
+    let attr = 'NONE'
+    let sp = {}
     if a:fg isnot ''
       let fg = s:is_number(a:fg) ? s:colors[a:fg] : {'gui': a:fg, 'cterm': a:fg}
-      let args .= ' guifg=' . fg.gui . ' ctermfg=' . fg.cterm
     endif
     if a:bg isnot ''
       let bg = s:is_number(a:bg) ? s:colors[a:bg] : {'gui': a:bg, 'cterm': a:bg}
-      let args .= ' guibg=' . bg.gui . ' ctermbg=' . bg.cterm
     endif
     if a:attr isnot ''
-      let args .= ' gui=' . a:attr . ' cterm=' . a:attr
+      let attr = a:attr
     endif
-    if a:guisp isnot ''
-      let guisp = s:is_number(a:guisp) ? s:colors[a:guisp].gui : a:guisp
-      let args .= ' guisp=' . guisp
+    if a:sp isnot ''
+      let sp = s:is_number(a:sp) ? s:colors[a:sp] : {'gui': a:sp, 'cterm': a:sp}
     endif
-    exec 'hi' a:group args
+    exec 'hi' a:group
+      \ 'guifg='.get(fg, 'gui', 'NONE') 'ctermfg='.get(fg, 'cterm', 'NONE')
+      \ 'guibg='.get(bg, 'gui', 'NONE') 'ctermbg='.get(bg, 'cterm', 'NONE')
+      \ 'gui='.(attr) 'cterm='.(attr)
+      \ 'guisp='.get(sp, 'gui', 'NONE')
   endfunction
 " }}}
 
 " General syntax highlighting {{{
 
-  call s:hi('Normal',     0x5,  0x0,    '',          '')
-  call s:hi('Italic',     0xE,  '',     'italic',    '')
-  call s:hi('Bold',       0xA,  '',     'bold',      '')
-  call s:hi('Underlined', 0x8,  '',     'underline', '')
-  call s:hi('Title',      0xD,  '',     'NONE',      '')
+  " TODO: `hi clear` ?
+
+  call s:hi('Normal',     0x5,  0x0, '',          '')
+  call s:hi('Italic',     0xE,  '',  'italic',    '')
+  call s:hi('Bold',       0xA,  '',  'bold',      '')
+  call s:hi('Underlined', 0x8,  '',  'underline', '')
+  call s:hi('Title',      0xD,  '',  '',          '')
   hi! link Directory Title
-  call s:hi('Conceal',    0xC,  'NONE', '',          '')
-  call s:hi('NonText',    0x3,  '',     '',          '')
+  call s:hi('Conceal',    0xC,  '',  '',          '')
+  call s:hi('NonText',    0x3,  '',  '',          '')
   hi! link SpecialKey Special
-  call s:hi('MatchParen', 'fg', 0x3,    '',          '')
+  call s:hi('MatchParen', 'fg', 0x3, '',          '')
 
   call s:hi('Keyword', 0xE, '', '', '')
   hi! link Statement    Keyword
@@ -78,7 +84,7 @@
   hi! link SpecialComment Comment
   call s:hi('Todo',       'bg', 0xA, 'bold', '')
   call s:hi('Function',   0xD, '', '', '')
-  call s:hi('Identifier', 0x8, '', 'none', '')
+  call s:hi('Identifier', 0x8, '', '', '')
   hi! link Variable Identifier
   " call s:hi('Include',    0xF, '', '', '')
   hi! link Include Keyword
@@ -88,30 +94,30 @@
   hi! link Delimiter NONE
   call s:hi('Special',    0xC, '', '', '')
   call s:hi('Tag',        0xA, '', '', '')
-  call s:hi('Type',       0xA, '', 'none', '')
+  call s:hi('Type',       0xA, '', '', '')
   hi! link Typedef Type
 
 " }}}
 
 " User interface {{{
 
-  call s:hi('Error',          'bg', 0x8,    '', '')
-  call s:hi('ErrorMsg',       0x8,  'NONE', '', '')
-  call s:hi('WarningMsg',     0x9,  'NONE', '', '')
-  call s:hi('TooLong',        0x8,  '',     '', '')
-  call s:hi('Debug',          0x8,  '',     '', '')
+  call s:hi('Error',          'bg', 0x8, '', '')
+  call s:hi('ErrorMsg',       0x8,  '',  '', '')
+  call s:hi('WarningMsg',     0x9,  '',  '', '')
+  call s:hi('TooLong',        0x8,  '',  '', '')
+  call s:hi('Debug',          0x8,  '',  '', '')
   hi! link CocErrorSign    Error
-  call s:hi('CocWarningSign', 'bg', 0xA,    '', '')
-  call s:hi('CocInfoSign',    'bg', 0xD,    '', '')
+  call s:hi('CocWarningSign', 'bg', 0xA, '', '')
+  call s:hi('CocInfoSign',    'bg', 0xD, '', '')
   hi! link CocHintSign     CocInfoSign
-  call s:hi('CocFadeOut',      0x3, '',     '', '')
+  call s:hi('CocFadeOut',      0x3, '',  '', '')
   hi! link CocMarkdownLink Underlined
 
   call s:hi('FoldColumn', 0xC, 0x1, '', '')
   call s:hi('Folded',     0x3, 0x1, '', '')
 
-  call s:hi('IncSearch', 0x1, 0x9, 'none', '')
-  call s:hi('Search',    0x1, 0xA, '',     '')
+  call s:hi('IncSearch', 0x1, 0x9, '', '')
+  call s:hi('Search',    0x1, 0xA, '', '')
   hi! link Substitute Search
 
   call s:hi('ModeMsg',  0xB, '',   '', '')
@@ -120,7 +126,7 @@
   call s:hi('Visual',   '',  0x2,  '', '')
   call s:hi('WildMenu', 0x1, 'fg', '', '')
 
-  call s:hi('CursorLine',   '',  0x1, 'none', '')
+  call s:hi('CursorLine',   '',  0x1, '', '')
   hi! link CursorColumn CursorLine
   call s:hi('ColorColumn',  '',  0x1, '', '')
   call s:hi('LineNr',       0x3, 0x1, '', '')
@@ -128,7 +134,7 @@
   call s:hi('QuickFixLine', '',  0x2, '', '')
 
   call s:hi('SignColumn',     0x3, 0x1, '', '')
-  call s:hi('StatusLine',     0x4, 0x1, 'none', '')
+  call s:hi('StatusLine',     0x4, 0x1, '', '')
   call s:hi('StatusLineNC',   0x3, 0x1, '', '')
   call s:hi('VertSplit',      0x2, 0x2, '', '')
   call s:hi('TabLine',        0x3, 0x1, '', '')
@@ -142,13 +148,12 @@
   hi! link ctrlsfLnumMatch ctrlsfMatch
 
   let s:spell_fg   = s:is_kitty ? ''          : 'bg'
-  let s:spell_bg   = s:is_kitty ? 'NONE'      : ''
   let s:spell_attr = s:is_kitty ? 'undercurl' : ''
-  call s:hi('SpellBad',   s:spell_fg, s:spell_bg, s:spell_attr, 0x8)
-  call s:hi('SpellLocal', s:spell_fg, s:spell_bg, s:spell_attr, 0xC)
-  call s:hi('SpellCap',   s:spell_fg, s:spell_bg, s:spell_attr, 0xD)
-  call s:hi('SpellRare',  s:spell_fg, s:spell_bg, s:spell_attr, 0xE)
-  unlet s:is_kitty s:spell_fg s:spell_bg s:spell_attr
+  call s:hi('SpellBad',   s:spell_fg, s:is_kitty ? '' : 0x8, s:spell_attr, 0x8)
+  call s:hi('SpellLocal', s:spell_fg, s:is_kitty ? '' : 0xC, s:spell_attr, 0xC)
+  call s:hi('SpellCap',   s:spell_fg, s:is_kitty ? '' : 0xD, s:spell_attr, 0xD)
+  call s:hi('SpellRare',  s:spell_fg, s:is_kitty ? '' : 0xE, s:spell_attr, 0xE)
+  unlet s:is_kitty s:spell_fg s:spell_attr
 
   call s:hi('Sneak', 'bg', 0xB, 'bold', '')
   hi! link SneakScope Visual
