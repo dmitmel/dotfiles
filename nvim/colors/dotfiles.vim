@@ -5,7 +5,8 @@
 
   execute 'source' fnameescape(g:dotfiles_dir.'/colorschemes/out/vim.vim')
 
-  if !&termguicolors && exists('$_COLORSCHEME_TERMINAL')
+  let s:is_gui_color = !has('win32') && !has('win64') && !has('win32unix') && has('termguicolors') && &termguicolors
+  if s:is_gui_color && exists('$_COLORSCHEME_TERMINAL')
     set notermguicolors
   endif
 
@@ -153,7 +154,7 @@
   call s:hi('SpellLocal', s:spell_fg, s:is_kitty ? '' : 0xC, s:spell_attr, 0xC)
   call s:hi('SpellCap',   s:spell_fg, s:is_kitty ? '' : 0xD, s:spell_attr, 0xD)
   call s:hi('SpellRare',  s:spell_fg, s:is_kitty ? '' : 0xE, s:spell_attr, 0xE)
-  unlet s:is_kitty s:spell_fg s:spell_attr
+  unlet s:spell_fg s:spell_attr
 
   call s:hi('Sneak', 'bg', 0xB, 'bold', '')
   hi! link SneakScope Visual

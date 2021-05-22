@@ -31,3 +31,6 @@ export JQ_COLORS="${(j.:.)jq_colors}"
 unset jq_colors
 
 export HOMEBREW_NO_AUTO_UPDATE=1
+
+# https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515
+export FZF_DEFAULT_OPTS="--color=16"
