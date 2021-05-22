@@ -14,20 +14,24 @@ BEGIN {
   print "";
 }
 
-function print_color(color) {
-  printf "\033[48;5;%sm  \033[0m", color
+function print_color(color, idx) {
+  if (OPT_COLOR_CODES) {
+    printf "\033[1;30;48;5;%sm %02X \033[0m", color, idx;
+  } else {
+    printf "\033[48;5;%sm  \033[0m", color;
+  }
 }
 
 function test_standard_colors() {
   print "16 standard colors:";
-  for (color = 0; color < 16; color += 1) print_color(color);
+  for (color = 0; color < 16; color += 1) print_color(color, color);
   print "";
 }
 
 function test_base16_colorscheme() {
   print "base16 colorscheme:";
   split("0 18 19 8 20 7 21 15 1 16 3 2 6 4 5 17", colors, " ");
-  for (i = 1; i <= length(colors); i++) print_color(colors[i]);
+  for (i = 1; i <= length(colors); i++) print_color(colors[i], i - 1);
   print "";
 }
 
@@ -39,7 +43,8 @@ function test_6x6x6_cube() {
     for (row = 0; row < 6; row++) {
       for (block_x = 0; block_x < block_grid_w; block_x++) {
         for (col = 0; col < 6; col++) {
-          print_color(16 + col + 6*row + 6*6*block_x + block_grid_w*6*6*block_y);
+          color = col + 6*row + 6*6*block_x + block_grid_w*6*6*block_y
+          print_color(16 + color, color);
         }
       }
       print "";
@@ -50,7 +55,7 @@ function test_6x6x6_cube() {
 function test_grayscale() {
   print "grayscale from black to white in 24 steps:";
   for (color = 0; color < 24; color += 1) {
-    print_color(16 + 6*6*6 + color)
+    print_color(16 + 6*6*6 + color, color)
   }
   print "";
 }
