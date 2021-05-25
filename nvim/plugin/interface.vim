@@ -43,7 +43,8 @@ endif
     function s:CloseBuffer(cmd) abort
       let cmd = a:cmd
       if &modified
-        let answer = confirm("Save changes?", "&Yes\n&No\n&Cancel")
+        " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
+        let answer = confirm("Save changes to \"".expand('%')."\"?", "&Yes\n&No\n&Cancel")
         if answer ==# 1      " Yes
           write
         elseif answer ==# 2  " No
