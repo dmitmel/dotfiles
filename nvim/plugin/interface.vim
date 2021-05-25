@@ -139,4 +139,4 @@ endif
 " }}}
 
 
-nnoremap <silent> <F9> <Cmd>make<CR>
+nnoremap <silent> <F9> <Cmd>make!<CR>
