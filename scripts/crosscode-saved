@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+
+import base64
+import argparse
+from hashlib import md5
+from typing import IO
+from Crypto.Cipher import AES
+from Crypto import Random
+import sys
+
+
+CC_ENCRYPTION_MARKER_BYTES = b"[-!_0_!-]"
+CC_ENCRYPTION_PASSPHRASE = b":_.NaN0"
+
+
+def main():
+  parser = argparse.ArgumentParser()
+  # NOTE: Empty help strings are necessary for subparsers to show up in help.
+  subparsers = parser.add_subparsers(required=True, metavar="COMMAND")
+
+  subparser = subparsers.add_parser("pipe-decrypt", help="")
+  subparser.set_defaults(func=cmd_pipe_decrypt)
+  subparser.add_argument("input_file", nargs="?", default="-")
+  subparser.add_argument("output_file", nargs="?", default="-")
+
+  subparser = subparsers.add_parser("pipe-encrypt", help="")
+  subparser.set_defaults(func=cmd_pipe_encrypt)
+  subparser.add_argument("input_file", nargs="?", default="-")
+  subparser.add_argument("output_file", nargs="?", default="-")
+
+  args = parser.parse_args()
+  args.func(args)
+
+
+def cmd_pipe_decrypt(args: argparse.Namespace) -> None:
+  input_file: IO[bytes] = (
+    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, 'rb')
+  )
+  output_file: IO[bytes] = (
+    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, 'wb')
+  )
+
+  encrypted = input_file.read()
+  assert encrypted.startswith(CC_ENCRYPTION_MARKER_BYTES)
+  encrypted = encrypted[len(CC_ENCRYPTION_MARKER_BYTES):]
+  decrypted = CryptoJsBridge.decrypt(encrypted, CC_ENCRYPTION_PASSPHRASE)
+  output_file.write(decrypted)
+
+
+def cmd_pipe_encrypt(args: argparse.Namespace) -> None:
+  input_file: IO[bytes] = (
+    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, 'rb')
+  )
+  output_file: IO[bytes] = (
+    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, 'wb')
+  )
+
+  decrypted = input_file.read()
+  encrypted = CryptoJsBridge.encrypt(decrypted, CC_ENCRYPTION_PASSPHRASE)
+  output_file.write(CC_ENCRYPTION_MARKER_BYTES)
+  output_file.write(encrypted)
+
+
+class CryptoJsBridge:
+  """
+  Taken from <https://stackoverflow.com/a/36780727/12005228>.
+  Also see <https://mathstodon.xyz/@JordiGH/106196342434105054>.
+  """
+
+  BLOCK_SIZE = 16
+  SALTED_MARKER = b"Salted__"
+  SALT_SIZE = 8
+  KEY_SIZE = 32
+  IV_SIZE = 16
+
+  @classmethod
+  def pad(cls, data: bytes) -> bytes:
+    length = cls.BLOCK_SIZE - (len(data) % cls.BLOCK_SIZE)
+    return data + bytes([length]) * length
+
+  @classmethod
+  def unpad(cls, data: bytes) -> bytes:
+    return data[:-data[-1]]
+
+  @classmethod
+  def bytes_to_key(cls, data: bytes, salt: bytes, output: int) -> bytes:
+    """
+    Extended from <https://gist.github.com/gsakkis/4546068/1d65cea035562e36da2cc160d6a9e4821b553fa8#file-aes-py-L49-L57>.
+    """
+    assert len(salt) == cls.SALT_SIZE
+    data += salt
+    key = md5(data).digest()
+    final_key = key
+    while len(final_key) < output:
+      key = md5(key + data).digest()
+      final_key += key
+    return final_key[:output]
+
+  @classmethod
+  def encrypt(cls, message: bytes, passphrase: bytes) -> bytes:
+    """
+    Equivalent to `CryptoJS.AES.encrypt(message, passphrase).toString()`.
+    """
+    salt = Random.new().read(cls.SALT_SIZE)
+    key_iv = cls.bytes_to_key(passphrase, salt, cls.KEY_SIZE + cls.IV_SIZE)
+    key, iv = key_iv[:cls.KEY_SIZE], key_iv[cls.KEY_SIZE:]
+    aes = AES.new(key, AES.MODE_CBC, iv)
+    ciphertext = aes.encrypt(cls.pad(message))
+    return base64.b64encode(cls.SALTED_MARKER + salt + ciphertext)
+
+  @classmethod
+  def decrypt(cls, encrypted: bytes, passphrase: bytes) -> bytes:
+    """
+    Equivalent to `CryptoJS.AES.decrypt(encrypted, passphrase).toString(CryptoJS.enc.Utf8)`.
+    """
+    encrypted = base64.b64decode(encrypted)
+    assert encrypted.startswith(cls.SALTED_MARKER)
+    encrypted = encrypted[len(cls.SALTED_MARKER):]
+    salt, ciphertext = encrypted[:cls.SALT_SIZE], encrypted[cls.SALT_SIZE:]
+    key_iv = cls.bytes_to_key(passphrase, salt, cls.KEY_SIZE + cls.IV_SIZE)
+    key, iv = key_iv[:cls.KEY_SIZE], key_iv[cls.KEY_SIZE:]
+    aes = AES.new(key, AES.MODE_CBC, iv)
+    return cls.unpad(aes.decrypt(ciphertext))
+
+
+if __name__ == "__main__":
+  main()
