@@ -19,7 +19,7 @@ def run_chooser(choices: Iterable[str], prompt: str = None, async_read: bool = F
     process_args = [
       "fzf",
       "--with-nth=2..",
-      "--height=50%",
+      "--height=40%",
       "--reverse",
       "--tiebreak=index",
     ]
