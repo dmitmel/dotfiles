@@ -23,14 +23,17 @@ autoload -U colors && colors
   }
 
   _perf_timer_stop() {
+    # Record the stop time as precisely as possible even in the case of an error
+    local stop_time="$EPOCHREALTIME"
     local name="$1"
     if [[ -z "$name" ]]; then
       print >&2 "$0: usage: $0 <name>"
       return 1
     fi
-    local stop_time="$EPOCHREALTIME" start_time="${_perf_timers[$name]}"
+    local start_time="${_perf_timers[$name]}"
+    unset "_perf_timers[${(qq)name}]"
     local -i duration="$(( (stop_time - start_time) * 1000 ))"
-    print -- "$(print -P '%F{8}==>%f') ${name}: ${duration}ms"
+    print -r -- "$(print -P '%F{8}==>%f') ${name}: ${duration}ms"
   }
 
 # }}}
@@ -58,4 +61,10 @@ done
 
 _perf_timer_stop "total"
 
-welcome
+if [[ -z "$DOTFILES_DISABLE_WELCOME" ]]; then
+  welcome
+fi
+
+if [[ -z "$DOTFILES_SYNC_LAST_WORKING_DIR" ]]; then
+  sync_working_dir_load
+fi

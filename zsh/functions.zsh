@@ -102,3 +102,26 @@ sudoedit() {
 }
 alias sudoe="sudoedit"
 alias sue="sudoedit"
+
+# This idea was taken from <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
+SYNC_WORKING_DIR_STORAGE="${ZSH_CACHE_DIR}/last-working-dir"
+
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd sync_working_dir_chpwd_hook
+sync_working_dir_chpwd_hook() {
+  if [[ "$ZSH_SUBSHELL" == 0 ]]; then
+    sync_working_dir_save
+  fi
+}
+
+sync_working_dir_save() {
+  pwd >| "$SYNC_WORKING_DIR_STORAGE"
+}
+
+sync_working_dir_load() {
+  local dir
+  if dir="$(<"$SYNC_WORKING_DIR_STORAGE")" 2>/dev/null && [[ -n "$dir" ]]; then
+    cd -- "$dir"
+  fi
+}
+alias cds="sync_working_dir_load"
