@@ -160,6 +160,11 @@
   hi! link SneakScope Visual
   hi! link SneakLabel Sneak
 
+  " checkhealth UI
+  call s:hi('healthSuccess', 'bg', 0xB, 'bold', '')
+  call s:hi('healthWarning', 'bg', 0xA, 'bold', '')
+  call s:hi('healthError',   'bg', 0x8, 'bold', '')
+
 " }}}
 
 " AWK {{{
