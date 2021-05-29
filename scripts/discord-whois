@@ -12,7 +12,6 @@ import colorama
 import time
 import argparse
 import json
-import typing
 
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
@@ -38,6 +37,7 @@ parser.add_argument("user_snowflake", type=int)
 parser.add_argument("--bot-token", type=str)
 parser.add_argument("--image-size", type=int)
 parser.add_argument("--get-prop", type=str)
+parser.add_argument("--api-response", action='store_true')
 cli_args = parser.parse_args()
 
 user_snowflake = cli_args.user_snowflake
@@ -67,6 +67,11 @@ except urllib.error.HTTPError as err:
   print(err, file=sys.stderr)
   print(err.read(), file=sys.stderr)
   raise err
+
+if cli_args.api_response:
+  json.dump(raw_data, sys.stdout, ensure_ascii=False, indent=2)
+  sys.stdout.write('\n')
+  sys.exit()
 
 data = {}
 
