@@ -33,8 +33,9 @@ parser.add_argument('--output-encoding', {
   help: '(utf-8 by default)',
 });
 
-parser.add_argument('--no-default-stylesheets', {
-  action: argparse.BooleanOptionalAction,
+parser.add_argument('--theme', {
+  choices: ['dotfiles', 'github', 'none'],
+  default: 'dotfiles',
 });
 parser.add_argument('--syntax-theme', {
   choices: [...PRISM_THEMES, 'none', 'dotfiles'],
@@ -70,14 +71,14 @@ let renderedMarkdown = md.render(markdownDocument);
 
 let stylesheetsTexts = [];
 let scriptsTexts = [];
-let syntaxThemeName = null;
+let syntaxThemeName = 'dotfiles';
 
-if (!args.no_default_stylesheets) {
-  syntaxThemeName = 'dotfiles';
-  stylesheetsTexts.push(
-    fs.readFileSync(require.resolve('github-markdown-css/github-markdown.css'), 'utf-8'),
-    fs.readFileSync(require.resolve('./github-markdown-additions.css'), 'utf-8'),
-  );
+if (args.theme === 'dotfiles') {
+  stylesheetsTexts.push(fs.readFileSync(require.resolve('./themes-out/my.css'), 'utf-8'));
+} else if (args.theme === 'github') {
+  stylesheetsTexts.push(fs.readFileSync(require.resolve('./themes-out/github.css'), 'utf-8'));
+} else {
+  syntaxThemeName = 'none';
 }
 
 syntaxThemeName = args.syntax_theme || syntaxThemeName;

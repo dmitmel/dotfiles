@@ -1,0 +1,472 @@
+// My GLORIOUS theme for rendered Markdown documents (But may come in handy for
+// other projects? Who knows!). Integrated with my colorscheme generators, best
+// paired with my very own syntax highlighting theme. Based on
+// sindresorhus/github-markdown-css[1] and primer/css[2]. By the way, here[3]
+// is the first ever public version of the Markdown styles. Also, GitLab's
+// stylesheet can be found here[4], it supports way more syntactical features.
+//
+// [1]: <https://github.com/sindresorhus/github-markdown-css/blob/1485dd78f5e744ef36e946e5ae44838e3906f9d8/github-markdown.css>
+// [2]: <https://github.com/primer/css/tree/63764f7edd59c5f4949c91e5373471aa8b0d4865>
+// [3]: <https://github.com/primer/primer-markdown/tree/fa1aa995def5b85cfb8f3c414cded8cb6559292c>
+// [4]: <https://gitlab.com/gitlab-org/gitlab/-/blob/7a6e4f24d0d828500a7c7b6eb84973a1b4c35534/app/assets/stylesheets/framework/typography.scss>
+//
+// User-Agent stylesheets (<https://stackoverflow.com/a/6867287/12005228>):
+// Firefox: <https://searchfox.org/mozilla-central/source/layout/style/res/html.css>
+// Chromium: <https://chromium.googlesource.com/chromium/blink/+/refs/heads/main/Source/core/css/html.css>
+//
+// NOTE: This stylesheet makes heavy use of the
+// {margin,padding,border}-{inline,block}-{start,end} rules (apparently they
+// are called CSS Logical Properties[5]), for two reasons:
+//
+// 1. Judging by MDN this might give us not only easy RTL support, but possibly
+// even support for vertical text directions.
+//
+// 2. UA stylesheets also rely on those, so overrides of those end up being
+// more explicit and are shown in the devtools correctly.
+//
+// 3. However, they have pretty bad cross-browser support at the moment, so TODO: remove.
+//
+// [5]: <https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties>
+
+@use 'sass:math';
+@use 'sass:color';
+
+// NOTE: GitHub uses an ancient version of normalize.css:
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/normalize.scss>
+@use '../node_modules/normalize.css/normalize.css';
+
+@use '../../../colorschemes/out/colorscheme.scss';
+
+////////////////////////////////////////////////////////////////////////////////
+// CONFIGURATION CONSTANTS AND FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/support/variables/typography.scss#L34-L38>
+$font-default: 'Ubuntu', sans-serif;
+$font-monospace: 'Ubuntu Mono', monospace;
+// https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/support/variables/typography.scss#L29-L32
+$line-height-headings: 1.25;
+$line-height-code-blocks: 1.3;
+$line-height-default: 1.5;
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/support/variables/typography.scss#L40-L42>
+$font-size-default: 16px;
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/support/variables/misc.scss#L3-L12>
+$border-radius: 4px;
+@function border($width: 1px, $style: solid, $color: colorscheme.$base-02) {
+  @return $width $style $color;
+}
+
+$paragraph-spacing: 1em;
+
+////////////////////////////////////////////////////////////////////////////////
+// MIXINS AND FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+@mixin clearfix {
+  &::after,
+  &::before {
+    display: table;
+    content: '';
+  }
+  &::after {
+    clear: both;
+  }
+}
+
+@mixin cancel-out-child-margins {
+  & > :first-child {
+    margin-block-start: 0 !important;
+  }
+  & > :last-child {
+    margin-block-end: 0 !important;
+  }
+}
+
+// prettier-ignore
+@mixin margin-block($margin) { margin-block-start: $margin; margin-block-end: $margin; }
+// prettier-ignore
+@mixin margin-inline($margin) { margin-inline-start: $margin; margin-inline-end: $margin; }
+// prettier-ignore
+@mixin padding-block($padding) { padding-block-start: $padding; padding-block-end: $padding; }
+// prettier-ignore
+@mixin padding-inline($padding) { padding-inline-start: $padding; padding-inline-end: $padding; }
+
+////////////////////////////////////////////////////////////////////////////////
+// BASE STYLES
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss>
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss>
+////////////////////////////////////////////////////////////////////////////////
+
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss#L1-L4>
+* {
+  box-sizing: border-box;
+}
+
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss#L15-L21>
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L7-L11>
+body {
+  color: colorscheme.$fg;
+  background-color: colorscheme.$bg;
+  font-family: $font-default;
+  font-size: $font-size-default;
+  line-height: $line-height-default;
+  word-wrap: break-word;
+
+  $tab-size: 4;
+  -moz-tab-size: $tab-size;
+  -o-tab-size: $tab-size;
+  tab-size: $tab-size;
+
+  &::-moz-selection,
+  &::selection,
+  & ::-moz-selection,
+  & ::selection {
+    color: colorscheme.$selection-fg;
+    background-color: colorscheme.$selection-bg;
+  }
+}
+
+// Also called `.markdown-body` by GitHub.
+article {
+  min-width: 200px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px;
+  @media (max-width: 768px - 1px) {
+    padding: 24px;
+  }
+
+  @include clearfix();
+  @include cancel-out-child-margins();
+}
+
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/octicons.scss>
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/typography-base.scss#L81-L88>
+.octicon {
+  display: inline-block;
+  overflow: visible !important; // Not sure about this.
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss#L23-L30>
+a {
+  color: colorscheme.$base-0D;
+  text-decoration: none;
+
+  &:hover,
+  &:focus,
+  &:active {
+    text-decoration: underline;
+  }
+
+  // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L35-L44>
+  &:not([href]) {
+    color: unset;
+    text-decoration: none;
+  }
+}
+
+// <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss#L37-L50>
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L75-L82>
+hr {
+  @include margin-block($paragraph-spacing * 1.5);
+  border: border($width: 0.2em);
+  @include clearfix();
+}
+
+// Set up paragraph margins for paragraphs themselves and other elements that
+// will appear at the top level.
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L63-L73>
+dl,
+details,
+table,
+blockquote,
+ul,
+ol,
+pre,
+p {
+  @include margin-block($paragraph-spacing);
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L84-L98>
+blockquote {
+  @include margin-inline(0);
+  padding-inline-start: 1em;
+  border-inline-start: border($width: 0.25em);
+  @include cancel-out-child-margins();
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/base.scss#L78-L85>
+summary {
+  cursor: pointer;
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/images.scss#L5-L22>
+img {
+  max-width: 100%;
+  // Fixes manually specified widths for images.
+  box-sizing: content-box;
+  background-color: colorscheme.$base-01;
+
+  &[align='left'],
+  &[align='right'] {
+    margin: 0.5em 1.25em;
+  }
+
+  &[align='left'] {
+    margin-left: 0;
+  }
+
+  &[align='right'] {
+    margin-right: 0;
+  }
+}
+
+ins,
+del {
+  text-decoration: none;
+}
+
+ins {
+  color: colorscheme.$base-0B;
+}
+
+del {
+  color: colorscheme.$base-08;
+}
+
+mark {
+  background-color: colorscheme.$base-0A;
+  color: colorscheme.$bg;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// HEADINGS
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/headings.scss>
+////////////////////////////////////////////////////////////////////////////////
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/headings.scss#L5-L15>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-block-start: $paragraph-spacing * 1.5;
+  margin-block-end: $paragraph-spacing * 1;
+  padding-block-end: 0.3em;
+  border-block-end: border();
+  // Make the headers less bold, the default font-weight is 700.
+  font-weight: 600;
+  line-height: $line-height-headings;
+
+  // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L51-L61>
+  .anchor {
+    float: left;
+    $size: 16px;
+    $offset: 4px;
+    padding-right: $offset;
+    margin-left: -($size + $offset);
+
+    // Undo the default styles for links.
+    color: unset;
+    &:hover {
+      text-decoration: none;
+    }
+    &:focus {
+      outline: none;
+    }
+
+    > * {
+      visibility: hidden;
+      vertical-align: middle;
+    }
+  }
+
+  &:hover .anchor {
+    > * {
+      visibility: visible;
+    }
+  }
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.25em;
+}
+
+h4 {
+  font-size: 1em;
+}
+
+h5 {
+  font-size: 0.875em;
+}
+
+h6 {
+  font-size: 0.85em;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CODE
+// <https://github.com/primer/css/blob/39274b353b6bfc43016c23599076bc3e03f0c1c1/src/markdown/code.scss>
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/typography-base.scss#L65-L79>
+////////////////////////////////////////////////////////////////////////////////
+
+code,
+kbd,
+samp,
+pre {
+  font-family: $font-monospace;
+}
+
+// Inline code snippets.
+code {
+  @include padding-block(0.2em);
+  @include padding-inline(0.3em);
+  background-color: rgba(colorscheme.$base-03, 0.2);
+  border-radius: $border-radius;
+}
+
+// Code blocks.
+pre {
+  padding: 1em;
+  overflow: auto;
+  color: colorscheme.$fg;
+  background-color: colorscheme.$bg;
+  border: border();
+  border-radius: $border-radius;
+  line-height: $line-height-code-blocks;
+  word-wrap: normal;
+
+  // Undo the highlighting of inline snippets.
+  code {
+    padding: unset;
+    background-color: unset;
+    border: unset;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// KEYBOARD SHORTCUTS
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/kbd.scss>
+////////////////////////////////////////////////////////////////////////////////
+
+kbd {
+  display: inline-block;
+  @include padding-block(0.2em);
+  @include padding-inline(0.3em);
+  vertical-align: bottom;
+
+  // The original stylesheet specifies both font-size and line-height in
+  // pixels, but I want to do the same in relative units instead, so
+  // recalculating everything proportionally.
+  $orig-font-size: /* 11px */ 12px;
+  $orig-line-height: 10px;
+  $rel-font-size: math.div($orig-font-size, 16px) * 1em;
+  $rel-line-height: math.div($orig-line-height, $orig-font-size);
+  // This rule implicitly resets all inherited font-related properties.
+  font: #{$rel-font-size}/#{$rel-line-height} #{$font-monospace};
+
+  $kbd-bg-color: if(colorscheme.$is-dark, colorscheme.$bg, colorscheme.$fg);
+  $kbd-fg-color: if(colorscheme.$is-dark, colorscheme.$fg, colorscheme.$bg);
+
+  color: $kbd-fg-color;
+  background-color: color.change($kbd-bg-color, $lightness: 10%);
+  border: border($width: 0.1em, $color: color.change($kbd-bg-color, $lightness: 5%));
+  border-bottom-width: 0.4em;
+  border-radius: $border-radius;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// TABLES
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/tables.scss>
+////////////////////////////////////////////////////////////////////////////////
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/tables.scss#L4-L35>
+table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/base.scss#L56-L59>
+  border-spacing: 0;
+  border-collapse: collapse;
+
+  // For browsers with support for `max-content`. Not sure what this pair of
+  // rules does differently from just `width: 100%`.
+  width: max-content;
+  max-width: 100%;
+}
+
+th {
+  font-weight: 600;
+}
+
+td,
+th {
+  @include padding-block(0.4em);
+  @include padding-inline(0.75em);
+  border: border();
+}
+
+tr:nth-child(2n) {
+  background-color: rgba(colorscheme.$base-02, 0.1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// LISTS
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss>
+////////////////////////////////////////////////////////////////////////////////
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L5-L9>
+ol,
+ul {
+  padding-inline-start: 2em;
+
+  // Disable the "paragraph" margins for nested lists.
+  // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L17-L46>
+  & & {
+    @include margin-block(0);
+  }
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L52-L54>
+li {
+  @include margin-block($paragraph-spacing * 0.25);
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L59-L65>
+dt {
+  margin-block-start: $paragraph-spacing;
+  font-weight: 600;
+  font-style: italic;
+}
+
+// <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L67-L70>
+dd {
+  margin-block-end: $paragraph-spacing;
+  margin-inline-start: 1em;
+}
+
+// Apparently not available in Primer? Had to copy from the extracted
+// production stylesheets.
+// <https://github.com/primer/css/issues/1149>
+// <https://gitlab.com/gitlab-org/gitlab/-/blob/7a6e4f24d0d828500a7c7b6eb84973a1b4c35534/app/assets/stylesheets/framework/typography.scss#L403-417>
+ul > li.task-list-item {
+  list-style-type: none;
+  input[type='checkbox']:first-child {
+    margin: 0 0.2em 0.25em -1.6em;
+    vertical-align: middle;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////

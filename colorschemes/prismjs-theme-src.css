@@ -14,12 +14,8 @@
 }
 
 .markdown-body pre::-moz-selection,
-.markdown-body pre ::-moz-selection {
-  background-color: var(--dotfiles-colorscheme-selection-bg);
-  color: var(--dotfiles-colorscheme-selection-fg);
-}
-
 .markdown-body pre::selection,
+.markdown-body pre ::-moz-selection,
 .markdown-body pre ::selection {
   background-color: var(--dotfiles-colorscheme-selection-bg);
   color: var(--dotfiles-colorscheme-selection-fg);

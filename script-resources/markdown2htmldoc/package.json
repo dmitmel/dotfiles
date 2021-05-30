@@ -1,8 +1,12 @@
 {
   "private": true,
+  "scripts": {
+    "theme:build": "sass --no-source-map --style=compressed themes-src/:themes-out/",
+    "theme:watch": "sass --no-source-map --style=compressed --watch themes-src/:themes-out/"
+  },
   "dependencies": {
     "argparse": "^2.0.1",
-    "github-markdown-css": "^4.0.0",
+    "github-markdown-css": "*",
     "github-slugger": "^1.2.1",
     "markdown-it": "12.0.6",
     "markdown-it-emoji": "2.0.0",
@@ -15,6 +19,8 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-node": "*",
     "eslint-plugin-prettier": "3.4.0",
-    "prettier": "2.2.1"
+    "normalize.css": "^8.0.1",
+    "prettier": "2.2.1",
+    "sass": "^1.33.0"
   }
 }

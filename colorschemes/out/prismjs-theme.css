@@ -14,12 +14,8 @@
 }
 
 .markdown-body pre::-moz-selection,
-.markdown-body pre ::-moz-selection {
-  background-color: #515151;
-  color: #d3d0c8;
-}
-
 .markdown-body pre::selection,
+.markdown-body pre ::-moz-selection,
 .markdown-body pre ::selection {
   background-color: #515151;
   color: #d3d0c8;

@@ -293,6 +293,7 @@
   hi! link scssSelectorName cssClassName
   hi! link scssSelectorChar cssClassnameDot
   hi! link scssAmpersand    cssSelectorOp
+  hi! link scssProperty     cssProp
 " }}}
 
 " JavaScript {{{
