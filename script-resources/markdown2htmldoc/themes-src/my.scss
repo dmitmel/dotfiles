@@ -13,20 +13,6 @@
 // User-Agent stylesheets (<https://stackoverflow.com/a/6867287/12005228>):
 // Firefox: <https://searchfox.org/mozilla-central/source/layout/style/res/html.css>
 // Chromium: <https://chromium.googlesource.com/chromium/blink/+/refs/heads/main/Source/core/css/html.css>
-//
-// NOTE: This stylesheet makes heavy use of the
-// {margin,padding,border}-{inline,block}-{start,end} rules (apparently they
-// are called CSS Logical Properties[5]), for two reasons:
-//
-// 1. Judging by MDN this might give us not only easy RTL support, but possibly
-// even support for vertical text directions.
-//
-// 2. UA stylesheets also rely on those, so overrides of those end up being
-// more explicit and are shown in the devtools correctly.
-//
-// 3. However, they have pretty bad cross-browser support at the moment, so TODO: remove.
-//
-// [5]: <https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties>
 
 @use 'sass:math';
 @use 'sass:color';
@@ -76,21 +62,12 @@ $paragraph-spacing: 1em;
 
 @mixin cancel-out-child-margins {
   & > :first-child {
-    margin-block-start: 0 !important;
+    margin-top: 0 !important;
   }
   & > :last-child {
-    margin-block-end: 0 !important;
+    margin-bottom: 0 !important;
   }
 }
-
-// prettier-ignore
-@mixin margin-block($margin) { margin-block-start: $margin; margin-block-end: $margin; }
-// prettier-ignore
-@mixin margin-inline($margin) { margin-inline-start: $margin; margin-inline-end: $margin; }
-// prettier-ignore
-@mixin padding-block($padding) { padding-block-start: $padding; padding-block-end: $padding; }
-// prettier-ignore
-@mixin padding-inline($padding) { padding-inline-start: $padding; padding-inline-end: $padding; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // BASE STYLES
@@ -171,7 +148,8 @@ a {
 // <https://github.com/primer/css/blob/00f5d87c82f20552eb69773221127490307fca4b/src/base/base.scss#L37-L50>
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L75-L82>
 hr {
-  @include margin-block($paragraph-spacing * 1.5);
+  margin-top: $paragraph-spacing * 1.5;
+  margin-bottom: $paragraph-spacing * 1.5;
   border: border($width: 0.2em);
   @include clearfix();
 }
@@ -187,14 +165,16 @@ ul,
 ol,
 pre,
 p {
-  @include margin-block($paragraph-spacing);
+  margin-top: $paragraph-spacing;
+  margin-bottom: $paragraph-spacing;
 }
 
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/markdown-body.scss#L84-L98>
 blockquote {
-  @include margin-inline(0);
-  padding-inline-start: 1em;
-  border-inline-start: border($width: 0.25em);
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1em;
+  border-left: border($width: 0.25em);
   @include cancel-out-child-margins();
 }
 
@@ -254,10 +234,10 @@ h3,
 h4,
 h5,
 h6 {
-  margin-block-start: $paragraph-spacing * 1.5;
-  margin-block-end: $paragraph-spacing * 1;
-  padding-block-end: 0.3em;
-  border-block-end: border();
+  margin-top: $paragraph-spacing * 1.5;
+  margin-bottom: $paragraph-spacing * 1;
+  padding-bottom: 0.3em;
+  border-bottom: border();
   // Make the headers less bold, the default font-weight is 700.
   font-weight: 600;
   line-height: $line-height-headings;
@@ -331,8 +311,7 @@ pre {
 
 // Inline code snippets.
 code {
-  @include padding-block(0.2em);
-  @include padding-inline(0.3em);
+  padding: 0.2em 0.3em;
   background-color: rgba(colorscheme.$base-03, 0.2);
   border-radius: $border-radius;
 }
@@ -363,8 +342,7 @@ pre {
 
 kbd {
   display: inline-block;
-  @include padding-block(0.2em);
-  @include padding-inline(0.3em);
+  padding: 0.2em 0.3em;
   vertical-align: bottom;
 
   // The original stylesheet specifies both font-size and line-height in
@@ -413,8 +391,7 @@ th {
 
 td,
 th {
-  @include padding-block(0.4em);
-  @include padding-inline(0.75em);
+  padding: 0.4em 0.75em;
   border: border();
 }
 
@@ -430,31 +407,34 @@ tr:nth-child(2n) {
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L5-L9>
 ol,
 ul {
-  padding-inline-start: 2em;
+  padding-left: 2em;
 
   // Disable the "paragraph" margins for nested lists.
   // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L17-L46>
   & & {
-    @include margin-block(0);
+    margin-top: 0;
+    margin-bottom: 0;
   }
 }
 
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L52-L54>
 li {
-  @include margin-block($paragraph-spacing * 0.25);
+  margin-top: $paragraph-spacing * 0.25;
+  margin-bottom: $paragraph-spacing * 0.25;
 }
 
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L59-L65>
 dt {
-  margin-block-start: $paragraph-spacing;
+  margin-top: $paragraph-spacing;
   font-weight: 600;
   font-style: italic;
 }
 
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/lists.scss#L67-L70>
 dd {
-  margin-block-end: $paragraph-spacing;
-  margin-inline-start: 1em;
+  margin-bottom: $paragraph-spacing;
+  margin-left: 0;
+  padding-left: 1em;
 }
 
 // Apparently not available in Primer? Had to copy from the extracted
