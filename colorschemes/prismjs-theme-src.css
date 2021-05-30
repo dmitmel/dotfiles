@@ -74,7 +74,9 @@
 .token.unit,
 .token.attr-name,
 .token.color.hexcode,
-.token.list {
+.token.list,
+.token.nil,
+.token.nil.keyword {
   color: var(--dotfiles-colorscheme-base-09);
 }
 

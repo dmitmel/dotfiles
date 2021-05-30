@@ -188,7 +188,7 @@ img {
   max-width: 100%;
   // Fixes manually specified widths for images.
   box-sizing: content-box;
-  background-color: colorscheme.$base-01;
+  background-color: colorscheme.$bg;
 
   &[align='left'],
   &[align='right'] {
@@ -383,6 +383,11 @@ table {
   // rules does differently from just `width: 100%`.
   width: max-content;
   max-width: 100%;
+
+  // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/markdown/tables.scss#L32-L34>
+  img {
+    background-color: transparent;
+  }
 }
 
 th {
