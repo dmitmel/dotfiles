@@ -21,7 +21,7 @@
 // <https://github.com/primer/css/blob/63764f7edd59c5f4949c91e5373471aa8b0d4865/src/base/normalize.scss>
 @use '../node_modules/normalize.css/normalize.css';
 
-@use '../../../colorschemes/out/colorscheme.scss';
+@use '../../../colorschemes/out/_colorscheme.scss';
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONFIGURATION CONSTANTS AND FUNCTIONS
