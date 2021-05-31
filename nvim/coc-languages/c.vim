@@ -6,9 +6,7 @@ let g:coc_user_config['languageserver.ccls'] = {
 \ 'command': 'ccls',
 \ 'rootPatterns': ['.ccls', 'compile_commands.json', '.vim/', '.git/', '.hg/'],
 \ 'initializationOptions': {
-\   'cache': {
-\     'directory': '/tmp/ccls',
-\     },
+\   'cache.directory': tempname(),
 \   },
 \ }
 
