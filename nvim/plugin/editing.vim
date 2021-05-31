@@ -203,10 +203,12 @@ set commentstring=//%s
 
 " Formatting {{{
 
-  " don't insert a comment after hitting 'o' or 'O' in the Normal mode
+  " -o: don't insert a comment after hitting 'o' or 'O' in the Normal mode
+  " -t: don't auto-wrap regular code while typing
+  " -c: don't auto-wrap comments while typing
   augroup vimrc-editing-formatting
     autocmd!
-    autocmd FileType * set formatoptions-=o
+    autocmd FileType * set formatoptions-=o | set formatoptions-=t | set formatoptions-=c
   augroup END
 
 " }}}
