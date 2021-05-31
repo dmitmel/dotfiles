@@ -92,8 +92,8 @@ endif
   let g:airline_symbols = {
     \ 'readonly': 'RO',
     \ 'whitespace': '',
-    \ 'colnr': '',
-    \ 'linenr': '',
+    \ 'colnr': ' :',
+    \ 'linenr': ' :',
     \ 'maxlinenr': ' ',
     \ 'branch': '',
     \ 'notexists': ' [?]',
