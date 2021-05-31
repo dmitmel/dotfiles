@@ -60,7 +60,7 @@ set commentstring=//%s
 
 
 " Wrapping {{{
-  set nowrap colorcolumn=81,101,121
+  set nowrap colorcolumn=81,101,121 textwidth=79
 " }}}
 
 
