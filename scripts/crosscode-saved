@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
-import base64
 import argparse
+import base64
+import sys
 from hashlib import md5
 from typing import IO
-from Crypto.Cipher import AES
-from Crypto import Random
-import sys
 
+from Crypto import Random
+from Crypto.Cipher import AES
 
 CC_ENCRYPTION_MARKER_BYTES = b"[-!_0_!-]"
 CC_ENCRYPTION_PASSPHRASE = b":_.NaN0"
 
 
-def main():
+def main() -> None:
   parser = argparse.ArgumentParser()
   # NOTE: Empty help strings are necessary for subparsers to show up in help.
   subparsers = parser.add_subparsers(required=True, metavar="COMMAND")
@@ -34,14 +34,15 @@ def main():
 
 def cmd_pipe_decrypt(args: argparse.Namespace) -> None:
   input_file: IO[bytes] = (
-    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, 'rb')
+    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, "rb")
   )
   output_file: IO[bytes] = (
-    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, 'wb')
+    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, "wb")
   )
 
   encrypted = input_file.read()
-  assert encrypted.startswith(CC_ENCRYPTION_MARKER_BYTES)
+  if not encrypted.startswith(CC_ENCRYPTION_MARKER_BYTES):
+    raise Exception()
   encrypted = encrypted[len(CC_ENCRYPTION_MARKER_BYTES):]
   decrypted = CryptoJsBridge.decrypt(encrypted, CC_ENCRYPTION_PASSPHRASE)
   output_file.write(decrypted)
@@ -49,10 +50,10 @@ def cmd_pipe_decrypt(args: argparse.Namespace) -> None:
 
 def cmd_pipe_encrypt(args: argparse.Namespace) -> None:
   input_file: IO[bytes] = (
-    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, 'rb')
+    sys.stdin.buffer if args.input_file == "-" else open(args.input_file, "rb")
   )
   output_file: IO[bytes] = (
-    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, 'wb')
+    sys.stdout.buffer if args.output_file == "-" else open(args.output_file, "wb")
   )
 
   decrypted = input_file.read()
@@ -87,7 +88,8 @@ class CryptoJsBridge:
     """
     Extended from <https://gist.github.com/gsakkis/4546068/1d65cea035562e36da2cc160d6a9e4821b553fa8#file-aes-py-L49-L57>.
     """
-    assert len(salt) == cls.SALT_SIZE
+    if len(salt) != cls.SALT_SIZE:
+      raise Exception("invalid salt length")
     data += salt
     key = md5(data).digest()
     final_key = key
@@ -114,7 +116,8 @@ class CryptoJsBridge:
     Equivalent to `CryptoJS.AES.decrypt(encrypted, passphrase).toString(CryptoJS.enc.Utf8)`.
     """
     encrypted = base64.b64decode(encrypted)
-    assert encrypted.startswith(cls.SALTED_MARKER)
+    if not encrypted.startswith(cls.SALTED_MARKER):
+      raise Exception("expected salt marker")
     encrypted = encrypted[len(cls.SALTED_MARKER):]
     salt, ciphertext = encrypted[:cls.SALT_SIZE], encrypted[cls.SALT_SIZE:]
     key_iv = cls.bytes_to_key(passphrase, salt, cls.KEY_SIZE + cls.IV_SIZE)

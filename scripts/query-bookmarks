@@ -7,15 +7,14 @@
 # <https://stackoverflow.com/a/740183/12005228>
 # <https://wiki.mozilla.org/Places:BookmarksComments>
 
-import sys
 import os
-from pathlib import Path
-from configparser import ConfigParser
-import tempfile
 import shutil
 import sqlite3
-from typing import Optional, Tuple, Generator
-
+import sys
+import tempfile
+from configparser import ConfigParser
+from pathlib import Path
+from typing import Generator, Optional, Tuple
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import common_script_utils

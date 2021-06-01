@@ -1,11 +1,15 @@
-def humanize_timedelta(timedelta):
-  result = []
+from datetime import timedelta
+from typing import List, Tuple
+
+
+def humanize_timedelta(timedelta: timedelta) -> str:
+  result: List[str] = []
 
   days = timedelta.days
   mm, ss = divmod(timedelta.seconds, 60)
   hh, mm = divmod(mm, 60)
 
-  def plural(n):
+  def plural(n: int) -> Tuple[int, str]:
     return n, "s" if abs(n) != 1 else ""
 
   if days > 0:
@@ -20,7 +24,7 @@ def humanize_timedelta(timedelta):
   return ", ".join(result)
 
 
-def humanize_bytes(bytes):
+def humanize_bytes(bytes: int) -> str:
   units = ["B", "kB", "MB", "GB"]
 
   factor = 1

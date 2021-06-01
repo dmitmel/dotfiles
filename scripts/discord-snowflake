@@ -3,16 +3,16 @@
 # https://discord.com/developers/docs/reference#snowflakes
 
 import sys
-import colorama
 import time
 
+import colorama
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
 
 user_snowflake = int(sys.argv[1])
 
 
-def print_field(name, value):
+def print_field(name: str, value: object) -> None:
   print(
     "{}{}:{} {}".format(colorama.Style.BRIGHT, name.rjust(21), colorama.Style.RESET_ALL, value)
   )

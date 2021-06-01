@@ -5,7 +5,6 @@ import re
 from colors import COLORS, Style
 from system_info import get_system_info
 
-
 print("")
 
 logo_lines, info_lines = get_system_info()

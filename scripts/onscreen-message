@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import gi
 import argparse
 
+import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, Pango
-
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk, Gtk, Pango
 
 parser = argparse.ArgumentParser()
 parser.add_argument("message", type=str, nargs="+")
@@ -24,13 +24,13 @@ scrolled_window.add(label)
 window.add(scrolled_window)
 
 
-def on_key_release(target, event):
+def on_key_release(_target, event) -> None:
   key = event.keyval
   if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
     window.close()
 
 
-def on_configure(target, event):
+def on_configure(target, event) -> None:
   if target != window or event.type != Gdk.EventType.CONFIGURE:
     return
   font_desc = Pango.FontDescription()

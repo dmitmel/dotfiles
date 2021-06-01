@@ -3,6 +3,10 @@
     {
       "root": "scripts",
       "extraPaths": ["script-resources"]
+    },
+    {
+      "root": "script-resources/welcome",
+      "extraPaths": ["script-resources/welcome"]
     }
   ]
 }

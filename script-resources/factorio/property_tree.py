@@ -5,7 +5,7 @@
 # <https://www.devdungeon.com/content/working-binary-data-python>
 
 import struct
-from typing import Any, IO
+from typing import IO, Any
 
 
 def read_bool(buf: IO[bytes]) -> bool:

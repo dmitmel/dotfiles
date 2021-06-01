@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import discord
-import sys
 import os
+import sys
+from typing import Optional, cast
 
+import discord
 
 guild_id = int(sys.argv[1])
 voice_channel_id = int(sys.argv[2])
@@ -16,17 +17,17 @@ bot = discord.Client()
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
   print("logged in as {0} ({0.id})".format(bot.user))
 
-  guild: discord.Guild = bot.get_guild(guild_id)
+  guild: Optional[discord.Guild] = bot.get_guild(guild_id)
   if guild is None:
     raise Exception("guild not found")
-  voice_channel: discord.VoiceChannel = guild.get_channel(voice_channel_id)
+  voice_channel: Optional[discord.VoiceChannel] = guild.get_channel(voice_channel_id)
   if voice_channel is None:
     raise Exception("channel not found")
 
-  voice_client = await voice_channel.connect()
+  voice_client = cast(discord.voice_client.VoiceClient, await voice_channel.connect())
   print("connected to {0} ({0.id}) in {1} ({1.id})".format(voice_channel, guild))
 
   source = discord.FFmpegPCMAudio(pulseaudio_device, before_options="-f pulse")

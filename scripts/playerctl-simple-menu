@@ -7,15 +7,15 @@
 # TODO: Update the menu on player status changes.
 
 import math
-import gi
 import sys
 
+import gi
 
 gi.require_version("Playerctl", "2.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 gi.require_version("Pango", "1.0")
-from gi.repository import Playerctl, Gtk, Gdk, GLib, Pango
+from gi.repository import Gdk, GLib, Gtk, Pango, Playerctl
 
 # Larger priority values will make the player with this name appear higher in
 # the menu. The default priority is 0.
@@ -39,7 +39,7 @@ PLAYER_PLAYBACK_STATUS_EMOJIS = {
 }
 
 
-def humanize_duration(duration):
+def humanize_duration(duration: float) -> str:
   minutes, seconds = divmod(math.floor(duration), 60)
   hours, minutes = divmod(minutes, 60)
   text = "{:02}:{:02}".format(minutes, seconds)

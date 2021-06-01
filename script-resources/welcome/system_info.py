@@ -3,17 +3,17 @@ import platform
 import socket
 from datetime import datetime, timedelta
 from getpass import getuser
+from typing import Dict, List, Optional, Tuple, cast
 
 import psutil
-
 from colors import Fore, Style, bright_colored, colored, colorize_percent
 from humanize import humanize_bytes, humanize_timedelta
 
 
-def get_system_info():
-  info_lines = []
+def get_system_info() -> Tuple[List[str], List[str]]:
+  info_lines: List[str] = []
 
-  def info(name, value, *format_args):
+  def info(name: str, value: str, *format_args) -> None:
     line = bright_colored(name + ":", Fore.YELLOW) + " " + value
     if format_args:
       line = line % format_args
@@ -66,27 +66,27 @@ def get_system_info():
   return logo_lines, info_lines
 
 
-def _get_hostname():
+def _get_hostname() -> str:
   hostname = socket.gethostname()
   return hostname
 
 
-def _get_uptime():
+def _get_uptime() -> timedelta:
   return datetime.now() - datetime.fromtimestamp(psutil.boot_time())
 
 
-def _get_users():
-  users = {}
+def _get_users() -> str:
+  users: Dict[str, List[str]] = {}
 
   for user in psutil.users():
-    name = user.name
-    terminal = user.terminal
+    name: str = user.name
+    terminal: str = user.terminal
     if name in users:
       users[name].append(terminal)
     else:
       users[name] = [terminal]
 
-  result = []
+  result: List[str] = []
 
   for name in users:
     terminals = users[name]
@@ -102,13 +102,13 @@ def _get_users():
   return ", ".join(result)
 
 
-def _get_shell():
+def _get_shell() -> Optional[str]:
   return os.environ.get("SHELL")
 
 
-def _get_cpu_usage():
+def _get_cpu_usage() -> Optional[str]:
   try:
-    percent = psutil.cpu_percent()
+    percent = cast(float, psutil.cpu_percent())
   except Exception as e:
     print("Error in _get_cpu_usage:", e)
     return None
@@ -116,7 +116,7 @@ def _get_cpu_usage():
   return colorize_percent(percent, warning=60, critical=80)
 
 
-def _get_memory():
+def _get_memory() -> Tuple[str, str, str]:
   memory = psutil.virtual_memory()
   return (
     humanize_bytes(memory.used),
@@ -125,8 +125,8 @@ def _get_memory():
   )
 
 
-def _get_disks():
-  result = []
+def _get_disks() -> List[Tuple[str, str, str, str]]:
+  result: List[Tuple[str, str, str, str]] = []
 
   for disk in psutil.disk_partitions(all=False):
     if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
@@ -146,7 +146,7 @@ def _get_disks():
   return result
 
 
-def _get_battery():
+def _get_battery() -> Optional[Tuple[str, str]]:
   if not hasattr(psutil, "sensors_battery"):
     return None
 
@@ -167,8 +167,8 @@ def _get_battery():
   return colorize_percent(percent, critical=10, warning=20, inverse=True), status
 
 
-def _get_local_ipv4_addresses():
-  result = []
+def _get_local_ipv4_addresses() -> List[Tuple[str, str]]:
+  result: List[Tuple[str, str]] = []
 
   for interface, addresses in psutil.net_if_addrs().items():
     for address in addresses:
@@ -184,7 +184,7 @@ def _get_local_ipv4_addresses():
   return result
 
 
-def _get_distro_info():
+def _get_distro_info() -> Tuple[str, str, str, str]:
   if psutil.WINDOWS:
     return "windows", platform.system(), platform.release(), ""
   elif psutil.OSX:
@@ -194,9 +194,13 @@ def _get_distro_info():
       sw_vers = plistlib.load(f)
     return "mac", sw_vers["ProductName"], sw_vers["ProductVersion"], ""
   elif _is_android():
-    from subprocess import check_output
+    import subprocess
 
-    android_version = check_output(["getprop", "ro.build.version.release"])
+    android_version = subprocess.run(
+      ["getprop", "ro.build.version.release"],
+      check=True,
+      stdout=subprocess.PIPE,
+    ).stdout
     return "android", "Android", android_version.decode().strip(), ""
   elif psutil.LINUX:
     import distro
@@ -206,5 +210,5 @@ def _get_distro_info():
   raise NotImplementedError("unsupported OS")
 
 
-def _is_android():
+def _is_android() -> bool:
   return os.path.isdir("/system/app") and os.path.isdir("/system/priv-app")

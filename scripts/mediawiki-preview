@@ -39,12 +39,13 @@
 #       created by this script.
 
 import argparse
-import mwclient
-import json
-from urllib.parse import urlencode
 import html
+import json
 import re
+from typing import Dict, List, cast
+from urllib.parse import urlencode
 
+import mwclient
 
 LANG = "en"
 LANG_TEXT_DIRECTION = "ltr"
@@ -116,7 +117,7 @@ MODULES_PRELOAD_SCRIPTS = {
 
 
 # ported from <https://github.com/wikimedia/mediawiki/blob/c15ded31a6ca79fa65c00d151a7220632ad90b6d/includes/parser/Sanitizer.php#L1205-L1222>
-def escape_css_class(class_str):
+def escape_css_class(class_str: str) -> str:
   class_str = re.sub(
     r"""(^[0-9\-])|[\x00-\x20!"#$%&'()*+,.\/:;<=>?@[\]^`{|}~]|\xA0""",
     "_",
@@ -127,8 +128,8 @@ def escape_css_class(class_str):
   return class_str
 
 
-def json_dumps_compact(data):
-  return json.dumps(data, indent=None, separators=(",", ":"))
+def json_dumps_compact(data: object) -> str:
+  return json.dumps(data, indent=None, separators=(",", ":"), ensure_ascii=False)
 
 
 parser = argparse.ArgumentParser()
@@ -147,7 +148,7 @@ cli_args = parser.parse_args()
 site = mwclient.Site(cli_args.site, scheme=cli_args.scheme)
 
 
-def get_load_script_url(**args):
+def get_load_script_url(**args: object) -> str:
   return "{path}load{ext}?{args}".format(
     path=site.path,
     ext=site.ext,
@@ -177,7 +178,11 @@ result = site.post(
 )["parse"]
 
 
-def get_modules(page_modules, added_modules_dict, blocked_modules_dict={}):
+def get_modules(
+  page_modules: List[str],
+  added_modules_dict: Dict[str, List[str]],
+  blocked_modules_dict: Dict[str, List[str]] = {}
+) -> List[str]:
   modules = page_modules + added_modules_dict[cli_args.skin]
   for blocked_module in blocked_modules_dict.get(cli_args.skin, []):
     try:
@@ -272,7 +277,7 @@ rendered_html = """\
   ),
   skin=html.escape(cli_args.skin),
   page_class=html.escape(escape_css_class(result["displaytitle"])),
-  title=html.escape(result["displaytitle"]),
+  title=html.escape(cast(str, result["displaytitle"])),
   indicators_html="\n".join([
     '<div id="mw-indicator-{}" class="mw-indicator">{}</div>'.format(
       indicator["name"], indicator["*"]

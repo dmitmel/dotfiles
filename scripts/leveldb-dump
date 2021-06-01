@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import argparse
-from pathlib import Path
-from typing import Union
-import plyvel
-import json
-from sys import stdout
 import base64
+import json
+from pathlib import Path
+from sys import stdout
+from typing import Union
 
+import plyvel
 
 parser = argparse.ArgumentParser()
 encoding_names = ["utf8", "base16", "base32", "base64", "base85"]
@@ -32,7 +32,7 @@ def bytes_to_json(b: bytes, encoding: str) -> Union[str, list[int]]:
   elif encoding == "base85":
     return base64.b85encode(b).decode("ascii")
   else:
-    assert False
+    raise Exception("unreachable")
 
 
 key_encoding: str = cli_args.key_encoding or cli_args.encoding

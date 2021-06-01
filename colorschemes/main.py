@@ -3,8 +3,7 @@
 import json
 import os
 from abc import abstractmethod
-from typing import Dict, Iterable, List, Protocol, TextIO, runtime_checkable
-
+from typing import Dict, Iterator, List, Protocol, TextIO, runtime_checkable
 
 __dir__ = os.path.dirname(__file__)
 
@@ -12,16 +11,20 @@ __dir__ = os.path.dirname(__file__)
 class Color:
 
   def __init__(self, r: int, g: int, b: int) -> None:
-    assert 0 <= r <= 0xff
-    assert 0 <= g <= 0xff
-    assert 0 <= b <= 0xff
+    if not (0 <= r <= 0xff):
+      raise Exception("r component out of range")
+    if not (0 <= g <= 0xff):
+      raise Exception("g component out of range")
+    if not (0 <= b <= 0xff):
+      raise Exception("b component out of range")
     self.r = r
     self.g = g
     self.b = b
 
   @classmethod
   def from_hex(cls, s: str) -> "Color":
-    assert len(s) == 6
+    if len(s) != 6:
+      raise Exception("hex color string must be 6 characters long")
     return Color(int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16))
 
   @property
@@ -42,7 +45,7 @@ class Color:
     else:
       raise IndexError("color component index out of range")
 
-  def __iter__(self) -> Iterable[int]:
+  def __iter__(self) -> Iterator[int]:
     yield self.r
     yield self.g
     yield self.b
@@ -296,20 +299,21 @@ class ThemeGeneratorXfceTerminal(ThemeGenerator):
 
 class ThemeGeneratorVscode(ThemeGenerator):
 
+  ANSI_COLOR_NAMES = [
+    "Black",
+    "Red",
+    "Green",
+    "Yellow",
+    "Blue",
+    "Magenta",
+    "Cyan",
+    "White",
+  ]
+
   def file_name(self) -> str:
     return "vscode-colorCustomizations.json"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-    ANSI_COLOR_NAMES = [
-      "Black",
-      "Red",
-      "Green",
-      "Yellow",
-      "Blue",
-      "Magenta",
-      "Cyan",
-      "White",
-    ]
 
     colors: Dict[str, str] = {
       "terminal.background": theme.bg.css_hex,
@@ -320,8 +324,8 @@ class ThemeGeneratorVscode(ThemeGenerator):
     }
 
     for is_bright in [False, True]:
-      for color_index, color_name in enumerate(ANSI_COLOR_NAMES):
-        color = theme.ansi_colors[color_index + int(is_bright) * len(ANSI_COLOR_NAMES)]
+      for color_index, color_name in enumerate(self.ANSI_COLOR_NAMES):
+        color = theme.ansi_colors[color_index + int(is_bright) * len(self.ANSI_COLOR_NAMES)]
         colors["terminal.ansi" + ("Bright" if is_bright else "") + color_name] = color.css_hex
 
     json.dump(colors, output, ensure_ascii=False, indent=2)
@@ -341,7 +345,7 @@ class ThemeGeneratorIterm(ThemeGenerator):
     output.write('<plist version="1.0">\n')
     output.write("<dict>\n")
 
-    def write_color(key_name, color):
+    def write_color(key_name: str, color: Color) -> None:
       r, g, b = (float(component) / 0xff for component in color)
       output.write("    <key>{} Color</key>\n".format(key_name))
       output.write("    <dict>\n")

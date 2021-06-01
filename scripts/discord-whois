@@ -4,15 +4,16 @@
 # <https://discord.com/developers/docs/resources/user#user-object#get-user>
 # <https://discord.com/developers/docs/reference>
 
-import sys
-import os
-import urllib.request
-import urllib.error
-import colorama
-import time
 import argparse
 import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.request
+from typing import Dict, List, Optional
 
+import colorama
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
 # https://discord.com/developers/docs/resources/user#user-object-user-flags
@@ -37,17 +38,17 @@ parser.add_argument("user_snowflake", type=int)
 parser.add_argument("--bot-token", type=str)
 parser.add_argument("--image-size", type=int)
 parser.add_argument("--get-prop", type=str)
-parser.add_argument("--api-response", action='store_true')
+parser.add_argument("--api-response", action="store_true")
 cli_args = parser.parse_args()
 
-user_snowflake = cli_args.user_snowflake
+user_snowflake: int = cli_args.user_snowflake
 
-bot_token = cli_args.bot_token
+bot_token: Optional[str] = cli_args.bot_token
 if bot_token is None:
   with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
     bot_token = f.read().strip()
 
-image_size = cli_args.image_size
+image_size: Optional[int] = cli_args.image_size
 if not (image_size is None or (image_size > 0 and image_size & (image_size - 1)) == 0):
   parser.error("image_size must be greater than zero and a power of two")
 
@@ -70,10 +71,10 @@ except urllib.error.HTTPError as err:
 
 if cli_args.api_response:
   json.dump(raw_data, sys.stdout, ensure_ascii=False, indent=2)
-  sys.stdout.write('\n')
+  sys.stdout.write("\n")
   sys.exit()
 
-data = {}
+data: Dict[str, str] = {}
 
 data["ID"] = raw_data["id"]
 data["Name"] = "{}#{}".format(raw_data["username"], raw_data["discriminator"])
@@ -108,7 +109,7 @@ user_flags = raw_data["public_flags"]
 if user_flags == 0:
   data["Flags"] = "<none>"
 else:
-  user_flag_names = []
+  user_flag_names: List[str] = []
   for flag_name, bitmask in DISCORD_FLAGS.items():
     if user_flags & bitmask:
       user_flag_names.append(flag_name)

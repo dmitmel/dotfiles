@@ -2,7 +2,7 @@ from math import *
 from fractions import Fraction
 
 
-def factors(n):
+def factors(n: int) -> "set[int]":
   result = set()
   for i in range(1, int(sqrt(n)) + 1):
     if n % i == 0:
@@ -11,7 +11,7 @@ def factors(n):
   return result
 
 
-def solve_quadratic(a, b, c):
+def solve_quadratic(a: int, b: int, c: int) -> None:
   if a == 0:
     raise Exception("not a quadratic equation")
   else:
