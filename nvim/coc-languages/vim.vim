@@ -1,3 +1,6 @@
+" This plugin ended up being useless.
+finish
+
 let s:filetypes = ['vim']
 let g:coc_filetypes += s:filetypes
 
