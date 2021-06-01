@@ -8,6 +8,7 @@
 
 import math
 import gi
+import sys
 
 
 gi.require_version("Playerctl", "2.0")
@@ -167,95 +168,114 @@ def iter_actions_for_player(player):
   )
 
 
-root_menu = Gtk.Menu()
+is_already_activated = False
 
-player_names = Playerctl.list_players()
 
-if len(player_names) > 0:
-  players = []
-  for player_name in player_names:
-    player = Playerctl.Player.new_from_name(player_name)
-    players.append({
-      "player":
-        player,
-      "player_name":
-        player_name,
-      "sorting_key": (
-        player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
-        -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
-        player_name.instance,
-      ),
-    })
-  players = sorted(players, key=lambda player_and_meta: player_and_meta["sorting_key"])
+def on_activate(application):
+  global is_already_activated
+  if is_already_activated:
+    # Ignore activations triggered by remote instances. See this:
+    # <https://stackoverflow.com/a/42044391/12005228>
+    return
+  is_already_activated = True
 
-  for player_and_meta in players:
-    player_name = player_and_meta["player_name"]
-    player = player_and_meta["player"]
+  root_menu = Gtk.Menu()
 
-    player_menu_item = Gtk.ImageMenuItem.new_with_label(
-      "{} [{}]".format(
-        player_name.instance,
-        PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
-      )
-    )
+  player_names = Playerctl.list_players()
 
-    player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
-    player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
-    player_menu_item.set_image(player_icon)
+  if len(player_names) > 0:
+    players = []
+    for player_name in player_names:
+      player = Playerctl.Player.new_from_name(player_name)
+      players.append({
+        "player":
+          player,
+        "player_name":
+          player_name,
+        "sorting_key": (
+          player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
+          -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
+          player_name.instance,
+        ),
+      })
+    players = sorted(players, key=lambda player_and_meta: player_and_meta["sorting_key"])
 
-    actions_menu = Gtk.Menu()
+    for player_and_meta in players:
+      player_name = player_and_meta["player_name"]
+      player = player_and_meta["player"]
 
-    track_metadata = player.props.metadata
-    any_metadata_was_added = False
-    for meta_entry_text in iter_metadata_entries_for_player(player):
-      meta_menu_item = Gtk.MenuItem.new_with_label(meta_entry_text)
-      meta_menu_item.set_sensitive(False)
-      meta_menu_item_label = meta_menu_item.get_child()
-      meta_menu_item_label.set_ellipsize(Pango.EllipsizeMode.END)
-      meta_menu_item_label.set_max_width_chars(20)
-
-      actions_menu.append(meta_menu_item)
-      any_metadata_was_added = True
-
-    if any_metadata_was_added:
-      actions_menu.append(Gtk.SeparatorMenuItem.new())
-
-    for (
-      action_name,
-      action_icon_name,
-      action_enabled,
-      action_fn,
-      *action_fn_args,
-    ) in iter_actions_for_player(player):
-      action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
-
-      if action_icon_name is not None:
-        action_icon = Gtk.Image.new_from_icon_name(action_icon_name, Gtk.IconSize.MENU)
-        action_menu_item.set_image(action_icon)
-
-      action_menu_item.set_sensitive(action_enabled)
-      if action_fn is not None:
-        action_menu_item.connect(
-          "activate",
-          lambda _menu_item, action_fn, action_fn_args: action_fn(*action_fn_args),
-          action_fn,
-          action_fn_args,
+      player_menu_item = Gtk.ImageMenuItem.new_with_label(
+        "{} [{}]".format(
+          player_name.instance,
+          PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
         )
+      )
 
-      actions_menu.append(action_menu_item)
+      player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
+      player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
+      player_menu_item.set_image(player_icon)
 
-    player_menu_item.set_submenu(actions_menu)
-    root_menu.append(player_menu_item)
-else:
-  menu_item = Gtk.MenuItem.new_with_label("No players were detected!")
-  menu_item.set_sensitive(False)
-  root_menu.append(menu_item)
+      actions_menu = Gtk.Menu()
 
-root_menu.connect("selection-done", Gtk.main_quit)
-root_menu.connect("deactivate", Gtk.main_quit)
-root_menu.connect("destroy", Gtk.main_quit)
+      any_metadata_was_added = False
+      for meta_entry_text in iter_metadata_entries_for_player(player):
+        meta_menu_item = Gtk.MenuItem.new_with_label(meta_entry_text)
+        meta_menu_item.set_sensitive(False)
+        meta_menu_item_label = meta_menu_item.get_child()
+        meta_menu_item_label.set_ellipsize(Pango.EllipsizeMode.END)
+        meta_menu_item_label.set_max_width_chars(20)
 
-root_menu.show_all()
-root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
+        actions_menu.append(meta_menu_item)
+        any_metadata_was_added = True
 
-Gtk.main()
+      if any_metadata_was_added:
+        actions_menu.append(Gtk.SeparatorMenuItem.new())
+
+      for (
+        action_name,
+        action_icon_name,
+        action_enabled,
+        action_fn,
+        *action_fn_args,
+      ) in iter_actions_for_player(player):
+        action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
+
+        if action_icon_name is not None:
+          action_icon = Gtk.Image.new_from_icon_name(action_icon_name, Gtk.IconSize.MENU)
+          action_menu_item.set_image(action_icon)
+
+        action_menu_item.set_sensitive(action_enabled)
+        if action_fn is not None:
+          action_menu_item.connect(
+            "activate",
+            lambda _target, action_fn, action_fn_args: action_fn(*action_fn_args),
+            action_fn,
+            action_fn_args,
+          )
+
+        actions_menu.append(action_menu_item)
+
+      player_menu_item.set_submenu(actions_menu)
+      root_menu.append(player_menu_item)
+  else:
+    menu_item = Gtk.MenuItem.new_with_label("No players were detected!")
+    menu_item.set_sensitive(False)
+    root_menu.append(menu_item)
+
+  root_menu.connect("selection-done", lambda _target: application.quit())
+  root_menu.connect("deactivate", lambda _target: application.quit())
+  root_menu.connect("destroy", lambda _target: application.quit())
+
+  root_menu.show_all()
+  root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
+
+  Gdk.notify_startup_complete()
+
+  # `hold` needs to be done last, so that if an exception occurs during the
+  # initialization the application doesn't hang.
+  application.hold()
+
+
+application = Gtk.Application(application_id="com.github.dmitmel.dotfiles.playerctl-simple-menu")
+application.connect("activate", on_activate)
+sys.exit(application.run(sys.argv))
