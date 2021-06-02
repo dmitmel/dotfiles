@@ -12,3 +12,12 @@
   }
   */
 }
+
+@-moz-document url(about:home), url(about:newtab) {
+  /* <https://github.com/black7375/Firefox-UI-Fix/blob/3f9ac3032ce90b46a190ac16b29ecf2488290d51/userContent.css#L12-L16> */
+  /* <https://searchfox.org/mozilla-central/rev/74f3c420ee54001059e1850bef3be876749ff873/browser/components/newtab/content-src/components/TopSites/_TopSites.scss#125-126> */
+  .top-site-outer .tile .icon-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
