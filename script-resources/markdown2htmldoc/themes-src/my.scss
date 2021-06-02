@@ -448,7 +448,7 @@ dd {
 // <https://gitlab.com/gitlab-org/gitlab/-/blob/7a6e4f24d0d828500a7c7b6eb84973a1b4c35534/app/assets/stylesheets/framework/typography.scss#L403-417>
 ul > li.task-list-item {
   list-style-type: none;
-  input[type='checkbox']:first-child {
+  > input[type='checkbox']:first-child {
     margin: 0 0.2em 0.25em -1.6em;
     vertical-align: middle;
   }
