@@ -14,13 +14,16 @@ _plugin completions-rustc 'https://raw.githubusercontent.com/rust-lang/zsh-confi
 _plugin completions-cargo 'https://raw.githubusercontent.com/rust-lang/cargo/master/src/etc/_cargo' from=url \
   after_load='plugin-cfg-path fpath prepend ""'
 
-rustup_comp_path="${ZSH_CACHE_DIR}/site-functions/_rustup"
-if [[ "${commands[rustup]}" -nt "$rustup_comp_path" || ! -s "$rustup_comp_path" ]]; then
-  _perf_timer_start "generate rustup completions"
-  rustup completions zsh >| "$rustup_comp_path"
-  _perf_timer_stop "generate rustup completions"
+rustup_bin="${commands[rustup]}"
+if [[ -n "$rustup_bin" ]]; then
+  rustup_comp_path="${ZSH_CACHE_DIR}/site-functions/_rustup"
+  if [[ "$rustup_bin" -nt "$rustup_comp_path" || ! -s "$rustup_comp_path" ]]; then
+    _perf_timer_start "generate rustup completions"
+    "$rustup_bin" completions zsh >| "$rustup_comp_path"
+    _perf_timer_stop "generate rustup completions"
+  fi
+  unset rustup_comp_path
 fi
-unset rustup_comp_path
 
 # compinit {{{
   _perf_timer_start "compinit"
