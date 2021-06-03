@@ -265,8 +265,14 @@ h6 {
     }
   }
 
-  &:hover .anchor {
-    > * {
+  &:hover {
+    .anchor > * {
+      visibility: visible;
+    }
+  }
+
+  @media (hover: none) {
+    .anchor > * {
       visibility: visible;
     }
   }
