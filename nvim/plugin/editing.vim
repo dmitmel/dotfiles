@@ -78,7 +78,13 @@ set commentstring=//%s
   nmap <silent> <leader>] m'yygccp`'j
   nmap <silent> <leader>[ m'yygccP`'k
 
-  command! -nargs=+ -complete=command PutOutput execute 'put =execute(' . escape(string(<q-args>), '|"') . ')'
+  function! PutOutput(cmd)
+    let output = execute(a:cmd)
+    execute "noswapfile pedit" "+" . fnameescape("setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile") fnameescape("preview://" . a:cmd)
+    wincmd P
+    call setline(1, split(output, "\n"))
+  endfunction
+  command! -nargs=+ -complete=command PutOutput silent call PutOutput(<q-args>)
 
   " ,c is easier to type than "+ because it doesn't require pressing Shift
   noremap <leader>c "+
