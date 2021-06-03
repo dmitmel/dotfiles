@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const pathM = require('path');
 const argparse = require('argparse');
 const markdownIt = require('markdown-it');
 const markdownItTaskCheckbox = require('markdown-it-task-checkbox');
@@ -110,6 +111,7 @@ let renderedHtmlDocument = `
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>${pathM.basename(args.INPUT_FILE || '<stdin>')}</title>
 ${stylesheetsTexts.map((s) => `<style>\n${s}\n</style>`).join('\n')}
 </head>
 <body>
