@@ -54,7 +54,11 @@ set commentstring=//%s
   " remember cursor position
   augroup vimrc-editing-remember-cursor-position
     autocmd!
-    autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exec "normal! g`\"" | endif
+    autocmd BufReadPost *
+      \ if line("'\"") > 1 && line("'\"") <= line("$")
+      \|  exec "normal! g`\""
+      \|endif
+      \|silent! .foldopen
   augroup END
 " }}}
 
