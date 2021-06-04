@@ -3,7 +3,7 @@
 import json
 import os
 from abc import abstractmethod
-from typing import Dict, Iterator, List, Protocol, TextIO, runtime_checkable
+from typing import Dict, Iterator, List, Protocol, TextIO
 
 __dir__ = os.path.dirname(__file__)
 
@@ -60,23 +60,10 @@ BASE16_TO_ANSI_MAPPING: List[int] = [
 ANSI_TO_BASE16_MAPPING: List[int] = [BASE16_TO_ANSI_MAPPING.index(i) for i in range(16)]
 
 
-@runtime_checkable
 class Theme(Protocol):
-
-  @property
-  @abstractmethod
-  def base16_name(self) -> str:
-    raise NotImplementedError()
-
-  @property
-  @abstractmethod
-  def is_dark(self) -> bool:
-    raise NotImplementedError()
-
-  @property
-  @abstractmethod
-  def base16_colors(self) -> List[Color]:
-    raise NotImplementedError()
+  base16_name: str
+  is_dark: bool
+  base16_colors: List[Color]
 
   @property
   def name(self) -> str:
@@ -152,7 +139,6 @@ class MyTheme(Theme):
   ]
 
 
-@runtime_checkable
 class ThemeGenerator(Protocol):
 
   @abstractmethod
@@ -248,7 +234,7 @@ class ThemeGeneratorVim(ThemeGenerator):
     output.write("let {}base16_colors = [\n".format(namespace))
     for gui_color, cterm_color in zip(theme.base16_colors, ANSI_TO_BASE16_MAPPING):
       output.write(
-        "\\ {{'gui': '{}', 'cterm': '{:02}'}},\n".format(gui_color.css_hex, cterm_color)
+        "\\ {{'gui': '{}', 'cterm': '{:02}'}},\n".format(gui_color.css_hex, cterm_color),
       )
     output.write("\\ ]\n")
 
@@ -293,7 +279,7 @@ class ThemeGeneratorXfceTerminal(ThemeGenerator):
     output.write("TabActivityColor={}\n".format(theme.base16_colors[0x8].css_hex))
     output.write("ColorBoldUseDefault=TRUE\n")
     output.write(
-      "ColorPalette={}\n".format(";".join(color.css_hex for color in theme.ansi_colors))
+      "ColorPalette={}\n".format(";".join(color.css_hex for color in theme.ansi_colors)),
     )
 
 
@@ -340,7 +326,7 @@ class ThemeGeneratorIterm(ThemeGenerator):
   def generate(self, theme: Theme, output: TextIO) -> None:
     output.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     output.write(
-      '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+      '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n',
     )
     output.write('<plist version="1.0">\n')
     output.write("<dict>\n")

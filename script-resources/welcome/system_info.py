@@ -13,7 +13,7 @@ from humanize import humanize_bytes, humanize_timedelta
 def get_system_info() -> Tuple[List[str], List[str]]:
   info_lines: List[str] = []
 
-  def info(name: str, value: str, *format_args) -> None:
+  def info(name: str, value: str, *format_args: object) -> None:
     line = bright_colored(name + ":", Fore.YELLOW) + " " + value
     if format_args:
       line = line % format_args

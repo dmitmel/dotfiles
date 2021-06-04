@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable, NoReturn
+from typing import Iterable, NoReturn, Optional
 
 if os.name == "posix":
   DOTFILES_CONFIG_DIR: Path = Path.home() / ".config" / "dotfiles"
@@ -13,7 +13,11 @@ def platform_not_supported_error() -> NoReturn:
   raise Exception("platform '{}' is not supported!".format(sys.platform))
 
 
-def run_chooser(choices: Iterable[str], prompt: str = None, async_read: bool = False) -> int:
+def run_chooser(
+  choices: Iterable[str],
+  prompt: Optional[str] = None,
+  async_read: bool = False,
+) -> int:
   supports_result_index = True
   if os.isatty(sys.stderr.fileno()):
     process_args = [
@@ -36,10 +40,13 @@ def run_chooser(choices: Iterable[str], prompt: str = None, async_read: bool = F
     platform_not_supported_error()
 
   chooser_process = subprocess.Popen(process_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+  assert chooser_process.stdin is not None
+  assert chooser_process.stdout is not None
 
   with chooser_process.stdin as pipe:
     for index, choice in enumerate(choices):
-      assert "\n" not in choice
+      if "\n" in choice:
+        raise Exception("choices can only span a single line")
       if not supports_result_index:
         pipe.write(str(index).encode())
         pipe.write(b" ")
@@ -54,7 +61,7 @@ def run_chooser(choices: Iterable[str], prompt: str = None, async_read: bool = F
   return chosen_index
 
 
-def send_notification(title: str, message: str, url: str = None) -> None:
+def send_notification(title: str, message: str, url: Optional[str] = None) -> None:
   if sys.platform == "darwin":
     process_args = [
       "terminal-notifier",

@@ -14,7 +14,7 @@ def bright_colored(string: str, *colors: str) -> str:
 
 
 def colorize_percent(
-  percent: float, warning: float, critical: float, inverse: bool = False
+  percent: float, warning: float, critical: float, inverse: bool = False,
 ) -> str:
   colors = [Fore.GREEN, Fore.YELLOW, Fore.RED]
 

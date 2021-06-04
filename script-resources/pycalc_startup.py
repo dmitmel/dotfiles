@@ -3,7 +3,7 @@ from fractions import Fraction
 
 
 def factors(n: int) -> "set[int]":
-  result = set()
+  result: "set[int]" = set()
   for i in range(1, int(sqrt(n)) + 1):
     if n % i == 0:
       result.add(i)
