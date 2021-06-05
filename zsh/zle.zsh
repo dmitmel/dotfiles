@@ -157,6 +157,7 @@
     local manpage=""
     manpage="$(fzf-search-manpage "$cmd_name")"
     BUFFER="man $manpage"
+    zle redisplay
     zle accept-line
   }
   zle -N find-man-page _widget_find_man_page
