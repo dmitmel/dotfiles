@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# type: ignore
 
 # A simple graphical menu to control MPRIS-compatible players through Playerctl.
 # <https://wiki.archlinux.org/index.php/MPRIS>
@@ -7,7 +8,9 @@
 # TODO: Update the menu on player status changes.
 
 import math
+import posixpath
 import sys
+import urllib.parse
 
 import gi
 
@@ -58,6 +61,14 @@ def iter_metadata_entries_for_player(player):
     album = metadata.lookup_value("xesam:album")
     if album:
       yield album.get_string()
+
+  else:
+    url = metadata.lookup_value("xesam:url")
+    if url:
+      url_parsed = urllib.parse.urlparse(url.get_string())
+      if url_parsed.scheme == "file":
+        filename = posixpath.basename(urllib.parse.unquote(url_parsed.path))
+        yield filename
 
   if player.props.can_seek:
     position_secs = player.props.position / 1e6
