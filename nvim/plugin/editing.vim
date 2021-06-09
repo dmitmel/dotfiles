@@ -145,6 +145,9 @@ set commentstring=//%s
   " Repeat the last edit n times, taken from <https://gist.github.com/romainl/db725db7babc84a9a6436180cedee188>
   nnoremap . <Cmd>execute "normal!" repeat(".", v:count1)<CR>
 
+  xnoremap A :normal! A
+  xnoremap I :normal! I
+
 " }}}
 
 
