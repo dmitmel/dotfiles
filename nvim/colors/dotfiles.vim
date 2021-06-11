@@ -121,7 +121,7 @@
   call s:hi('Search',    0x1, 0xA, '', '')
   hi! link Substitute Search
 
-  call s:hi('ModeMsg',  0xB, '',   '', '')
+  call s:hi('ModeMsg',  0xB, '',   'bold', '')
   call s:hi('Question', 0xB, '',   '', '')
   hi! link MoreMsg Question
   call s:hi('Visual',   '',  0x2,  '', '')
