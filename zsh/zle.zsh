@@ -152,7 +152,35 @@
 # find man page widget {{{
   _widget_find_man_page() {
     local words=("${(@z)BUFFER}")
-    local cmd_name="${words[1]}"
+
+    local cmd_name arg i is_subcommand
+    for (( i = 1; i <= ${#words}; i++ )); do
+      arg="${words[$i]}"
+
+      # Skip flags
+      if [[ "$arg" == '-'* ]]; then
+        continue
+      fi
+
+      # Skip command prefixes
+      if [[ -z "$is_subcommand" && "$arg" == (noglob|nocorrect|exec|command|builtin|nohup|disown|sudo|time|gtime|prime-run) ]]; then
+        continue
+      fi
+
+      if [[ -z "$is_subcommand" ]]; then
+        cmd_name="${arg}"
+      else
+        cmd_name="${cmd_name}-${arg}"
+      fi
+
+      if [[ -z "$is_subcommand" && "$arg" == (git|hub|npm|apt|docker|pip|perf) ]]; then
+        is_subcommand=1
+        continue
+      fi
+
+      break
+    done
+
     zle push-line
     local manpage=""
     manpage="$(fzf-search-manpage "$cmd_name")"
