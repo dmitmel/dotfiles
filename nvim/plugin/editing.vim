@@ -220,11 +220,16 @@ set commentstring=//%s
 " Formatting {{{
 
   " -o: don't insert a comment after hitting 'o' or 'O' in the Normal mode
+  " +r: however, insert a comment after pressing Enter in the Insert mode
   " -t: don't auto-wrap regular code while typing
   " -c: don't auto-wrap comments while typing
   augroup vimrc-editing-formatting
     autocmd!
-    autocmd FileType * set formatoptions-=o | set formatoptions-=t | set formatoptions-=c
+    autocmd FileType *
+      \ setlocal formatoptions-=o
+      \|setlocal formatoptions+=r
+      \|setlocal formatoptions-=t
+      \|setlocal formatoptions-=c
   augroup END
 
 " }}}
