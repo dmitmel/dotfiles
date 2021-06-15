@@ -37,3 +37,8 @@ export FZF_DEFAULT_OPTS="--color=16 --height=40% --reverse"
 
 # <https://github.com/sharkdp/bat#8-bit-themes>
 export BAT_THEME="base16-256"
+
+# <https://foss.heptapod.net/pypy/pypy/-/blob/release-pypy3.7-v7.3.5/lib_pypy/_pypy_irc_topic.py>
+# <https://foss.heptapod.net/pypy/pypy/-/blob/release-pypy3.7-v7.3.5/lib_pypy/_pypy_interact.py#L17-27>
+# <https://foss.heptapod.net/pypy/pypy/-/blob/release-pypy3.7-v7.3.5/pypy/interpreter/app_main.py#L892-896>
+export PYPY_IRC_TOPIC=1
