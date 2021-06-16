@@ -318,6 +318,7 @@ pre {
 // Inline code snippets.
 code {
   padding: 0.2em 0.3em;
+  color: inherit;
   background-color: rgba(colorscheme.$base-03, 0.2);
   border-radius: $border-radius;
 }
