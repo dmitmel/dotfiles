@@ -13,11 +13,11 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     let s:rg_ignore = split(&wildignore, ',') + [
     \ 'node_modules', 'target', 'build', 'dist', '.stack-work'
     \ ]
-    let s:rg_cmd .= " --glob '!{'" . shellescape(join(s:rg_ignore, ',')) . "'}'"
+    let s:rg_cmd .= " --glob '!{'" . shellescape(join(s:rg_ignore, ','), 1) . "'}'"
 
     let &grepprg = s:rg_cmd . ' --vimgrep'
     let $FZF_DEFAULT_COMMAND = s:rg_cmd . ' --files'
-    command! -bang -nargs=* Rg call fzf#vim#grep(s:rg_cmd . ' --column --line-number --no-heading --fixed-strings --smart-case --color always ' . shellescape(<q-args>), 1, <bang>0)
+    command! -bang -nargs=* Rg call fzf#vim#grep(s:rg_cmd . ' --column --line-number --no-heading --fixed-strings --smart-case --color always ' . shellescape(<q-args>, 1), 1, <bang>0)
     command! -bang -nargs=* Find Rg<bang> <args>
   endif
 
@@ -26,13 +26,13 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   function! s:grep_mapping_star_normal()
     let word = expand("<cword>")
     if !empty(word)
-      call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b'), 'n')
+      call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b', 1), 'n')
     endif
   endfunction
   function! s:grep_mapping_star_visual()
     let tmp = @"
     normal! y
-    call feedkeys(":\<C-u>grep " . shellescape(@"), 'n')
+    call feedkeys(":\<C-u>grep " . shellescape(@", 1), 'n')
     let @" = tmp
   endfunction
   nnoremap <leader>* <Cmd>call <SID>grep_mapping_star_normal()<CR>
@@ -137,7 +137,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
         echoerr "Please install <https://github.com/mwh/dragon> for the DragOut command to work."
         return
       endif
-      execute '!dragon-drag-and-drop '.shellescape(a:path)
+      execute '!dragon-drag-and-drop' shellescape(a:path, 1)
     endfunction
     command -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}

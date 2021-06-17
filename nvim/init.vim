@@ -13,7 +13,7 @@ let s:vim_plug_home = s:vim_config_dir . '/plugged'
 
 let s:just_installed_vim_plug = 0
 if !filereadable(s:vim_plug_script)
-  execute '!curl -fL https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim --create-dirs -o' shellescape(s:vim_plug_script)
+  execute '!curl -fL https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim --create-dirs -o' shellescape(s:vim_plug_script, 1)
   autocmd VimEnter * PlugInstall --sync
 endif
 
