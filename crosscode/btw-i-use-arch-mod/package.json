@@ -2,6 +2,9 @@
   "name": "btw-i-use-arch",
   "ccmodHumanName": "btw I use Arch",
   "description": "A mod for masochists like myself",
+  "dependencies": {
+    "crosscode-tweak-pack": "*"
+  },
   "prestart": "prestart.js",
   "main": "poststart.js",
   "module": true

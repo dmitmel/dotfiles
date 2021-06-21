@@ -5,6 +5,9 @@
   "icons": {
     "24": "icon24.png"
   },
+  "dependencies": {
+    "crosscode-tweak-pack": "*"
+  },
   "prestart": "prestart.js",
   "poststart": "poststart.js"
 }
