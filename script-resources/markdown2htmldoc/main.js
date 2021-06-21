@@ -64,7 +64,7 @@ let md = markdownIt({
   },
 });
 md.use(markdownItTaskCheckbox);
-md.use(markdownItEmoji);
+md.use(markdownItEmoji, { shortcuts: {} });
 md.use(markdownItHeaderAnchors);
 
 let markdownDocument = fs.readFileSync(args.INPUT_FILE || 0, args.input_encoding);
