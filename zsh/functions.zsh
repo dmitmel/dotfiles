@@ -20,7 +20,11 @@ viscd() {
   }
 }
 
-command_exists() { command -v "$1" &>/dev/null; }
+# Checks if a word can be meaningfully executed as a command (aliases,
+# functions and builtins also count).
+command_exists() { whence -- "$@" &>/dev/null; }
+# Searches the command binary in PATH.
+command_locate() { whence -p -- "$@"; }
 
 lazy_load() {
   local command="$1"
@@ -125,3 +129,14 @@ sync_working_dir_load() {
   fi
 }
 alias cds="sync_working_dir_load"
+
+discord-avatar() {
+  setopt local_options err_return
+  if (( $# != 1 )); then
+    print >&2 "Usage: $0 [user_snowflake]"
+    return 1
+  fi
+  local avatar_url
+  avatar_url="$(discord-whois --image-size 4096 --get 'Avatar' "$1")"
+  open "$avatar_url"
+}
