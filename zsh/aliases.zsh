@@ -119,6 +119,4 @@ if command_exists dragon-drag-and-drop && ! command_exists dragon; then
   alias dragon='dragon-drag-and-drop'
 fi
 
-if gnu_time_path="$(command_locate time)" && [[ -n "$gnu_time_path" ]]; then
-  alias gtime="${(q)gnu_time_path} -v"
-fi
+alias gtime="command time -v"
