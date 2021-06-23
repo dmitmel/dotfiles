@@ -18,6 +18,6 @@ let g:coc_user_config['prettier'] = {
 \ 'bracketSpacing': v:true,
 \ 'jsxBracketSameLine': v:true,
 \ 'arrowParens': 'always',
+\ 'proseWrap': 'preserve',
 \ 'disableSuccessMessage': v:true,
-\ 'proseWrap': 'always',
 \ }
