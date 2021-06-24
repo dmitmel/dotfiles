@@ -40,7 +40,7 @@ endif
   set confirm
 
   " Bbye with confirmation, or fancy buffer closer {{{
-    function s:CloseBuffer(cmd) abort
+    function! s:CloseBuffer(cmd) abort
       let cmd = a:cmd
       if &modified
         " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
@@ -141,7 +141,7 @@ endif
   " Based on <https://stackoverflow.com/a/1330556/12005228>, inspired by
   " <https://gist.github.com/romainl/f7e2e506dc4d7827004e4994f1be2df6>.
   " But apparently `vimgrep /pattern/ %` can be used instead?
-  function! s:CmdGlobal(pattern, bang)
+  function! s:CmdGlobal(pattern, bang) abort
     let pattern = substitute(a:pattern, "/.*$", "", "")
     let matches = []
     execute "g" . (a:bang ? "!" : "") . "/" . pattern . "/call add(matches, expand(\"%\").\":\".line(\".\").\":\".col(\".\").\":\".getline(\".\"))"

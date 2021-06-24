@@ -21,12 +21,12 @@
 " }}}
 
 " The highlighting function {{{
-  function s:is_number(value)
+  function! s:is_number(value) abort
     return type(a:value) == v:t_number
   endfunction
 
   let s:colors = g:dotfiles_colorscheme_base16_colors
-  function s:hi(group, fg, bg, attr, sp)
+  function! s:hi(group, fg, bg, attr, sp) abort
     let fg = {}
     let bg = {}
     let attr = 'NONE'

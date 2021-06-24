@@ -23,13 +23,13 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   nnoremap <leader>/ :<C-u>grep<space>
 
-  function! s:grep_mapping_star_normal()
+  function! s:grep_mapping_star_normal() abort
     let word = expand("<cword>")
     if !empty(word)
       call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b', 1), 'n')
     endif
   endfunction
-  function! s:grep_mapping_star_visual()
+  function! s:grep_mapping_star_visual() abort
     let tmp = @"
     normal! y
     call feedkeys(":\<C-u>grep " . shellescape(@", 1), 'n')
@@ -71,7 +71,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   " DiffWithSaved {{{
     " Compare current buffer with the actual (saved) file on disk
-    function s:DiffWithSaved()
+    function! s:DiffWithSaved() abort
       let filetype = &filetype
       diffthis
       vnew | read # | normal! ggdd
@@ -84,7 +84,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   " Reveal {{{
     " Reveal file in the system file explorer
-    function s:Reveal(path)
+    function! s:Reveal(path) abort
       if has('macunix')
         " only macOS has functionality to really 'reveal' a file, that is, to open
         " its parent directory in Finder and select this file
@@ -101,7 +101,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   " Open {{{
     " opens file or URL with a system program
-    function s:Open(path)
+    function! s:Open(path) abort
       " HACK: 2nd parameter of this function is called 'remote', it tells
       " whether to open a remote (1) or local (0) file. However, it doesn't work
       " as expected in this context, because it uses the 'gf' command if it's
@@ -119,7 +119,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     " Yes, I know about the existence of :args, however it modifies the
     " argument list, so it doesn't play well with Obsession.vim because it
     " saves the argument list in the session file.
-    function s:EditGlob(...)
+    function! s:EditGlob(...) abort
       for glob in a:000
         for name in glob(glob, 0, 1)
           execute 'edit' fnameescape(name)
@@ -131,7 +131,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   " DragOut {{{
     " Shows a window for draging (-and-dropping) the currently opened file out.
-    function s:DragOut(path)
+    function! s:DragOut(path) abort
       if empty(a:path) | return | endif
       if !executable('dragon-drag-and-drop')
         echoerr "Please install <https://github.com/mwh/dragon> for the DragOut command to work."
@@ -148,13 +148,13 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
 " on save (BufWritePre) {{{
 
-  function s:IsUrl(str)
+  function! s:IsUrl(str) abort
     return a:str =~# '\v^\w+://'
   endfunction
 
   " create directory {{{
     " Creates the parent directory of the file if it doesn't exist
-    function s:CreateDirOnSave()
+    function! s:CreateDirOnSave() abort
       let file = expand('<afile>')
       " check if this is a regular file and its path is not a URL
       if empty(&buftype) && !s:IsUrl(file)
@@ -165,7 +165,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   " }}}
 
   " fix whitespace {{{
-    function s:FixWhitespaceOnSave()
+    function! s:FixWhitespaceOnSave() abort
       let pos = getpos('.')
       " remove trailing whitespace
       keeppatterns %s/\s\+$//e
@@ -177,7 +177,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
   " auto-format with Coc.nvim {{{
     let g:coc_format_on_save_ignore = []
-    function s:FormatOnSave()
+    function! s:FormatOnSave() abort
       let file = expand('<afile>')
       if IsCocEnabled() && !s:IsUrl(file) && index(g:coc_format_on_save_ignore, &filetype) < 0
         silent CocFormat
@@ -185,7 +185,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     endfunction
   " }}}
 
-  function s:OnSave()
+  function! s:OnSave() abort
     call s:FixWhitespaceOnSave()
     call s:FormatOnSave()
     call s:CreateDirOnSave()

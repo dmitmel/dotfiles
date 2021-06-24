@@ -9,7 +9,7 @@ let s:palette = {
 \ }
 
 let s:colors = g:dotfiles_colorscheme_base16_colors
-function! s:base16_color(fg, bg)
+function! s:base16_color(fg, bg) abort
   let fg = s:colors[a:fg]
   let bg = s:colors[a:bg]
   return [fg.gui, bg.gui, fg.cterm, bg.cterm]

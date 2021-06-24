@@ -12,7 +12,7 @@ set commentstring=//%s
 
 " Indentination {{{
 
-  function SetIndent(expandtab, shiftwidth)
+  function! SetIndent(expandtab, shiftwidth) abort
     let &l:expandtab = a:expandtab
     let &l:shiftwidth = str2nr(a:shiftwidth)
     let &l:tabstop = &l:shiftwidth
@@ -78,7 +78,7 @@ set commentstring=//%s
   nmap <silent> <leader>] m'yygccp`'j
   nmap <silent> <leader>[ m'yygccP`'k
 
-  function! PutOutput(cmd)
+  function! PutOutput(cmd) abort
     let output = execute(a:cmd)
     execute "noswapfile pedit" "+" . fnameescape("setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile") fnameescape("preview://" . a:cmd)
     wincmd P
@@ -179,7 +179,7 @@ set commentstring=//%s
   xnoremap ? <Esc>?\%><C-R>=line("'<")-1<CR>l\%<<C-R>=line("'>")+1<CR>l
 
   " * and # in the Visual mode will search the selected text
-  function! s:VisualStarSearch(search_cmd)
+  function! s:VisualStarSearch(search_cmd) abort
     let tmp = @"
     normal! y
     let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')

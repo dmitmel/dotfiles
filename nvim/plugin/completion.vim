@@ -6,7 +6,7 @@
 " }}}
 
 if !g:vim_ide
-  function IsCocEnabled()
+  function! IsCocEnabled() abort
     return 0
   endfunction
   finish
@@ -17,7 +17,7 @@ endif
   " coc mappings are enabled
   let g:coc_filetypes = []
 
-  function IsCocEnabled()
+  function! IsCocEnabled() abort
     return index(g:coc_filetypes, &filetype) >= 0
   endfunction
 
@@ -64,7 +64,7 @@ endif
   " }}}
 
   " CocFormat {{{
-    function s:CocFormat(range, line1, line2) abort
+    function! s:CocFormat(range, line1, line2) abort
       if a:range == 0
         call CocAction('format')
       else
