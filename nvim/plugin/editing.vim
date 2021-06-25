@@ -273,6 +273,8 @@ set commentstring=//%s
   " Make an alias for the comment text object
   omap <silent> gc ac
 
+  let g:tcomment#ignore_comment_def = ['asm']
+
 " }}}
 
 
