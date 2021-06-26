@@ -158,8 +158,7 @@ set commentstring=//%s
   nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
 
   nnoremap <C-o> <Cmd>DotfilesSwapKeymaps<CR>
-  let g:dotfiles_prev_keymap = &keymap
-  command! -nargs=0 DotfilesSwapKeymaps let [g:dotfiles_prev_keymap, &g:keymap] = [&g:keymap, g:dotfiles_prev_keymap]
+  command! -nargs=0 DotfilesSwapKeymaps let [b:dotfiles_prev_keymap, &keymap] = [&keymap, get(b:, 'dotfiles_prev_keymap', '')]
 
 " }}}
 
