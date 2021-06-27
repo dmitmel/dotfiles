@@ -273,6 +273,7 @@ set commentstring=//%s
   omap <silent> gc ac
 
   let g:tcomment#ignore_comment_def = ['asm']
+  let g:tcomment#commentstring_c = '// %s'
 
 " }}}
 
