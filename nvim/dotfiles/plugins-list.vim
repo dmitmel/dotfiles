@@ -58,6 +58,7 @@
   Plug 'sheerun/vim-polyglot'
   Plug 'chikamichi/mediawiki.vim'
   Plug 'ron-rs/ron.vim'
+  Plug 'kylelaker/riscv.vim'
   if g:vim_ide
     Plug 'neoclide/coc.nvim', { 'branch': 'release' }
     Plug 'dag/vim2hs'

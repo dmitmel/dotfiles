@@ -419,3 +419,9 @@
   hi! link zshFunction Function
   hi! link zshVariable Variable
 " }}}
+
+" Assembly {{{
+  hi! def link riscvRegister    Variable
+  hi! def link riscvCSRegister  Special
+  hi! def link riscvLabel       Function
+" }}}
