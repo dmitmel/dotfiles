@@ -88,6 +88,7 @@ endif
 
 
 " Airline (statusline) {{{
+
   let g:airline_theme = 'dotfiles'
   let g:airline_symbols = {
     \ 'readonly': 'RO',
@@ -117,6 +118,13 @@ endif
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
   let g:airline#extensions#dotfiles_filesize#update_delay = 2
+
+  augroup vimrc-airline
+    autocmd!
+    autocmd User AirlineToggledOff set showmode
+    autocmd User AirlineToggledOn set noshowmode
+  augroup END
+
 " }}}
 
 
