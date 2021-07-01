@@ -11,7 +11,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   if executable('rg')
     let s:rg_cmd = "rg --hidden --follow"
     let s:rg_ignore = split(&wildignore, ',') + [
-    \ 'node_modules', 'target', 'build', 'dist', '.stack-work'
+    \ 'node_modules', 'target', 'build', 'dist', '.stack-work', '.ccls-cache'
     \ ]
     let s:rg_cmd .= " --glob '!{'" . shellescape(join(s:rg_ignore, ','), 1) . "'}'"
 
