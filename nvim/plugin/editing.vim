@@ -30,6 +30,7 @@ set commentstring=//%s
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
+  let g:indentLine_defaultGroup = 'IndentLine'
 
   augroup vimrc-indentlines-disable
     autocmd!

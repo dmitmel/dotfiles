@@ -62,6 +62,7 @@
   call s:hi('Title',      0xD,  '',  '',          '')
   hi! link Directory Title
   call s:hi('Conceal',    0xC,  '',  '',          '')
+  call s:hi('IndentLine', 0x2,  '',  '',          '')
   call s:hi('NonText',    0x3,  '',  '',          '')
   hi! link SpecialKey Special
   call s:hi('MatchParen', 'fg', 0x3, '',          '')
@@ -107,12 +108,22 @@
   call s:hi('WarningMsg',     0x9,  '',  '', '')
   call s:hi('TooLong',        0x8,  '',  '', '')
   call s:hi('Debug',          0x8,  '',  '', '')
-  hi! link CocErrorSign    Error
-  call s:hi('CocWarningSign', 'bg', 0xA, '', '')
-  call s:hi('CocInfoSign',    'bg', 0xD, '', '')
-  hi! link CocHintSign     CocInfoSign
-  call s:hi('CocFadeOut',      0x3, '',  '', '')
-  hi! link CocMarkdownLink Underlined
+
+  call s:hi('CocErrorSign',     'bg', 0x8, '',              '')
+  call s:hi('CocWarningSign',   'bg', 0xA, '',              '')
+  call s:hi('CocInfoSign',      'bg', 0xD, '',              '')
+  hi! link CocHintSign          CocInfoSign
+  call s:hi('CocSelectedText',  0xE,  0x1, 'bold',          '')
+  call s:hi('CocCodeLens',      0x4,  '',  '',              '')
+  call s:hi('CocFadeOut',       0x3,  '',  '',              '')
+  call s:hi('CocStrikeThrough', '',   '',  'strikethrough', '')
+  hi! link CocMarkdownLink      Underlined
+  hi! link CocDiagnosticsFile   Directory
+  hi! link CocOutlineName       NONE
+  hi! link CocExtensionsLoaded  NONE
+  hi! link CocSymbolsName       NONE
+  hi! link CocOutlineIndentLine IndentLine
+  hi! link CocSymbolsFile       Directory
 
   call s:hi('FoldColumn', 0xC, 0x1, '', '')
   call s:hi('Folded',     0x3, 0x1, '', '')

@@ -113,6 +113,7 @@ endif
     \ 'obsession',
     \ 'dotfiles_tweaks',
     \ 'dotfiles_filesize',
+    \ 'dotfiles_coclist',
     \ ]
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
