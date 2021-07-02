@@ -1,3 +1,6 @@
+" Aggressive unlearning of commands:
+let g:fugitive_legacy_commands = 0
+
 " mappings {{{
   let g:gitgutter_map_keys = 0
   nnoremap <leader>gg :<C-u>G
