@@ -17,7 +17,7 @@
 " Theme setup {{{
   hi clear
   syntax reset
-  let g:colors_name = g:dotfiles_colorscheme_name
+  let g:colors_name = 'dotfiles'
 " }}}
 
 " The highlighting function {{{
@@ -430,6 +430,8 @@
   hi! link luaSpecialTable   Type
   hi! link luaFuncArgName    Variable
   hi! link luaBuiltIn        Variable
+  hi! link luaTable          Delimiter
+  hi! link luaFunc           Function
 " }}}
 
 " Shell {{{
