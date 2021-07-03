@@ -1,3 +1,9 @@
+" Replicate the behavior of Zsh's complist module under my configuration.
+" 1st <Tab> - complete till the longest common prefix (longest).
+" 2nd <Tab> - list the matches, but don't select or complete anything yet (list).
+" 3rd <Tab> - start the selection menu (i.e. wildmenu), select and complete the first match (full).
+set wildmenu wildmode=longest,list,full
+
 " always show the sign column
 set signcolumn=yes
 
