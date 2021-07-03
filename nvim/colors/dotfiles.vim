@@ -421,8 +421,15 @@
 " }}}
 
 " Lua {{{
-  hi! link luaFuncCall Function
-  hi! link luaBraces   Delimiter
+  hi! link luaFuncCall       Function
+  hi! link luaBraces         Delimiter
+  hi! link luaFuncKeyword    Keyword
+  hi! link luaSymbolOperator Operator
+  hi! link luaOperator       Keyword
+  hi! link luaLocal          StorageClass
+  hi! link luaSpecialTable   Type
+  hi! link luaFuncArgName    Variable
+  hi! link luaBuiltIn        Variable
 " }}}
 
 " Shell {{{
