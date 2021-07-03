@@ -63,6 +63,7 @@
   hi! link Directory Title
   call s:hi('Conceal',    0xC,  '',  '',          '')
   call s:hi('IndentLine', 0x2,  '',  '',          '')
+  hi! link IndentBlanklineChar IndentLine
   call s:hi('NonText',    0x3,  '',  '',          '')
   hi! link SpecialKey Special
   call s:hi('MatchParen', 'fg', 0x3, '',          '')

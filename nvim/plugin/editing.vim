@@ -30,14 +30,10 @@ set commentstring=//%s
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
+  let g:indentLine_bufTypeExclude = ['terminal']
+  let g:indentLine_bufNameExclude = ['^$', '^term://.*$']
   let g:indentLine_defaultGroup = 'IndentLine'
-
-  augroup vimrc-indentlines-disable
-    autocmd!
-    autocmd TermOpen * IndentLinesDisable
-    " <https://github.com/Yggdroot/indentLine/issues/315#issuecomment-734535963>
-    autocmd VimEnter * if bufname('%') == '' | IndentLinesDisable | endif
-  augroup END
+  let g:indent_blankline_show_trailing_blankline_indent = v:false
 
 " }}}
 

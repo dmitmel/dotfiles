@@ -28,7 +28,14 @@ let ctx = g:dotfiles_plugins_list_context
   call ctx.use('tpope/vim-repeat')
   call ctx.use('tomtom/tcomment_vim')
   call ctx.use('tpope/vim-surround')
-  call ctx.use('Yggdroot/indentLine')
+  if has('nvim-0.5.0')
+    " Doesn't use concealed text, can put indent guides on blank lines, depends
+    " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
+    " compatible with the original indentLine (in terms of options).
+    call ctx.use('lukas-reineke/indent-blankline.nvim')
+  else
+    call ctx.use('Yggdroot/indentLine')
+  endif
   call ctx.use('henrik/vim-indexed-search')
   call ctx.use('andymass/vim-matchup')
   call ctx.use('inkarkat/vim-ingo-library')
