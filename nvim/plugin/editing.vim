@@ -270,9 +270,10 @@ set commentstring=//%s
   omap <silent> gc ac
 
   let g:tcomment#commentstring_c = '// %s'
-
-  call tcomment#type#Define('asm',   '# %s')
-  call tcomment#type#Define('riscv', '# %s')
+  let g:tcomment_types = {
+  \ 'asm':   '# %s',
+  \ 'riscv': '# %s',
+  \ }
 
 " }}}
 

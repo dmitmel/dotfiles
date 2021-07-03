@@ -195,9 +195,7 @@ call s:ctx._end()
     if !empty(need_install) || !empty(need_clean)
       enew
       only
-      for _ in range(5)
-        call append(0, ['PLEASE, RESTART THE EDITOR ONCE PLUGIN INSTALLATION FINISHES!!!'])
-      endfor
+      call append(0, repeat(['PLEASE, RESTART THE EDITOR ONCE PLUGIN INSTALLATION FINISHES!!!'], 5))
       call self._sync(need_install, need_clean)
     endif
   endfunction

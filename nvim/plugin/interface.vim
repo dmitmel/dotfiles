@@ -14,7 +14,7 @@ set belloff=
 set title
 let s:username = $USER
 let s:hostname = substitute(hostname(), '\v^([^.]*).*$', '\1', '')  " get hostname up to the first '.'
-let &titlestring = $USER . '@' . s:hostname . ': %F%{&modified ? g:airline_symbols.modified : ""} (nvim)'
+let &titlestring = $USER . '@' . s:hostname . ': %F%m (nvim)'
 " }}}
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
