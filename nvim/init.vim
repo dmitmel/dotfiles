@@ -191,10 +191,17 @@ call s:ctx._end()
         let need_install[name] = 1
       endif
     endfor
+
     if !empty(need_install) || !empty(need_clean)
+      enew
+      only
+      for _ in range(5)
+        call append(0, ['PLEASE, RESTART THE EDITOR ONCE PLUGIN INSTALLATION FINISHES!!!'])
+      endfor
       call self._sync(need_install, need_clean)
     endif
   endfunction
+
   autocmd VimEnter * call s:ctx._check_sync()
 " }}}
 
