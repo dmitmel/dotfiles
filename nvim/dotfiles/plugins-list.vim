@@ -30,14 +30,16 @@ let s:ctx = g:dotfiles_plugins_list_context
   call s:ctx.use('tpope/vim-repeat')
   call s:ctx.use('tomtom/tcomment_vim')
   call s:ctx.use('tpope/vim-surround')
-  if has('nvim-0.5.0')
-    " Doesn't use concealed text, can put indent guides on blank lines, depends
-    " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
-    " compatible with the original indentLine (in terms of options).
-    call s:ctx.use('lukas-reineke/indent-blankline.nvim')
-  else
+  " if has('nvim-0.5.0')
+  "   " Doesn't use concealed text, can put indent guides on blank lines, depends
+  "   " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
+  "   " compatible with the original indentLine (in terms of options). ...And has
+  "   " a critical bug:
+  "   " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/51>
+  "   call s:ctx.use('lukas-reineke/indent-blankline.nvim')
+  " else
     call s:ctx.use('Yggdroot/indentLine')
-  endif
+  " endif
   call s:ctx.use('henrik/vim-indexed-search')
   call s:ctx.use('andymass/vim-matchup')
   call s:ctx.use('inkarkat/vim-ingo-library')
