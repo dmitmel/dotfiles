@@ -30,8 +30,9 @@ let s:ctx = g:dotfiles_plugins_list_context
 
 let s:ctx.implementation = g:dotfiles_plugin_manager
 let s:ctx._registered_plugins = {}
+let s:ctx._inhibited_plugins = get(g:, 'dotfiles_plugin_manager_inhibited_plugins', {})
 
-function! s:ctx._register(repo, spec) abort
+function! s:ctx._derive_name(repo, spec)
   " How packer.nvim derives plugin names:
   " <https://github.com/wbthomason/packer.nvim/blob/b76bfba54031ad28f17e98ef555e99cf450d6cb3/lua/packer.lua#L169-L176>
   " <https://github.com/wbthomason/packer.nvim/blob/b76bfba54031ad28f17e98ef555e99cf450d6cb3/lua/packer/plugin_utils.lua#L122-L139>
@@ -41,14 +42,31 @@ function! s:ctx._register(repo, spec) abort
   " slug (with a major difference in that vim-plug uses aliases as-is, and
   " packer.nvim tries to apply the same logic of getting the basename of a path
   " to them as well), but I think I'll go with vim-plug's method.
+  return get(a:spec, 'as', fnamemodify(a:repo, ':t:s?\.git$??'))
+endfunction
+
+function! s:ctx._pre_register(repo, spec) abort
+  let name = self._derive_name(a:repo, a:spec)
+  return get(self._inhibited_plugins, name, 0)
+endfunction
+
+function! s:ctx._register(repo, spec) abort
   if !get(a:spec, 'disable', 0)
-    let name = get(a:spec, 'as', fnamemodify(a:repo, ':t:s?\.git$??'))
+    let name = self._derive_name(a:repo, a:spec)
     let self._registered_plugins[name] = 1
   endif
 endfunction
 
 function! s:ctx.is_registered(name) abort
   return has_key(self._registered_plugins, a:name)
+endfunction
+
+" For the use by my beloved forkers of this repository.
+function! s:ctx.inhibit_use(name) abort
+  if has_key(self._registered_plugins, a:name)
+    throw 'Plugin inhibited too late, it has already been registered'
+  endif
+  let self._inhibited_plugins[a:name] = 1
 endfunction
 
 if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
@@ -122,6 +140,7 @@ EOF
   function! s:ctx.use(repo, ...) abort
     if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2):' . a:0 | endif
     let spec = get(a:000, 0, {})
+    if s:ctx._pre_register(a:repo, spec) | return | endif
     call g:dotfiles_plugins_list_use(a:repo, spec)
     call s:ctx._register(a:repo, spec)
   endfunction
@@ -184,6 +203,7 @@ elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
   function! s:ctx.use(repo, ...) abort
     if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2):' . a:0 | endif
     let spec = get(a:000, 0, {})
+    if s:ctx._pre_register(a:repo, spec) | return | endif
 
     " vim-plug doesn't have this.
     if !get(spec, 'disable', 0)
