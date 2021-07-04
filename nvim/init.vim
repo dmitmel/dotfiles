@@ -56,7 +56,7 @@ if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
   let s:ctx.repo_name = 'packer.nvim'
   let s:ctx.repo = 'wbthomason/' . s:ctx.repo_name
   let s:ctx.plugins_dir = stdpath('data') . '/site/pack/packer'
-  let s:ctx.install_path = s:ctx.plugins_dir . '/opt/' . s:ctx.repo_name
+  let s:ctx.install_path = s:ctx.plugins_dir . '/start/' . s:ctx.repo_name
 
   function! s:ctx._auto_install() abort
     if empty(glob(self.install_path))
@@ -71,6 +71,11 @@ if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
   vim.g.dotfiles_plugins_list_use = function (repo, spec)
     local ctx = vim.g.dotfiles_plugins_list_context
     local spec2 = {}
+    -- COUNTERHACK: This is just... bullshit. Don't use plugin dependencies or
+    -- anything that affects load order and generates :packadd statements.
+    -- Dependencies under packer.nvim are unintuitive, don't solve or fix
+    -- anything, and don't work.
+    --[[
     -- HACK: Workaround for <https://github.com/wbthomason/packer.nvim/issues/435>.
     if repo == ctx.repo then
       -- The workaround works in two stages: the 1st stage, seen here, triggers
@@ -99,6 +104,7 @@ if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
     -- `:packadd packer.nvim`, which doesn't do anything because packer.nvim's
     -- pack is required for the editor startup and has been already loaded,
     -- and then all plugins sorted by their dependencies.
+    ]]
 
     -- HACK: Unfortunately you can't pass a table with mixed integer and
     -- string keys as Vim's translation layer complains, so instead we pass
@@ -128,6 +134,10 @@ EOF
     packer.init({
       package_root = vim.fn.fnamemodify(ctx.plugins_dir, ':h'),
       plugin_package = vim.fn.fnamemodify(ctx.plugins_dir, ':t'),
+      -- It is actually important that we change the extension of the compiled
+      -- loader file to `.vim` because Lua files in `plugin/` are sourced
+      -- AFTER all Vimscript files have been sourced.
+      compile_path = vim.fn.stdpath('config') .. '/plugin/packer_compiled.vim'
     })
     packer.init()
     packer.reset()

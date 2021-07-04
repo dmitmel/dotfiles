@@ -14,6 +14,8 @@ let s:ctx = g:dotfiles_plugins_list_context
 " first wait for everything to be downloaded to flush everything to
 " RTP.
 
+" COUNTERHACK: Don't specify dependencies. Just don't.
+
 " Files {{{
   call s:ctx.use('tpope/vim-eunuch')
   if g:vim_ide
@@ -43,7 +45,7 @@ let s:ctx = g:dotfiles_plugins_list_context
   call s:ctx.use('henrik/vim-indexed-search')
   call s:ctx.use('andymass/vim-matchup')
   call s:ctx.use('inkarkat/vim-ingo-library')
-  call s:ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable', 'after': ['vim-ingo-library'] })
+  call s:ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable' })
   call s:ctx.use('reedes/vim-pencil')
   call s:ctx.use('tommcdo/vim-exchange')
   call s:ctx.use('justinmk/vim-sneak')
@@ -51,10 +53,10 @@ let s:ctx = g:dotfiles_plugins_list_context
 
 " Text objects {{{
   call s:ctx.use('kana/vim-textobj-user')
-  call s:ctx.use('kana/vim-textobj-entire',  { 'after': ['vim-textobj-user'] })
-  call s:ctx.use('kana/vim-textobj-line',    { 'after': ['vim-textobj-user'] })
-  call s:ctx.use('kana/vim-textobj-indent',  { 'after': ['vim-textobj-user'] })
-  call s:ctx.use('glts/vim-textobj-comment', { 'after': ['vim-textobj-user'] })
+  call s:ctx.use('kana/vim-textobj-entire')
+  call s:ctx.use('kana/vim-textobj-line')
+  call s:ctx.use('kana/vim-textobj-indent')
+  call s:ctx.use('glts/vim-textobj-comment')
 " }}}
 
 " UI {{{
@@ -75,7 +77,7 @@ let s:ctx = g:dotfiles_plugins_list_context
 
 " FZF {{{
   call s:ctx.use('junegunn/fzf', { 'run': './install --bin' })
-  call s:ctx.use('junegunn/fzf.vim', { 'after': ['fzf'] })
+  call s:ctx.use('junegunn/fzf.vim')
 " }}}
 
 " " Programming {{{
