@@ -3,6 +3,7 @@ if !exists('g:did_coc_loaded')
 endif
 
 function! airline#extensions#dotfiles_coclist#init(ext) abort
+  if !exists('g:coc_user_config') | let g:coc_user_config = {} | endif
   let g:coc_user_config['list.statusLineSegments'] = v:null
 
   call a:ext.add_statusline_func('airline#extensions#dotfiles_coclist#apply')

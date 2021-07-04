@@ -29,9 +29,9 @@ let g:dotfiles_plugins_list_context = {}
 let s:ctx = g:dotfiles_plugins_list_context
 
 let s:ctx.implementation = g:dotfiles_plugin_manager
-let s:ctx._registered_plugins = []
+let s:ctx._registered_plugins = {}
 
-function! s:ctx._register_plugin(repo, spec) abort
+function! s:ctx._register(repo, spec) abort
   " How packer.nvim derives plugin names:
   " <https://github.com/wbthomason/packer.nvim/blob/b76bfba54031ad28f17e98ef555e99cf450d6cb3/lua/packer.lua#L169-L176>
   " <https://github.com/wbthomason/packer.nvim/blob/b76bfba54031ad28f17e98ef555e99cf450d6cb3/lua/packer/plugin_utils.lua#L122-L139>
@@ -43,8 +43,12 @@ function! s:ctx._register_plugin(repo, spec) abort
   " to them as well), but I think I'll go with vim-plug's method.
   if !get(a:spec, 'disable', 0)
     let name = get(a:spec, 'as', fnamemodify(a:repo, ':t:s?\.git$??'))
-    call add(self._registered_plugins, name)
+    let self._registered_plugins[name] = 1
   endif
+endfunction
+
+function! s:ctx.is_registered(name) abort
+  return has_key(self._registered_plugins, a:name)
 endfunction
 
 if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
@@ -113,7 +117,7 @@ EOF
     if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2):' . a:0 | endif
     let spec = get(a:000, 0, {})
     call g:dotfiles_plugins_list_use(a:repo, spec)
-    call s:ctx._register_plugin(a:repo, spec)
+    call s:ctx._register(a:repo, spec)
   endfunction
 
   function! s:ctx._begin() abort
@@ -156,7 +160,8 @@ EOF
 " }}}
 elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
 
-  let s:ctx.repo = 'junegunn/vim-plug'
+  let s:ctx.repo_name = 'vim-plug'
+  let s:ctx.repo = 'junegunn/' . s:ctx.repo_name
   let s:ctx.install_path = stdpath('config') . '/autoload/plug.vim'
   let s:ctx.plugins_dir = stdpath('data') . '/plugged'
 
@@ -183,7 +188,7 @@ elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
       call plug#(a:repo, spec2)
     endif
 
-    call s:ctx._register_plugin(a:repo, spec)
+    call s:ctx._register(a:repo, spec)
   endfunction
 
   function! s:ctx._begin() abort
@@ -228,7 +233,7 @@ call s:ctx._end()
     for name in self._get_installed_plugins()
       let need_clean[name] = 1
     endfor
-    for name in self._registered_plugins
+    for name in keys(self._registered_plugins)
       if has_key(need_clean, name)
         unlet need_clean[name]
       else

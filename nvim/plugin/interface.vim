@@ -109,18 +109,21 @@ endif
     \ 'quickfix',
     \ 'fzf',
     \ 'term',
-    \ 'hunks',
-    \ 'branch',
-    \ 'fugitiveline',
-    \ 'coc',
     \ 'whitespace',
     \ 'wordcount',
     \ 'tabline',
-    \ 'obsession',
     \ 'dotfiles_tweaks',
     \ 'dotfiles_filesize',
-    \ 'dotfiles_coclist',
     \ ]
+  if dotfiles_plugins_list_context.is_registered('vim-fugitive')
+    let g:airline_extensions += ['hunks', 'branch', 'fugitiveline']
+  endif
+  if dotfiles_plugins_list_context.is_registered('coc.nvim')
+    let g:airline_extensions += ['coc', 'dotfiles_coclist']
+  endif
+  if dotfiles_plugins_list_context.is_registered('vim-obsession')
+    let g:airline_extensions += ['obsession']
+  endif
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
