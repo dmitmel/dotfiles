@@ -7,10 +7,12 @@ let ctx = g:dotfiles_plugins_list_context
 " matter what load order (because all plugins in a pack are first added to RTP,
 " only then sourcing begins), or checks in VimEnter (see extension loading in
 " vim-airline), and by that time all plugin scripts would have been executed.
-" Dependencies are really only useful on plugin installation by the plugin
-" manager because packer.nvim, for example, executes plugins in whichever order
-" they are downloaded, and doesn't first wait for everything to be downloaded
-" to flush everything to RTP.
+" Dependencies (As specified with `after`, not with `requires`! See
+" <https://github.com/wbthomason/packer.nvim/issues/87>) are really only useful
+" on plugin installation by the plugin manager because packer.nvim, for
+" example, executes plugins in whichever order they are downloaded, and doesn't
+" first wait for everything to be downloaded to flush everything to
+" RTP.
 
 " Files {{{
   call ctx.use('tpope/vim-eunuch')
@@ -39,7 +41,7 @@ let ctx = g:dotfiles_plugins_list_context
   call ctx.use('henrik/vim-indexed-search')
   call ctx.use('andymass/vim-matchup')
   call ctx.use('inkarkat/vim-ingo-library')
-  call ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable', 'requires': ['vim-ingo-library'] })
+  call ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable', 'after': ['vim-ingo-library'] })
   call ctx.use('reedes/vim-pencil')
   call ctx.use('tommcdo/vim-exchange')
   call ctx.use('justinmk/vim-sneak')
@@ -47,10 +49,10 @@ let ctx = g:dotfiles_plugins_list_context
 
 " Text objects {{{
   call ctx.use('kana/vim-textobj-user')
-  call ctx.use('kana/vim-textobj-entire',  { 'requires': ['vim-textobj-user'] })
-  call ctx.use('kana/vim-textobj-line',    { 'requires': ['vim-textobj-user'] })
-  call ctx.use('kana/vim-textobj-indent',  { 'requires': ['vim-textobj-user'] })
-  call ctx.use('glts/vim-textobj-comment', { 'requires': ['vim-textobj-user'] })
+  call ctx.use('kana/vim-textobj-entire',  { 'after': ['vim-textobj-user'] })
+  call ctx.use('kana/vim-textobj-line',    { 'after': ['vim-textobj-user'] })
+  call ctx.use('kana/vim-textobj-indent',  { 'after': ['vim-textobj-user'] })
+  call ctx.use('glts/vim-textobj-comment', { 'after': ['vim-textobj-user'] })
 " }}}
 
 " UI {{{
@@ -71,7 +73,7 @@ let ctx = g:dotfiles_plugins_list_context
 
 " FZF {{{
   call ctx.use('junegunn/fzf', { 'run': './install --bin' })
-  call ctx.use('junegunn/fzf.vim')
+  call ctx.use('junegunn/fzf.vim', { 'after': ['fzf'] })
 " }}}
 
 " " Programming {{{

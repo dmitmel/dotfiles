@@ -49,9 +49,10 @@ endfunction
 
 if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
 
-  let s:ctx.repo = 'wbthomason/packer.nvim'
+  let s:ctx.repo_name = 'packer.nvim'
+  let s:ctx.repo = 'wbthomason/' . s:ctx.repo_name
   let s:ctx.plugins_dir = stdpath('data') . '/site/pack/packer'
-  let s:ctx.install_path = s:ctx.plugins_dir . '/start/packer.nvim'
+  let s:ctx.install_path = s:ctx.plugins_dir . '/opt/' . s:ctx.repo_name
 
   function! s:ctx._auto_install() abort
     if empty(glob(self.install_path))
@@ -59,21 +60,64 @@ if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
     endif
   endfunction
 
-  " HACK: Unfortunately you can't pass a table with mixed integer and string
-  " keys as Vim's translation layer complains, so instead we pass the only
-  " positional argument (repo) and the rest (spec) separately, and merge them
-  " together on the Lua side.
-  let s:ctx._use_lua = luaeval(
-  \ 'function(repo, spec) require("packer").use(vim.tbl_extend("keep", { repo }, spec)); end')
+  lua <<EOF
+  -- Hacks, hacks, hacks... Unfortunately the Lua integration does not allow
+  -- exchanging data between :lua blocks or getting access to s: variables (or
+  -- even <SNR>), so we use a global function.
+  vim.g.dotfiles_plugins_list_use = function (repo, spec)
+    local ctx = vim.g.dotfiles_plugins_list_context
+    local spec2 = {}
+    -- HACK: Workaround for <https://github.com/wbthomason/packer.nvim/issues/435>.
+    if repo == ctx.repo then
+      -- The workaround works in two stages: the 1st stage, seen here, triggers
+      -- a weird series of conditions in lua/packer/compile.lua which causes
+      -- :packadd commands to be generated for dependents of this plugin. This
+      -- applies to really any plugin and not just what I chose here, and works
+      -- with either `setup`, `config` or maybe other stuff (see
+      -- <https://github.com/wbthomason/packer.nvim/issues/272#issuecomment-811254292>).
+      -- In simpler words: in order for dependency A of plugin B to really be
+      -- loaded before B itself you need to add a `setup`/`config`/etc setting
+      -- to the spec of A. In my case, though, I choose the plugin manager to
+      -- be the "Chosen One" and apply this `setup` hack just to it.
+      spec2.setup = {''}
+    else
+      -- The second stage consists of adding a dummy dependency on the Chosen
+      -- One. This is important because, first of all, this puts the current
+      -- plugin into the `opt` directory and not `start`, which allows us to
+      -- override the load order in the first place (as pack loading now is not
+      -- done by Vim, but by us and :packadd calls). Secondly, this causes
+      -- CrossCode mod load order resolving algorithm (also called "sequencing"
+      -- in packer.nvim's sources) to be applied to the current plugin, which
+      -- is, in general, done only to plugins which have any dependencies.
+      spec2.after = {ctx.repo_name}
+    end
+    -- And so, in the compiled loader script we end up with a dummy call
+    -- `:packadd packer.nvim`, which doesn't do anything because packer.nvim's
+    -- pack is required for the editor startup and has been already loaded,
+    -- and then all plugins sorted by their dependencies.
+
+    -- HACK: Unfortunately you can't pass a table with mixed integer and
+    -- string keys as Vim's translation layer complains, so instead we pass
+    -- the only positional argument (repo) and the rest (spec) separately,
+    -- and merge them together on the Lua side.
+    for k, v in pairs(spec) do
+      spec2[k] = v
+    end
+    spec2[1] = repo
+
+    require('packer').use(spec2)
+  end
+EOF
+
   function! s:ctx.use(repo, ...) abort
     if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2):' . a:0 | endif
     let spec = get(a:000, 0, {})
-    call self._use_lua(a:repo, spec)
+    call g:dotfiles_plugins_list_use(a:repo, spec)
     call s:ctx._register_plugin(a:repo, spec)
   endfunction
 
   function! s:ctx._begin() abort
-    packadd packer.nvim
+    execute 'packadd' s:ctx.repo_name
     lua << EOF
     local packer = require('packer')
     local ctx = vim.g.dotfiles_plugins_list_context
@@ -85,7 +129,7 @@ if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
     packer.reset()
 EOF
     autocmd User PackerComplete lua require('packer').compile()
-    call self.use(self.repo)
+    call self.use(self.repo, { 'as': self.repo_name })
   endfunction
 
   function! s:ctx._end() abort
@@ -144,7 +188,7 @@ elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
 
   function! s:ctx._begin() abort
     call plug#begin(self.plugins_dir)
-    call self.use(self.repo)
+    call self.use(self.repo, { 'as': self.repo_name })
   endfunction
 
   function! s:ctx._end() abort
