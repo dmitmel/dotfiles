@@ -1,4 +1,4 @@
-let ctx = g:dotfiles_plugins_list_context
+let s:ctx = g:dotfiles_plugins_list_context
 
 " Note about dependencies: In general, they are quite useless. Packs actually
 " have no way of specifying load order, but proper plugins don't even depend on
@@ -15,79 +15,79 @@ let ctx = g:dotfiles_plugins_list_context
 " RTP.
 
 " Files {{{
-  call ctx.use('tpope/vim-eunuch')
+  call s:ctx.use('tpope/vim-eunuch')
   if g:vim_ide
-    call ctx.use('francoiscabrol/ranger.vim')
+    call s:ctx.use('francoiscabrol/ranger.vim')
   endif
 " }}}
 
 " Editing {{{
   if g:vim_ide
-    " call ctx.use('easymotion/vim-easymotion')
-    call ctx.use('junegunn/vim-easy-align')
+    " call s:ctx.use('easymotion/vim-easymotion')
+    call s:ctx.use('junegunn/vim-easy-align')
   endif
-  call ctx.use('Raimondi/delimitMate')
-  call ctx.use('tpope/vim-repeat')
-  call ctx.use('tomtom/tcomment_vim')
-  call ctx.use('tpope/vim-surround')
+  call s:ctx.use('Raimondi/delimitMate')
+  call s:ctx.use('tpope/vim-repeat')
+  call s:ctx.use('tomtom/tcomment_vim')
+  call s:ctx.use('tpope/vim-surround')
   if has('nvim-0.5.0')
     " Doesn't use concealed text, can put indent guides on blank lines, depends
     " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
     " compatible with the original indentLine (in terms of options).
-    call ctx.use('lukas-reineke/indent-blankline.nvim')
+    call s:ctx.use('lukas-reineke/indent-blankline.nvim')
   else
-    call ctx.use('Yggdroot/indentLine')
+    call s:ctx.use('Yggdroot/indentLine')
   endif
-  call ctx.use('henrik/vim-indexed-search')
-  call ctx.use('andymass/vim-matchup')
-  call ctx.use('inkarkat/vim-ingo-library')
-  call ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable', 'after': ['vim-ingo-library'] })
-  call ctx.use('reedes/vim-pencil')
-  call ctx.use('tommcdo/vim-exchange')
-  call ctx.use('justinmk/vim-sneak')
+  call s:ctx.use('henrik/vim-indexed-search')
+  call s:ctx.use('andymass/vim-matchup')
+  call s:ctx.use('inkarkat/vim-ingo-library')
+  call s:ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable', 'after': ['vim-ingo-library'] })
+  call s:ctx.use('reedes/vim-pencil')
+  call s:ctx.use('tommcdo/vim-exchange')
+  call s:ctx.use('justinmk/vim-sneak')
 " }}}
 
 " Text objects {{{
-  call ctx.use('kana/vim-textobj-user')
-  call ctx.use('kana/vim-textobj-entire',  { 'after': ['vim-textobj-user'] })
-  call ctx.use('kana/vim-textobj-line',    { 'after': ['vim-textobj-user'] })
-  call ctx.use('kana/vim-textobj-indent',  { 'after': ['vim-textobj-user'] })
-  call ctx.use('glts/vim-textobj-comment', { 'after': ['vim-textobj-user'] })
+  call s:ctx.use('kana/vim-textobj-user')
+  call s:ctx.use('kana/vim-textobj-entire',  { 'after': ['vim-textobj-user'] })
+  call s:ctx.use('kana/vim-textobj-line',    { 'after': ['vim-textobj-user'] })
+  call s:ctx.use('kana/vim-textobj-indent',  { 'after': ['vim-textobj-user'] })
+  call s:ctx.use('glts/vim-textobj-comment', { 'after': ['vim-textobj-user'] })
 " }}}
 
 " UI {{{
-  call ctx.use('moll/vim-bbye')
-  call ctx.use('gerw/vim-HiLinkTrace')
-  call ctx.use('vim-airline/vim-airline')
-  call ctx.use('tpope/vim-obsession')
-  call ctx.use('romainl/vim-qf')
+  call s:ctx.use('moll/vim-bbye')
+  call s:ctx.use('gerw/vim-HiLinkTrace')
+  call s:ctx.use('vim-airline/vim-airline')
+  call s:ctx.use('tpope/vim-obsession')
+  call s:ctx.use('romainl/vim-qf')
 " }}}
 
 " Git {{{
   if g:vim_ide
-    call ctx.use('tpope/vim-fugitive')
-    call ctx.use('tpope/vim-rhubarb')
-    call ctx.use('airblade/vim-gitgutter')
+    call s:ctx.use('tpope/vim-fugitive')
+    call s:ctx.use('tpope/vim-rhubarb')
+    call s:ctx.use('airblade/vim-gitgutter')
   endif
 " }}}
 
 " FZF {{{
-  call ctx.use('junegunn/fzf', { 'run': './install --bin' })
-  call ctx.use('junegunn/fzf.vim', { 'after': ['fzf'] })
+  call s:ctx.use('junegunn/fzf', { 'run': './install --bin' })
+  call s:ctx.use('junegunn/fzf.vim', { 'after': ['fzf'] })
 " }}}
 
 " " Programming {{{
   let g:polyglot_disabled = ['sensible']
-  call ctx.use('sheerun/vim-polyglot')
-  call ctx.use('chikamichi/mediawiki.vim')
-  call ctx.use('ron-rs/ron.vim')
-  call ctx.use('kylelaker/riscv.vim')
+  call s:ctx.use('sheerun/vim-polyglot')
+  call s:ctx.use('chikamichi/mediawiki.vim')
+  call s:ctx.use('ron-rs/ron.vim')
+  call s:ctx.use('kylelaker/riscv.vim')
   if g:vim_ide
-    call ctx.use('neoclide/coc.nvim', { 'branch': 'master', 'run': 'yarn install --frozen-lockfile' })
-    call ctx.use('dag/vim2hs')
-    call ctx.use('norcalli/nvim-colorizer.lua')
+    call s:ctx.use('neoclide/coc.nvim', { 'branch': 'master', 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('dag/vim2hs')
+    call s:ctx.use('norcalli/nvim-colorizer.lua')
     if g:vim_ide_treesitter
-      call ctx.use('nvim-treesitter/nvim-treesitter', { 'run': ':TSUpdate' })
+      call s:ctx.use('nvim-treesitter/nvim-treesitter', { 'run': ':TSUpdate' })
     endif
   endif
 " }}}
