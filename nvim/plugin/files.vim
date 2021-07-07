@@ -9,7 +9,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
 " ripgrep (rg) {{{
   if executable('rg')
-    let s:rg_cmd = "rg --hidden --follow"
+    let s:rg_cmd = 'rg --hidden --follow'
     let s:rg_ignore = split(&wildignore, ',') + [
     \ 'node_modules', 'target', 'build', 'dist', '.stack-work', '.ccls-cache'
     \ ]
@@ -24,7 +24,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
   nnoremap <leader>/ :<C-u>grep<space>
 
   function! s:grep_mapping_star_normal() abort
-    let word = expand("<cword>")
+    let word = expand('<cword>')
     if !empty(word)
       call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b', 1), 'n')
     endif
@@ -134,7 +134,7 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
     function! s:DragOut(path) abort
       if empty(a:path) | return | endif
       if !executable('dragon-drag-and-drop')
-        echoerr "Please install <https://github.com/mwh/dragon> for the DragOut command to work."
+        echoerr 'Please install <https://github.com/mwh/dragon> for the DragOut command to work.'
         return
       endif
       execute '!dragon-drag-and-drop' shellescape(a:path, 1)

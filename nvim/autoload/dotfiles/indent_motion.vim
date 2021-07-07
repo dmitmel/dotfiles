@@ -3,8 +3,8 @@
 " for reverse-engineering CrossCode.
 
 function! dotfiles#indent_motion#run(direction) abort
-  let cursor_linenr = line(".")
-  let max_linenr = line("$")
+  let cursor_linenr = line('.')
+  let max_linenr = line('$')
 
   let retry = 0
   while retry <# 2
@@ -51,12 +51,12 @@ function! dotfiles#indent_motion#run(direction) abort
     break
   endwhile
 
-  execute "normal! " . target_linenr . "G^"
+  execute 'normal! ' . target_linenr . 'G^'
 endfunction
 
 " <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim#L120-L127>
 function! dotfiles#indent_motion#indent_level_of(linenr) abort
-  if getline(a:linenr) ==# ""
+  if empty(getline(a:linenr))
     return -1
   endif
   return indent(a:linenr)

@@ -69,7 +69,7 @@ function! s:ctx.inhibit_use(name) abort
   let self._inhibited_plugins[a:name] = 1
 endfunction
 
-if g:dotfiles_plugin_manager == 'packer.nvim'  " {{{
+if g:dotfiles_plugin_manager ==# 'packer.nvim'  " {{{
 
   let s:ctx.repo_name = 'packer.nvim'
   let s:ctx.repo = 'wbthomason/' . s:ctx.repo_name
@@ -187,7 +187,7 @@ EOF
   endfunction
 
 " }}}
-elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
+elseif g:dotfiles_plugin_manager ==# 'vim-plug'  " {{{
 
   let s:ctx.repo_name = 'vim-plug'
   let s:ctx.repo = 'junegunn/' . s:ctx.repo_name
@@ -245,7 +245,7 @@ elseif g:dotfiles_plugin_manager == 'vim-plug'  " {{{
 
   " }}}
 else
-  echoerr "Unknown plugin manager:" g:dotfiles_plugin_manager
+  echoerr 'Unknown plugin manager:' g:dotfiles_plugin_manager
 endif
 
 call s:ctx._auto_install()
@@ -288,7 +288,7 @@ call s:ctx._end()
 " The last bit is very important because the rest of vimrc runs in a world when
 " all plugins have been initialized, and so adjustments to e.g. autocommands
 " are possible.
-if has('autocmd') && !(exists("g:did_load_filetypes") && exists("g:did_load_ftplugin") && exists("g:did_indent_on"))
+if has('autocmd') && !(exists('g:did_load_filetypes') && exists('g:did_load_ftplugin') && exists('g:did_indent_on'))
   filetype plugin indent on
 endif
 if has('syntax') && !exists('g:syntax_on')

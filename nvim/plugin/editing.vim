@@ -77,7 +77,7 @@ set commentstring=//%s
 
   function! PutOutput(cmd) abort
     let output = execute(a:cmd)
-    execute "noswapfile pedit" "+" . fnameescape("setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile") fnameescape("preview://" . a:cmd)
+    execute 'noswapfile pedit' '+' . fnameescape('setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile') fnameescape('preview://' . a:cmd)
     wincmd P
     call setline(1, split(output, "\n"))
   endfunction

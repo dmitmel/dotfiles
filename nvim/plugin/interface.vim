@@ -160,9 +160,9 @@ endif
   " <https://gist.github.com/romainl/f7e2e506dc4d7827004e4994f1be2df6>.
   " But apparently `vimgrep /pattern/ %` can be used instead?
   function! s:CmdGlobal(pattern, bang) abort
-    let pattern = substitute(a:pattern, "/.*$", "", "")
+    let pattern = substitute(a:pattern, '/.*$', '', '')
     let matches = []
-    execute "g" . (a:bang ? "!" : "") . "/" . pattern . "/call add(matches, expand(\"%\").\":\".line(\".\").\":\".col(\".\").\":\".getline(\".\"))"
+    execute 'g' . (a:bang ? '!' : '') . '/' . pattern . "/call add(matches, expand(\"%\").\":\".line(\".\").\":\".col(\".\").\":\".getline(\".\"))"
     cexpr matches
   endfunction
   command! -bang -nargs=1 Global call <SID>CmdGlobal(<q-args>, <bang>0)

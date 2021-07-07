@@ -103,7 +103,7 @@ function! airline#extensions#dotfiles_coclist#part_mode() abort
     return airline#util#shorten(get(b:list_status, 'mode', ''), 79, 1)
   else
     return get(g:airline_mode_map, '__')
-  else
+  endif
 endfunction
 
 function! airline#extensions#dotfiles_coclist#part_args() abort

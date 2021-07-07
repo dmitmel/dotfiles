@@ -10,7 +10,7 @@
 " UTF-8) should work.
 scriptencoding utf-8
 
-let b:keymap_name = "uk"
+let b:keymap_name = 'uk'
 
 loadkeymap
 ~	~

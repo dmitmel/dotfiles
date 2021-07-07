@@ -1,11 +1,11 @@
 let s:palette = {
-\ "inactive"    : {},
-\ "replace"     : {},
-\ "normal"      : {},
-\ "visual"      : {},
-\ "insert"      : {},
-\ "terminal"    : {},
-\ "commandline" : {},
+\ 'inactive'    : {},
+\ 'replace'     : {},
+\ 'normal'      : {},
+\ 'visual'      : {},
+\ 'insert'      : {},
+\ 'terminal'    : {},
+\ 'commandline' : {},
 \ }
 
 let s:colors = g:dotfiles_colorscheme_base16_colors

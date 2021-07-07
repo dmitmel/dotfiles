@@ -89,7 +89,7 @@ endif
   \ 'warningSign': '!!',
   \ }
   let g:coc_user_config['suggest.floatEnable'] = v:false
-  let g:coc_user_config['workspace.progressTarget'] = "statusline"
+  let g:coc_user_config['workspace.progressTarget'] = 'statusline'
   let g:coc_user_config['list.selectedSignText'] = '> '
 
   runtime! coc-languages/*.vim

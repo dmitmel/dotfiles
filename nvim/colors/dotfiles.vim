@@ -31,16 +31,16 @@
     let bg = {}
     let attr = 'NONE'
     let sp = {}
-    if a:fg isnot ''
+    if a:fg isnot# ''
       let fg = s:is_number(a:fg) ? s:colors[a:fg] : {'gui': a:fg, 'cterm': a:fg}
     endif
-    if a:bg isnot ''
+    if a:bg isnot# ''
       let bg = s:is_number(a:bg) ? s:colors[a:bg] : {'gui': a:bg, 'cterm': a:bg}
     endif
-    if a:attr isnot ''
+    if a:attr isnot# ''
       let attr = a:attr
     endif
-    if a:sp isnot ''
+    if a:sp isnot# ''
       let sp = s:is_number(a:sp) ? s:colors[a:sp] : {'gui': a:sp, 'cterm': a:sp}
     endif
     exec 'hi' a:group
