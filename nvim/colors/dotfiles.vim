@@ -1,6 +1,15 @@
 " modified version of base16-vim (https://github.com/chriskempson/base16-vim)
 " by Chris Kempson (http://chriskempson.com)
 
+" Theme setup {{{
+  set background=dark
+  hi clear
+  if exists('syntax_on')
+    syntax reset
+  endif
+  let g:colors_name = 'dotfiles'
+" }}}
+
 " Color definitions {{{
 
   execute 'source' fnameescape(g:dotfiles_dir.'/colorschemes/out/vim.vim')
@@ -12,12 +21,6 @@
 
   let s:is_kitty = $TERM ==# 'xterm-kitty'
 
-" }}}
-
-" Theme setup {{{
-  hi clear
-  syntax reset
-  let g:colors_name = 'dotfiles'
 " }}}
 
 " The highlighting function {{{
@@ -52,8 +55,6 @@
 " }}}
 
 " General syntax highlighting {{{
-
-  " TODO: `hi clear` ?
 
   call s:hi('Normal',     0x5,  0x0, '',          '')
   call s:hi('Italic',     0xE,  '',  'italic',    '')
