@@ -6,6 +6,8 @@ set wildignore+=.git,.svn,.hg,.DS_Store,*~
 " arguably one of the most useful mappings
 nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
 
+set undofile
+
 
 " ripgrep (rg) {{{
   if executable('rg')
