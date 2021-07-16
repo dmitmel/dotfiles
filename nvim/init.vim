@@ -156,9 +156,16 @@ EOF
       -- It is actually important that we change the extension of the compiled
       -- loader file to `.vim` because Lua files in `plugin/` are sourced
       -- AFTER all Vimscript files have been sourced.
-      compile_path = vim.fn.stdpath('config') .. '/plugin/packer_compiled.vim'
+      compile_path = vim.fn.stdpath('config') .. '/plugin/packer_compiled.vim',
+      -- Putting the limit on parallel jobs unfreezes the UI and makes it show
+      -- up earlier. Note that you shouldn't use the number of logical CPUs
+      -- (`#vim.loop.cpu_info()`) or some similar metric for this because
+      -- plugin installation is largely I/O-bound (unless cloning big Git
+      -- repositories where a lot of deltas need to be resolved, I guess). The
+      -- limit itself was taken from vim-plug, obviously:
+      -- <https://github.com/junegunn/vim-plug/blob/fc2813ef4484c7a5c080021ceaa6d1f70390d920/plug.vim#L1156-L1157>
+      max_jobs = 16,
     })
-    packer.init()
     packer.reset()
 EOF
     autocmd User PackerComplete lua require('packer').compile()
