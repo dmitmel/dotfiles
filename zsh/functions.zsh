@@ -140,3 +140,15 @@ discord-avatar() {
   avatar_url="$(discord-whois --image-size 4096 --get 'Avatar' "$1")"
   open "$avatar_url"
 }
+
+read_line() {
+  IFS= read -r line -- "$@"
+}
+
+print_lines() {
+  print -rC1 -- "$@"
+}
+
+print_null() {
+  print -rNC1 -- "$@"
+}
