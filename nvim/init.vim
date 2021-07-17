@@ -4,7 +4,17 @@ let g:dotfiles_dir = expand('<sfile>:p:h:h')
 let g:vim_ide = get(g:, 'vim_ide', 0)
 let g:vim_ide_treesitter = get(g:, 'vim_ide_treesitter', 0)
 
-let &runtimepath = g:nvim_dotfiles_dir.','.&runtimepath.','.g:nvim_dotfiles_dir.'/after'
+function! s:configure_runtimepath() abort
+  " NOTE: Vim actually might handle escaping of commas in RTP and such if you
+  " write `^,` or something, but honestly I don't want to think about that too
+  " hard. Even vim-plug doesn't care about that.
+  let rtp = split(&runtimepath, ',')
+  let dotf = g:nvim_dotfiles_dir
+  if index(rtp, dotf         ) < 0 | call insert(rtp, dotf         ) | endif
+  if index(rtp, dotf.'/after') < 0 | call    add(rtp, dotf.'/after') | endif
+  let &runtimepath = join(rtp, ',')
+endfunction
+call s:configure_runtimepath()
 
 " Indent detection hack, stage 1 {{{
 " HACK: Set `shiftwidth` to something unreasonable to make Polyglot's built-in
