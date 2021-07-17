@@ -77,6 +77,9 @@ endif
     command! -nargs=0 -range -bar CocFormat call s:CocFormat(<range>, <line1>, <line2>)
   " }}}
 
+  " Stolen from <https://github.com/keanuplayz/dotfiles/blob/097aaf4ae3721b27c7fc341c6c7b99d78c7d9338/nvim/plugin/commands.vim#L1>
+  command! -nargs=0 -bar CocOrganizeImports call CocAction('organizeImport')
+
   let g:coc_global_extensions = []
   let g:coc_user_config = {}
 
