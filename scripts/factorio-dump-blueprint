@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+# <https://wiki.factorio.com/Blueprint_string_format>
+
+import base64
+import json
+import sys
+import zlib
+
+if __name__ == "__main__":
+  data: bytes = sys.stdin.buffer.read()
+  version, data = data[:1], data[1:]
+  if version != b"0":
+    raise Exception("unsupported blueprint string version")
+  data = base64.b64decode(data)
+  data = zlib.decompress(data)
+  print(json.dumps(json.loads(data), ensure_ascii=False, indent=2))

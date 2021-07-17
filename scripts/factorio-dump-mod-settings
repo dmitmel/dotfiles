@@ -13,26 +13,29 @@ from pathlib import Path
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import factorio.property_tree
 
-with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
+if __name__ == "__main__":
+  with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
 
-  version_main: int
-  version_major: int
-  version_minor: int
-  version_developer: int
-  version_main, version_major, version_minor, version_developer = struct.unpack("<HHHH", f.read(8))
+    version_main: int
+    version_major: int
+    version_minor: int
+    version_developer: int
+    version_main, version_major, version_minor, version_developer = struct.unpack(
+      "<HHHH", f.read(8)
+    )
 
-  always_false_flag = factorio.property_tree.read_bool(f)
-  if always_false_flag:
-    raise Exception("the always-False-flag is True for some reason")
+    always_false_flag = factorio.property_tree.read_bool(f)
+    if always_false_flag:
+      raise Exception("the always-False-flag is True for some reason")
 
-  deserialized_data = {
-    "factorio_version": {
-      "main": version_main,
-      "major": version_major,
-      "minor": version_minor,
-      "developer": version_developer,
-    },
-    "data": factorio.property_tree.read(f),
-  }
+    deserialized_data = {
+      "factorio_version": {
+        "main": version_main,
+        "major": version_major,
+        "minor": version_minor,
+        "developer": version_developer,
+      },
+      "data": factorio.property_tree.read(f),
+    }
 
-  print(json.dumps(deserialized_data, indent=2))
+    print(json.dumps(deserialized_data, indent=2))
