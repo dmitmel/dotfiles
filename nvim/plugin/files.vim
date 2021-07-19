@@ -18,6 +18,7 @@ set undofile
     let s:rg_cmd .= " --glob '!{'" . shellescape(join(s:rg_ignore, ','), 1) . "'}'"
 
     let &grepprg = s:rg_cmd . ' --vimgrep'
+    set grepformat^=%f:%l:%c:%m
     let $FZF_DEFAULT_COMMAND = s:rg_cmd . ' --files'
     command! -bang -nargs=* Rg call fzf#vim#grep(s:rg_cmd . ' --column --line-number --no-heading --fixed-strings --smart-case --color always ' . shellescape(<q-args>, 1), 1, <bang>0)
     command! -bang -nargs=* Find Rg<bang> <args>

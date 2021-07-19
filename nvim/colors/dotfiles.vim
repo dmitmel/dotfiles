@@ -145,7 +145,23 @@
   call s:hi('ColorColumn',  '',  0x1, '', '')
   call s:hi('LineNr',       0x3, 0x1, '', '')
   call s:hi('CursorLineNr', 0x4, 0x1, '', '')
-  call s:hi('QuickFixLine', '',  0x2, '', '')
+  " call s:hi('QuickFixLine', '',  0x2, '',     '')
+  " call s:hi('qfError',      0x8, 0x1, 'bold', '')
+  " call s:hi('qfWarning',    0xA, 0x1, 'bold', '')
+  " call s:hi('qfInfo',       0xD, 0x1, 'bold', '')
+  " call s:hi('qfNote',       0xD, 0x1, 'bold', '')
+  " The secondary quickfix list setup. Requires a bunch of weird tricks with
+  " reverse video to look nice. This is needed because highlighting of the
+  " current qflist item with the QuickFixLine hlgroup is handled as a special
+  " case (see <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/screen.c#L2391-L2394>),
+  " and, unfortunately, QuickFixLine overrides the background colors set by
+  " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
+  call s:hi('QuickFixLine', 0xE, '', 'underline',    0xE)
+  call s:hi('qfError',      0x8, '', 'reverse,bold',  '')
+  call s:hi('qfWarning',    0xA, '', 'reverse,bold',  '')
+  call s:hi('qfInfo',       0xD, '', 'reverse,bold',  '')
+  call s:hi('qfNote',       0xD, '', 'reverse,bold',  '')
+
 
   call s:hi('SignColumn',     0x3, 0x1, '', '')
   call s:hi('StatusLine',     0x4, 0x1, '', '')
