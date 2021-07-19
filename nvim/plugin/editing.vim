@@ -18,8 +18,9 @@ set commentstring=//%s
     let &l:tabstop = &l:shiftwidth
     let &l:softtabstop = &l:shiftwidth
   endfunction
-  command -nargs=1 Indent call SetIndent(1, <q-args>)
-  command -nargs=1 IndentTabs call SetIndent(0, <q-args>)
+  command -nargs=1 -bar Indent call SetIndent(1, <q-args>)
+  command -nargs=1 -bar IndentTabs call SetIndent(0, <q-args>)
+  command -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
 
   " use 2 spaces for indentination
   set expandtab shiftwidth=2 tabstop=2 softtabstop=2
