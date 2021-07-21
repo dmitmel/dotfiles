@@ -4,7 +4,7 @@ finish
 let s:filetypes = ['vim']
 let g:coc_filetypes += s:filetypes
 
-let g:coc_global_extensions += ['coc-vimlsp']
+" let g:coc_global_extensions += ['coc-vimlsp']
 let g:coc_user_config['vimlsp'] = {
 \ 'suggest.fromRuntimepath': v:true,
 \ }

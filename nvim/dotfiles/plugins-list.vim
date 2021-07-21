@@ -88,6 +88,18 @@ let s:ctx = g:dotfiles_plugins_list_context
   call s:ctx.use('kylelaker/riscv.vim')
   if g:vim_ide
     call s:ctx.use('neoclide/coc.nvim', { 'branch': 'master', 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('fannheyward/coc-rust-analyzer', { 'run': 'yarn install --frozen-lockfile' })
+    " call s:ctx.use('neoclide/coc-rls', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-tsserver', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-eslint', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-prettier', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-snippets', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-json', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-html', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-emmet', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('neoclide/coc-css', { 'run': 'yarn install --frozen-lockfile' })
+    call s:ctx.use('fannheyward/coc-pyright', { 'run': 'yarn install --frozen-lockfile' })
+    " call s:ctx.use('iamcco/coc-vimlsp', { 'run': 'yarn install --frozen-lockfile' })
     call s:ctx.use('dag/vim2hs')
     call s:ctx.use('norcalli/nvim-colorizer.lua')
     if g:vim_ide_treesitter
