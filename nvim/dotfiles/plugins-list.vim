@@ -1,109 +1,95 @@
-let s:ctx = g:dotfiles_plugins_list_context
+" COUNTERHACK: Don't invent plugin manager abstraction layers anymore.
 
-" Note about dependencies: In general, they are quite useless. Packs actually
-" have no way of specifying load order, but proper plugins don't even depend on
-" it because the primary methods of interaction are either calls to autoloaded
-" functions (see the dependents of vim-textobj-user), and that will work no
-" matter what load order (because all plugins in a pack are first added to RTP,
-" only then sourcing begins), or checks in VimEnter (see extension loading in
-" vim-airline), and by that time all plugin scripts would have been executed.
-" Dependencies (As specified with `after`, not with `requires`! See
-" <https://github.com/wbthomason/packer.nvim/issues/87>) are really only useful
-" on plugin installation by the plugin manager because packer.nvim, for
-" example, executes plugins in whichever order they are downloaded, and doesn't
-" first wait for everything to be downloaded to flush everything to
-" RTP.
-
-" COUNTERHACK: Don't specify dependencies. Just don't.
+let s:plug = funcref('dotfiles#plugman#register')
 
 " Files {{{
-  call s:ctx.use('tpope/vim-eunuch')
+  call s:plug('tpope/vim-eunuch')
   if g:vim_ide
-    call s:ctx.use('francoiscabrol/ranger.vim')
+    call s:plug('francoiscabrol/ranger.vim')
   endif
 " }}}
 
 " Editing {{{
   if g:vim_ide
-    " call s:ctx.use('easymotion/vim-easymotion')
-    call s:ctx.use('junegunn/vim-easy-align')
+    " call s:plug('easymotion/vim-easymotion')
+    call s:plug('junegunn/vim-easy-align')
   endif
-  call s:ctx.use('Raimondi/delimitMate')
-  call s:ctx.use('tpope/vim-repeat')
-  call s:ctx.use('tomtom/tcomment_vim')
-  call s:ctx.use('tpope/vim-surround')
+  call s:plug('Raimondi/delimitMate')
+  call s:plug('tpope/vim-repeat')
+  call s:plug('tomtom/tcomment_vim')
+  call s:plug('tpope/vim-surround')
   " if has('nvim-0.5.0')
   "   " Doesn't use concealed text, can put indent guides on blank lines, depends
   "   " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
   "   " compatible with the original indentLine (in terms of options). ...And has
   "   " a critical bug:
   "   " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/51>
-  "   call s:ctx.use('lukas-reineke/indent-blankline.nvim')
+  "   call s:plug('lukas-reineke/indent-blankline.nvim')
   " else
-    call s:ctx.use('Yggdroot/indentLine')
+    call s:plug('Yggdroot/indentLine')
   " endif
-  call s:ctx.use('henrik/vim-indexed-search')
-  call s:ctx.use('andymass/vim-matchup')
-  call s:ctx.use('inkarkat/vim-ingo-library')
-  call s:ctx.use('inkarkat/vim-LineJuggler', { 'branch': 'stable' })
-  call s:ctx.use('reedes/vim-pencil')
-  call s:ctx.use('tommcdo/vim-exchange')
-  call s:ctx.use('justinmk/vim-sneak')
+  call s:plug('henrik/vim-indexed-search')
+  call s:plug('andymass/vim-matchup')
+  call s:plug('inkarkat/vim-ingo-library')
+  call s:plug('inkarkat/vim-LineJuggler', { 'branch': 'stable' })
+  call s:plug('reedes/vim-pencil')
+  call s:plug('tommcdo/vim-exchange')
+  call s:plug('justinmk/vim-sneak')
 " }}}
 
 " Text objects {{{
-  call s:ctx.use('kana/vim-textobj-user')
-  call s:ctx.use('kana/vim-textobj-entire')
-  call s:ctx.use('kana/vim-textobj-line')
-  call s:ctx.use('kana/vim-textobj-indent')
-  call s:ctx.use('glts/vim-textobj-comment')
+  call s:plug('kana/vim-textobj-user')
+  call s:plug('kana/vim-textobj-entire')
+  call s:plug('kana/vim-textobj-line')
+  call s:plug('kana/vim-textobj-indent')
+  call s:plug('glts/vim-textobj-comment')
 " }}}
 
 " UI {{{
-  call s:ctx.use('moll/vim-bbye')
-  call s:ctx.use('gerw/vim-HiLinkTrace')
-  call s:ctx.use('vim-airline/vim-airline')
-  call s:ctx.use('tpope/vim-obsession')
-  call s:ctx.use('romainl/vim-qf')
+  call s:plug('moll/vim-bbye')
+  call s:plug('gerw/vim-HiLinkTrace')
+  call s:plug('vim-airline/vim-airline')
+  call s:plug('tpope/vim-obsession')
+  call s:plug('romainl/vim-qf')
 " }}}
 
 " Git {{{
   if g:vim_ide
-    call s:ctx.use('tpope/vim-fugitive')
-    call s:ctx.use('tpope/vim-rhubarb')
-    call s:ctx.use('airblade/vim-gitgutter')
+    call s:plug('tpope/vim-fugitive')
+    call s:plug('tpope/vim-rhubarb')
+    call s:plug('airblade/vim-gitgutter')
   endif
 " }}}
 
 " FZF {{{
-  call s:ctx.use('junegunn/fzf', { 'run': './install --bin' })
-  call s:ctx.use('junegunn/fzf.vim')
+  call s:plug('junegunn/fzf', { 'do': './install --bin' })
+  call s:plug('junegunn/fzf.vim')
 " }}}
 
-" " Programming {{{
+" Programming {{{
   let g:polyglot_disabled = ['sensible']
-  call s:ctx.use('sheerun/vim-polyglot')
-  call s:ctx.use('chikamichi/mediawiki.vim')
-  call s:ctx.use('ron-rs/ron.vim')
-  call s:ctx.use('kylelaker/riscv.vim')
+  call s:plug('sheerun/vim-polyglot')
+  call s:plug('chikamichi/mediawiki.vim')
+  call s:plug('ron-rs/ron.vim')
+  call s:plug('kylelaker/riscv.vim')
+  call s:plug('dag/vim2hs')
   if g:vim_ide
-    call s:ctx.use('neoclide/coc.nvim', { 'branch': 'master', 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('fannheyward/coc-rust-analyzer', { 'run': 'yarn install --frozen-lockfile' })
-    " call s:ctx.use('neoclide/coc-rls', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-tsserver', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-eslint', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-prettier', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-snippets', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-json', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-html', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-emmet', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('neoclide/coc-css', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('fannheyward/coc-pyright', { 'run': 'yarn install --frozen-lockfile' })
-    " call s:ctx.use('iamcco/coc-vimlsp', { 'run': 'yarn install --frozen-lockfile' })
-    call s:ctx.use('dag/vim2hs')
-    call s:ctx.use('norcalli/nvim-colorizer.lua')
+    call s:plug('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('fannheyward/coc-rust-analyzer', { 'do': 'yarn install --frozen-lockfile' })
+    " call s:plug('neoclide/coc-rls', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-tsserver', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-eslint', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-prettier', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-snippets', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-json', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-html', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-emmet', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('neoclide/coc-css', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('fannheyward/coc-pyright', { 'do': 'yarn install --frozen-lockfile' })
+    " call s:plug('iamcco/coc-vimlsp', { 'do': 'yarn install --frozen-lockfile' })
+    call s:plug('norcalli/nvim-colorizer.lua')
     if g:vim_ide_treesitter
-      call s:ctx.use('nvim-treesitter/nvim-treesitter', { 'run': ':TSUpdate' })
+      call s:plug('nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' })
     endif
   endif
 " }}}
