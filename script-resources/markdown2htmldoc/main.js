@@ -88,7 +88,7 @@ if (syntaxThemeName && syntaxThemeName !== 'none') {
     fs.readFileSync(
       require.resolve(
         syntaxThemeName === 'dotfiles'
-          ? '../../colorschemes/out/prismjs-theme.css'
+          ? './themes-out/my-prismjs-theme.css'
           : `prismjs/themes/${syntaxThemeName}.css`,
       ),
       'utf-8',
@@ -112,13 +112,23 @@ let renderedHtmlDocument = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>${pathM.basename(args.INPUT_FILE || '<stdin>')}</title>
-${stylesheetsTexts.map((s) => `<style>\n${s}\n</style>`).join('\n')}
+${stylesheetsTexts
+  .map((s) => {
+    let st = s.trim();
+    return !st.includes('\n') ? `<style>${st}</style>` : `<style>\n${s}\n</style>`;
+  })
+  .join('\n')}
 </head>
 <body>
 <article class="markdown-body">
 ${renderedMarkdown}
 </article>
-${scriptsTexts.map((s) => `<script>\n${s}\n</script>`).join('\n')}
+${scriptsTexts
+  .map((s) => {
+    let st = s.trim();
+    return !st.includes('\n') ? `<script>${st}</script>` : `<script>\n${s}\n</script>`;
+  })
+  .join('\n')}
 </body>
 </html>
 `.trim();
