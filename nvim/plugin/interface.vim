@@ -159,6 +159,7 @@ endif
   nmap ]q <Plug>(qf_qf_next)
   nmap [l <Plug>(qf_loc_previous)
   nmap ]l <Plug>(qf_loc_next)
+  nmap Q <Cmd>cclose<CR>
   let g:qf_mapping_ack_style = 1
 
   " Based on <https://stackoverflow.com/a/1330556/12005228>, inspired by
