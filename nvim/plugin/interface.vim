@@ -64,8 +64,12 @@ endif
   " }}}
 
   " closing buffers {{{
-    nnoremap <silent> <BS>  <Cmd>call <SID>CloseBuffer('Bwipeout')<CR>
-    nnoremap <silent> <Del> <Cmd>call <SID>CloseBuffer('Bwipeout')<bar>quit<CR>
+    " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist
+    " switching because when these lists are loaded, they also create (but not
+    " load) buffers for all of the mentioned files, and should a buffer be
+    " deleted entirely, switching to that buffer starts to fail with E92.
+    nnoremap <silent> <BS>  <Cmd>call <SID>CloseBuffer('Bdelete')<CR>
+    nnoremap <silent> <Del> <Cmd>call <SID>CloseBuffer('Bdelete')<bar>quit<CR>
   " }}}
 
 " }}}
