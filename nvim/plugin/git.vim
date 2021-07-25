@@ -10,6 +10,7 @@ let g:fugitive_legacy_commands = 0
   nnoremap <leader>gb :<C-u>Git blame<CR>
   nnoremap <leader>gw :<C-u>GBrowse<CR>
   nnoremap <leader>gW :<C-u>.GBrowse<CR>
+  xnoremap <leader>gw :GBrowse<CR>
   nnoremap <leader>gc :<C-u>Git commit %
   nnoremap <leader>gC :<C-u>Git commit --amend
   nnoremap <leader>gl :<C-u>Gclog<CR>

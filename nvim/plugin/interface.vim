@@ -175,7 +175,7 @@ endif
     execute 'g' . (a:bang ? '!' : '') . '/' . pattern . "/call add(matches, expand(\"%\").\":\".line(\".\").\":\".col(\".\").\":\".getline(\".\"))"
     cexpr matches
   endfunction
-  command! -bang -nargs=1 Global call <SID>CmdGlobal(<q-args>, <bang>0)
+  command! -bang -nargs=+ Global call <SID>CmdGlobal(<q-args>, <bang>0)
 " }}}
 
 

@@ -4,9 +4,15 @@ set fileformats=unix,dos,mac
 set wildignore+=.git,.svn,.hg,.DS_Store,*~
 
 " arguably one of the most useful mappings
-nnoremap <silent><expr> <CR> empty(&buftype) ? ":write<bar>wall\<CR>" : "\<CR>"
+nnoremap <silent><expr> <CR> empty(&buftype) ? ":call \<SID>write_this_and_write_all()\<CR>" : "\<CR>"
+function s:write_this_and_write_all() abort
+  " The `abort` in this function is necessary because it will prevent a second
+  " attempt of writing from :wall from occuring had the first :write failed.
+  write | wall
+endfunction
 
 set undofile
+set updatetime=500
 
 
 " ripgrep (rg) {{{
@@ -29,13 +35,17 @@ set undofile
   function! s:grep_mapping_star_normal() abort
     let word = expand('<cword>')
     if !empty(word)
-      call feedkeys(":\<C-u>grep " . shellescape('\b' . word . '\b', 1), 'n')
+      let cmd = 'grep ' . shellescape('\b' . word . '\b', 1)
+      call histadd('cmd', cmd)
+      call feedkeys(":\<C-u>" . cmd, 'n')
     endif
   endfunction
   function! s:grep_mapping_star_visual() abort
     let tmp = @"
     normal! y
-    call feedkeys(":\<C-u>grep " . shellescape(@", 1), 'n')
+    let cmd = 'grep ' . shellescape(@", 1)
+    call histadd('cmd', cmd)
+    call feedkeys(":\<C-u>" . cmd, 'n')
     let @" = tmp
   endfunction
   nnoremap <leader>* <Cmd>call <SID>grep_mapping_star_normal()<CR>

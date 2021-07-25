@@ -214,6 +214,23 @@ set commentstring=//%s
 " }}}
 
 
+" Spell checking {{{
+
+  function! SetSpellCheck(bang, lang) abort
+    if a:bang
+      let &l:spell = 0
+    elseif empty(a:lang)
+      let &l:spell = !&l:spell
+    else
+      let &l:spell = 1
+      let &l:spelllang = a:lang
+    endif
+  endfunction
+  command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
+
+" }}}
+
+
 " Formatting {{{
 
   " -o: don't insert a comment after hitting 'o' or 'O' in the Normal mode
