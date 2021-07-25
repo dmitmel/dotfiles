@@ -1,4 +1,4 @@
-items = {
+local items = {
   { text = "clear screen",           keys = {{"ctrl","L"}} },
   { text = "insert mode",            keys = {{"ctrl","X"},{"ctrl","O"}} },
   { text = "undo",                   keys = {{"ctrl","shift", "-"}} },
@@ -73,7 +73,7 @@ items = {
   { text = "tmux: paste",     keys = {{"ctrl","B"},{"]"}} },
 }
 
-chooser = hs.chooser.new(function(item)
+local chooser = hs.chooser.new(function(item)
   if item then
     if item.message then hs.alert(item.message) end
     for _, key_combo in ipairs(item.keys) do
@@ -84,16 +84,16 @@ end)
 
 chooser:choices(
   hs.fnutils.imap(items, function(item)
-    subText = table.concat(hs.fnutils.imap(item.keys, function(key_combo)
+    local subText = table.concat(hs.fnutils.imap(item.keys, function(key_combo)
       return table.concat(hs.fnutils.imap(key_combo, function(key_stroke)
         return hs.utf8.registeredKeys[key_stroke] or key_stroke
       end))
     end), " ")
 
-    keys = hs.fnutils.imap(item.keys, function(key_combo)
-      mods = {}
+    local keys = hs.fnutils.imap(item.keys, function(key_combo)
+      local mods = {}
       for i = 1, #key_combo - 1 do mods[i] = key_combo[i] end
-      key = key_combo[#key_combo]
+      local key = key_combo[#key_combo]
       return { mods = mods, key = key }
     end)
 
@@ -109,8 +109,8 @@ chooser:choices(
 chooser:rows(9)
 
 hs.hotkey.bind({"cmd", "shift"}, "a", function()
-  app = hs.application.frontmostApplication()
-  app_name = app:name():lower()
+  local app = hs.application.frontmostApplication()
+  local app_name = app:name():lower()
   if app_name:match("term") or app_name:match("kitty") then
     chooser:show()
   end
