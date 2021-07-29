@@ -60,8 +60,8 @@ def get_system_info() -> Tuple[List[str], List[str]]:
 
   info_lines.append("")
 
-  for local_ip_address in _get_local_ipv4_addresses():
-    info("Local IPv4 Address (%s)", "%s", *local_ip_address)
+  for local_ip_address in _get_local_addresses():
+    info("Local %s Address (%s)", "%s", *local_ip_address)
 
   return logo_lines, info_lines
 
@@ -167,19 +167,22 @@ def _get_battery() -> Optional[Tuple[str, str]]:
   return colorize_percent(percent, critical=10, warning=20, inverse=True), status
 
 
-def _get_local_ipv4_addresses() -> List[Tuple[str, str]]:
-  result: List[Tuple[str, str]] = []
+def _get_local_addresses() -> List[Tuple[str, str, str]]:
+  result: List[Tuple[str, str, str]] = []
 
   for interface, addresses in psutil.net_if_addrs().items():
     for address in addresses:
-      if address.family != socket.AF_INET:
-        # allow only IPv4 addresses (skip IPv6 and MAC, for example)
-        continue
       if interface.startswith("lo"):
         # skip loopback interfaces
         continue
-
-      result.append((interface, address.address))
+      if address.family == socket.AF_INET:
+        family = "IPv4"
+      elif address.family == socket.AF_INET6:
+        family = "IPv6"
+      else:
+        # other families are not shown, e.g. MAC addresses
+        continue
+      result.append((family, interface, address.address))
 
   return result
 
