@@ -3,8 +3,8 @@
 import json
 import os
 from abc import abstractmethod
-from typing import Dict, Iterator, List, Protocol, TextIO
 from configparser import ConfigParser
+from typing import Dict, Iterator, List, Protocol, TextIO
 
 __dir__ = os.path.dirname(__file__)
 
@@ -270,8 +270,9 @@ class ThemeGeneratorXfceTerminal(ThemeGenerator):
     output.write("ColorSelectionBackground={}\n".format(theme.selection_bg.css_hex))
     output.write("TabActivityColor={}\n".format(theme.base16_colors[0x8].css_hex))
     output.write("ColorBoldUseDefault=TRUE\n")
+    output.write("ColorBold={}\n".format(theme.fg.css_hex))
     output.write(
-      "ColorPalette={}\n".format(";".join(color.css_hex for color in theme.ansi_colors)),
+      "ColorPalette={}\n".format(";".join(color.css_hex for color in theme.ansi_colors[:16])),
     )
 
 
