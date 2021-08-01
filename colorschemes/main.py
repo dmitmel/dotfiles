@@ -4,6 +4,7 @@ import json
 import os
 from abc import abstractmethod
 from typing import Dict, Iterator, List, Protocol, TextIO
+from configparser import ConfigParser
 
 __dir__ = os.path.dirname(__file__)
 
@@ -116,27 +117,18 @@ class Theme(Protocol):
     return d
 
 
-class MyTheme(Theme):
-  base16_name = "eighties"
-  is_dark = True
-  base16_colors = [
-    Color.from_hex("2d2d2d"),  # 0
-    Color.from_hex("393939"),  # 1
-    Color.from_hex("515151"),  # 2
-    Color.from_hex("747369"),  # 3
-    Color.from_hex("a09f93"),  # 4
-    Color.from_hex("d3d0c8"),  # 5
-    Color.from_hex("e8e6df"),  # 6
-    Color.from_hex("f2f0ec"),  # 7
-    Color.from_hex("f2777a"),  # 8
-    Color.from_hex("f99157"),  # 9
-    Color.from_hex("ffcc66"),  # a
-    Color.from_hex("99cc99"),  # b
-    Color.from_hex("66cccc"),  # c
-    Color.from_hex("6699cc"),  # d
-    Color.from_hex("cc99cc"),  # e
-    Color.from_hex("d27b53"),  # f
-  ]
+class IniTheme(Theme):
+
+  def __init__(self, file_path: str) -> None:
+    super().__init__()
+    self.file_path = file_path
+    config = ConfigParser(interpolation=None)
+    config.read(file_path)
+    self.base16_name = config.get("Theme", "base16_name")
+    self.is_dark = config.getboolean("Theme", "is_dark")
+    self.base16_colors = [
+      Color.from_hex(config.get("Theme", "base16_color_{:02x}".format(i))) for i in range(16)
+    ]
 
 
 class ThemeGenerator(Protocol):
@@ -399,7 +391,7 @@ class ThemeGeneratorPrismJs(ThemeGenerator):
 
 
 def main() -> None:
-  theme: Theme = MyTheme()
+  theme: Theme = IniTheme(os.path.join(__dir__, 'data.ini'))
   generators: List[ThemeGenerator] = [
     ThemeGeneratorKitty(),
     ThemeGeneratorTermux(),

@@ -1,1 +1,2 @@
-script-resources/markdown2htmldoc/themes-out/**/* linguist-generated
+/script-resources/markdown2htmldoc/themes-out/**/* linguist-generated
+/colorschemes/out/**/* linguist-generated
