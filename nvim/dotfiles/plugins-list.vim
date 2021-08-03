@@ -88,8 +88,5 @@ let s:plug = funcref('dotfiles#plugman#register')
     call s:plug('fannheyward/coc-pyright', { 'do': 'yarn install --frozen-lockfile' })
     " call s:plug('iamcco/coc-vimlsp', { 'do': 'yarn install --frozen-lockfile' })
     call s:plug('norcalli/nvim-colorizer.lua')
-    if g:vim_ide_treesitter
-      call s:plug('nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' })
-    endif
   endif
 " }}}

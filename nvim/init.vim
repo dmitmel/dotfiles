@@ -2,7 +2,6 @@ let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
 let g:vim_ide = get(g:, 'vim_ide', 0)
-let g:vim_ide_treesitter = get(g:, 'vim_ide_treesitter', 0)
 
 function! s:configure_runtimepath() abort
   " NOTE: Vim actually might handle escaping of commas in RTP and such if you
@@ -51,10 +50,6 @@ if has('autocmd') && !(exists('g:did_load_filetypes') && exists('g:did_load_ftpl
 endif
 if has('syntax') && !exists('g:syntax_on')
   syntax enable
-endif
-
-if g:vim_ide_treesitter
-  runtime! dotfiles/treesitter.vim
 endif
 
 " Indent detection hack, stage 2 {{{
