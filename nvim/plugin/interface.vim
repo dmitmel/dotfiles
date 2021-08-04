@@ -180,3 +180,8 @@ endif
 
 
 nnoremap <silent> <F9> <Cmd>make!<CR>
+
+
+if exists('*api_info')
+  command! -bar -bang NvimApiCheatSheet call dotfiles#nvim_api_cheat_sheet#print()
+endif
