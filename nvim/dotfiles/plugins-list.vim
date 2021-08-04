@@ -1,6 +1,6 @@
 " COUNTERHACK: Don't invent plugin manager abstraction layers anymore.
 
-let s:plug = funcref('dotfiles#plugman#register')
+let s:plug = function('dotfiles#plugman#register')
 
 " Files {{{
   call s:plug('tpope/vim-eunuch')
