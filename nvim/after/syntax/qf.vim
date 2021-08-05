@@ -1,3 +1,4 @@
+if b:current_syntax != "qf" | finish | endif
 " Extension for <https://github.com/neovim/neovim/blob/v0.5.0/runtime/syntax/qf.vim>.
 
 syn match qfLineNr "[^|]*" contained contains=qfError,qfWarning,qfInfo,qfNote

@@ -7,5 +7,13 @@ if exists("g:qf_mapping_ack_style")
   endif
   nmap <buffer> ( <Plug>(qf_previous_file)
   nmap <buffer> ) <Plug>(qf_next_file)
-  call dotfiles#utils#undo_ftplugin_hook('exe "nunmap <buffer> <Esc>" | exe "nunmap <buffer> (" | exe "nunmap <buffer> )"')
+  nmap <buffer> <C-p> <Plug>(qf_older)
+  nmap <buffer> <C-n> <Plug>(qf_newer)
+  call dotfiles#utils#undo_ftplugin_hook(join([
+  \ 'exe "nunmap <buffer> <Esc>"',
+  \ 'exe "nunmap <buffer> ("',
+  \ 'exe "nunmap <buffer> )"',
+  \ 'exe "nunmap <buffer> <C-p>"',
+  \ 'exe "nunmap <buffer> <C-n>"',
+  \ ], ' | '))
 endif
