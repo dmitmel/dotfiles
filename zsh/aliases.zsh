@@ -123,3 +123,5 @@ alias gtime="command time -v"
 
 # Inspired by <https://github.com/junghans/cwdiff/blob/de56a73f37eb72edfb78ea610798a5744b8dcf10/cwdiff#L54-L61>.
 alias cwdiff='wdiff --start-delete="${fg[red]}[-" --end-delete="-]${reset_color}" --start-insert="${fg[green]}{+" --end-insert "+}${reset_color}"'
+
+alias yarn="yarn --emoji false"
