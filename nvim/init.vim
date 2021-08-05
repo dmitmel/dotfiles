@@ -1,3 +1,8 @@
+if !exists('g:dotfiles_boot_reltime')
+  let g:dotfiles_boot_reltime = reltime()
+  let g:dotfiles_boot_localtime = localtime()
+endif
+
 let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
