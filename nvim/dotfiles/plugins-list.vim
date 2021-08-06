@@ -57,7 +57,8 @@ let s:plug = function('dotfiles#plugman#register')
   if g:vim_ide
     call s:plug('tpope/vim-fugitive')
     call s:plug('tpope/vim-rhubarb')
-    call s:plug('airblade/vim-gitgutter')
+    call s:plug('mhinz/vim-signify', (has('nvim') || has('patch-8.0.902')) ? {} : { 'branch': 'legacy' })
+    " call s:plug('airblade/vim-gitgutter')
   endif
 " }}}
 

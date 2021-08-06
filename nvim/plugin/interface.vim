@@ -123,7 +123,7 @@ endif
   if dotfiles#plugman#is_registered('vim-fugitive')
     let g:airline_extensions += ['branch', 'fugitiveline']
   endif
-  if dotfiles#plugman#is_registered('vim-gitgutter')
+  if dotfiles#plugman#is_registered('vim-gitgutter') || dotfiles#plugman#is_registered('vim-signify')
     let g:airline_extensions += ['hunks']
   endif
   if dotfiles#plugman#is_registered('coc.nvim')
