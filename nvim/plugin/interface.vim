@@ -163,19 +163,8 @@ endif
   nmap ]q <Plug>(qf_qf_next)
   nmap [l <Plug>(qf_loc_previous)
   nmap ]l <Plug>(qf_loc_next)
-  nmap Q <Cmd>cclose<CR>
+  nmap Q <Plug>(qf_qf_toggle)
   let g:qf_mapping_ack_style = 1
-
-  " Based on <https://stackoverflow.com/a/1330556/12005228>, inspired by
-  " <https://gist.github.com/romainl/f7e2e506dc4d7827004e4994f1be2df6>.
-  " But apparently `vimgrep /pattern/ %` can be used instead?
-  function! s:CmdGlobal(pattern, bang) abort
-    let pattern = substitute(a:pattern, '/.*$', '', '')
-    let matches = []
-    execute 'g' . (a:bang ? '!' : '') . '/' . pattern . "/call add(matches, expand(\"%\").\":\".line(\".\").\":\".col(\".\").\":\".getline(\".\"))"
-    cexpr matches
-  endfunction
-  command! -bang -nargs=+ Global call <SID>CmdGlobal(<q-args>, <bang>0)
 " }}}
 
 

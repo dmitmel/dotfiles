@@ -179,7 +179,7 @@ set updatetime=500
 
   " fix whitespace {{{
     function! s:FixWhitespaceOnSave() abort
-      let pos = getpos('.')
+      let pos = getcurpos()
       " remove trailing whitespace
       keeppatterns %s/\s\+$//e
       " remove trailing newlines
