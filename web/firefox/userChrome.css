@@ -1,0 +1,9 @@
+@media (-moz-proton) {
+  @media (-moz-toolbar-prefers-color-scheme: dark) {
+    :host,
+    :root {
+      /* <https://github.com/black7375/Firefox-UI-Fix/blob/18579e0525dc1ce4028ee29a76819f9e75874f0b/userChrome.css#L261> */
+      scrollbar-color: revert;
+    }
+  }
+}

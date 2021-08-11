@@ -1,23 +1,27 @@
-/* prettier-ignore */
-@-moz-document url-prefix(chrome://devtools/content/), url(about:devtools-toolbox) {
+@-moz-document url-prefix(chrome://devtools/content/), url(about:devtools-toolbox)
+{
   :root {
     --theme-body-font-size: 13px !important;
     --theme-code-font-size: 13px !important;
     --theme-code-line-height: calc(15 / 13) !important;
   }
-
-  /*
-  :root[platform="linux"] {
-    --monospace-font-family: "Ubuntu Mono" !important;
-  }
-  */
 }
 
-@-moz-document url(about:home), url(about:newtab) {
-  /* <https://github.com/black7375/Firefox-UI-Fix/blob/3f9ac3032ce90b46a190ac16b29ecf2488290d51/userContent.css#L12-L16> */
-  /* <https://searchfox.org/mozilla-central/rev/74f3c420ee54001059e1850bef3be876749ff873/browser/components/newtab/content-src/components/TopSites/_TopSites.scss#125-126> */
-  .top-site-outer .tile .icon-wrapper {
-    width: 100% !important;
-    height: 100% !important;
+@media (-moz-proton) {
+  @-moz-document url(about:home), url(about:newtab) {
+    /* <https://github.com/black7375/Firefox-UI-Fix/blob/3f9ac3032ce90b46a190ac16b29ecf2488290d51/userContent.css#L12-L16> */
+    /* <https://searchfox.org/mozilla-central/rev/74f3c420ee54001059e1850bef3be876749ff873/browser/components/newtab/content-src/components/TopSites/_TopSites.scss#125-126> */
+    .top-site-outer .tile .icon-wrapper {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
+
+  @media (-moz-toolbar-prefers-color-scheme: dark) {
+    :host,
+    :root {
+      /* <https://github.com/black7375/Firefox-UI-Fix/blob/18579e0525dc1ce4028ee29a76819f9e75874f0b/userContent.css#L278> */
+      scrollbar-color: revert;
+    }
   }
 }
