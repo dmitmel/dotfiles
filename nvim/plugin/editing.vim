@@ -304,8 +304,8 @@ set commentstring=//%s
   map F <Plug>Sneak_F
   map t <Plug>Sneak_t
   map T <Plug>Sneak_T
-  noremap <leader>s s
-  noremap <leader>S S
+  noremap <leader>s <Cmd>echoerr 'Please, use `cl` instead of `<leader>s`!'<CR>
+  noremap <leader>S <Cmd>echoerr 'Please, use `cc` instead of `<leader>S`!'<CR>
 
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
