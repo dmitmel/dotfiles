@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Generator, Optional, Union
+from typing import Any, Dict, Generator, List, Optional, Union
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import common_script_utils
@@ -22,7 +22,7 @@ else:
 config = ConfigParser(interpolation=None)
 config.read(config_path)
 
-emotes: list[dict[str, Any]] = []
+emotes: List[Dict[str, Any]] = []
 
 
 def emote_downloader_and_iterator() -> Generator[str, None, None]:
@@ -39,7 +39,7 @@ def emote_downloader_and_iterator() -> Generator[str, None, None]:
     "default", "ccbot_emote_registry_dump_url", fallback=DEFAULT_REGISTRY_DUMP_URL
   )
 
-  emote_registry_data: dict[str, Any]
+  emote_registry_data: Dict[str, Any]
   try:
     with open(registry_dump_file, "r") as f:
       emote_registry_data = json.load(f)
@@ -64,7 +64,7 @@ if chosen_index >= 0:
   chosen_emote = emotes[chosen_index]
 
   emote_url: urllib.parse.ParseResult = urllib.parse.urlparse(chosen_emote["url"])
-  emote_url_query: dict[str, list[str]] = urllib.parse.parse_qs(emote_url.query)
+  emote_url_query: Dict[str, List[str]] = urllib.parse.parse_qs(emote_url.query)
 
   if config.getboolean("default", "add_emote_name_to_url", fallback=False):
     emote_url_query["name"] = [chosen_emote["name"]]
