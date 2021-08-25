@@ -50,13 +50,30 @@ set commentstring=//%s
 " Cursor and Scrolling {{{
   set number relativenumber cursorline
   " remember cursor position
-  augroup vimrc-editing-remember-cursor-position
+  function! s:restore_cursor_position() abort
+    " Idea stolen from <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L17-L19>:
+    if index(['gitcommit', 'gitrebase', 'svn', 'hgcommit'], &filetype) >= 0
+      return
+    endif
+    " Idea stolen from <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L25-L27>:
+    if index(['quickfix', 'nofile', 'help'], &buftype) >= 0
+      return
+    endif
+    " I guess I could do some intelligent view centering simiarly to the plugin
+    " (<https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L47-L70>),
+    " but the truth is that it is complicated to account for stuff like folds,
+    " and I've tried.
+    if 1 <= line("'\"") && line("'\"") <= line('$')
+      execute "normal! g`\"zz"
+    endif
+    silent! .foldopen
+  endfunction
+  augroup dotfiles_remember_cursor_position
     autocmd!
-    autocmd BufReadPost *
-      \ if line("'\"") > 1 && line("'\"") <= line("$")
-      \|  exec "normal! g`\""
-      \|endif
-      \|silent! .foldopen
+    " BufWinEnter is used instead of BufReadPost because apparently the latter
+    " is called before windows are created when starting the editor, so when
+    " opening a file supplied via the command line, `normal! zz` cease to work.
+    autocmd BufWinEnter * unsilent call s:restore_cursor_position()
   augroup END
 " }}}
 
