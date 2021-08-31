@@ -80,10 +80,10 @@ endif
   " Stolen from <https://github.com/keanuplayz/dotfiles/blob/097aaf4ae3721b27c7fc341c6c7b99d78c7d9338/nvim/plugin/commands.vim#L1>
   command! -nargs=0 -bar CocOrganizeImports call CocAction('organizeImport')
 
-  let g:coc_global_extensions = []
+  let g:dotfiles_coc_extensions = []
   let g:coc_user_config = {}
 
-  " let g:coc_global_extensions += ['coc-snippets']
+  let g:dotfiles_coc_extensions += ['coc-snippets']
   let g:coc_user_config['diagnostic'] = {
   \ 'virtualText': v:true,
   \ 'virtualTextCurrentLineOnly': v:false,
@@ -96,5 +96,9 @@ endif
   let g:coc_user_config['list.selectedSignText'] = '> '
 
   runtime! coc-languages/*.vim
+
+  if !g:dotfiles_build_coc_from_source
+    let g:coc_global_extensions = get(g:, 'coc_global_extensions', []) + g:dotfiles_coc_extensions
+  endif
 
 " }}}

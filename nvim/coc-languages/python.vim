@@ -1,4 +1,4 @@
-" let g:coc_global_extensions += ['coc-pyright']
+let g:dotfiles_coc_extensions += ['coc-pyright']
 let g:coc_filetypes += ['python']
 
 let g:coc_user_config['python'] = {
