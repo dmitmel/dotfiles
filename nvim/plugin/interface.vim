@@ -155,6 +155,18 @@ endif
   let $FZF_DEFAULT_OPTS = '--color=16'
   let g:fzf_layout = { 'down': '~40%' }
   let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
+
+  command! -bar -bang -nargs=0 FilesRuntime Files $VIMRUNTIME
+  command! -bar -bang -nargs=* -complete=custom,dotfiles#plugman#command_completion FilesPlugins
+    \ if empty(<q-args>)
+    \|  execute 'Files' fnameescape(dotfiles#plugman#plugins_dir)
+    \|elseif dotfiles#plugman#is_registered(<q-args>)
+    \|  execute 'Files' fnameescape(dotfiles#plugman#get_installed_dir(<q-args>))
+    \|else
+    \|  echohl WarningMsg
+    \|  echomsg 'Plugin not found: ' . string(<q-args>)
+    \|  echohl None
+    \|endif
 " }}}
 
 

@@ -9,13 +9,17 @@ let g:dotfiles#plugman#install_path = stdpath('config') . '/autoload/plug.vim'
 let g:dotfiles#plugman#plugins_dir = stdpath('config') . '/plugged'
 
 
-function! dotfiles#plugman#derive_name(repo, spec)
+function! dotfiles#plugman#derive_name(repo, spec) abort
   " <https://github.com/junegunn/vim-plug/blob/fc2813ef4484c7a5c080021ceaa6d1f70390d920/plug.vim#L715>
   return get(a:spec, 'as', fnamemodify(a:repo, ':t:s?\.git$??'))
 endfunction
 
 function! dotfiles#plugman#is_registered(name) abort
-  return has_key(g:plugs, a:name)
+  return has_key(g:plugs, a:name) ? v:true : v:false
+endfunction
+
+function! dotfiles#plugman#get_installed_dir(name) abort
+  return g:plugs[a:name].dir
 endfunction
 
 function! dotfiles#plugman#is_inhibited(name) abort
@@ -52,7 +56,7 @@ function! dotfiles#plugman#register(repo, ...) abort
   endif
 endfunction
 
-function! dotfiles#plugman#end()
+function! dotfiles#plugman#end() abort
   call plug#end()
 endfunction
 
@@ -86,4 +90,8 @@ function! dotfiles#plugman#check_sync() abort
       PlugClean
     endif
   endif
+endfunction
+
+function! dotfiles#plugman#command_completion(arg_lead, cmd_line, cursor_pos) abort
+  return join(keys(g:plugs), "\n")
 endfunction
