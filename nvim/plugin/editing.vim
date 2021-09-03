@@ -102,7 +102,8 @@ set commentstring=//%s
   command! -nargs=+ -complete=command PutOutput silent call PutOutput(<q-args>)
 
   " ,c is easier to type than "+ because it doesn't require pressing Shift
-  noremap <leader>c "+
+  nnoremap <leader>c "+
+  xnoremap <leader>c "+
 
   " make the default Vim mappings more consistent
   " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
@@ -185,6 +186,7 @@ set commentstring=//%s
   set ignorecase smartcase
 
   nnoremap \ <Cmd>nohlsearch<CR>
+  xnoremap \ <Cmd>nohlsearch<CR>
 
   let g:indexed_search_center = 1
 
@@ -199,14 +201,13 @@ set commentstring=//%s
     let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')
     let @" = tmp
   endfunction
-  " HACK: my mappings are added on VimEnter to override mappings from the
-  " vim-indexed-search plugin
-  augroup vimrc-editing-visual-star-search
-    autocmd!
-    autocmd VimEnter *
-      \ xmap * <Cmd>call <SID>VisualStarSearch('/')<CR>n
-      \|xmap # <Cmd>call <SID>VisualStarSearch('?')<CR>N
-  augroup END
+  " HACK: See `nvim/after/plugin/dotfiles/fixup.vim`
+  xmap <Plug>dotfiles_VisualStarSearch_* <Cmd>call <SID>VisualStarSearch('/')<CR>n
+  xmap <Plug>dotfiles_VisualStarSearch_# <Cmd>call <SID>VisualStarSearch('?')<CR>n
+  xmap * <Plug>dotfiles_VisualStarSearch_*
+  xmap # <Plug>dotfiles_VisualStarSearch_#
+  xmap g* <Plug>dotfiles_VisualStarSearch_*
+  xmap g# <Plug>dotfiles_VisualStarSearch_#
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
   command! -nargs=+ Search let @/ = escape(<q-args>, '/') | normal! /<C-r>/<CR>
@@ -289,7 +290,7 @@ set commentstring=//%s
   " +r: however, insert a comment after pressing Enter in the Insert mode
   " -t: don't auto-wrap regular code while typing
   " -c: don't auto-wrap comments while typing
-  augroup vimrc-editing-formatting
+  augroup dotfiles_formatoptions
     autocmd!
     autocmd FileType *
       \ setlocal formatoptions-=o
@@ -321,8 +322,14 @@ set commentstring=//%s
   map F <Plug>Sneak_F
   map t <Plug>Sneak_t
   map T <Plug>Sneak_T
-  noremap <leader>s <Cmd>echoerr 'Please, use `cl` instead of `<leader>s`!'<CR>
-  noremap <leader>S <Cmd>echoerr 'Please, use `cc` instead of `<leader>S`!'<CR>
+  sunmap f
+  sunmap F
+  sunmap t
+  sunmap T
+  nnoremap <leader>s <Cmd>echoerr 'Please, use `cl` instead of `<leader>s`!'<CR>
+  nnoremap <leader>S <Cmd>echoerr 'Please, use `cc` instead of `<leader>S`!'<CR>
+  xnoremap <leader>s <Cmd>echoerr 'Please, use `c` instead of `<leader>s`!'<CR>
+  xnoremap <leader>S <Cmd>echoerr 'Please, use `C` instead of `<leader>S`!'<CR>
 
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
@@ -344,6 +351,14 @@ set commentstring=//%s
   \ 'asm':   '# %s',
   \ 'riscv': '# %s',
   \ }
+
+  " Workaround for a select-mode mapping definition in:
+  " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
+  nmap <silent> <leader>hlt <Plug>HiLinkTrace
+
+  " Another workaround for a different select-mode mapping:
+  " <https://github.com/dag/vim2hs/blob/f2afd55704bfe0a2d66e6b270d247e9b8a7b1664/plugin/offside.vim#L20-L23>
+  vmap <Plug>dotfiles_vim2hs_smap_workaround <Plug>InnerOffside
 
 " }}}
 

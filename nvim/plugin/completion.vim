@@ -47,7 +47,7 @@ endif
     nmap <silent> <space>gr <Plug>(coc-references)
     nmap <silent> <F2>      <Plug>(coc-rename)
     nmap <silent> <A-CR>    <Plug>(coc-codeaction-line)
-    vmap <silent> <A-CR>    <Plug>(coc-codeaction-selected)
+    xmap <silent> <A-CR>    <Plug>(coc-codeaction-selected)
     " nmap <silent> <leader>qf  <Plug>(coc-fix-current)
 
     nnoremap <silent> <space>l <Cmd>CocList<CR>

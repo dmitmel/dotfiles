@@ -37,9 +37,9 @@ endif
   set diffopt+=vertical
 
   " buffer navigation {{{
-    noremap <silent> <Tab>   <Cmd>bnext<CR>
-    noremap <silent> <S-Tab> <Cmd>bprev<CR>
-    noremap <silent> gb      <Cmd>buffer#<CR>
+    nnoremap <silent> <Tab>   <Cmd>bnext<CR>
+    nnoremap <silent> <S-Tab> <Cmd>bprev<CR>
+    nnoremap <silent> gb      <Cmd>buffer#<CR>
   " }}}
 
   " ask for confirmation when closing unsaved buffers
