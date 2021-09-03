@@ -1,5 +1,5 @@
-let g:dotfiles_coc_extensions += ['coc-pyright']
-let g:coc_filetypes += ['python']
+call extend(g:dotfiles_coc_extensions, {'coc-pyright': 1})
+call extend(g:dotfiles_coc_filetypes, {'python': 1})
 
 let g:coc_user_config['python'] = {
 \ 'formatting': {

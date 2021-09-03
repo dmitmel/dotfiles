@@ -189,12 +189,13 @@ set updatetime=500
   " }}}
 
   " auto-format with Coc.nvim {{{
-    let g:coc_format_on_save_ignore = []
+    let g:coc_format_on_save_ignore = {}
     function! s:FormatOnSave() abort
       let file = expand('<afile>')
-      if IsCocEnabled() && !s:IsUrl(file) && index(g:coc_format_on_save_ignore, &filetype) < 0
-        silent CocFormat
+      if has_key(g:coc_format_on_save_ignore, &filetype) || s:IsUrl(file)
+        return
       endif
+      CocFormat
     endfunction
   " }}}
 

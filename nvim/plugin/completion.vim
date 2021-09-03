@@ -6,25 +6,21 @@
 " }}}
 
 if !g:vim_ide
-  function! IsCocEnabled() abort
-    return 0
-  endfunction
   finish
 endif
 
 " coc.nvim {{{
-  " list of filetypes (that are added in language-specific scripts) for which
+
+  let g:dotfiles_coc_extensions = {}
+
+  " set of filetypes (that are added in language-specific scripts) for which
   " coc mappings are enabled
-  let g:coc_filetypes = []
+  let g:dotfiles_coc_filetypes = {}
 
-  function! IsCocEnabled() abort
-    return index(g:coc_filetypes, &filetype) >= 0
-  endfunction
-
-  command -nargs=* CocKeywordprg call CocAction('doHover')
-  augroup vimrc-coc
+  command! -nargs=* CocKeywordprg call CocAction('doHover')
+  augroup dotfiles_coc
     autocmd!
-    autocmd FileType * if IsCocEnabled()
+    autocmd FileType * if has_key(g:dotfiles_coc_filetypes, &filetype)
       \|let &l:keywordprg = ":CocKeywordprg"
       \|endif
     autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
@@ -65,6 +61,7 @@ endif
 
   " CocFormat {{{
     function! s:CocFormat(range, line1, line2) abort
+      if !has_key(g:dotfiles_coc_filetypes, &filetype) | return | endif
       if a:range == 0
         call CocAction('format')
       else
@@ -80,10 +77,9 @@ endif
   " Stolen from <https://github.com/keanuplayz/dotfiles/blob/097aaf4ae3721b27c7fc341c6c7b99d78c7d9338/nvim/plugin/commands.vim#L1>
   command! -nargs=0 -bar CocOrganizeImports call CocAction('organizeImport')
 
-  let g:dotfiles_coc_extensions = []
   let g:coc_user_config = {}
 
-  let g:dotfiles_coc_extensions += ['coc-snippets']
+  call extend(g:dotfiles_coc_extensions, {'coc-snippets': 1})
   let g:coc_user_config['diagnostic'] = {
   \ 'virtualText': v:true,
   \ 'virtualTextCurrentLineOnly': v:false,
@@ -98,7 +94,8 @@ endif
   runtime! coc-languages/*.vim
 
   if !g:dotfiles_build_coc_from_source
-    let g:coc_global_extensions = get(g:, 'coc_global_extensions', []) + g:dotfiles_coc_extensions
+    let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
+    call extend(g:coc_global_extensions, keys(g:dotfiles_coc_extensions))
   endif
 
 " }}}

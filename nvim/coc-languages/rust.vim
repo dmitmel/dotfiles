@@ -1,5 +1,6 @@
-let g:coc_filetypes += ['rust']
-let g:dotfiles_coc_extensions += ['coc-rust-analyzer']
+call extend(g:dotfiles_coc_extensions, {'coc-rust-analyzer': 1})
+call extend(g:dotfiles_coc_filetypes, {'rust': 1})
+
 let g:coc_user_config['rust-analyzer'] = {
 \ 'serverPath': 'rust-analyzer',
 \ 'lens.enable': v:false,
@@ -11,5 +12,6 @@ let g:coc_user_config['rust-analyzer'] = {
 \ 'cargo.loadOutDirsFromCheck': v:true,
 \ }
 
-" let g:dotfiles_coc_extensions += ['coc-rls']
+" call extend(g:dotfiles_coc_extensions, {'coc-rls': 1})
+"
 " let g:coc_user_config['rust'] = { 'clippy_preference': 'on' }
