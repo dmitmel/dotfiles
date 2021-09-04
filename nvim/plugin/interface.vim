@@ -77,22 +77,20 @@ endif
 
 " Windows {{{
 
-  " window navigation {{{
-    noremap <C-j> <C-w>j
-    noremap <C-k> <C-w>k
-    noremap <C-l> <C-w>l
-    noremap <C-h> <C-w>h
-  " }}}
+  for s:key in ['h', 'j', 'k', 'l']
+    for s:mode in ['n', 'x']
+      execute s:mode.'noremap <C-'.s:key.'> <C-w>'.s:key
+    endfor
+  endfor
 
   " switch to previous window
-  noremap <C-\> <C-w>p
+  nnoremap <C-\> <C-w>p
+  xnoremap <C-\> <C-w>p
 
   " don't automatically make all windows the same size
   set noequalalways
 
-  " closing windows {{{
-    nnoremap <silent> <A-BS> <Cmd>quit<CR>
-  " }}}
+  nnoremap <silent> <A-BS> <Cmd>quit<CR>
 
 " }}}
 
