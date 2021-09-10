@@ -1,3 +1,6 @@
+set nocompatible
+set cpoptions&vim
+
 if !exists('g:dotfiles_boot_reltime')
   let g:dotfiles_boot_reltime = reltime()
   let g:dotfiles_boot_localtime = localtime()
