@@ -15,6 +15,8 @@ And also a legendary project that has survived for thousands of years of develop
 
 ### **This is my personal project! No warranty is provided for running these as a superuser, I am in no way responsible for deletion of `/` with `rm -rf`, and _absolutely no support is provided_ whatsoever unless I explicitly say so personally!**
 
+### In the unfortunate case that you have decided to actually use these configs, may Richard Stallman have mercy on you.
+
 **It is also recommended for users of this repository to read the scripts they are running. I didn't
 write the comments just for myself!**
 
