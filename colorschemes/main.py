@@ -391,6 +391,38 @@ class ThemeGeneratorPrismJs(ThemeGenerator):
     output.write(src_css)
 
 
+class ThemeGeneratorLua(ThemeGenerator):
+
+  def file_name(self) -> str:
+    return "colorscheme.lua"
+
+  def generate(self, theme: Theme, output: TextIO) -> None:
+
+    def format_color(color: Color) -> str:
+      return "{{0x{:02x}, 0x{:02x}, 0x{:02x}}}".format(*color)
+
+    output.write("return {\n")
+    output.write("  base16_name = {},\n".format(json.dumps(theme.base16_name)))
+    output.write("  name = {},\n".format(json.dumps(theme.name)))
+    output.write("  is_dark = {},\n".format("true" if theme.is_dark else "false"))
+    output.write("  base16_colors = {\n")
+    for color in theme.base16_colors:
+      output.write("    {},\n".format(format_color(color)))
+    output.write("  },\n")
+    output.write("  ansi_colors = {\n")
+    for color in theme.ansi_colors:
+      output.write("    {},\n".format(format_color(color)))
+    output.write("  },\n")
+    output.write("  bg = {},\n".format(format_color(theme.bg)))
+    output.write("  fg = {},\n".format(format_color(theme.fg)))
+    output.write("  cursor_bg = {},\n".format(format_color(theme.cursor_bg)))
+    output.write("  cursor_fg = {},\n".format(format_color(theme.cursor_fg)))
+    output.write("  selection_bg = {},\n".format(format_color(theme.selection_bg)))
+    output.write("  selection_fg = {},\n".format(format_color(theme.selection_fg)))
+    output.write("  link_color = {},\n".format(format_color(theme.link_color)))
+    output.write("}\n")
+
+
 def main() -> None:
   theme: Theme = IniTheme(os.path.join(__dir__, 'data.ini'))
   generators: List[ThemeGenerator] = [
@@ -405,6 +437,7 @@ def main() -> None:
     ThemeGeneratorCssVariables(),
     ThemeGeneratorScss(),
     ThemeGeneratorPrismJs(),
+    ThemeGeneratorLua(),
   ]
 
   out_dir = os.path.join(__dir__, "out")
