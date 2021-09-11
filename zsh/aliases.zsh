@@ -11,7 +11,7 @@ alias xargs='xargs '
 
 alias history='fc -i -l 1'
 
-alias cdd='dirs -v'
+alias dirs='dirs -v'
 
 alias grep='grep --color=auto'
 alias diff='diff --color=auto --unified'

@@ -123,10 +123,6 @@ fi; unset rustup_bin
 #   after_load='plugin-cfg-path path prepend bin' \
 #   after_load='plugin-cfg-path manpath prepend man'
 
-if command_exists python; then
-  _plugin alias-tips 'djui/alias-tips'
-fi
-
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
   _plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting' "$_checkout_latest_version"
