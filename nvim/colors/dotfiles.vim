@@ -442,6 +442,7 @@
   hi! link luaFuncCall       Function
   hi! link luaBraces         Delimiter
   hi! link luaFuncKeyword    Keyword
+  hi! link luaFunction       luaFuncKeyword
   hi! link luaSymbolOperator Operator
   hi! link luaOperator       Keyword
   hi! link luaLocal          StorageClass
@@ -450,6 +451,10 @@
   hi! link luaBuiltIn        Variable
   hi! link luaTable          Delimiter
   hi! link luaFunc           Function
+  hi! link luaStringLongTag  luaStringLong
+  hi! link luaIn             luaOperator
+  hi! link luaErrHand        luaFuncCall
+  hi! link luaDocTag         Special
 " }}}
 
 " Shell {{{
