@@ -10,4 +10,4 @@ endif
 noremap <buffer> ( (
 noremap <buffer> ) )
 
-call dotfiles#utils#undo_ftplugin_hook('exe "unmap <buffer> (" | exe "unmap <buffer> )"')
+call dotfiles#utils#undo_ftplugin_hook('exe "silent! unmap <buffer> (" | exe "silent! unmap <buffer> )"')
