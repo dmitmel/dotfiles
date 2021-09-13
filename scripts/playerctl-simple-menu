@@ -135,6 +135,18 @@ def iter_actions_for_player(player):
     True,
     lambda: player.set_volume(max(player.props.volume - 0.1, 0.0)),
   )
+  yield (
+    "Volume _100%",
+    "audio-volume-high",
+    True,
+    lambda: player.set_volume(1.0),
+  )
+  yield (
+    "Volume _50%",
+    "audio-volume-medium",
+    True,
+    lambda: player.set_volume(0.5),
+  )
 
   yield (
     "_Next",
