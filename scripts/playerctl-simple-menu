@@ -79,6 +79,8 @@ def iter_metadata_entries_for_player(player):
         humanize_duration(position_secs), humanize_duration(duration_secs)
       )
 
+  yield "Volume: {}%".format(round(player.props.volume * 100))
+
 
 def iter_actions_for_player(player):
   if not player.props.can_control:
@@ -116,35 +118,36 @@ def iter_actions_for_player(player):
     player.stop,
   )
 
+  volume_percent = round(player.props.volume * 100.0)
   yield (
-    "_Mute" if player.props.volume != 0.0 else "Nor_mal volume",
-    "audio-volume-muted" if player.props.volume != 0.0 else "audio-volume-high",
+    "_Mute" if volume_percent != 0 else "Nor_mal volume",
+    "audio-volume-muted" if volume_percent != 0 else "audio-volume-high",
     True,
-    lambda volume: player.set_volume(volume),
-    0.0 if player.props.volume != 0.0 else 1.0,
+    lambda volume: player.set_volume(volume / 100.0),
+    0 if volume_percent != 0 else 100,
   )
   yield (
-    "Volume +10%",
+    "Volume _+10%",
     "audio-volume-medium",
-    True,
-    lambda: player.set_volume(min(player.props.volume + 0.1, 1.0)),
+    volume_percent < 100,
+    lambda: player.set_volume(min(volume_percent + 10, 100) / 100.0),
   )
   yield (
-    "Volume -10%",
+    "Volume _-10%",
     "audio-volume-low",
-    True,
-    lambda: player.set_volume(max(player.props.volume - 0.1, 0.0)),
+    volume_percent > 0,
+    lambda: player.set_volume(max(volume_percent - 10, 0) / 100.0),
   )
   yield (
     "Volume _100%",
     "audio-volume-high",
-    True,
+    volume_percent < 100,
     lambda: player.set_volume(1.0),
   )
   yield (
     "Volume _50%",
     "audio-volume-medium",
-    True,
+    volume_percent != 50,
     lambda: player.set_volume(0.5),
   )
 
