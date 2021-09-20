@@ -11,7 +11,7 @@
     "markdown-it": "12.0.6",
     "markdown-it-emoji": "2.0.0",
     "markdown-it-task-checkbox": "*",
-    "prismjs": "^1.24.0"
+    "prismjs": "^1.25.0"
   },
   "devDependencies": {
     "eslint": "7.26.0",
