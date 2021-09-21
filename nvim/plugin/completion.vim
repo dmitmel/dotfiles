@@ -1,3 +1,7 @@
+" Disable showing completion-related messages in the bottom of the screen, such
+" as "match X of Y", "The only match", "Pattern not found" etc.
+set shortmess+=c
+
 " pop-up (completion) menu mappings {{{
   imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
   imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"

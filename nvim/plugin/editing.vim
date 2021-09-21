@@ -36,11 +36,11 @@ set commentstring=//%s
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
 
-  " augroup dotfiles_indentline_refresh
-  "   autocmd!
-  "   " <https://github.com/lukas-reineke/indent-blankline.nvim/commit/d917eeb74b462bc3177c2db4f67f261cb9dbb773#diff-66b17be796b43985ec86515899f9f05b7f3780b22a25dcf1d986e2626c1f0ccdL38>
-  "   autocmd VimEnter * if exists(':IndentBlanklineRefresh') | execute 'IndentBlanklineRefresh!' | endif
-  " augroup END
+  augroup dotfiles_indentline_refresh
+    autocmd!
+    " <https://github.com/lukas-reineke/indent-blankline.nvim/commit/d917eeb74b462bc3177c2db4f67f261cb9dbb773#diff-66b17be796b43985ec86515899f9f05b7f3780b22a25dcf1d986e2626c1f0ccdL38>
+    autocmd VimEnter * if exists(':IndentBlanklineRefresh') | execute 'IndentBlanklineRefresh!' | endif
+  augroup END
 
 " }}}
 

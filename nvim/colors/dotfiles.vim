@@ -195,6 +195,12 @@
 
 " }}}
 
+" Vim Help files {{{
+  hi! link helpHyperTextEntry Function
+  hi! link helpExample        String
+  hi! link helpCommand        String
+" }}}
+
 " AWK {{{
   hi! link awkArrayElement Number
   hi! link awkBoolLogic    Operator
@@ -260,13 +266,14 @@
 " }}}
 
 " Vim scripts {{{
-  hi! link vimUserFunc vimFuncName
-  hi! link vimBracket  vimMapModKey
-  hi! link vimFunction vimFuncName
-  hi! link vimParenSep Delimiter
-  hi! link vimSep      Delimiter
-  hi! link vimVar      Variable
-  hi! link vimFuncVar  Variable
+  hi! link vimUserFunc    vimFuncName
+  hi! link vimBracket     vimMapModKey
+  hi! link vimFunction    vimFuncName
+  hi! link vimParenSep    Delimiter
+  hi! link vimSep         Delimiter
+  hi! link vimVar         Variable
+  hi! link vimFuncVar     Variable
+  hi! link vimScriptDelim Special
 " }}}
 
 " C {{{
@@ -403,7 +410,15 @@
 " }}}
 
 " Markdown {{{
-  hi! link mkdHeading Title
+  hi! link markdownBoldDelimiter   Delimiter
+  hi! link markdownItalicDelimiter Delimiter
+  hi! link markdownCode            String
+  hi! link markdownCodeDelimiter   markdownCode
+  hi! link markdownUrl             htmlString
+  hi! link markdownAutomaticLink   htmlLink
+  hi! link mkdLinkDef              TypeDef
+  hi! link mkdID                   Type
+  hi! link mkdRule                 PreProc
 " }}}
 
 " Mail {{{

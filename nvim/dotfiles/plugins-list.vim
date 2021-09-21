@@ -68,7 +68,7 @@ let s:plug = function('dotfiles#plugman#register')
 " }}}
 
 " Programming {{{
-  let g:polyglot_disabled = ['sensible']
+  let g:polyglot_disabled = get(g:, 'polyglot_disabled', []) + ['sensible']
   call s:plug('sheerun/vim-polyglot')
   call s:plug('chikamichi/mediawiki.vim')
   call s:plug('ron-rs/ron.vim')
