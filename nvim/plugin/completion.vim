@@ -90,6 +90,7 @@ endif
   let g:coc_user_config['suggest.floatEnable'] = v:false
   let g:coc_user_config['workspace.progressTarget'] = 'statusline'
   let g:coc_user_config['list.selectedSignText'] = '> '
+  let g:coc_user_config['coc.preferences.maxFileSize'] = '1MB'
 
   runtime! coc-languages/*.vim
 

@@ -12,11 +12,10 @@
 
 " Color definitions {{{
 
-  execute 'source' fnameescape(g:dotfiles_dir.'/colorschemes/out/vim.vim')
+  source <sfile>:p:h:h:h/colorschemes/out/vim.vim
 
-  let s:is_gui_color = !has('win32') && !has('win64') && !has('win32unix') && has('termguicolors') && &termguicolors
-  if s:is_gui_color && exists('$_COLORSCHEME_TERMINAL')
-    set notermguicolors
+  if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
+    set termguicolors
   endif
 
   let s:is_kitty = $TERM ==# 'xterm-kitty'

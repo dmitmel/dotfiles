@@ -46,7 +46,10 @@ call dotfiles#plugman#begin()
 runtime! dotfiles/plugins-list.vim
 call dotfiles#plugman#end()
 " Automatically install/clean plugins (because I'm a programmer)
-autocmd VimEnter * call dotfiles#plugman#check_sync()
+augroup dotfiles_init
+  autocmd!
+  autocmd VimEnter * call dotfiles#plugman#check_sync()
+augroup END
 
 " NOTE: What the following block does is effectively source the files
 " `filetype.vim`, `ftplugin.vim`, `indent.vim`, `syntax/syntax.vim` from

@@ -46,7 +46,7 @@ function! dotfiles#plugman#inhibit(name) abort
 endfunction
 
 function! dotfiles#plugman#register(repo, ...) abort
-  if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2):' . a:0 | endif
+  if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2): ' . a:0 | endif
   let spec = get(a:000, 0, {})
   let name = dotfiles#plugman#derive_name(a:repo, spec)
   " Ensure consistency in case the upstream algorithm changes.

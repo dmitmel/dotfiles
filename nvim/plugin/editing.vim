@@ -36,6 +36,12 @@ set commentstring=//%s
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
 
+  " augroup dotfiles_indentline_refresh
+  "   autocmd!
+  "   " <https://github.com/lukas-reineke/indent-blankline.nvim/commit/d917eeb74b462bc3177c2db4f67f261cb9dbb773#diff-66b17be796b43985ec86515899f9f05b7f3780b22a25dcf1d986e2626c1f0ccdL38>
+  "   autocmd VimEnter * if exists(':IndentBlanklineRefresh') | execute 'IndentBlanklineRefresh!' | endif
+  " augroup END
+
 " }}}
 
 
@@ -256,8 +262,8 @@ set commentstring=//%s
   set inccommand=nosplit
 
   " quick insertion of the substitution command
-  nnoremap gs :%s///g<Left><Left><Left>
-  xnoremap gs :s///g<Left><Left><Left>
+  nnoremap gs/ :%s///g<Left><Left><Left>
+  xnoremap gs/ :s///g<Left><Left><Left>
   nnoremap gss :%s///g<Left><Left>
   xnoremap gss :s///g<Left><Left>
 
@@ -296,6 +302,9 @@ set commentstring=//%s
       \|setlocal formatoptions-=c
   augroup END
 
+  " Collapse multiple spaces into one when doing the `J` command.
+  set nojoinspaces
+
 " }}}
 
 
@@ -303,6 +312,9 @@ set commentstring=//%s
 
   let g:delimitMate_expand_space = 1
   let g:delimitMate_expand_cr = 1
+
+  let g:matchup_delim_noskips = 2
+  let g:matchup_delim_nomids = 1
 
   let g:surround_{char2nr('*')} = "**\r**"
   let g:surround_{char2nr('~')} = "~~\r~~"

@@ -1,3 +1,5 @@
+command! -bar ClearScreen call feedkeys("\<C-l>", 'n')
+
 " Replicate the behavior of Zsh's complist module under my configuration.
 " 1st <Tab> - complete till the longest common prefix (longest).
 " 2nd <Tab> - list the matches, but don't select or complete anything yet (list).
@@ -48,14 +50,19 @@ endif
   " Bbye with confirmation, or fancy buffer closer {{{
     function! s:CloseBuffer(cmd) abort
       let cmd = a:cmd
-      if &modified
+      if &confirm && &modified
+        let fname = expand('%')
+        if empty(fname)
+          " <https://github.com/neovim/neovim/blob/47f99d66440ae8be26b34531989ac61edc1ad9fe/src/nvim/ex_docmd.c#L9327-L9337>
+          let fname = 'Untitled'
+        endif
         " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
-        let answer = confirm("Save changes to \"".expand('%')."\"?", "&Yes\n&No\n&Cancel")
+        let answer = confirm("Save changes to \"".fname."\"?", "&Yes\n&No\n&Cancel")
         if answer ==# 1      " Yes
           write
         elseif answer ==# 2  " No
           let cmd .= '!'
-        else                   " Cancel/Other
+        else                 " Cancel/Other
           return
         endif
       endif
@@ -108,6 +115,9 @@ endif
     \ 'notexists': ' [?]',
     \ }
 
+  " <https://github.com/vim-airline/vim-airline/issues/1779>
+  let g:airline_highlighting_cache = 1
+
   let g:airline_extensions = [
     \ 'quickfix',
     \ 'fzf',
@@ -134,12 +144,11 @@ endif
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
-  let g:airline#extensions#dotfiles_filesize#update_delay = 2
 
-  augroup vimrc-airline
+  augroup dotfiles_airline
     autocmd!
-    autocmd User AirlineToggledOff set showmode
-    autocmd User AirlineToggledOn set noshowmode
+    autocmd User AirlineToggledOff setglobal showmode ruler
+    autocmd User AirlineToggledOn setglobal noshowmode noruler
   augroup END
 
 " }}}
@@ -154,12 +163,12 @@ endif
   let g:fzf_layout = { 'down': '~40%' }
   let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
 
-  command! -bar -bang -nargs=0 FilesRuntime Files $VIMRUNTIME
+  command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
   command! -bar -bang -nargs=* -complete=custom,dotfiles#plugman#command_completion FilesPlugins
     \ if empty(<q-args>)
-    \|  execute 'Files' fnameescape(dotfiles#plugman#plugins_dir)
+    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#plugins_dir)
     \|elseif dotfiles#plugman#is_registered(<q-args>)
-    \|  execute 'Files' fnameescape(dotfiles#plugman#get_installed_dir(<q-args>))
+    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#get_installed_dir(<q-args>))
     \|else
     \|  echohl WarningMsg
     \|  echomsg 'Plugin not found: ' . string(<q-args>)

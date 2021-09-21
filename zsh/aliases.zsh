@@ -125,3 +125,6 @@ alias gtime="command time -v"
 alias cwdiff='wdiff --start-delete="${fg[red]}[-" --end-delete="-]${reset_color}" --start-insert="${fg[green]}{+" --end-insert "+}${reset_color}"'
 
 alias yarn="yarn --emoji false"
+
+# <https://mpv.io/manual/stable/#pseudo-gui-mode>
+alias mpv='mpv --player-operation-mode=pseudo-gui'

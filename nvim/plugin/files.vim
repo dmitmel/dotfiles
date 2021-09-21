@@ -8,7 +8,14 @@ nnoremap <silent><expr> <CR> empty(&buftype) ? ":call \<SID>write_this_and_write
 function s:write_this_and_write_all() abort
   " The `abort` in this function is necessary because it will prevent a second
   " attempt of writing from :wall from occuring had the first :write failed.
-  write | wall
+  try
+    write
+    wall
+  catch /^Vim(\%(write\|wall\)):/
+    echohl ErrorMsg
+    echomsg v:exception
+    echohl None
+  endtry
 endfunction
 
 set undofile
@@ -35,7 +42,7 @@ set updatetime=500
   function! s:grep_mapping_star_normal() abort
     let word = expand('<cword>')
     if !empty(word)
-      let cmd = 'grep ' . shellescape('\b' . word . '\b', 1)
+      let cmd = 'grep -- ' . shellescape('\b' . word . '\b', 1)
       call histadd('cmd', cmd)
       call feedkeys(":\<C-u>" . cmd, 'n')
     endif
@@ -43,7 +50,7 @@ set updatetime=500
   function! s:grep_mapping_star_visual() abort
     let tmp = @"
     normal! y
-    let cmd = 'grep ' . shellescape(@", 1)
+    let cmd = 'grep -- ' . shellescape(@", 1)
     call histadd('cmd', cmd)
     call feedkeys(":\<C-u>" . cmd, 'n')
     let @" = tmp
@@ -178,6 +185,7 @@ set updatetime=500
   " }}}
 
   " fix whitespace {{{
+    " vint: -ProhibitCommandRelyOnUser -ProhibitCommandWithUnintendedSideEffect
     function! s:FixWhitespaceOnSave() abort
       let pos = getcurpos()
       " remove trailing whitespace
@@ -186,6 +194,7 @@ set updatetime=500
       keeppatterns %s/\($\n\s*\)\+\%$//e
       call setpos('.', pos)
     endfunction
+    " vint: +ProhibitCommandRelyOnUser +ProhibitCommandWithUnintendedSideEffect
   " }}}
 
   " auto-format with Coc.nvim {{{
@@ -195,7 +204,9 @@ set updatetime=500
       if has_key(g:coc_format_on_save_ignore, &filetype) || s:IsUrl(file)
         return
       endif
-      CocFormat
+      if exists(':CocFormat')
+        CocFormat
+      endif
     endfunction
   " }}}
 
@@ -204,7 +215,7 @@ set updatetime=500
     call s:FormatOnSave()
     call s:CreateDirOnSave()
   endfunction
-  augroup vimrc-on-save
+  augroup dotfiles_on_save
     autocmd!
     autocmd BufWritePre * call s:OnSave()
   augroup END
