@@ -113,7 +113,18 @@
   call s:hi('CocErrorSign',     'bg', 0x8, '',              '')
   call s:hi('CocWarningSign',   'bg', 0xA, '',              '')
   call s:hi('CocInfoSign',      'bg', 0xD, '',              '')
-  hi! link CocHintSign          CocInfoSign
+  call s:hi('CocHintSign',      'bg', 0xD, '',              '')
+  " The float hlgroups are a fix for changes in
+  " <https://github.com/neoclide/coc.nvim/commit/a34b3ecf6b45908fa5c86afa26874b20fb7851d3> and
+  " <https://github.com/neoclide/coc.nvim/commit/a9a4b4c584a90784f95ba598d1cb6d37fb189e5a>.
+  call s:hi('CocErrorFloat',    0x8, '',   '',              '')
+  call s:hi('CocWarningFloat',  0xA, '',   '',              '')
+  call s:hi('CocInfoFloat',     0xD, '',   '',              '')
+  call s:hi('CocHintFloat',     0xD, '',   '',              '')
+  hi! link FgCocErrorFloatBgCocFloating CocErrorSign
+  hi! link FgCocWarningFloatBgCocFloating CocWarningSign
+  hi! link FgCocInfoFloatBgCocFloating CocInfoSign
+  hi! link FgCocHintFloatBgCocFloating CocHintSign
   call s:hi('CocSelectedText',  0xE,  0x1, 'bold',          '')
   call s:hi('CocCodeLens',      0x4,  '',  '',              '')
   call s:hi('CocFadeOut',       0x3,  '',  '',              '')
