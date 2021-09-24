@@ -142,7 +142,7 @@ discord-avatar() {
 }
 
 read_line() {
-  IFS= read -r line -- "$@"
+  IFS= read -r -- "$@"
 }
 
 print_lines() {
