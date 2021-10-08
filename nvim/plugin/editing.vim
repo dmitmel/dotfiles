@@ -42,6 +42,8 @@ set commentstring=//%s
     autocmd VimEnter * if exists(':IndentBlanklineRefresh') | execute 'IndentBlanklineRefresh!' | endif
   augroup END
 
+  command! -bar -bang -range -nargs=? Unindent call dotfiles#indentation#unindent(<line1>, <line2>, str2nr(<q-args>))
+
 " }}}
 
 
@@ -368,6 +370,13 @@ set commentstring=//%s
   " Another workaround for a different select-mode mapping:
   " <https://github.com/dag/vim2hs/blob/f2afd55704bfe0a2d66e6b270d247e9b8a7b1664/plugin/offside.vim#L20-L23>
   vmap <Plug>dotfiles_vim2hs_smap_workaround <Plug>InnerOffside
+
+  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion(1)<CR>
+  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion(-1)<CR>
+  map ( <Plug>dotfiles_indent_motion_prev
+  sunmap (
+  map ) <Plug>dotfiles_indent_motion_next
+  sunmap )
 
 " }}}
 

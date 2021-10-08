@@ -1,8 +1,16 @@
+function! dotfiles#indentation#unindent(first_line, last_line, base_indent) abort
+  let nonblank_linenrs = filter(range(a:first_line, a:last_line), '!empty(getline(v:val))')
+  let min_indent = min(map(copy(nonblank_linenrs), 'indent(v:val)'))
+  let delta = min_indent - a:base_indent
+  for linenr in nonblank_linenrs
+    execute linenr.'left' (indent(linenr) - delta)
+  endfor
+endfunction
+
 " Based on <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim>
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
-
-function! dotfiles#indent_motion#run(direction) abort
+function! dotfiles#indentation#run_indent_motion(direction) abort
   let cursor_linenr = line('.')
   let max_linenr = line('$')
 
@@ -13,7 +21,7 @@ function! dotfiles#indent_motion#run(direction) abort
     let base_linenr = cursor_linenr
     let base_indent = 0
     while 1 <=# base_linenr && base_linenr <=# max_linenr
-      let base_indent = dotfiles#indent_motion#indent_level_of(base_linenr)
+      let base_indent = dotfiles#indentation#indent_level_of(base_linenr)
       if base_indent >=# 0
         break
       endif
@@ -25,7 +33,7 @@ function! dotfiles#indent_motion#run(direction) abort
     let curr_linenr = base_linenr + a:direction
     let prev_indent = base_indent
     while 1 <=# curr_linenr && curr_linenr <=# max_linenr
-      let indent = dotfiles#indent_motion#indent_level_of(curr_linenr)
+      let indent = dotfiles#indentation#indent_level_of(curr_linenr)
 
       if indent >=# 0
         if indent <# base_indent
@@ -55,7 +63,7 @@ function! dotfiles#indent_motion#run(direction) abort
 endfunction
 
 " <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim#L120-L127>
-function! dotfiles#indent_motion#indent_level_of(linenr) abort
+function! dotfiles#indentation#indent_level_of(linenr) abort
   if empty(getline(a:linenr))
     return -1
   endif
