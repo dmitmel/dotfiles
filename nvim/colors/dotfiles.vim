@@ -277,14 +277,19 @@
 " }}}
 
 " Vim scripts {{{
-  hi! link vimUserFunc    vimFuncName
-  hi! link vimBracket     vimMapModKey
-  hi! link vimFunction    vimFuncName
-  hi! link vimParenSep    Delimiter
-  hi! link vimSep         Delimiter
-  hi! link vimVar         Variable
-  hi! link vimFuncVar     Variable
-  hi! link vimScriptDelim Special
+  hi! link vimUserFunc     vimFuncName
+  hi! link vimBracket      vimMapModKey
+  hi! link vimFunction     vimFuncName
+  hi! link vimParenSep     Delimiter
+  hi! link vimSep          Delimiter
+  hi! link vimVar          Variable
+  hi! link vimFuncVar      Variable
+  hi! link vimScriptDelim  Special
+  hi! link vimSynType      vimCommand
+  hi! link vimSynOption    vimVar
+  hi! link vimSynReg       vimSynOption
+  hi! link vimSynKeyRegion vimString
+  hi! link vimSyncLines vimSynOption
 " }}}
 
 " C {{{
