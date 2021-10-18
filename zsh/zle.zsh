@@ -173,7 +173,7 @@
         cmd_name="${cmd_name}-${arg}"
       fi
 
-      if [[ -z "$is_subcommand" && "$arg" == (git|hub|npm|apt|docker|pip|perf) ]]; then
+      if [[ -z "$is_subcommand" && "$arg" == (git|hub|gh|npm|apt|docker|pip|perf) ]]; then
         is_subcommand=1
         continue
       fi

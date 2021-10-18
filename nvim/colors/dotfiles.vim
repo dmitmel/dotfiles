@@ -498,3 +498,9 @@
   hi! def link riscvCSRegister  Special
   hi! def link riscvLabel       Function
 " }}}
+
+" SQL {{{
+  hi! link sqlKeyword   Keyword
+  hi! link sqlStatement Statement
+  hi! link sqlOperator  Keyword
+" }}}

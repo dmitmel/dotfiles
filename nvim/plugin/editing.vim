@@ -43,6 +43,15 @@ set commentstring=//%s
   augroup END
 
   command! -bar -bang -range -nargs=? Unindent call dotfiles#indentation#unindent(<line1>, <line2>, str2nr(<q-args>))
+  nnoremap <leader>< :Unindent<CR>
+  xnoremap <leader>< :Unindent<CR>
+
+  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion(1)<CR>
+  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion(-1)<CR>
+  map ( <Plug>dotfiles_indent_motion_prev
+  sunmap (
+  map ) <Plug>dotfiles_indent_motion_next
+  sunmap )
 
 " }}}
 
@@ -325,8 +334,8 @@ set commentstring=//%s
   let g:pencil#conceallevel = 0
   let g:pencil#cursorwrap = 0
 
-  xmap <leader>ga <Plug>(LiveEasyAlign)
-  nmap <leader>ga <Plug>(LiveEasyAlign)
+  xmap <leader>a <Plug>(LiveEasyAlign)
+  nmap <leader>a <Plug>(LiveEasyAlign)
 
   let g:sneak#prompt = 'sneak> '
   map f <Plug>Sneak_f
@@ -371,13 +380,6 @@ set commentstring=//%s
   " <https://github.com/dag/vim2hs/blob/f2afd55704bfe0a2d66e6b270d247e9b8a7b1664/plugin/offside.vim#L20-L23>
   vmap <Plug>dotfiles_vim2hs_smap_workaround <Plug>InnerOffside
 
-  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion(1)<CR>
-  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion(-1)<CR>
-  map ( <Plug>dotfiles_indent_motion_prev
-  sunmap (
-  map ) <Plug>dotfiles_indent_motion_next
-  sunmap )
-
 " }}}
 
 
@@ -396,5 +398,8 @@ set commentstring=//%s
   let g:vala_syntax_folding_enabled = 0
 
   let g:python_recommended_style = 0
+
+  " Seems to be the closest one to SQLite. <https://www.sqlite.org/lang.html>
+  let g:sql_type_default = 'sqlinformix'
 
 " }}}

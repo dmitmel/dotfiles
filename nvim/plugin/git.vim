@@ -31,6 +31,7 @@ let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
   nnoremap <leader>gw :<C-u>GBrowse<CR>
   nnoremap <leader>gW :<C-u>.GBrowse<CR>
   xnoremap <leader>gw :GBrowse<CR>
+  nnoremap <leader>ga :<C-u>Git add %<CR>
   nnoremap <leader>gc :<C-u>Git commit %
   nnoremap <leader>gC :<C-u>Git commit --amend
   nnoremap <leader>gl :<C-u>Gclog<CR>

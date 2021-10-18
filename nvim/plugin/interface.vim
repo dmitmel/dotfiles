@@ -99,6 +99,9 @@ endif
 
   nnoremap <silent> <A-BS> <Cmd>quit<CR>
 
+  " Split-and-go-back. Particularly useful after go-to-definition.
+  nnoremap <leader>v <Cmd>vsplit<CR><C-O>
+
 " }}}
 
 
