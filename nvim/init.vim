@@ -11,6 +11,7 @@ let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
 let g:vim_ide = get(g:, 'vim_ide', 0)
 let g:dotfiles_build_coc_from_source = get(g:, 'dotfiles_build_coc_from_source', 0)
+let g:dotfiles_sane_indentline_enable = get(g:, 'dotfiles_sane_indentline_enable', 1)
 
 function! s:configure_runtimepath() abort
   " NOTE: Vim actually might handle escaping of commas in RTP and such if you

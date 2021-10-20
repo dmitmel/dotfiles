@@ -62,11 +62,17 @@
   call s:hi('Title',      0xD,  '',  '',          '')
   hi! link Directory Title
   call s:hi('Conceal',    0xC,  '',  '',          '')
-  call s:hi('IndentLine', 0x2,  '',  '',          '')
-  hi! link IndentBlanklineChar IndentLine
-  call s:hi('NonText',    0x3,  '',  '',          '')
   hi! link SpecialKey Special
   call s:hi('MatchParen', 'fg', 0x3, '',          '')
+
+  " The idea of using the `nocombine` attribute was taken from
+  " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
+  call s:hi('NonText',    0x3,  '',  'nocombine', '')
+  call s:hi('IndentLine', 0x2,  '',  'nocombine', '')
+  hi! link IndentBlanklineChar               IndentLine
+  hi! link IndentBlanklineSpaceChar          Whitespace
+  hi! link IndentBlanklineSpaceCharBlankline Whitespace
+  hi! link IndentBlanklineContextChar        Label
 
   call s:hi('Keyword', 0xE, '', '', '')
   hi! link Statement    Keyword

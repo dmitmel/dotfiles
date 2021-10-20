@@ -1,10 +1,7 @@
 call pencil#init()
 
-if exists(':IndentLinesDisable')
-  IndentLinesDisable
-elseif exists(':IndentBlanklineDisable')
-  IndentBlanklineDisable
-endif
+let b:indentLine_enabled = v:false
+let b:indent_blankline_enabled = v:false
 
 " Reset these mappings to their default function (jumping over sentences):
 noremap <buffer> ( (

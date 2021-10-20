@@ -36,11 +36,30 @@ set commentstring=//%s
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
 
-  augroup dotfiles_indentline_refresh
-    autocmd!
-    " <https://github.com/lukas-reineke/indent-blankline.nvim/commit/d917eeb74b462bc3177c2db4f67f261cb9dbb773#diff-66b17be796b43985ec86515899f9f05b7f3780b22a25dcf1d986e2626c1f0ccdL38>
-    autocmd VimEnter * if exists(':IndentBlanklineRefresh') | execute 'IndentBlanklineRefresh!' | endif
-  augroup END
+  if g:dotfiles_sane_indentline_enable && has('nvim-0.5.0')
+    lua require('dotfiles.sane_indentline')
+    command! -bar -bang IndentLinesEnable
+      \  if <bang>0
+      \|   let g:indentLine_enabled = 1
+      \| else
+      \|   let b:indentLine_enabled = 1
+      \| endif
+      \| redraw!
+    command! -bar -bang IndentLinesDisable
+      \  if <bang>0
+      \|   let g:indentLine_enabled = 0
+      \| else
+      \|   let b:indentLine_enabled = 0
+      \| endif
+      \| redraw!
+    command! -bar -bang IndentLinesToggle
+      \  if <bang>0
+      \|   let g:indentLine_enabled = !get(g:, 'indentLine_enabled', 1)
+      \| else
+      \|   let b:indentLine_enabled = !get(b:, 'indentLine_enabled', 1)
+      \| endif
+      \| redraw!
+  endif
 
   command! -bar -bang -range -nargs=? Unindent call dotfiles#indentation#unindent(<line1>, <line2>, str2nr(<q-args>))
   nnoremap <leader>< :Unindent<CR>

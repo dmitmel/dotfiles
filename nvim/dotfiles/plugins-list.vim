@@ -18,15 +18,15 @@ let s:plug = function('dotfiles#plugman#register')
   call s:plug('tpope/vim-repeat')
   call s:plug('tomtom/tcomment_vim')
   call s:plug('tpope/vim-surround')
-  if has('nvim-0.5.0')
+  if !has('nvim-0.5.0')
+    call s:plug('Yggdroot/indentLine')
+  elseif !g:dotfiles_sane_indentline_enable
     " Doesn't use concealed text, can put indent guides on blank lines, depends
     " on <https://github.com/neovim/neovim/pull/13952/files>, backwards
     " compatible with the original indentLine (in terms of options). Must be
     " later than v2.1.0 due to fix of a critical bug in
     " <https://github.com/lukas-reineke/indent-blankline.nvim/pull/155>.
     call s:plug('lukas-reineke/indent-blankline.nvim')
-  else
-    call s:plug('Yggdroot/indentLine')
   endif
   call s:plug('henrik/vim-indexed-search')
   call s:plug('andymass/vim-matchup')
