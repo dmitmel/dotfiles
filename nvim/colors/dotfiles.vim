@@ -51,6 +51,29 @@
       \ 'gui='.(attr) 'cterm='.(attr)
       \ 'guisp='.get(sp, 'gui', 'NONE')
   endfunction
+
+  function! s:hi_raw(group, defs) abort
+    exec 'hi' a:group
+      \ 'guifg='.get(a:defs, 'guifg', 'NONE') 'ctermfg='.get(a:defs, 'ctermfg', 'NONE')
+      \ 'guibg='.get(a:defs, 'guibg', 'NONE') 'ctermbg='.get(a:defs, 'ctermbg', 'NONE')
+      \ 'gui='.get(a:defs, 'gui', 'NONE') 'cterm='.get(a:defs, 'cterm', 'NONE')
+      \ 'guisp='.get(a:defs, 'gui', 'NONE')
+  endfunction
+
+  function! s:mix_colors(color1, color2, factor) abort
+    return {
+    \ 'r': float2nr(round(a:color1.r * (1 - a:factor) + a:color2.r * a:factor)),
+    \ 'g': float2nr(round(a:color1.g * (1 - a:factor) + a:color2.g * a:factor)),
+    \ 'b': float2nr(round(a:color1.b * (1 - a:factor) + a:color2.b * a:factor)),
+    \ }
+  endfunction
+
+  function! s:color_to_css_hex(color) abort
+    return printf('#%02x%02x%02x',
+    \ min([max([a:color.r, 0]), 0xff]),
+    \ min([max([a:color.g, 0]), 0xff]),
+    \ min([max([a:color.b, 0]), 0xff]))
+  endfunction
 " }}}
 
 " General syntax highlighting {{{
@@ -73,6 +96,19 @@
   hi! link IndentBlanklineSpaceChar          Whitespace
   hi! link IndentBlanklineSpaceCharBlankline Whitespace
   hi! link IndentBlanklineContextChar        Label
+
+  if get(g:, 'dotfiles_rainbow_indent_opacity', 0) !=# 0
+    let g:indent_blankline_char_highlight_list = []
+    for s:color in range(7)
+      call add(g:indent_blankline_char_highlight_list, 'IndentLineRainbow' . s:color)
+      call s:hi_raw('IndentLineRainbow' . s:color, {
+      \ 'ctermfg': s:colors[0x2].cterm,
+      \ 'guifg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:colors[8 + s:color], g:dotfiles_rainbow_indent_opacity)),
+      \ 'cterm': 'nocombine',
+      \ 'gui': 'nocombine',
+      \ })
+    endfor | unlet s:color
+  endif
 
   call s:hi('Keyword', 0xE, '', '', '')
   hi! link Statement    Keyword

@@ -221,12 +221,15 @@ class ThemeGeneratorVim(ThemeGenerator):
 
   def generate(self, theme: Theme, output: TextIO) -> None:
     namespace = "dotfiles_colorscheme_"
-    output.write("let {}name = '{}'\n".format(namespace, theme.name))
-    output.write("let {}base16_name = '{}'\n".format(namespace, theme.base16_name))
+    output.write("let {}name = {}\n".format(namespace, json.dumps(theme.name)))
+    output.write("let {}base16_name = {}\n".format(namespace, json.dumps(theme.base16_name)))
+    output.write("let {}is_dark = {}\n".format(namespace, int(theme.is_dark)))
     output.write("let {}base16_colors = [\n".format(namespace))
     for gui_color, cterm_color in zip(theme.base16_colors, ANSI_TO_BASE16_MAPPING):
       output.write(
-        "\\ {{'gui': '{}', 'cterm': '{:02}'}},\n".format(gui_color.css_hex, cterm_color),
+        "\\ {{'gui': '{}', 'cterm': {:2}, 'r': 0x{:02x}, 'g': 0x{:02x}, 'b': 0x{:02x}}},\n".format(
+          gui_color.css_hex, cterm_color, gui_color.r, gui_color.g, gui_color.b
+        ),
       )
     output.write("\\ ]\n")
 
