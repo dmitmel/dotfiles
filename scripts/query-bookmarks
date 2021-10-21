@@ -14,7 +14,7 @@ import sys
 import tempfile
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Generator, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import common_script_utils
@@ -29,7 +29,7 @@ else:
 profiles_config = ConfigParser(interpolation=None)
 profiles_config.read(firefox_home / "profiles.ini")
 
-installs_sections: list[str] = [s for s in profiles_config.sections() if s.startswith("Install")]
+installs_sections: List[str] = [s for s in profiles_config.sections() if s.startswith("Install")]
 if not installs_sections:
   raise Exception("no Firefox installations detected!")
 if len(installs_sections) > 1:
@@ -47,19 +47,19 @@ if not db_path.is_file():
 db_copy_fd, db_copy_path = tempfile.mkstemp(prefix="bookmarks.", suffix=".sqlite")
 os.close(db_copy_fd)
 
-chooser_entries: list[Tuple[str, str, Optional[str]]] = []
+chooser_entries: List[Tuple[str, str, Optional[str]]] = []
 
 try:
   shutil.copyfile(db_path, db_copy_path)
   db = sqlite3.connect(db_copy_path)
 
-  urls: dict[int, str] = {}
+  urls: Dict[int, str] = {}
   url_id: int
   url: str
   for url_id, url in db.execute("SELECT id, url FROM urls"):
     urls[url_id] = url
 
-  folders: dict[str, Tuple[Optional[str], str]] = {}
+  folders: Dict[str, Tuple[Optional[str], str]] = {}
   folder_id: str
   parent_folder_id: str
   folder_title: str
@@ -80,7 +80,7 @@ try:
   ):
     url = urls[url_id]
 
-    folder_path = list[str]()
+    folder_path: List[str] = []
     parent_folder_id_2: Optional[str] = parent_folder_id
     while parent_folder_id_2 is not None:
       folder = folders.get(parent_folder_id_2, None)
