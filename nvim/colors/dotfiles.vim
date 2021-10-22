@@ -90,8 +90,9 @@
 
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  call s:hi('NonText',    0x3,  '',  'nocombine', '')
-  call s:hi('IndentLine', 0x2,  '',  'nocombine', '')
+  let s:nocombine_attr = has('patch-8.0.0914') || has('nvim-0.5.0') ? 'nocombine' : ''
+  call s:hi('NonText',    0x3, '', s:nocombine_attr, '')
+  call s:hi('IndentLine', 0x2, '', s:nocombine_attr, '')
   hi! link IndentBlanklineChar               IndentLine
   hi! link IndentBlanklineSpaceChar          Whitespace
   hi! link IndentBlanklineSpaceCharBlankline Whitespace
@@ -104,8 +105,8 @@
       call s:hi_raw('IndentLineRainbow' . s:color, {
       \ 'ctermfg': s:colors[0x2].cterm,
       \ 'guifg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:colors[8 + s:color], g:dotfiles_rainbow_indent_opacity)),
-      \ 'cterm': 'nocombine',
-      \ 'gui': 'nocombine',
+      \ 'cterm': s:nocombine_attr,
+      \ 'gui': s:nocombine_attr,
       \ })
     endfor | unlet s:color
   endif
