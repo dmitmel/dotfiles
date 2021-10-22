@@ -82,6 +82,7 @@ function M.decorations_provider:on_start(tick)
   self.max_indent_level = utils.first_non_nil(vim.g.indentLine_indentLevel, vim.g.indent_blankline_indent_level, 20)
   self.add_one_more_indent_on_blanklines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_trailing_blankline_indent, true))
   self.show_first_indent_level = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_first_indent_level, vim.g.indentLine_showFirstIndentLevel, true))
+  self.show_on_folded_lines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_foldtext, false))
 
   self.disable_with_nolist = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_disable_with_nolist, false))
   self.filetypes_include = utils.tbl_to_set(utils.first_non_nil(vim.g.indent_blankline_filetype, vim.g.indentLine_fileType, {}))
@@ -179,16 +180,18 @@ function M.decorations_provider:on_line(winid, bufnr, row)
   local space_char = win_info.leading_space_char
   local space_hlgroups = self.hlgroups_space
   vim.api.nvim_buf_call(bufnr, function()
-    indent = vim.fn.indent(row + 1)
-    if indent == 0 then
-      indent = math.min(
-        vim.fn.indent(vim.fn.prevnonblank(row + 1)),
-        vim.fn.indent(vim.fn.nextnonblank(row + 1))
-      )
-      space_char = self.blankline_char
-      space_hlgroups = self.hlgroups_space_blankline
-      if self.add_one_more_indent_on_blanklines then
-        indent = indent + shiftwidth
+    if self.show_on_folded_lines or vim.fn.foldclosed(row + 1) < 0 then
+      indent = vim.fn.indent(row + 1)
+      if indent == 0 then
+        indent = math.min(
+          vim.fn.indent(vim.fn.prevnonblank(row + 1)),
+          vim.fn.indent(vim.fn.nextnonblank(row + 1))
+        )
+        space_char = self.blankline_char
+        space_hlgroups = self.hlgroups_space_blankline
+        if self.add_one_more_indent_on_blanklines then
+          indent = indent + shiftwidth
+        end
       end
     end
   end)
@@ -233,15 +236,17 @@ function M.decorations_provider:on_line(winid, bufnr, row)
     curr_indent_level = curr_indent_level + 1
   end
 
-  vim.api.nvim_buf_set_extmark(bufnr, M.ns_id, row, 0, {
-    ephemeral = true,
-    hl_mode = 'combine',
-    virt_text = chunks,
-    virt_text_pos = 'overlay',
-    -- TODO: Use virt_text_hide when <https://github.com/neovim/neovim/issues/14050>
-    -- and <https://github.com/neovim/neovim/issues/14929> are fixed.
-    -- virt_text_hide = true,
-  })
+  if #chunks > 0 then
+    vim.api.nvim_buf_set_extmark(bufnr, M.ns_id, row, 0, {
+      ephemeral = true,
+      hl_mode = 'combine',
+      virt_text = chunks,
+      virt_text_pos = 'overlay',
+      -- TODO: Use virt_text_hide when <https://github.com/neovim/neovim/issues/14050>
+      -- and <https://github.com/neovim/neovim/issues/14929> are fixed.
+      -- virt_text_hide = true,
+    })
+  end
 end
 
 function M.decorations_provider:on_end(tick)
