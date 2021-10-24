@@ -12,8 +12,6 @@
 
 " Color definitions {{{
 
-  source <sfile>:p:h:h:h/colorschemes/out/vim.vim
-
   if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
     set termguicolors
   endif
@@ -27,7 +25,7 @@
     return type(a:value) == v:t_number
   endfunction
 
-  let s:colors = g:dotfiles_colorscheme_base16_colors
+  let s:colors = g:dotfiles#colorscheme#base16_colors
   function! s:hi(group, fg, bg, attr, sp) abort
     let fg = {}
     let bg = {}
@@ -247,6 +245,23 @@
   call s:hi('healthWarning', 'bg', 0xA, 'bold', '')
   call s:hi('healthError',   'bg', 0x8, 'bold', '')
 
+" }}}
+
+" Integrated terminal {{{
+  let s:ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
+  if has('nvim')
+    call s:hi('TermCursor', 'bg', 'fg', 'nocombine', '')
+    hi! link TermCursorNC NONE
+    for s:color in range(16)
+      let g:terminal_color_{s:color} = s:color_to_css_hex(s:colors[s:ansi_colors[s:color]])
+    endfor
+  elseif has('terminal') && (has('gui_running') || &termguicolors)
+    call s:hi('Terminal', 'fg', 'bg', '', '')
+    let g:terminal_ansi_colors = []
+    for s:color in range(16)
+      call add(g:terminal_ansi_colors, s:color_to_css_hex(s:colors[s:ansi_colors[s:color]]))
+    endfor
+  endif
 " }}}
 
 " Vim Help files {{{

@@ -8,7 +8,7 @@ let s:palette = {
 \ 'commandline' : {},
 \ }
 
-let s:colors = g:dotfiles_colorscheme_base16_colors
+let s:colors = g:dotfiles#colorscheme#base16_colors
 function! s:base16_color(fg, bg) abort
   let fg = s:colors[a:fg]
   let bg = s:colors[a:bg]

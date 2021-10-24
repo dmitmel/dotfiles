@@ -1,0 +1,1 @@
+../../../colorschemes/out/vim.vim

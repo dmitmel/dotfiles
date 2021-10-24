@@ -1,7 +1,7 @@
-let dotfiles_colorscheme_name = "base16-eighties"
-let dotfiles_colorscheme_base16_name = "eighties"
-let dotfiles_colorscheme_is_dark = 1
-let dotfiles_colorscheme_base16_colors = [
+let dotfiles#colorscheme#name = "base16-eighties"
+let dotfiles#colorscheme#base16_name = "eighties"
+let dotfiles#colorscheme#is_dark = 1
+let dotfiles#colorscheme#base16_colors = [
 \ {'gui': '#2d2d2d', 'cterm':  0, 'r': 0x2d, 'g': 0x2d, 'b': 0x2d},
 \ {'gui': '#393939', 'cterm': 18, 'r': 0x39, 'g': 0x39, 'b': 0x39},
 \ {'gui': '#515151', 'cterm': 19, 'r': 0x51, 'g': 0x51, 'b': 0x51},
@@ -19,21 +19,4 @@ let dotfiles_colorscheme_base16_colors = [
 \ {'gui': '#cc99cc', 'cterm':  5, 'r': 0xcc, 'g': 0x99, 'b': 0xcc},
 \ {'gui': '#d27b53', 'cterm': 17, 'r': 0xd2, 'g': 0x7b, 'b': 0x53},
 \ ]
-let terminal_color_background = '#2d2d2d'
-let terminal_color_foreground = '#d3d0c8'
-let terminal_color_0 = '#2d2d2d'
-let terminal_color_1 = '#f2777a'
-let terminal_color_2 = '#99cc99'
-let terminal_color_3 = '#ffcc66'
-let terminal_color_4 = '#6699cc'
-let terminal_color_5 = '#cc99cc'
-let terminal_color_6 = '#66cccc'
-let terminal_color_7 = '#d3d0c8'
-let terminal_color_8 = '#747369'
-let terminal_color_9 = '#f2777a'
-let terminal_color_10 = '#99cc99'
-let terminal_color_11 = '#ffcc66'
-let terminal_color_12 = '#6699cc'
-let terminal_color_13 = '#cc99cc'
-let terminal_color_14 = '#66cccc'
-let terminal_color_15 = '#f2f0ec'
+let dotfiles#colorscheme#ansi_colors_mapping = [0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5, 0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7, 0x9, 0xF, 0x1, 0x2, 0x4, 0x6]

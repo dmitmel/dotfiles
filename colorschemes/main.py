@@ -120,7 +120,6 @@ class Theme(Protocol):
 class IniTheme(Theme):
 
   def __init__(self, file_path: str) -> None:
-    super().__init__()
     self.file_path = file_path
     config = ConfigParser(interpolation=None)
     config.read(file_path)
@@ -220,7 +219,7 @@ class ThemeGeneratorVim(ThemeGenerator):
     return "vim.vim"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-    namespace = "dotfiles_colorscheme_"
+    namespace = "dotfiles#colorscheme#"
     output.write("let {}name = {}\n".format(namespace, json.dumps(theme.name)))
     output.write("let {}base16_name = {}\n".format(namespace, json.dumps(theme.base16_name)))
     output.write("let {}is_dark = {}\n".format(namespace, int(theme.is_dark)))
@@ -232,12 +231,11 @@ class ThemeGeneratorVim(ThemeGenerator):
         ),
       )
     output.write("\\ ]\n")
-
-    namespace = "terminal_color_"
-    output.write("let {}background = '{}'\n".format(namespace, theme.bg.css_hex))
-    output.write("let {}foreground = '{}'\n".format(namespace, theme.fg.css_hex))
-    for index, color in enumerate(theme.ansi_colors[:16]):
-      output.write("let {}{} = '{}'\n".format(namespace, index, color.css_hex))
+    output.write(
+      "let {}ansi_colors_mapping = [{}]\n".format(
+        namespace, ', '.join("0x{:X}".format(i) for i in BASE16_TO_ANSI_MAPPING)
+      )
+    )
 
 
 class ThemeGeneratorSetvtrgb(ThemeGenerator):
