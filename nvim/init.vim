@@ -1,5 +1,13 @@
 set nocompatible
 set cpoptions&vim
+set encoding=utf-8
+
+" Sensible defaults:
+" <https://github.com/tpope/vim-sensible/blob/master/plugin/sensible.vim>
+" <https://github.com/sheerun/vimrc/blob/master/plugin/vimrc.vim>
+" <https://github.com/neovim/neovim/issues/2676>
+" <https://github.com/neovim/neovim/issues/6289>
+" <https://github.com/neovim/neovim/labels/defaults>
 
 if !exists('g:dotfiles_boot_reltime')
   let g:dotfiles_boot_reltime = reltime()
@@ -24,6 +32,9 @@ function! s:configure_runtimepath() abort
   let &runtimepath = join(rtp, ',')
 endfunction
 call s:configure_runtimepath()
+
+" Make sure everybody knows that comma is the leader!
+let mapleader = ','
 
 " Indent detection hack, stage 1 {{{
 " HACK: Set `shiftwidth` to something unreasonable to make Polyglot's built-in

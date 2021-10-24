@@ -2,6 +2,11 @@
 " as "match X of Y", "The only match", "Pattern not found" etc.
 set shortmess+=c
 
+" Don't let the built-in completion mode (i_CTRL-N and i_CTRL-P) take results
+" from included files. That is slow and imprecise, tags are much better for
+" that.
+set complete-=i
+
 " pop-up (completion) menu mappings {{{
   imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
   imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"

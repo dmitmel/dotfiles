@@ -5,8 +5,9 @@ let g:dotfiles#plugman#inhibited_plugins = get(g:, 'dotfiles#plugman#inhibited_p
 
 let g:dotfiles#plugman#repo_name = 'vim-plug'
 let g:dotfiles#plugman#repo = 'junegunn/' . g:dotfiles#plugman#repo_name
-let g:dotfiles#plugman#install_path = stdpath('config') . '/autoload/plug.vim'
-let g:dotfiles#plugman#plugins_dir = stdpath('config') . '/plugged'
+let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
+let g:dotfiles#plugman#install_path = s:stdpath_config . '/autoload/plug.vim'
+let g:dotfiles#plugman#plugins_dir = s:stdpath_config . '/plugged'
 
 
 function! dotfiles#plugman#derive_name(repo, spec) abort

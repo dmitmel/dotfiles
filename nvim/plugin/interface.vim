@@ -1,4 +1,10 @@
-command! -bar ClearScreen call feedkeys("\<C-l>", 'n')
+" The default mapping for clearing the screen is <CTRL-L> which I override to
+" move around windows, and the :mode command is unintitively named at best.
+" However, vim-sensible overrides the default mapping to also do :nohlsearch
+" and :diffupdate. The first one doesn't exactly match the purpose of the key,
+" but the latter may be useful.
+" <https://github.com/tpope/vim-sensible/blob/2d9f34c09f548ed4df213389caa2882bfe56db58/plugin/sensible.vim#L35>
+command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 
 " Replicate the behavior of Zsh's complist module under my configuration.
 " 1st <Tab> - complete till the longest common prefix (longest).
@@ -9,15 +15,17 @@ set wildmenu wildmode=longest,list,full
 " always show the sign column
 set signcolumn=yes
 
+" Show the currently typed editing command (or the size of the Visual-mode
+" selected area) in the bottom right corner.
+set showcmd
+
 " enable bell everywhere
 set belloff=
 
-" title {{{
 set title
 let s:username = $USER
 let s:hostname = substitute(hostname(), '\v^([^.]*).*$', '\1', '')  " get hostname up to the first '.'
 let &titlestring = $USER . '@' . s:hostname . ': %F%m (nvim)'
-" }}}
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
 set mouse=a
@@ -25,10 +33,8 @@ set mouse=a
 " <S-LeftMouse> extends a visual selection
 set mousemodel=popup
 
-" Maybe someday I'll use a Neovim GUI
-if has('guifont')
-  let &guifont = 'Ubuntu Mono derivative Powerline:h14'
-endif
+" Crank up the command-line history size to the maximum!
+let &history = max([&history, 10000])
 
 
 " Buffers {{{
@@ -37,6 +43,9 @@ endif
 
   " open diffs in vertical splits by default
   set diffopt+=vertical
+
+  " Don't print filename and cursor position when switching between files.
+  set shortmess+=F
 
   " buffer navigation {{{
     nnoremap <silent> <Tab>   <Cmd>bnext<CR>
@@ -84,6 +93,13 @@ endif
 
 " Windows {{{
 
+  " Smooth horizontal scrolling, basically.
+  set sidescroll=1
+
+  " When `wrap` is on and the last line doesn't fit on the screen, display it
+  " partially with @@@ at the end.
+  set display+=lastline
+
   for s:key in ['h', 'j', 'k', 'l']
     for s:mode in ['n', 'x']
       execute s:mode.'noremap <C-'.s:key.'> <C-w>'.s:key
@@ -106,6 +122,20 @@ endif
 
 
 " Airline (statusline) {{{
+
+  " Always show the statusline (even if there is only one window).
+  set laststatus=2
+
+  function! s:on_airline_toggled(is_on)
+    let &g:showmode = !a:is_on
+    let &g:ruler = !a:is_on
+  endfunction
+  augroup dotfiles_airline
+    autocmd!
+    autocmd User AirlineToggledOff call s:on_airline_toggled(0)
+    autocmd User AirlineToggledOn  call s:on_airline_toggled(1)
+  augroup END
+  call s:on_airline_toggled(0)
 
   let g:airline_theme = 'dotfiles'
   let g:airline_symbols = {
@@ -147,12 +177,6 @@ endif
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
-
-  augroup dotfiles_airline
-    autocmd!
-    autocmd User AirlineToggledOff setglobal showmode ruler
-    autocmd User AirlineToggledOn setglobal noshowmode noruler
-  augroup END
 
 " }}}
 

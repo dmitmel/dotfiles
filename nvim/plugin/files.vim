@@ -18,8 +18,30 @@ function s:write_this_and_write_all() abort
   endtry
 endfunction
 
+" Automatically read the file if it has been changed by another process and on
+" :checktime
+set autoread
+
+" Persistent undo history
 set undofile
+
+" Time to wait before CursorHold (and also before writing the swap file...)
 set updatetime=500
+
+" Don't save :set options in the files created with :mksession and :mkview
+set sessionoptions-=options viewoptions-=options
+
+" Save variables named in ALLCAPS (without underscores) to viminfo/shada. Not
+" sure how this is useful with any plugins, but vim-sensible does it.
+if !empty(&viminfo)
+  set viminfo^=!
+endif
+
+" Some weird trickery with the tags discovery mechanism which finds tags in the
+" directories above the current one and which I don't want to explain.
+if has('path_extra')
+  setglobal tags-=./tags tags-=./tags; tags^=./tags;
+endif
 
 
 " ripgrep (rg) {{{
@@ -195,6 +217,7 @@ set updatetime=500
       call setpos('.', pos)
     endfunction
     " vint: +ProhibitCommandRelyOnUser +ProhibitCommandWithUnintendedSideEffect
+    command! -bar FixWhitespace call s:FixWhitespaceOnSave()
   " }}}
 
   " auto-format with Coc.nvim {{{

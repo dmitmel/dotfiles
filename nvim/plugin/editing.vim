@@ -1,16 +1,33 @@
-" <leader> is comma
-let mapleader = ','
-
 " allow moving cursor just after the last chraracter of the line
 set virtualedit=onemore
 
+" Use the three-curly-brace markers ({{{ ... }}}) for folding.
 set foldmethod=marker
 
-" use line C-style comments instead of block ones (/* ... */)
-set commentstring=//%s
+" Make the backspace key work everywhere
+set backspace=indent,eol,start
+
+" Improve the behavior of the <Esc> key in regular Vim.
+if !has('nvim') && &ttimeoutlen ==# -1
+  set ttimeout ttimeoutlen=50
+endif
+
+" Makes the CTRL-A and CTRL-X commands compatible with Neovim in regular Vim.
+set nrformats-=octal
+
+" The Nvim docs say that this makes the jumpstack behave like the tagstack or
+" like navigation history of a single tab in browsers.
+if exists('+jumpoptions')
+  set jumpoptions=stack
+endif
 
 
 " Indentination {{{
+
+  set autoindent
+  " <Tab> inserts `shiftwidth` number spaces in front of a line, <BS> deletes
+  " `shiftwidth` number spaces in front of a line.
+  set smarttab
 
   function! SetIndent(expandtab, shiftwidth) abort
     let &l:expandtab = a:expandtab
@@ -197,10 +214,17 @@ set commentstring=//%s
   xnoremap A :normal! A
   xnoremap I :normal! I
 
+  " Break undo on CTRL-W andd CTRL-U in the Insert mode.
+  inoremap <C-u> <C-g>u<C-u>
+  inoremap <C-w> <C-g>u<C-w>
+
 " }}}
 
 
 " Keymap switcher {{{
+
+  " Make sure that the `langmap` option doesn't affect mappings.
+  set nolangremap
 
   nnoremap <leader>kk <Cmd>set keymap&<CR>
   nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
@@ -218,10 +242,18 @@ set commentstring=//%s
   " anywhere in pattern to override these two settings)
   set ignorecase smartcase
 
+  set hlsearch
   nnoremap \ <Cmd>nohlsearch<CR>
   xnoremap \ <Cmd>nohlsearch<CR>
 
   let g:indexed_search_center = 1
+  " If vim-indexed-search is installed, disable the built-in thing to show the
+  " number of search results, otherwise enable it.
+  if dotfiles#plugman#is_registered('vim-indexed-search')
+    set shortmess+=S
+  else
+    set shortmess-=S
+  endif
 
   " search inside a visual selection
   xnoremap / <Esc>/\%><C-r>=line("'<")-1<CR>l\%<<C-r>=line("'>")+1<CR>l
@@ -287,9 +319,12 @@ set commentstring=//%s
 
 " Replace {{{
 
+  set incsearch
   " show the effects of the :substitute command incrementally, as you type
   " (works similar to 'incsearch')
-  set inccommand=nosplit
+  if exists('+inccommand')
+    set inccommand=nosplit
+  endif
 
   " quick insertion of the substitution command
   nnoremap gs/ :%s///g<Left><Left><Left>
@@ -319,17 +354,17 @@ set commentstring=//%s
 
 " Formatting {{{
 
+  " See |fo-table|:
   " -o: don't insert a comment after hitting 'o' or 'O' in the Normal mode
   " +r: however, insert a comment after pressing Enter in the Insert mode
   " -t: don't auto-wrap regular code while typing
   " -c: don't auto-wrap comments while typing
+  " +j: the J command should remove the comment leader when concating comments
+  let s:formatoptions_changes = 'fo-=o fo+=r fo-=t fo-=c fo+=j'
+  exe 'set' s:formatoptions_changes
   augroup dotfiles_formatoptions
     autocmd!
-    autocmd FileType *
-      \ setlocal formatoptions-=o
-      \|setlocal formatoptions+=r
-      \|setlocal formatoptions-=t
-      \|setlocal formatoptions-=c
+    exe 'autocmd FileType * setlocal' s:formatoptions_changes
   augroup END
 
   " Collapse multiple spaces into one when doing the `J` command.
@@ -385,7 +420,10 @@ set commentstring=//%s
   " Make an alias for the comment text object
   omap <silent> gc ac
 
+  " Prefer line C-style comments over block ones (/* ... */)
+  set commentstring=//%s
   let g:tcomment#commentstring_c = '// %s'
+
   let g:tcomment_types = {
   \ 'asm':   '# %s',
   \ 'riscv': '# %s',

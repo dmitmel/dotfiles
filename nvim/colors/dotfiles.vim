@@ -57,7 +57,7 @@
       \ 'guifg='.get(a:defs, 'guifg', 'NONE') 'ctermfg='.get(a:defs, 'ctermfg', 'NONE')
       \ 'guibg='.get(a:defs, 'guibg', 'NONE') 'ctermbg='.get(a:defs, 'ctermbg', 'NONE')
       \ 'gui='.get(a:defs, 'gui', 'NONE') 'cterm='.get(a:defs, 'cterm', 'NONE')
-      \ 'guisp='.get(a:defs, 'gui', 'NONE')
+      \ 'guisp='.get(a:defs, 'guisp', 'NONE')
   endfunction
 
   function! s:mix_colors(color1, color2, factor) abort
@@ -332,7 +332,7 @@
   hi! link vimSynOption    vimVar
   hi! link vimSynReg       vimSynOption
   hi! link vimSynKeyRegion vimString
-  hi! link vimSyncLines vimSynOption
+  hi! link vimSyncLines    vimSynOption
 " }}}
 
 " C {{{
