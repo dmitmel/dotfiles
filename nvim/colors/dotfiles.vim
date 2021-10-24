@@ -10,17 +10,8 @@
   let g:colors_name = 'dotfiles'
 " }}}
 
-" Color definitions {{{
-
-  if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
-    set termguicolors
-  endif
-
-  let s:is_kitty = $TERM ==# 'xterm-kitty'
-
-" }}}
-
 " The highlighting function {{{
+
   function! s:is_number(value) abort
     return type(a:value) == v:t_number
   endfunction
@@ -72,6 +63,9 @@
     \ min([max([a:color.g, 0]), 0xff]),
     \ min([max([a:color.b, 0]), 0xff]))
   endfunction
+
+  let s:is_kitty = $TERM ==# 'xterm-kitty'
+
 " }}}
 
 " General syntax highlighting {{{
@@ -106,7 +100,7 @@
       \ 'cterm': s:nocombine_attr,
       \ 'gui': s:nocombine_attr,
       \ })
-    endfor | unlet s:color
+    endfor
   endif
 
   call s:hi('Keyword', 0xE, '', '', '')
@@ -213,7 +207,6 @@
   call s:hi('qfInfo',       0xD, '', 'reverse,bold',  '')
   call s:hi('qfNote',       0xD, '', 'reverse,bold',  '')
 
-
   call s:hi('SignColumn',     0x3, 0x1, '', '')
   call s:hi('StatusLine',     0x4, 0x1, '', '')
   call s:hi('StatusLineNC',   0x3, 0x1, '', '')
@@ -234,7 +227,6 @@
   call s:hi('SpellLocal', s:spell_fg, s:is_kitty ? '' : 0xC, s:spell_attr, 0xC)
   call s:hi('SpellCap',   s:spell_fg, s:is_kitty ? '' : 0xD, s:spell_attr, 0xD)
   call s:hi('SpellRare',  s:spell_fg, s:is_kitty ? '' : 0xE, s:spell_attr, 0xE)
-  unlet s:spell_fg s:spell_attr
 
   call s:hi('Sneak', 'bg', 0xB, 'bold', '')
   hi! link SneakScope Visual
@@ -250,7 +242,11 @@
 " Integrated terminal {{{
   let s:ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
-    call s:hi('TermCursor', 'bg', 'fg', 'nocombine', '')
+    if !empty(s:nocombine_attr)
+      call s:hi('TermCursor', 'bg', 'fg', s:nocombine_attr, '')
+    else
+      call s:hi('TermCursor', '', '', 'reverse', '')
+    endif
     hi! link TermCursorNC NONE
     for s:color in range(16)
       let g:terminal_color_{s:color} = s:color_to_css_hex(s:colors[s:ansi_colors[s:color]])
@@ -289,9 +285,9 @@
   call s:hi('DiffText',    0xE, 0x1, '', '')
   call s:hi('DiffChange',  0x3, 0x1, '', '')
   " diff file
-  call s:hi('diffAdded',   0xB, '', '', '')
-  call s:hi('diffRemoved', 0x8, '', '', '')
-  call s:hi('diffChanged', 0xE, '', '', '')
+  call s:hi('diffAdded',   0xB, '',  '', '')
+  call s:hi('diffRemoved', 0x8, '',  '', '')
+  call s:hi('diffChanged', 0xE, '',  '', '')
   hi! link diffNewFile   diffAdded
   hi! link diffFile      diffRemoved
   hi! link diffIndexLine Bold
@@ -316,9 +312,9 @@
   hi! link gitcommitDiscarded Comment
   hi! link gitcommitSelected Comment
   hi! link gitcommitHeader Keyword
-  call s:hi('gitcommitSelectedType',  0xD, '', '', '')
-  call s:hi('gitcommitUnmergedType',  0xD, '', '', '')
-  call s:hi('gitcommitDiscardedType', 0xD, '', '', '')
+  call s:hi('gitcommitSelectedType',  0xD, '', '',     '')
+  call s:hi('gitcommitUnmergedType',  0xD, '', '',     '')
+  call s:hi('gitcommitDiscardedType', 0xD, '', '',     '')
   hi! link gitcommitBranch Function
   call s:hi('gitcommitUntrackedFile', 0xA, '', 'bold', '')
   call s:hi('gitcommitUnmergedFile',  0x8, '', 'bold', '')
@@ -352,16 +348,6 @@
 
 " C {{{
   hi! link cOperator Special
-" }}}
-
-" C# {{{
-  call s:hi('csClass',                  0xA, '', '', '')
-  call s:hi('csAttribute',              0xA, '', '', '')
-  call s:hi('csModifier',               0xE, '', '', '')
-  hi! link csType Type
-  call s:hi('csUnspecifiedStatement',   0xD, '', '', '')
-  call s:hi('csContextualStatement',    0xE, '', '', '')
-  call s:hi('csNewDecleration',         0x8, '', '', '')
 " }}}
 
 " Rust {{{
@@ -439,7 +425,6 @@
 " }}}
 
 " TypeScript {{{
-  let g:yats_host_keyword = 0
   hi! link typescriptParens              jsParens
   hi! link typescriptBraces              javaScriptBraces
   hi! link typescriptOperator            jsOperatorKeyword
@@ -496,12 +481,9 @@
 " }}}
 
 " Mail {{{
-  call s:hi('mailQuoted1', 0x8, '', '', '')
-  call s:hi('mailQuoted2', 0x9, '', '', '')
-  call s:hi('mailQuoted3', 0xA, '', '', '')
-  call s:hi('mailQuoted4', 0xB, '', '', '')
-  call s:hi('mailQuoted5', 0xD, '', '', '')
-  call s:hi('mailQuoted6', 0xE, '', '', '')
+  for s:color in range(6)
+    call s:hi('mailQuoted' . (s:color + 1), 0x8 + s:color, '', '', '')
+  endfor
   hi! link mailURL   Underlined
   hi! link mailEmail Underlined
 " }}}
@@ -552,9 +534,9 @@
 " }}}
 
 " Assembly {{{
-  hi! def link riscvRegister    Variable
-  hi! def link riscvCSRegister  Special
-  hi! def link riscvLabel       Function
+  hi! def link riscvRegister   Variable
+  hi! def link riscvCSRegister Special
+  hi! def link riscvLabel      Function
 " }}}
 
 " SQL {{{

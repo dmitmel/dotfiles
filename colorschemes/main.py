@@ -52,13 +52,17 @@ class Color:
     yield self.b
 
 
-BASE16_TO_ANSI_MAPPING: List[int] = [
+ANSI_TO_BASE16_MAPPING: List[int] = [
   0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5,  # 0x0
   0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7,  # 0x8
   0x9, 0xF, 0x1, 0x2, 0x4, 0x6,            # 0x10
 ]  # yapf: disable
 
-ANSI_TO_BASE16_MAPPING: List[int] = [BASE16_TO_ANSI_MAPPING.index(i) for i in range(16)]
+BASE16_TO_ANSI_MAPPING: List[int] = [ANSI_TO_BASE16_MAPPING.index(i) for i in range(16)]
+BASE16_BG_COLOR_IDX = 0x0
+BASE16_FG_COLOR_IDX = 0x5
+BASE16_SELECTION_BG_COLOR_IDX = 0x2
+BASE16_LINK_COLOR_IDX = 0xC
 
 
 class Theme(Protocol):
@@ -72,11 +76,11 @@ class Theme(Protocol):
 
   @property
   def bg(self) -> Color:
-    return self.base16_colors[0x0]
+    return self.base16_colors[BASE16_BG_COLOR_IDX]
 
   @property
   def fg(self) -> Color:
-    return self.base16_colors[0x5]
+    return self.base16_colors[BASE16_FG_COLOR_IDX]
 
   @property
   def cursor_bg(self) -> Color:
@@ -88,7 +92,7 @@ class Theme(Protocol):
 
   @property
   def selection_bg(self) -> Color:
-    return self.base16_colors[0x2]
+    return self.base16_colors[BASE16_SELECTION_BG_COLOR_IDX]
 
   @property
   def selection_fg(self) -> Color:
@@ -96,11 +100,11 @@ class Theme(Protocol):
 
   @property
   def ansi_colors(self) -> List[Color]:
-    return [self.base16_colors[i] for i in BASE16_TO_ANSI_MAPPING]
+    return [self.base16_colors[i] for i in ANSI_TO_BASE16_MAPPING]
 
   @property
   def link_color(self) -> Color:
-    return self.ansi_colors[0xC]
+    return self.ansi_colors[BASE16_LINK_COLOR_IDX]
 
   @property
   def css_variables(self) -> Dict[str, Color]:
@@ -224,7 +228,7 @@ class ThemeGeneratorVim(ThemeGenerator):
     output.write("let {}base16_name = {}\n".format(namespace, json.dumps(theme.base16_name)))
     output.write("let {}is_dark = {}\n".format(namespace, int(theme.is_dark)))
     output.write("let {}base16_colors = [\n".format(namespace))
-    for gui_color, cterm_color in zip(theme.base16_colors, ANSI_TO_BASE16_MAPPING):
+    for gui_color, cterm_color in zip(theme.base16_colors, BASE16_TO_ANSI_MAPPING):
       output.write(
         "\\ {{'gui': '{}', 'cterm': {:2}, 'r': 0x{:02x}, 'g': 0x{:02x}, 'b': 0x{:02x}}},\n".format(
           gui_color.css_hex, cterm_color, gui_color.r, gui_color.g, gui_color.b
@@ -233,7 +237,7 @@ class ThemeGeneratorVim(ThemeGenerator):
     output.write("\\ ]\n")
     output.write(
       "let {}ansi_colors_mapping = [{}]\n".format(
-        namespace, ', '.join("0x{:X}".format(i) for i in BASE16_TO_ANSI_MAPPING)
+        namespace, ', '.join("0x{:X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
       )
     )
 
@@ -398,30 +402,36 @@ class ThemeGeneratorLua(ThemeGenerator):
     return "colorscheme.lua"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-
-    def format_color(color: Color) -> str:
-      return "{{0x{:02x}, 0x{:02x}, 0x{:02x}}}".format(*color)
-
-    output.write("return {\n")
-    output.write("  base16_name = {},\n".format(json.dumps(theme.base16_name)))
-    output.write("  name = {},\n".format(json.dumps(theme.name)))
-    output.write("  is_dark = {},\n".format("true" if theme.is_dark else "false"))
-    output.write("  base16_colors = {\n")
+    output.write("local theme = {}\n")
+    output.write("theme.base16_name = {}\n".format(json.dumps(theme.base16_name)))
+    output.write("theme.is_dark = {}\n".format("true" if theme.is_dark else "false"))
+    output.write("local colors = {\n")
     for color in theme.base16_colors:
-      output.write("    {},\n".format(format_color(color)))
-    output.write("  },\n")
-    output.write("  ansi_colors = {\n")
-    for color in theme.ansi_colors:
-      output.write("    {},\n".format(format_color(color)))
-    output.write("  },\n")
-    output.write("  bg = {},\n".format(format_color(theme.bg)))
-    output.write("  fg = {},\n".format(format_color(theme.fg)))
-    output.write("  cursor_bg = {},\n".format(format_color(theme.cursor_bg)))
-    output.write("  cursor_fg = {},\n".format(format_color(theme.cursor_fg)))
-    output.write("  selection_bg = {},\n".format(format_color(theme.selection_bg)))
-    output.write("  selection_fg = {},\n".format(format_color(theme.selection_fg)))
-    output.write("  link_color = {},\n".format(format_color(theme.link_color)))
+      output.write("  {{0x{:02x}, 0x{:02x}, 0x{:02x}}},\n".format(*color))
     output.write("}\n")
+    output.write("theme.base16_colors = colors\n")
+    output.write("theme.ansi_colors = {\n")
+    for i in ANSI_TO_BASE16_MAPPING:
+      output.write("  colors[{}],\n".format(i))
+    output.write("}\n")
+    output.write("theme.bg = colors[{}]\n".format(BASE16_BG_COLOR_IDX))
+    output.write("theme.fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
+    output.write("theme.cursor_bg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
+    output.write("theme.cursor_fg = colors[{}]\n".format(BASE16_BG_COLOR_IDX))
+    output.write("theme.selection_bg = colors[{}]\n".format(BASE16_SELECTION_BG_COLOR_IDX))
+    output.write("theme.selection_fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
+    output.write("theme.link_color = colors[{}]\n".format(BASE16_LINK_COLOR_IDX))
+    output.write(
+      "theme.ansi_to_base16_mapping = {{{}}}\n".format(
+        ', '.join('0x{:0X}'.format(i) for i in ANSI_TO_BASE16_MAPPING)
+      )
+    )
+    output.write(
+      "theme.base16_to_ansi_mapping = {{{}}}\n".format(
+        ', '.join('0x{:02X}'.format(i) for i in BASE16_TO_ANSI_MAPPING)
+      )
+    )
+    output.write("return theme\n")
 
 
 def main() -> None:

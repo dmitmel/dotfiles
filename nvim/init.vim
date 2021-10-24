@@ -36,6 +36,10 @@ call s:configure_runtimepath()
 " Make sure everybody knows that comma is the leader!
 let mapleader = ','
 
+if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
+  set termguicolors
+endif
+
 " Indent detection hack, stage 1 {{{
 " HACK: Set `shiftwidth` to something unreasonable to make Polyglot's built-in
 " indentation detector believe that it's the "default" value. The problem

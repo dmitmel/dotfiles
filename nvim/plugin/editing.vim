@@ -459,4 +459,6 @@ endif
   " Seems to be the closest one to SQLite. <https://www.sqlite.org/lang.html>
   let g:sql_type_default = 'sqlinformix'
 
+  let g:yats_host_keyword = 0
+
 " }}}
