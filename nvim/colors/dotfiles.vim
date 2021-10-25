@@ -249,13 +249,13 @@
     endif
     hi! link TermCursorNC NONE
     for s:color in range(16)
-      let g:terminal_color_{s:color} = s:color_to_css_hex(s:colors[s:ansi_colors[s:color]])
+      let g:terminal_color_{s:color} = s:colors[s:ansi_colors[s:color]].gui
     endfor
   elseif has('terminal') && (has('gui_running') || &termguicolors)
     call s:hi('Terminal', 'fg', 'bg', '', '')
     let g:terminal_ansi_colors = []
     for s:color in range(16)
-      call add(g:terminal_ansi_colors, s:color_to_css_hex(s:colors[s:ansi_colors[s:color]]))
+      call add(g:terminal_ansi_colors, s:colors[s:ansi_colors[s:color]].gui)
     endfor
   endif
 " }}}
