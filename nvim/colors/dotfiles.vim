@@ -12,28 +12,29 @@
 
 " The highlighting function {{{
 
-  function! s:is_number(value) abort
-    return type(a:value) == v:t_number
-  endfunction
-
   let s:colors = g:dotfiles#colorscheme#base16_colors
-  function! s:hi(group, fg, bg, attr, sp) abort
+
+  let s:t_number = type(0)
+  function! s:hi(group, defs) abort
     let fg = {}
+    if get(a:defs, 'fg', '') isnot# ''
+      let fg = a:defs['fg']
+      let fg = type(fg) ==# s:t_number ? s:colors[fg] : {'gui': fg, 'cterm': fg}
+    endif
     let bg = {}
-    let attr = 'NONE'
+    if get(a:defs, 'bg', '') isnot# ''
+      let bg = a:defs['bg']
+      let bg = type(bg) ==# s:t_number ? s:colors[bg] : {'gui': bg, 'cterm': bg}
+    endif
     let sp = {}
-    if a:fg isnot# ''
-      let fg = s:is_number(a:fg) ? s:colors[a:fg] : {'gui': a:fg, 'cterm': a:fg}
+    if get(a:defs, 'sp', '') isnot# ''
+      let sp = a:defs['sp']
+      let sp = type(sp) ==# s:t_number ? s:colors[sp] : {'gui': sp, 'cterm': sp}
     endif
-    if a:bg isnot# ''
-      let bg = s:is_number(a:bg) ? s:colors[a:bg] : {'gui': a:bg, 'cterm': a:bg}
-    endif
-    if a:attr isnot# ''
-      let attr = a:attr
-    endif
-    if a:sp isnot# ''
-      let sp = s:is_number(a:sp) ? s:colors[a:sp] : {'gui': a:sp, 'cterm': a:sp}
-    endif
+    let attr = filter(
+    \ ['bold', 'underline', 'undercurl', 'strikethrough', 'reverse', 'italic', 'nocombine'],
+    \ 'get(a:defs, v:val)')
+    let attr = !empty(attr) ? join(attr, ',') : 'NONE'
     exec 'hi' a:group
       \ 'guifg='.get(fg, 'gui', 'NONE') 'ctermfg='.get(fg, 'cterm', 'NONE')
       \ 'guibg='.get(bg, 'gui', 'NONE') 'ctermbg='.get(bg, 'cterm', 'NONE')
@@ -65,26 +66,26 @@
   endfunction
 
   let s:is_kitty = $TERM ==# 'xterm-kitty'
+  let s:has_nocombine = has('patch-8.0.0914') || has('nvim-0.5.0')
 
 " }}}
 
 " General syntax highlighting {{{
 
-  call s:hi('Normal',     0x5,  0x0, '',          '')
-  call s:hi('Italic',     0xE,  '',  'italic',    '')
-  call s:hi('Bold',       0xA,  '',  'bold',      '')
-  call s:hi('Underlined', 0x8,  '',  'underline', '')
-  call s:hi('Title',      0xD,  '',  '',          '')
+  call s:hi('Normal',     { 'fg': 0x5, 'bg': 0x0 })
+  call s:hi('Italic',     { 'fg': 0xE, 'italic':    1 })
+  call s:hi('Bold',       { 'fg': 0xA, 'bold':      1 })
+  call s:hi('Underlined', { 'fg': 0x8, 'underline': 1 })
+  call s:hi('Title',      { 'fg': 0xD })
   hi! link Directory Title
-  call s:hi('Conceal',    0xC,  '',  '',          '')
+  call s:hi('Conceal',    { 'fg': 0xC })
   hi! link SpecialKey Special
-  call s:hi('MatchParen', 'fg', 0x3, '',          '')
+  call s:hi('MatchParen', { 'fg': 'fg', 'bg': 0x3 })
 
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  let s:nocombine_attr = has('patch-8.0.0914') || has('nvim-0.5.0') ? 'nocombine' : ''
-  call s:hi('NonText',    0x3, '', s:nocombine_attr, '')
-  call s:hi('IndentLine', 0x2, '', s:nocombine_attr, '')
+  call s:hi('NonText',    { 'fg': 0x3, 'nocombine': s:has_nocombine })
+  call s:hi('IndentLine', { 'fg': 0x2, 'nocombine': s:has_nocombine })
   hi! link IndentBlanklineChar               IndentLine
   hi! link IndentBlanklineSpaceChar          Whitespace
   hi! link IndentBlanklineSpaceCharBlankline Whitespace
@@ -97,73 +98,73 @@
       call s:hi_raw('IndentLineRainbow' . s:color, {
       \ 'ctermfg': s:colors[0x2].cterm,
       \ 'guifg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:colors[8 + s:color], g:dotfiles_rainbow_indent_opacity)),
-      \ 'cterm': s:nocombine_attr,
-      \ 'gui': s:nocombine_attr,
+      \ 'cterm': s:has_nocombine ? 'nocombine' : '',
+      \ 'gui':   s:has_nocombine ? 'nocombine' : '',
       \ })
     endfor
   endif
 
-  call s:hi('Keyword', 0xE, '', '', '')
-  hi! link Statement    Keyword
-  hi! link Repeat       Keyword
-  hi! link StorageClass Keyword
-  hi! link Exception    Keyword
-  hi! link Structure    Keyword
-  hi! link Conditional  Keyword
-  call s:hi('Constant',   0x9, '', '', '')
-  hi! link Boolean Constant
-  hi! link Float   Constant
-  hi! link Number  Constant
-  call s:hi('String',     0xB, '', '', '')
+  call s:hi('Keyword',     { 'fg': 0xE })
+  hi! link Statement       Keyword
+  hi! link Repeat          Keyword
+  hi! link StorageClass    Keyword
+  hi! link Exception       Keyword
+  hi! link Structure       Keyword
+  hi! link Conditional     Keyword
+  call s:hi('Constant',    { 'fg': 0x9 })
+  hi! link Boolean         Constant
+  hi! link Float           Constant
+  hi! link Number          Constant
+  call s:hi('String',      { 'fg': 0xB })
   hi! link Character       String
   hi! link Quote           String
   hi! link StringDelimiter String
-  call s:hi('Comment',    0x3,  '',  '', '')
-  hi! link SpecialComment Comment
-  call s:hi('Todo',       'bg', 0xA, 'bold', '')
-  call s:hi('Function',   0xD, '', '', '')
-  call s:hi('Identifier', 0x8, '', '', '')
-  hi! link Variable Identifier
-  " call s:hi('Include',    0xF, '', '', '')
-  hi! link Include Keyword
-  call s:hi('PreProc',    0xA, '', '', '')
-  call s:hi('Label',      0xA, '', '', '')
-  hi! link Operator NONE
-  hi! link Delimiter NONE
-  call s:hi('Special',    0xC, '', '', '')
-  call s:hi('Tag',        0xA, '', '', '')
-  call s:hi('Type',       0xA, '', '', '')
-  hi! link Typedef Type
+  call s:hi('Comment',     { 'fg': 0x3 })
+  hi! link SpecialComment  Comment
+  call s:hi('Todo',        { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  call s:hi('Function',    { 'fg': 0xD })
+  call s:hi('Identifier',  { 'fg': 0x8 })
+  hi! link Variable        Identifier
+  " call s:hi('Include',     { 'fg': 0xF })
+  hi! link Include         Keyword
+  call s:hi('PreProc',     { 'fg': 0xA })
+  call s:hi('Label',       { 'fg': 0xA })
+  hi! link Operator        NONE
+  hi! link Delimiter       NONE
+  call s:hi('Special',     { 'fg': 0xC })
+  call s:hi('Tag',         { 'fg': 0xA })
+  call s:hi('Type',        { 'fg': 0xA })
+  hi! link Typedef         Type
 
 " }}}
 
 " User interface {{{
 
-  call s:hi('Error',          'bg', 0x8, '', '')
-  call s:hi('ErrorMsg',       0x8,  '',  '', '')
-  call s:hi('WarningMsg',     0x9,  '',  '', '')
-  call s:hi('TooLong',        0x8,  '',  '', '')
-  call s:hi('Debug',          0x8,  '',  '', '')
+  call s:hi('Error',      { 'fg': 'bg', 'bg': 0x8 })
+  call s:hi('ErrorMsg',   { 'fg': 0x8 })
+  call s:hi('WarningMsg', { 'fg': 0x9 })
+  call s:hi('TooLong',    { 'fg': 0x8 })
+  call s:hi('Debug',      { 'fg': 0x8 })
 
-  call s:hi('CocErrorSign',     'bg', 0x8, '',              '')
-  call s:hi('CocWarningSign',   'bg', 0xA, '',              '')
-  call s:hi('CocInfoSign',      'bg', 0xD, '',              '')
-  call s:hi('CocHintSign',      'bg', 0xD, '',              '')
+  call s:hi('CocErrorSign',     { 'fg': 'bg', 'bg': 0x8 })
+  call s:hi('CocWarningSign',   { 'fg': 'bg', 'bg': 0xA })
+  call s:hi('CocInfoSign',      { 'fg': 'bg', 'bg': 0xD })
+  call s:hi('CocHintSign',      { 'fg': 'bg', 'bg': 0xD })
   " The float hlgroups are a fix for changes in
   " <https://github.com/neoclide/coc.nvim/commit/a34b3ecf6b45908fa5c86afa26874b20fb7851d3> and
   " <https://github.com/neoclide/coc.nvim/commit/a9a4b4c584a90784f95ba598d1cb6d37fb189e5a>.
-  call s:hi('CocErrorFloat',    0x8, '',   '',              '')
-  call s:hi('CocWarningFloat',  0xA, '',   '',              '')
-  call s:hi('CocInfoFloat',     0xD, '',   '',              '')
-  call s:hi('CocHintFloat',     0xD, '',   '',              '')
-  hi! link FgCocErrorFloatBgCocFloating CocErrorSign
+  call s:hi('CocErrorFloat',    { 'fg': 0x8 })
+  call s:hi('CocWarningFloat',  { 'fg': 0xA })
+  call s:hi('CocInfoFloat',     { 'fg': 0xD })
+  call s:hi('CocHintFloat',     { 'fg': 0xD })
+  hi! link FgCocErrorFloatBgCocFloating   CocErrorSign
   hi! link FgCocWarningFloatBgCocFloating CocWarningSign
-  hi! link FgCocInfoFloatBgCocFloating CocInfoSign
-  hi! link FgCocHintFloatBgCocFloating CocHintSign
-  call s:hi('CocSelectedText',  0xE,  0x1, 'bold',          '')
-  call s:hi('CocCodeLens',      0x4,  '',  '',              '')
-  call s:hi('CocFadeOut',       0x3,  '',  '',              '')
-  call s:hi('CocStrikeThrough', '',   '',  'strikethrough', '')
+  hi! link FgCocInfoFloatBgCocFloating    CocInfoSign
+  hi! link FgCocHintFloatBgCocFloating    CocHintSign
+  call s:hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'bold': 1 })
+  call s:hi('CocCodeLens',      { 'fg': 0x4 })
+  call s:hi('CocFadeOut',       { 'fg': 0x3 })
+  call s:hi('CocStrikeThrough', { 'strikethrough': 1 })
   hi! link CocMarkdownLink      Underlined
   hi! link CocDiagnosticsFile   Directory
   hi! link CocOutlineName       NONE
@@ -172,87 +173,85 @@
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
-  call s:hi('FoldColumn', 0xC, 0x1, '', '')
-  call s:hi('Folded',     0x3, 0x1, '', '')
+  call s:hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })
+  call s:hi('Folded',     { 'fg': 0x3, 'bg': 0x1 })
 
-  call s:hi('IncSearch', 0x1, 0x9, '', '')
-  call s:hi('Search',    0x1, 0xA, '', '')
-  hi! link Substitute Search
+  call s:hi('IncSearch', { 'fg': 0x1, 'bg': 0x9 })
+  call s:hi('Search',    { 'fg': 0x1, 'bg': 0xA })
+  hi! link Substitute    Search
 
-  call s:hi('ModeMsg',  0xB, '',   'bold', '')
-  call s:hi('Question', 0xB, '',   '', '')
-  hi! link MoreMsg Question
-  call s:hi('Visual',   '',  0x2,  '', '')
-  call s:hi('WildMenu', 0x1, 'fg', '', '')
+  call s:hi('ModeMsg',  { 'fg': 0xB, 'bold': 1 })
+  call s:hi('Question', { 'fg': 0xB })
+  hi! link MoreMsg      Question
+  call s:hi('Visual',   { 'bg': 0x2 })
+  call s:hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
 
-  call s:hi('CursorLine',   '',  0x1, '', '')
-  hi! link CursorColumn CursorLine
-  call s:hi('ColorColumn',  '',  0x1, '', '')
-  call s:hi('LineNr',       0x3, 0x1, '', '')
-  call s:hi('CursorLineNr', 0x4, 0x1, '', '')
-  " call s:hi('QuickFixLine', '',  0x2, '',     '')
-  " call s:hi('qfError',      0x8, 0x1, 'bold', '')
-  " call s:hi('qfWarning',    0xA, 0x1, 'bold', '')
-  " call s:hi('qfInfo',       0xD, 0x1, 'bold', '')
-  " call s:hi('qfNote',       0xD, 0x1, 'bold', '')
+  call s:hi('CursorLine',   {            'bg': 0x1 })
+  hi! link CursorColumn     CursorLine
+  call s:hi('ColorColumn',  {            'bg': 0x1 })
+  call s:hi('LineNr',       { 'fg': 0x3, 'bg': 0x1 })
+  call s:hi('CursorLineNr', { 'fg': 0x4, 'bg': 0x1 })
+  " call s:hi('QuickFixLine', {            'bg': 0x2            })
+  " call s:hi('qfError',      { 'fg': 0x8, 'bg': 0x1, 'bold': 1 })
+  " call s:hi('qfWarning',    { 'fg': 0xA, 'bg': 0x1, 'bold': 1 })
+  " call s:hi('qfInfo',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
+  " call s:hi('qfNote',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
   " The secondary quickfix list setup. Requires a bunch of weird tricks with
   " reverse video to look nice. This is needed because highlighting of the
   " current qflist item with the QuickFixLine hlgroup is handled as a special
   " case (see <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/screen.c#L2391-L2394>),
   " and, unfortunately, QuickFixLine overrides the background colors set by
   " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
-  call s:hi('QuickFixLine', 0xE, '', 'underline',    0xE)
-  call s:hi('qfError',      0x8, '', 'reverse,bold',  '')
-  call s:hi('qfWarning',    0xA, '', 'reverse,bold',  '')
-  call s:hi('qfInfo',       0xD, '', 'reverse,bold',  '')
-  call s:hi('qfNote',       0xD, '', 'reverse,bold',  '')
+  call s:hi('QuickFixLine', { 'fg': 0xE, 'underline': 1, 'sp': 0xE })
+  call s:hi('qfError',      { 'fg': 0x8, 'reverse': 1, 'bold': 1   })
+  call s:hi('qfWarning',    { 'fg': 0xA, 'reverse': 1, 'bold': 1   })
+  call s:hi('qfInfo',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
+  call s:hi('qfNote',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
 
-  call s:hi('SignColumn',     0x3, 0x1, '', '')
-  call s:hi('StatusLine',     0x4, 0x1, '', '')
-  call s:hi('StatusLineNC',   0x3, 0x1, '', '')
-  call s:hi('VertSplit',      0x2, 0x2, '', '')
-  call s:hi('TabLine',        0x3, 0x1, '', '')
-  call s:hi('TabLineFill',    0x3, 0x1, '', '')
-  call s:hi('TabLineSel',     0xB, 0x1, '', '')
+  call s:hi('SignColumn',   { 'fg': 0x3, 'bg': 0x1 })
+  call s:hi('StatusLine',   { 'fg': 0x4, 'bg': 0x1 })
+  call s:hi('StatusLineNC', { 'fg': 0x3, 'bg': 0x1 })
+  call s:hi('VertSplit',    { 'fg': 0x2, 'bg': 0x2 })
+  call s:hi('TabLine',      { 'fg': 0x3, 'bg': 0x1 })
+  call s:hi('TabLineFill',  { 'fg': 0x3, 'bg': 0x1 })
+  call s:hi('TabLineSel',   { 'fg': 0xB, 'bg': 0x1 })
 
-  call s:hi('PMenu',    'fg', 0x1,  '', '')
-  call s:hi('PMenuSel', 0x1,  'fg', '', '')
+  call s:hi('PMenu',    { 'fg': 'fg', 'bg': 0x1 })
+  call s:hi('PMenuSel', { 'fg': 0x1, 'bg': 'fg' })
 
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
 
-  let s:spell_fg   = s:is_kitty ? ''          : 'bg'
-  let s:spell_attr = s:is_kitty ? 'undercurl' : ''
-  call s:hi('SpellBad',   s:spell_fg, s:is_kitty ? '' : 0x8, s:spell_attr, 0x8)
-  call s:hi('SpellLocal', s:spell_fg, s:is_kitty ? '' : 0xC, s:spell_attr, 0xC)
-  call s:hi('SpellCap',   s:spell_fg, s:is_kitty ? '' : 0xD, s:spell_attr, 0xD)
-  call s:hi('SpellRare',  s:spell_fg, s:is_kitty ? '' : 0xE, s:spell_attr, 0xE)
+  call s:hi('SpellBad',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0x8, 'undercurl': s:is_kitty, 'sp': 0x8 })
+  call s:hi('SpellLocal', { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xC, 'undercurl': s:is_kitty, 'sp': 0xC })
+  call s:hi('SpellCap',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xD, 'undercurl': s:is_kitty, 'sp': 0xD })
+  call s:hi('SpellRare',  { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xE, 'undercurl': s:is_kitty, 'sp': 0xE })
 
-  call s:hi('Sneak', 'bg', 0xB, 'bold', '')
+  call s:hi('Sneak',  { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
   hi! link SneakScope Visual
   hi! link SneakLabel Sneak
 
   " checkhealth UI
-  call s:hi('healthSuccess', 'bg', 0xB, 'bold', '')
-  call s:hi('healthWarning', 'bg', 0xA, 'bold', '')
-  call s:hi('healthError',   'bg', 0x8, 'bold', '')
+  call s:hi('healthSuccess', { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
+  call s:hi('healthWarning', { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  call s:hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
 
 " }}}
 
 " Integrated terminal {{{
   let s:ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
-    if !empty(s:nocombine_attr)
-      call s:hi('TermCursor', 'bg', 'fg', s:nocombine_attr, '')
+    if s:has_nocombine
+      call s:hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'nocombine': 1 })
     else
-      call s:hi('TermCursor', '', '', 'reverse', '')
+      call s:hi('TermCursor', { 'reverse': 1 })
     endif
     hi! link TermCursorNC NONE
     for s:color in range(16)
       let g:terminal_color_{s:color} = s:colors[s:ansi_colors[s:color]].gui
     endfor
   elseif has('terminal') && (has('gui_running') || &termguicolors)
-    call s:hi('Terminal', 'fg', 'bg', '', '')
+    call s:hi('Terminal', { 'fg': 'fg', 'bg': 'bg' })
     let g:terminal_ansi_colors = []
     for s:color in range(16)
       call add(g:terminal_ansi_colors, s:colors[s:ansi_colors[s:color]].gui)
@@ -280,46 +279,46 @@
 
 " Diff {{{
   " diff mode
-  call s:hi('DiffAdd',     0xB, 0x1, '', '')
-  call s:hi('DiffDelete',  0x8, 0x1, '', '')
-  call s:hi('DiffText',    0xE, 0x1, '', '')
-  call s:hi('DiffChange',  0x3, 0x1, '', '')
+  call s:hi('DiffAdd',     { 'fg': 0xB, 'bg': 0x1 })
+  call s:hi('DiffDelete',  { 'fg': 0x8, 'bg': 0x1 })
+  call s:hi('DiffText',    { 'fg': 0xE, 'bg': 0x1 })
+  call s:hi('DiffChange',  { 'fg': 0x3, 'bg': 0x1 })
   " diff file
-  call s:hi('diffAdded',   0xB, '',  '', '')
-  call s:hi('diffRemoved', 0x8, '',  '', '')
-  call s:hi('diffChanged', 0xE, '',  '', '')
-  hi! link diffNewFile   diffAdded
-  hi! link diffFile      diffRemoved
-  hi! link diffIndexLine Bold
-  hi! link diffLine      Title
-  hi! link diffSubname   Include
+  call s:hi('diffAdded',   { 'fg': 0xB })
+  call s:hi('diffRemoved', { 'fg': 0x8 })
+  call s:hi('diffChanged', { 'fg': 0xE })
+  hi! link diffNewFile     diffAdded
+  hi! link diffFile        diffRemoved
+  hi! link diffIndexLine   Bold
+  hi! link diffLine        Title
+  hi! link diffSubname     Include
 " }}}
 
 " XML {{{
-  call s:hi('xmlTagName', 0x8, '', '', '')
-  call s:hi('xmlAttrib',  0x9, '', '', '')
-  hi! link xmlTag Delimiter
-  hi! link xmlEndTag Delimiter
-  hi! link xmlAttribPunct Delimiter
+  call s:hi('xmlTagName', { 'fg': 0x8 })
+  call s:hi('xmlAttrib',  { 'fg': 0x9 })
+  hi! link xmlTag             Delimiter
+  hi! link xmlEndTag          Delimiter
+  hi! link xmlAttribPunct     Delimiter
   hi! link xmlProcessingDelim Delimiter
 " }}}
 
 " Git {{{
-  hi! link gitCommitOverflow TooLong
-  hi! link gitCommitSummary String
-  hi! link gitCommitComment Comment
+  hi! link gitCommitOverflow  TooLong
+  hi! link gitCommitSummary   String
+  hi! link gitCommitComment   Comment
   hi! link gitcommitUntracked Comment
   hi! link gitcommitDiscarded Comment
-  hi! link gitcommitSelected Comment
-  hi! link gitcommitHeader Keyword
-  call s:hi('gitcommitSelectedType',  0xD, '', '',     '')
-  call s:hi('gitcommitUnmergedType',  0xD, '', '',     '')
-  call s:hi('gitcommitDiscardedType', 0xD, '', '',     '')
+  hi! link gitcommitSelected  Comment
+  hi! link gitcommitHeader    Keyword
+  call s:hi('gitcommitSelectedType',  { 'fg': 0xD })
+  call s:hi('gitcommitUnmergedType',  { 'fg': 0xD })
+  call s:hi('gitcommitDiscardedType', { 'fg': 0xD })
   hi! link gitcommitBranch Function
-  call s:hi('gitcommitUntrackedFile', 0xA, '', 'bold', '')
-  call s:hi('gitcommitUnmergedFile',  0x8, '', 'bold', '')
-  call s:hi('gitcommitDiscardedFile', 0x8, '', 'bold', '')
-  call s:hi('gitcommitSelectedFile',  0xB, '', 'bold', '')
+  call s:hi('gitcommitUntrackedFile', { 'fg': 0xA, 'bold': 1 })
+  call s:hi('gitcommitUnmergedFile',  { 'fg': 0x8, 'bold': 1 })
+  call s:hi('gitcommitDiscardedFile', { 'fg': 0x8, 'bold': 1 })
+  call s:hi('gitcommitSelectedFile',  { 'fg': 0xB, 'bold': 1 })
 
   hi! link GitGutterAdd          DiffAdd
   hi! link GitGutterDelete       DiffDelete
@@ -482,7 +481,7 @@
 
 " Mail {{{
   for s:color in range(6)
-    call s:hi('mailQuoted' . (s:color + 1), 0x8 + s:color, '', '', '')
+    call s:hi('mailQuoted' . (s:color + 1), { 'fg': 0x8 + s:color })
   endfor
   hi! link mailURL   Underlined
   hi! link mailEmail Underlined
@@ -534,9 +533,9 @@
 " }}}
 
 " Assembly {{{
-  hi! def link riscvRegister   Variable
-  hi! def link riscvCSRegister Special
-  hi! def link riscvLabel      Function
+  hi! link riscvRegister   Variable
+  hi! link riscvCSRegister Special
+  hi! link riscvLabel      Function
 " }}}
 
 " SQL {{{
