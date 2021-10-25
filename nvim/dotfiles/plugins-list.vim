@@ -73,7 +73,6 @@ let s:plug = function('dotfiles#plugman#register')
   call s:plug('chikamichi/mediawiki.vim')
   call s:plug('ron-rs/ron.vim')
   call s:plug('kylelaker/riscv.vim')
-  call s:plug('dag/vim2hs')
   if g:vim_ide
     if g:dotfiles_build_coc_from_source
       call s:plug('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })

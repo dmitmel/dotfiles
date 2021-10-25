@@ -3,7 +3,8 @@ call extend(g:dotfiles_coc_filetypes, s:filetypes)
 
 let g:coc_user_config['languageserver.haskell'] = {
 \ 'filetypes': keys(s:filetypes),
-\ 'command': 'hie-wrapper',
-\ 'rootPatterns': ['.stack.yaml', 'cabal.config', 'package.yaml'],
+\ 'command': 'haskell-language-server-wrapper',
+\ 'args': ['--lsp'],
+\ 'rootPatterns': ['*.cabal', 'stack.yaml', 'cabal.project', 'package.yaml', 'hie.yaml'],
 \ 'initializationOptions': {},
 \ }

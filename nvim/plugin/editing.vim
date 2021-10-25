@@ -433,20 +433,12 @@ endif
   " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
   nmap <silent> <leader>hlt <Plug>HiLinkTrace
 
-  " Another workaround for a different select-mode mapping:
-  " <https://github.com/dag/vim2hs/blob/f2afd55704bfe0a2d66e6b270d247e9b8a7b1664/plugin/offside.vim#L20-L23>
-  vmap <Plug>dotfiles_vim2hs_smap_workaround <Plug>InnerOffside
-
 " }}}
 
 
 " language-specific settings {{{
 
   let g:rust_recommended_style = 0
-
-  let g:haskell_conceal = 0
-  let g:haskell_conceal_enumerations = 0
-  let g:haskell_multiline_strings = 1
 
   let g:vim_markdown_conceal = 0
   let g:vim_markdown_conceal_code_blocks = 0

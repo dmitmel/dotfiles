@@ -544,3 +544,7 @@
   hi! link sqlStatement Statement
   hi! link sqlOperator  Keyword
 " }}}
+
+" Haskell {{{
+  hi! link haskellOperators Keyword
+" }}}
