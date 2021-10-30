@@ -125,7 +125,7 @@ fi; unset rustup_bin
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  _plugin fast-syntax-highlighting 'zdharma/fast-syntax-highlighting' "$_checkout_latest_version"
+  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' "$_checkout_latest_version"
   set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
   if [[ "$FAST_THEME_NAME" != "my-syntax-theme" && -z "$DOTFILES_DISABLE_MY_SYNTAX_THEME" ]]; then
     set-my-syntax-theme
