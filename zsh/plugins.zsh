@@ -42,15 +42,17 @@ fi; unset rustup_bin
     break
   done; unset match
 
+  # In both branches, -u disables the "security" (see the manpage) check and -d
+  # specifies the path to a completion dump.
   if (( $run_compdump )); then
     print -r -- "$0: rebuilding zsh completion dump"
     # -D flag turns off compdump loading
-    compinit -D -d "${ZSH_CACHE_DIR}/zcompdump"
+    compinit -u -D -d "${ZSH_CACHE_DIR}/zcompdump"
     compdump
   else
     # -C flag disables some checks performed by compinit - they are not needed
     # because we already have a fresh compdump
-    compinit -C -d "${ZSH_CACHE_DIR}/zcompdump"
+    compinit -u -C -d "${ZSH_CACHE_DIR}/zcompdump"
   fi
   unset run_compdump
 
