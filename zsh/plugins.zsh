@@ -60,7 +60,7 @@ fi; unset rustup_bin
 # Oh My Zsh {{{
 
   omz_features=(key-bindings termsupport)
-  omz_plugins=(git)
+  omz_plugins=(git command-not-found)
 
   _plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
     load='lib/'${^omz_features}'.zsh' \
