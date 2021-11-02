@@ -26,15 +26,15 @@ fi
 case "$terminal_wrapper" in
   tmux)
     # http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324
-    _colorscheme_print_ctrl_seq() { print -n "\ePtmux;\e$1\e\\"; }
+    _colorscheme_print_ctrl_seq() { print -rn -- $'\ePtmux;\e'"$1"$'\e\\'; }
     ;;
   screen)
     # GNU screen uses the standard DCS (Device Control String) sequence (see
     # console_codes(4) manpage)
-    _colorscheme_print_ctrl_seq() { print -n "\eP$1\e\\"; }
+    _colorscheme_print_ctrl_seq() { print -rn -- $'\eP'"$1"$'\e\\'; }
     ;;
   *)
-    _colorscheme_print_ctrl_seq() { print -n "$1"; }
+    _colorscheme_print_ctrl_seq() { print -rn -- "$1"; }
     ;;
 esac; unset terminal_wrapper
 
@@ -46,13 +46,13 @@ case "$terminal" in
       # Linux console supports setting only 16 ANSI colors and interestingly
       # enough uses only 8 of them
       if (( $1 >= 0 && $1 < 16 )); then
-        _colorscheme_print_ctrl_seq "$(printf "\e]P%X%s" "$1" "$2")"
+        _colorscheme_print_ctrl_seq $'\e]P'"$(([##16]$1))$2"
       fi
     }
     ;;
   xterm)
     _colorscheme_print_osc_seq() {
-      _colorscheme_print_ctrl_seq "\e]$1\a";
+      _colorscheme_print_ctrl_seq $'\e]'"$1"$'\e\\';
     }
     _colorscheme_set_attr_to_color() {
       _colorscheme_print_osc_seq "$1;rgb:${2[1,2]}/${2[3,4]}/${2[5,6]}";
@@ -79,8 +79,8 @@ set-my-colorscheme() {
     _colorscheme_print_osc_seq Pl"$colorscheme_cursor_bg"
     _colorscheme_print_osc_seq Pm"$colorscheme_cursor_fg"
   else
-    _colorscheme_set_attr_to_color 10 "$colorscheme_fg"
-    _colorscheme_set_attr_to_color 11 "$colorscheme_bg"
+    _colorscheme_set_attr_to_color 10 "$colorscheme_bg"
+    _colorscheme_set_attr_to_color 11 "$colorscheme_fg"
     if [[ "$TERM" = rxvt* ]]; then
       # internal window border
       _colorscheme_set_attr_to_color 708 "$colorscheme_bg"
