@@ -79,8 +79,8 @@ set-my-colorscheme() {
     _colorscheme_print_osc_seq Pl"$colorscheme_cursor_bg"
     _colorscheme_print_osc_seq Pm"$colorscheme_cursor_fg"
   else
-    _colorscheme_set_attr_to_color 10 "$colorscheme_bg"
-    _colorscheme_set_attr_to_color 11 "$colorscheme_fg"
+    _colorscheme_set_attr_to_color 10 "$colorscheme_fg"
+    _colorscheme_set_attr_to_color 11 "$colorscheme_bg"
     if [[ "$TERM" = rxvt* ]]; then
       # internal window border
       _colorscheme_set_attr_to_color 708 "$colorscheme_bg"
