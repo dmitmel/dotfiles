@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name     twitter ?s=20 remover
-// @version  1
+// @name     twitter ?s=20 and ?t= query parameter remover
+// @version  4
 // @grant    none
 // @match    https://twitter.com/*
 // @run-at   document-start
@@ -9,9 +9,14 @@
 (() => {
   'use strict';
   let searchParams = new URLSearchParams(window.location.search);
-  let strangeValue = searchParams.get('s');
-  if (/[0-9]+/.test(strangeValue)) {
-    searchParams.delete('s');
+  let dirty = false;
+  for (let param of ['s', 't']) {
+    if (searchParams.has(param)) {
+      searchParams.delete(param);
+      dirty = true;
+    }
+  }
+  if (dirty) {
     window.location.search = searchParams.toString();
   }
 })();
