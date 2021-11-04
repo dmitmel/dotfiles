@@ -22,6 +22,8 @@ autoload -Uz add-zsh-hook colors
 # has to do, plus we also have access to Zsh's word parser, which, in theory,
 # will help us generate even higher-quality alias tips.
 _preexec_alias_tips() {
+  setopt local_options err_return
+
   local orig_cmd="$1"
   local cmd_words=("${(@z)orig_cmd}")
 
@@ -40,21 +42,14 @@ _preexec_alias_tips() {
     (( orig_lexed_len += ${#word} + 1 ))
   done; unset word
 
-  # This routine repeatedly expands aliases in the original string (you will
-  # see it used again later). A hashtable is used to track the already expanded
-  # aliases, so that we don't end up running in circles on self-references (for
-  # example, `alias ls="ls -hF"`). For reference, further alias expansion is
-  # performed on the input so that we can suggest further shortening of alises.
-  # For example, if we have two alises defined: `alias gc='git commit'` and
-  # `alias gca='git commit --all'`, we will be able to suggest to shorten `gc
-  # --all` to just `gca`. Also, for future reference, no quoting is necessary
-  # in array/hash subscripts (adding quotes actually changes the key).
-  local -A used_aliases=()
-  while (( ${+aliases[${cmd_words[1]}]} && ! ${+used_aliases[${cmd_words[1]}]} )); do
-    used_aliases[${cmd_words[1]}]=1
-    cmd_words=("${(@z)${aliases[${cmd_words[1]}]}}" "${(@)cmd_words[2,-1]}")
-  done
-  unset used_aliases
+  # This routine repeatedly expands aliases in the original string. For
+  # reference, further alias expansion is performed on the input so that we can
+  # suggest further shortening of alises. For example, if we have two alises
+  # defined: `alias gc='git commit'` and `alias gca='git commit --all'`, we
+  # will be able to suggest to shorten `gc --all` to just `gca`.
+  local reply=("${cmd_words[@]}")
+  _alias_tips_expand_aliases
+  cmd_words=("${reply[@]}")
 
   local alias_name alias_str; for alias_name alias_str in "${(@kv)aliases}"; do
     local alias_words=("${(@z)alias_str}")
@@ -65,12 +60,9 @@ _preexec_alias_tips() {
 
     # The same alias expansion routine as before. Aliases can also reference
     # other aliases!
-    local -A used_aliases=()
-    while (( ${+aliases[${alias_words[1]}]} && ! ${+used_aliases[${alias_words[1]}]} )); do
-      used_aliases[${alias_words[1]}]=1
-      alias_words=("${(@z)${aliases[${alias_words[1]}]}}" "${(@)alias_words[2,-1]}")
-    done
-    unset used_aliases
+    local reply=("${alias_words[@]}")
+    _alias_tips_expand_aliases
+    alias_words=("${reply[@]}")
 
     # Okay, now that we have normalized both the original command and the
     # current alias to their fully expanded forms, we check if the alias is
@@ -116,6 +108,21 @@ _preexec_alias_tips() {
   if (( min_lexed_len > 0 )); then
     print -r -- "${fg_no_bold[blue]}Alias tip: ${fg_bold[blue]}${min_short_cmd}${reset_color}"
   fi
+}
+
+# This routine repeatedly expands aliases in the original string. A hashtable
+# is used to track the already expanded aliases, so that we don't end up
+# running in circles on self-references (for example, `alias ls="ls -hF"`). For
+# future reference, no quoting is necessary in array/hash subscripts (adding
+# quotes actually changes the key). Input and result is supplied via the
+# `reply` array.
+_alias_tips_expand_aliases() {
+  setopt local_options err_return
+  local -A used_aliases=()
+  while (( ${+aliases[${reply[1]}]} && ! ${+used_aliases[${reply[1]}]} )); do
+    used_aliases[${reply[1]}]=1
+    reply=("${(@z)${aliases[${reply[1]}]}}" "${(@)reply[2,-1]}")
+  done
 }
 
 add-zsh-hook preexec _preexec_alias_tips

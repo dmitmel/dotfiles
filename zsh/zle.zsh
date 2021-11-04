@@ -153,6 +153,16 @@
   _widget_find_man_page() {
     local words=("${(@z)BUFFER}")
 
+    local reply=("${words[@]}")
+    if _alias_tips_expand_aliases; then
+      words=("${reply[@]}")
+    fi
+    unset reply
+
+    local -A command_manpage_name_overrides=(
+      [hub]=git
+    )
+
     local cmd_name arg i is_subcommand
     for (( i = 1; i <= ${#words}; i++ )); do
       arg="${words[$i]}"
@@ -168,7 +178,7 @@
       fi
 
       if [[ -z "$is_subcommand" ]]; then
-        cmd_name="${arg}"
+        cmd_name="${command_manpage_name_overrides[$arg]-$arg}"
       else
         cmd_name="${cmd_name}-${arg}"
       fi
