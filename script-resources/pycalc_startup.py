@@ -1,9 +1,10 @@
 from math import *
 from fractions import Fraction
+from typing import Set
 
 
-def factors(n: int) -> "set[int]":
-  result: "set[int]" = set()
+def factors(n: int) -> Set[int]:
+  result: Set[int] = set()
   for i in range(1, int(sqrt(n)) + 1):
     if n % i == 0:
       result.add(i)
@@ -11,7 +12,7 @@ def factors(n: int) -> "set[int]":
   return result
 
 
-def solve_quadratic(a: int, b: int, c: int) -> None:
+def solve_quadratic(a: float, b: float, c: float) -> None:
   if a == 0:
     raise Exception("not a quadratic equation")
   else:
@@ -26,6 +27,22 @@ def solve_quadratic(a: int, b: int, c: int) -> None:
       print("x2 = " + str((-b - sd) / (2 * a)))
     else:
       print("x = " + str(-b / (2 * a)))
+
+
+def cot(x: float) -> float:
+  return 1 / tan(x)
+
+
+def acot(x: float) -> float:
+  return pi / 2 - atan(x)
+
+
+def coth(x: float) -> float:
+  return 1 / tanh(x)
+
+
+def acoth(x: float) -> float:
+  return atanh(1 / x)
 
 
 print("loaded Python calculator")
