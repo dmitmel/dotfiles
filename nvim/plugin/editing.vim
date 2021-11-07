@@ -307,7 +307,7 @@ endif
     execute 'global'.bang."//call add(items, {'bufnr': bufnr, 'lnum': line('.'), 'text': getline('.')})"
     call setpos('.', cursor_pos)
 
-    call dotfiles#utils#push_qf_list({'title': title, 'items': items}, {'loclist_window': winnr})
+    call dotfiles#utils#push_qf_list({'title': title, 'items': items, 'dotfiles_loclist_window': winnr})
   endfunction
 
   " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
