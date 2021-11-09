@@ -88,11 +88,12 @@ ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 # reinstallating and uninstalling plugins", so options for configuring loading
 # behavior are not stored here.
 #
-# $ZPLG_LOADED_PLUGINS is an array of plugin IDs, other variables are
-# associative arrays that have IDs as their keys. It is implemented this way
-# because you can't put associative arrays (or any other alternative to
-# "objects") into another associative array.
-typeset -a ZPLG_LOADED_PLUGINS
+# $ZPLG_LOADED_PLUGINS is an array of plugin IDs (UPDATE: set with IDs as keys
+# and installation directories as values), other variables are associative
+# arrays that have IDs as their keys. It is implemented this way because you
+# can't put associative arrays (or any other alternative to "objects") into
+# another associative array.
+typeset -A ZPLG_LOADED_PLUGINS
 typeset -A ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
 
 # Takes name of a variable with an array (array is passed by variable name
@@ -342,7 +343,7 @@ plugin() {
     _zplg_run_commands plugin_after_load || return "$?"
 
     # plugin has finally been loaded, we can add it to $ZPLG_LOADED_PLUGINS
-    ZPLG_LOADED_PLUGINS+=("$plugin_id")
+    ZPLG_LOADED_PLUGINS[$plugin_id]="$plugin_dir"
     ZPLG_LOADED_PLUGIN_URLS[$plugin_id]="$plugin_url"
     ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]="$plugin_from"
 
@@ -435,13 +436,7 @@ plugin() {
 # code 1. To be used in `if` statements.
 _zplg_is_plugin_loaded() {
   local plugin_id="$1"
-  # (ie) are subscript flags:
-  # - i returns index of the value (reverse subscripting) in the square
-  #   brackets (subscript)
-  # - e disables patterns matching, so plain string matching is used instead
-  # unlike normal programming languages, if the value is not found an index
-  # greater than the length of the array is returned
-  (( ${ZPLG_LOADED_PLUGINS[(ie)$plugin_id]} <= ${#ZPLG_LOADED_PLUGINS} ))
+  (( ${+ZPLG_LOADED_PLUGINS[$plugin_id]} ))
 }
 
 # Useful commands for managing plugins {{{
@@ -455,7 +450,7 @@ _zplg_is_plugin_loaded() {
   # Prints IDs of all loaded plugins.
   zplg-list() {
     # (F) modifier joins an array with newlines
-    print -r -- "${(F)ZPLG_LOADED_PLUGINS}"
+    print -r -- "${(Fk)ZPLG_LOADED_PLUGINS}"
   }
 
   # Upgrades all plugins if no arguments are given, otherwise upgrades plugins by
@@ -463,22 +458,21 @@ _zplg_is_plugin_loaded() {
   zplg-upgrade() {
     local plugin_ids_var
     if (( $# > 0 )); then
-      plugin_ids_var="@"
+      plugin_ids_var=("$@")
     else
-      plugin_ids_var="ZPLG_LOADED_PLUGINS"
+      plugin_ids_var=("${(k)ZPLG_LOADED_PLUGINS[@]}")
     fi
 
     local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
-    # for description of the (P) modifier see `_zplg_run_commands`
-    for plugin_id in "${(@P)plugin_ids_var}"; do
+    for plugin_id in "${plugin_ids_var[@]}"; do
       if ! _zplg_is_plugin_loaded "$plugin_id"; then
         _zplg_error "unknown plugin $plugin_id"
         return 1
       fi
 
+      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-      plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
 
       _zplg_log "upgrading $plugin_id"
       _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
@@ -510,9 +504,9 @@ _zplg_is_plugin_loaded() {
         return 1
       fi
 
+      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
-      plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
 
       _zplg_log "removing $plugin_id"
       rm -rf "$plugin_dir"
@@ -543,7 +537,7 @@ _zplg_is_plugin_loaded() {
         return 1
       fi
 
-      local plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
+      local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
       rm -rf "$plugin_dir"
