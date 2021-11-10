@@ -57,6 +57,7 @@ alias rm='rm -iv'
 alias rmdir='rmdir -v' rd='rmdir'
 alias chmod='chmod -v'
 alias chown='chown -v'
+alias chgrp='chgrp -v'
 alias ln='ln -iv'
 alias mkdir='mkdir -v' md='mkdir -p'
 

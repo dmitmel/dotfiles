@@ -135,26 +135,14 @@ endif
         " for other systems let's not reinvent the bicycle, instead we open file's
         " parent directory using netrw's builtin function (don't worry, netrw is
         " always bundled with Nvim)
-        call s:Open(a:path)
+        call dotfiles#utils#open_url(fnamemodify(a:path, ':h'))
       endif
     endfunction
     command Reveal call s:Reveal(expand('%'))
   " }}}
 
   " Open {{{
-    " opens file or URL with a system program
-    function! s:Open(path) abort
-      " HACK: 2nd parameter of this function is called 'remote', it tells
-      " whether to open a remote (1) or local (0) file. However, it doesn't work
-      " as expected in this context, because it uses the 'gf' command if it's
-      " opening a local file (because this function was designed to be called
-      " from the 'gx' command). BUT, because this function only compares the
-      " value of the 'remote' parameter to 1, I can pass any other value, which
-      " will tell it to open a local file and ALSO this will ignore an
-      " if-statement which contains the 'gf' command.
-      call netrw#BrowseX(a:path, 2)
-    endfunction
-    command -nargs=* -complete=file Open call s:Open(empty(<q-args>) ? expand('%') : <q-args>)
+    command -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
   " EditGlob {{{

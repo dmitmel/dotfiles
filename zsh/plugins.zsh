@@ -8,7 +8,7 @@ _plugin() {
 
 _checkout_latest_version='build=plugin-cfg-git-checkout-version "*"'
 
-_plugin completions 'zsh-users/zsh-completions' "$_checkout_latest_version"
+_plugin completions 'zsh-users/zsh-completions'
 _plugin completions-rustc 'https://raw.githubusercontent.com/rust-lang/zsh-config/master/_rust' from=url \
   after_load='plugin-cfg-path fpath prepend ""'
 _plugin completions-cargo 'https://raw.githubusercontent.com/rust-lang/cargo/master/src/etc/_cargo' from=url \
@@ -127,7 +127,7 @@ fi; unset rustup_bin
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' "$_checkout_latest_version"
+  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting'
   set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
   if [[ "$FAST_THEME_NAME" != "my-syntax-theme" && -z "$DOTFILES_DISABLE_MY_SYNTAX_THEME" ]]; then
     set-my-syntax-theme
@@ -135,7 +135,7 @@ if [[ "$TERM" != "linux" ]]; then
 fi
 
 if (( _is_macos )); then
-  plugin retina 'https://raw.githubusercontent.com/lunixbochs/meta/master/utils/retina/retina.m' from=url \
+  _plugin retina 'https://raw.githubusercontent.com/lunixbochs/meta/master/utils/retina/retina.m' from=url \
     build='mkdir -p bin && gcc retina.m -framework Foundation -framework AppKit -o bin/retina' \
     after_load='plugin-cfg-path path prepend "bin"'
 fi

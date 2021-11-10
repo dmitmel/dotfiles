@@ -61,7 +61,7 @@ done
 
 _perf_timer_stop "total"
 
-if [[ -z "$DOTFILES_DISABLE_WELCOME" ]]; then
+if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
   welcome
 fi
 

@@ -74,6 +74,9 @@ function! dotfiles#plugman#check_sync() abort
     let need_clean[name] = 1
   endfor
   for name in keys(g:plugs)
+    if !has_key(g:plugs[name], 'uri')
+      continue
+    endif
     if has_key(need_clean, name)
       unlet need_clean[name]
     else
