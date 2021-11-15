@@ -10,7 +10,7 @@ from colors import Fore, Style, bright_colored, colored, colorize_percent
 from humanize import humanize_bytes, humanize_timedelta
 
 
-def get_system_info() -> Tuple[List[str], List[str]]:
+def get_system_info() -> Tuple[str, List[str]]:
   info_lines: List[str] = []
 
   def info(name: str, value: str, *format_args: object) -> None:
@@ -26,11 +26,8 @@ def get_system_info() -> Tuple[List[str], List[str]]:
   info_lines.append("")
 
   distro_id, distro_name, distro_version, distro_codename = _get_distro_info()
+  logo_id = distro_id
   info("OS", " ".join([distro_name, distro_version, distro_codename]))
-
-  logo_path = os.path.join(os.path.dirname(__file__), "logos", distro_id)
-  with open(logo_path) as logo_file:
-    logo_lines = logo_file.read().splitlines()
 
   info("Kernel", "%s %s", platform.system(), platform.release())
 
@@ -63,7 +60,7 @@ def get_system_info() -> Tuple[List[str], List[str]]:
   for local_ip_address in _get_local_addresses():
     info("Local %s Address (%s)", "%s", *local_ip_address)
 
-  return logo_lines, info_lines
+  return logo_id, info_lines
 
 
 def _get_hostname() -> str:
