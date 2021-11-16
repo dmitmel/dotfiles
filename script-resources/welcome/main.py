@@ -75,7 +75,7 @@ def main() -> None:
     output_line: List[str] = []
 
     output_line.append("  ")
-    if not args.hide_logo:
+    if logo_width > 0:
       logo_line_width = 0
 
       if line_index < len(logo_lines):
