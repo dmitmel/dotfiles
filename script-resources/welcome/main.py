@@ -100,7 +100,7 @@ LOGO_LINE_TEMPLATE_RE = re.compile(r"{(\d+)}")
 
 def render_logo_line(line: str, remove_styling: bool = False) -> str:
 
-  def logo_line_replacer(match: re.Match[str]) -> str:
+  def logo_line_replacer(match: "re.Match[str]") -> str:
     return COLORS[int(match.group(1))]
 
   if remove_styling:
