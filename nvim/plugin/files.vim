@@ -232,3 +232,9 @@ endif
   augroup END
 
 " }}}
+
+augroup dotfiles_zip
+  autocmd!
+  " GeoGebra files
+  autocmd BufReadCmd *.ggb call zip#Browse(expand('<amatch>'))
+augroup END
