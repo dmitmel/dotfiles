@@ -6,7 +6,6 @@ let g:dotfiles#plugman#inhibited_plugins = get(g:, 'dotfiles#plugman#inhibited_p
 let g:dotfiles#plugman#repo_name = 'vim-plug'
 let g:dotfiles#plugman#repo = 'junegunn/' . g:dotfiles#plugman#repo_name
 let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
-let g:dotfiles#plugman#install_path = get(g:, 'dotfiles#plugman#install_path', s:stdpath_config . '/autoload/plug.vim')
 let g:dotfiles#plugman#plugins_dir = get(g:, 'dotfiles#plugman#plugins_dir', s:stdpath_config . '/plugged')
 
 
@@ -28,14 +27,22 @@ function! dotfiles#plugman#is_inhibited(name) abort
 endfunction
 
 function! dotfiles#plugman#auto_install() abort
-  if !filereadable(g:dotfiles#plugman#install_path)
-    execute '!curl -fL' shellescape('https://raw.githubusercontent.com/' . g:dotfiles#plugman#repo . '/master/plug.vim', 1) '--create-dirs -o' shellescape(g:dotfiles#plugman#install_path, 1)
+  let s:install_path = 'autoload/plug.vim'
+  if exists('*nvim_get_runtime_file') && !empty(nvim_get_runtime_file(s:install_path, 1))
+    return
+  elseif !empty(globpath(&runtimepath, s:install_path, 0, 1))
+    return
   endif
+  let s:install_path = s:stdpath_config . '/' . s:install_path
+  execute '!curl -fL'
+  \ shellescape('https://raw.githubusercontent.com/' . g:dotfiles#plugman#repo . '/master/plug.vim', 1)
+  \ '--create-dirs -o' shellescape(s:install_path, 1)
 endfunction
 
 function! dotfiles#plugman#begin() abort
   call plug#begin(g:dotfiles#plugman#plugins_dir)
   call dotfiles#plugman#register(g:dotfiles#plugman#repo, { 'as': g:dotfiles#plugman#repo_name })
+  silent! delcommand PlugUpgrade
 endfunction
 
 " For the use by my beloved forkers of this repository.
