@@ -185,11 +185,9 @@ endif
   " create directory {{{
     " Creates the parent directory of the file if it doesn't exist
     function! s:CreateDirOnSave() abort
-      let file = expand('<afile>')
       " check if this is a regular file and its path is not a URL
-      if empty(&buftype) && !s:IsUrl(file)
-        let dir = fnamemodify(file, ':h')
-        if !isdirectory(dir) | call mkdir(dir, 'p') | endif
+      if empty(&buftype) && !s:IsUrl(expand('<afile>'))
+        call mkdir(expand('<afile>:h'), 'p')
       endif
     endfunction
   " }}}
@@ -221,14 +219,11 @@ endif
     endfunction
   " }}}
 
-  function! s:OnSave() abort
-    call s:FixWhitespaceOnSave()
-    call s:FormatOnSave()
-    call s:CreateDirOnSave()
-  endfunction
   augroup dotfiles_on_save
     autocmd!
-    autocmd BufWritePre * call s:OnSave()
+    autocmd BufWritePre * call s:FixWhitespaceOnSave()
+    autocmd BufWritePre * call s:FormatOnSave()
+    autocmd BufWritePre * call s:CreateDirOnSave()
   augroup END
 
 " }}}

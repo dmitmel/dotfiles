@@ -23,9 +23,7 @@ set showcmd
 set belloff=
 
 set title
-let s:username = $USER
-let s:hostname = substitute(hostname(), '\v^([^.]*).*$', '\1', '')  " get hostname up to the first '.'
-let &titlestring = $USER . '@' . s:hostname . ': %F%m (' . (has('nvim') ? 'nvim' : 'vim') . ')'
+let &titlestring = "%{$USER}@%{substitute(hostname(),'\\..*$','','')}: %F%m (%{v:progname})"
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
 set mouse=a
@@ -123,8 +121,8 @@ let &history = max([&history, 10000])
 
 " Airline (statusline) {{{
 
-  " Always show the statusline (even if there is only one window).
-  set laststatus=2
+  " Always show the statusline/tabline (even if there is only one window/tab).
+  set laststatus=2 showtabline=2
 
   function! s:on_airline_toggled(is_on)
     let &g:showmode = !a:is_on
