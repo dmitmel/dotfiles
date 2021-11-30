@@ -41,7 +41,7 @@ endfunction
 
 function! dotfiles#plugman#begin() abort
   call plug#begin(g:dotfiles#plugman#plugins_dir)
-  call dotfiles#plugman#register(g:dotfiles#plugman#repo, { 'as': g:dotfiles#plugman#repo_name })
+  " call dotfiles#plugman#register(g:dotfiles#plugman#repo, { 'as': g:dotfiles#plugman#repo_name })
   silent! delcommand PlugUpgrade
 endfunction
 
