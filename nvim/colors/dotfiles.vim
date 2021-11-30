@@ -164,6 +164,7 @@
   call s:hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'bold': 1 })
   call s:hi('CocCodeLens',      { 'fg': 0x4 })
   call s:hi('CocFadeOut',       { 'fg': 0x3 })
+  call s:hi('CocUnderline',     { 'underline':     1 })
   call s:hi('CocStrikeThrough', { 'strikethrough': 1 })
   hi! link CocMarkdownLink      Underlined
   hi! link CocDiagnosticsFile   Directory
@@ -172,6 +173,32 @@
   hi! link CocSymbolsName       NONE
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
+
+  hi! link LspDiagnosticsDefaultError         CocErrorSign
+  hi! link LspDiagnosticsDefaultWarning       CocWarningSign
+  hi! link LspDiagnosticsDefaultInformation   CocInfoSign
+  hi! link LspDiagnosticsDefaultHint          CocHintSign
+  hi! link LspDiagnosticsUnderlineError       CocUnderline
+  hi! link LspDiagnosticsUnderlineWarning     CocUnderline
+  hi! link LspDiagnosticsUnderlineInformation CocUnderline
+  hi! link LspDiagnosticsUnderlineHint        CocUnderline
+  hi! link LspDiagnosticsUnderlineUnnecessary CocFadeOut
+  hi! link LspDiagnosticsUnderlineDeprecated  CocStrikeThrough
+  hi! link LspHover                           Search
+  " <https://github.com/neovim/neovim/pull/15018>
+  hi! link LspSignatureActiveParameter        CocUnderline
+
+  if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
+    for [s:level, s:color] in items({'Error': 0x8, 'Warning': 0xA, 'Information': 0xD, 'Hint': 0xD})
+      let s:color = s:colors[s:color]
+      call s:hi_raw('LspDiagnosticsLine' . s:level, {
+      \ 'guibg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:color, 0.1)),
+      \ })
+      call s:hi_raw('LspDiagnosticsVirtualText' . s:level, {
+      \ 'ctermfg': 'bg', 'ctermbg': s:color.cterm, 'guifg': s:color.gui, 'gui': 'bold',
+      \ })
+    endfor
+  endif
 
   call s:hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })
   call s:hi('Folded',     { 'fg': 0x3, 'bg': 0x1 })
@@ -208,16 +235,24 @@
   call s:hi('qfInfo',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
   call s:hi('qfNote',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
 
-  call s:hi('SignColumn',   { 'fg': 0x3, 'bg': 0x1 })
-  call s:hi('StatusLine',   { 'fg': 0x4, 'bg': 0x1 })
-  call s:hi('StatusLineNC', { 'fg': 0x3, 'bg': 0x1 })
-  call s:hi('VertSplit',    { 'fg': 0x2, 'bg': 0x2 })
-  call s:hi('TabLine',      { 'fg': 0x3, 'bg': 0x1 })
-  call s:hi('TabLineFill',  { 'fg': 0x3, 'bg': 0x1 })
-  call s:hi('TabLineSel',   { 'fg': 0xB, 'bg': 0x1 })
+  call s:hi('SignColumn',   { 'fg': 0x3,  'bg': 0x1 })
+  call s:hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
+  call s:hi('StatusLineNC', { 'fg': 0x3,  'bg': 0x1 })
+  call s:hi('VertSplit',    { 'fg': 0x2,  'bg': 0x2 })
+  hi! link TabLine          StatusLine
+  hi! link TabLineFill      StatusLine
+  call s:hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
+  call s:hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
+  hi! link FloatBorder      NormalFloat
 
-  call s:hi('PMenu',    { 'fg': 'fg', 'bg': 0x1 })
-  call s:hi('PMenuSel', { 'fg': 0x1, 'bg': 'fg' })
+  hi! link PMenu NormalFloat
+  call s:hi('PMenuSel',              { 'fg': 'bg', 'bg': 0xD })
+  call s:hi('CmpItemAbbrDefault',    { 'fg': 0x5 })
+  call s:hi('CmpItemAbbrMatch',      { 'fg': 0xA })
+  call s:hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })
+  call s:hi('CmpItemKind',           { 'fg': 0xD })
+  call s:hi('CmpItemMenu',           { 'fg': 0x4 })
+  call s:hi('CmpItemAbbrDeprecated', { 'strikethrough': 1 })
 
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch

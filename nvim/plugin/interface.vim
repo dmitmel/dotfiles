@@ -171,6 +171,9 @@ let &history = max([&history, 10000])
   if dotfiles#plugman#is_registered('vim-obsession')
     let g:airline_extensions += ['obsession']
   endif
+  if dotfiles#plugman#is_registered('nvim-lspconfig')
+    let g:airline_extensions += ['dotfiles_nvimlsp']
+  endif
 
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '

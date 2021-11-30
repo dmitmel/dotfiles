@@ -15,6 +15,10 @@
     {
       "root": "colorschemes",
       "extraPaths": ["colorschemes"]
+    },
+    {
+      "root": "nvim/dotfiles/rplugin/python3",
+      "extraPaths": ["nvim/dotfiles/rplugin/python3"]
     }
   ]
 }

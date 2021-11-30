@@ -149,9 +149,7 @@ endif
   function! PutOutput(cmd) abort
     let output = ''
     silent! let output = execute(a:cmd)
-    execute 'noswapfile pedit' '+' . fnameescape('setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile') fnameescape('preview://' . a:cmd)
-    wincmd P
-    call setline(1, split(output, "\n"))
+    call dotfiles#utils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
   endfunction
   command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
 

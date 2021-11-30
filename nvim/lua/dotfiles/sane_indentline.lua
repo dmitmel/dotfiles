@@ -5,14 +5,14 @@
 --- <https://github.com/bfredl/bfredl.github.io/blob/ed438742f0a1d8a36669bcd4ccb019f5dca9fac2/nvim/lua/bfredl/miniguide.lua>
 --- <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/init.lua>
 --- <https://github.com/Yggdroot/indentLine/blob/5617a1cf7d315e6e6f84d825c85e3b669d220bfa/after/plugin/indentLine.vim>
+local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.sane_indentline')
 
-local M = {}
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
 
-M.ns_id = vim.api.nvim_create_namespace('dotfiles.sane_indentline')
-M.decorations_provider = {}
+M.ns_id = M.ns_id or vim.api.nvim_create_namespace(MODULE_INFO.name)
+M.decorations_provider = M.decorations_provider or {}
 
 function M.decorations_provider:reset()
   ---@type string[]

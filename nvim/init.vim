@@ -40,6 +40,20 @@ if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
   set termguicolors
 endif
 
+if exists(':lua')
+  lua _G.dotfiles = _G.dotfiles or {}
+  if has('nvim')
+    lua dotfiles.is_nvim = true
+  else
+    lua dotfiles.is_nvim = false
+  endif
+endif
+
+if has('nvim-0.5.0')
+  " Preload the Lua utilities.
+  lua require('dotfiles.global_utils')
+endif
+
 " Indent detection hack, stage 1 {{{
 " HACK: Set `shiftwidth` to something unreasonable to make Polyglot's built-in
 " indentation detector believe that it's the "default" value. The problem
@@ -66,6 +80,10 @@ augroup dotfiles_init
   autocmd!
   autocmd VimEnter * call dotfiles#plugman#check_sync()
 augroup END
+
+if has('nvim-0.5.0')
+  lua require('dotfiles.rplugin_bridge')
+endif
 
 " NOTE: What the following block does is effectively source the files
 " `filetype.vim`, `ftplugin.vim`, `indent.vim`, `syntax/syntax.vim` from
