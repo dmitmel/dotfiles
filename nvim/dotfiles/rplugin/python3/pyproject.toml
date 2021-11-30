@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "dotfiles-nvim-python-rplugin"
+version = "0.0.0"
+description = ""
+authors = []
+license = "CC0-1.0"
+
+[tool.poetry.dependencies]
+python = "^3.7.0"
+pynvim = "^0.4.3"
+yapf = "^0.31.0"
+vim-vint = "^0.3.21"
+flake8 = "^4.0.1"
+flake8-annotations = "^2.7.0"
+flake8-bandit = "^2.1.2"
+flake8-isort = "^4.1.1"
+flake8-polyfill = "^1.0.2"
+flake8-quotes = "^3.3.1"
+pep8-naming = "^0.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+# venvPath = "."
+# venv = ".venv"
+typeCheckingMode = "basic"

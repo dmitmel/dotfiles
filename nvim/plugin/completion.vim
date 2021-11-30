@@ -7,18 +7,193 @@ set shortmess+=c
 " that.
 set complete-=i
 
-" pop-up (completion) menu mappings {{{
-  imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
-  imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"
-  imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-  imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-" }}}
+" <https://github.com/neoclide/coc.nvim/blob/705135211e84725766e434f59e63ae3592c609d9/src/completion/index.ts#L595-L600>
+" on the other hand
+" <https://github.com/hrsh7th/nvim-compe/blob/077329e6bd1704d1acdff087ef1a73df23e92789/autoload/compe.vim#L46-L53>
+set completeopt=menuone,noselect
 
-if !g:vim_ide
-  finish
-endif
+" " Unused, uncomment in case of fire.
+" function! s:check_back_space() abort
+"   let col = col('.') - 1
+"   return col ==# 0 || getline('.')[col - 1] =~# '\s'
+" endfunction
 
-" coc.nvim {{{
+
+if dotfiles#plugman#is_registered('nvim-cmp')  " {{{
+
+  lua require('dotfiles.completion')
+
+endif  " }}}
+
+
+if dotfiles#plugman#is_registered('nvim-compe') " {{{
+
+  let g:compe                  = {}
+  let g:compe.enabled          = v:true
+  let g:compe.autocomplete     = v:true
+  let g:compe.debug            = v:false
+  let g:compe.min_length       = 1
+  let g:compe.preselect        = 'disable'
+  let g:compe.throttle_time    = 80
+  let g:compe.source_timeout   = 200
+  let g:compe.resolve_timeout  = 800
+  let g:compe.incomplete_delay = 400
+  let g:compe.max_abbr_width   = 100
+  let g:compe.max_kind_width   = 100
+  let g:compe.max_menu_width   = 100
+  let g:compe.documentation    = v:false
+
+  let g:compe.source           = {}
+  let g:compe.source.nvim_lsp  = v:true
+  let g:compe.source.nvim_lua  = v:true
+  let g:compe.source.buffer    = v:true
+  let g:compe.source.tags      = v:true
+  let g:compe.source.spell     = v:true
+  let g:compe.source.path      = v:true
+  let g:compe.source.vsnip     = v:true
+
+  " I dunno. Don't ask me. Read the comment below. Taken from
+  " <https://github.com/hrsh7th/nvim-compe/blob/9012b8f51ffc97604b3ff99a5d5b67c79aac9417/autoload/compe.vim#L120-L129>.
+  function! s:compe_like_fallback(option) abort
+    if has_key(a:option, 'keys') && get(a:option, 'mode', 'n') !=# 'n'
+      call feedkeys(a:option.keys, a:option.mode)
+      return "\<Ignore>"
+    endif
+    return get(a:option, 'keys', "\<Ignore>")
+  endfunction
+
+  function! s:mapping_tab() abort
+    if pumvisible()
+      return "\<C-n>"
+    elseif vsnip#available(1)
+      return s:compe_like_fallback({'keys':"\<Plug>(vsnip-jump-next)",'mode':''})
+    " elseif s:check_back_space()
+    "   return "\<Tab>"
+    else
+      " return compe#complete()
+      return "\<Tab>"
+    endif
+  endfunction
+
+  function! s:mapping_s_tab() abort
+    if pumvisible()
+      return "\<C-p>"
+    elseif vsnip#available(-1)
+      return s:compe_like_fallback({'keys':"\<Plug>(vsnip-jump-prev)",'mode':''})
+    else
+      return "\<S-Tab>"
+    endif
+  endfunction
+
+  inoremap <silent><expr>     <Tab> <SID>mapping_tab()
+  snoremap <silent><expr>     <Tab> <SID>mapping_tab()
+  inoremap <silent><expr>   <S-Tab> <SID>mapping_s_tab()
+  snoremap <silent><expr>   <S-Tab> <SID>mapping_s_tab()
+  inoremap <silent><expr> <C-Space> compe#complete()
+  " The `mode` parameter to the following functions essentially switches
+  " between recursive and non-recursive mappings. Normally it is supplied
+  " as-is directly to `feedkeys` (check help for the meaning of its flags),
+  " with the exception of when `mode` is set to the default value of `n`.
+  " `feedkeys` itself considers that as the flag for inserting the keys
+  " without user remaps, but compe's implementation goes a step further by
+  " just returning the `keys` value from the function, thus they fall out of
+  " the `<expr>` mappings defined here. What this means for us is that when
+  " `mode` is set to `n` (default) then the FALLBACK `keys` will be executed
+  " non-recursively, and when it is any other string (which doesn't contain
+  " `n` though because that would be seen by `feedkeys`), including an empty
+  " string, the mapping is executed recursively, thus allowing `<Plug>` and
+  " others. Here's where these fallbacks are actually implemented:
+  " <https://github.com/hrsh7th/nvim-compe/blob/83b33e70f4b210ebfae86a2ec2d054ca31f467dd/autoload/compe.vim#L110-L129>
+  inoremap <silent><expr>      <CR> compe#confirm({'keys':"\<Plug>delimitMateCR",'mode':''})
+  inoremap <silent><expr>     <C-y> compe#confirm({'keys':"\<C-y>",'mode':'n'})
+  inoremap <silent><expr>     <C-e> compe#close({'keys':"\<C-e>",'mode':'n'})
+  inoremap <silent><expr>     <Esc> compe#close({'keys':"\<Esc>",'mode':'n'})
+
+endif  " }}}
+
+
+if dotfiles#plugman#is_registered('nvim-lspconfig')  " {{{
+
+  lua <<EOF
+  local log = require('vim.lsp.log')
+  if log.set_format_func then
+    log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
+  end
+  local log_level_var = vim.env.NVIM_LSP_LOG_LEVEL
+  if log_level_var ~= nil and log_level_var ~= '' then
+    log.set_level(vim.env.NVIM_LSP_LOG_LEVEL)
+  end
+EOF
+
+  " Ensure that the built-in LSP module is initialized first.
+  lua require('vim.lsp')
+
+  lua require('dotfiles.lsp.ignition').install_compat()
+  lua require('dotfiles.lsp.ignition').setup()
+  lua require('dotfiles.lsp.dummy_entry_plug')
+  lua require('dotfiles.lsp')
+
+  " commands {{{
+
+    command! -nargs=0 -bar LspDiagnostics lua vim.lsp.diagnostic.set_qflist({severity_limit='Information'})
+    command! -nargs=0 -bar LspOpenLog lua vim.call('dotfiles#utils#jump_to_file', vim.lsp.get_log_path())
+    command! -nargs=0 -bar -range LspFormat lua if <range> == 0 then vim.lsp.buf.formatting() else vim.lsp.buf.range_formatting(nil, {<line1>, 0}, {<line2>, #vim.fn.getline(<line2>)}) end
+    command! -nargs=0 -bar LspFormatSync lua vim.lsp.buf.formatting_sync()
+    command! -nargs=+ -bar LspWorkspaceSymbols lua vim.lsp.buf.workspace_symbol(<q-args>)
+
+  " }}}
+
+  " mappings {{{
+
+    " NOTE: These global mappings must not override Vim's default ones, but the
+    " Lua part of the LSP configuration may create buffer-local shorthands in
+    " on_attach (e.g. `gd -> <space>gd`).
+    nnoremap <silent> <space>gd  <Cmd>lua vim.lsp.buf.definition()<CR>
+    nnoremap <silent> <space>gD  <Cmd>lua vim.lsp.buf.declaration()<CR>
+    nnoremap <silent> <space>gt  <Cmd>lua vim.lsp.buf.type_definition()<CR>
+    nnoremap <silent> <space>gi  <Cmd>lua vim.lsp.buf.implementation()<CR>
+    nnoremap <silent> <space>gr  <Cmd>lua vim.lsp.buf.references({includeDeclaration=false})<CR>
+    nnoremap <silent> <F2>       <Cmd>lua vim.lsp.buf.rename()<CR>
+    nnoremap <silent> <A-CR>     <Cmd>lua vim.lsp.buf.code_action()<CR>
+    xnoremap <silent> <A-CR>    :<C-u>lua vim.lsp.buf.range_code_action()<CR>
+    nnoremap <silent> <space>K   <Cmd>lua vim.lsp.buf.hover()<CR>
+    xnoremap <silent> <space>K  :<C-u>lua vim.lsp.buf.range_hover()<CR>
+    nnoremap <silent> <space>s   <Cmd>lua vim.lsp.buf.signature_help()<CR>
+    inoremap <silent> <F1>       <Cmd>lua vim.lsp.buf.signature_help()<CR>
+    nnoremap <silent> [c         <Cmd>lua vim.lsp.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
+    nnoremap <silent> ]c         <Cmd>lua vim.lsp.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+    nnoremap <silent> <A-d>      <Cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>
+    nnoremap <silent> <space>d   <Cmd>LspDiagnostics<CR>
+    nnoremap <silent> <space>f   <Cmd>LspFormat<CR>
+    xnoremap <silent> <space>f       :LspFormat<CR>
+    nnoremap <silent> <space>o   <Cmd>lua vim.lsp.buf.document_symbol()<CR>
+    nnoremap          <space>w       :LspWorkspaceSymbols<space>
+    nnoremap <silent> <space>c   <Cmd>Commands<CR>
+
+    " Create shorthands overriding default mappings which make sense when a
+    " language server is connected. Note that these are not created in
+    " `on_attach` or similar because the `buf_any_client_supports_method`
+    " checks will correctly respond to the server being stopped, for instance.
+    nmap <silent><expr> K  v:lua.vim.lsp.buf_any_client_supports_method(0, 'textDocument/hover')       ? "<space>K"  : "K"
+    nmap <silent><expr> gd v:lua.vim.lsp.buf_any_client_supports_method(0, 'textDocument/definition')  ? "<space>gd" : "gd"
+    nmap <silent><expr> gD v:lua.vim.lsp.buf_any_client_supports_method(0, 'textDocument/declaration') ? "<space>gD" : "gD"
+    nmap <silent><expr> gr v:lua.vim.lsp.buf_any_client_supports_method(0, 'textDocument/references')  ? "<space>gr" : "gr"
+
+  " }}}
+
+  augroup dotfiles_lsp
+    autocmd!
+    autocmd User LspIgnitionBufAttach setlocal omnifunc=v:lua.vim.lsp.omnifunc
+  augroup END
+
+  runtime! dotfiles/lspconfigs/*.lua
+
+endif  " }}}
+
+
+if dotfiles#plugman#is_registered('coc.nvim')  " {{{
+
+  " let g:coc_node_args = ['-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'), '--nolazy', '--inspect']
 
   let g:dotfiles_coc_extensions = {}
 
@@ -39,6 +214,10 @@ endif
     let g:coc_snippet_next = '<Tab>'
     let g:coc_snippet_prev = '<S-Tab>'
 
+    imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
+    imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"
+    imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+    imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
     inoremap <silent><expr> <C-Space> coc#refresh()
     inoremap <silent> <A-s> <Cmd>call CocActionAsync('showSignatureHelp')<CR>
     imap <F1> <A-s>
@@ -108,4 +287,4 @@ endif
     call extend(g:coc_global_extensions, keys(g:dotfiles_coc_extensions))
   endif
 
-" }}}
+endif  " }}}

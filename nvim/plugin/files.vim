@@ -213,7 +213,9 @@ endif
       if has_key(g:coc_format_on_save_ignore, &filetype) || s:IsUrl(file)
         return
       endif
-      if exists(':CocFormat')
+      if exists(':LspFormatSync')
+        LspFormatSync
+      elseif exists(':CocFormat')
         CocFormat
       endif
     endfunction

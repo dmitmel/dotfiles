@@ -171,10 +171,25 @@ let &history = max([&history, 10000])
   if dotfiles#plugman#is_registered('vim-obsession')
     let g:airline_extensions += ['obsession']
   endif
+  if dotfiles#plugman#is_registered('nvim-lspconfig')
+    let g:airline_extensions += ['dotfiles_nvimlsp']
+  endif
 
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
+
+  if get(g:, 'dotfiles_cmp_buffer_debug')
+    lua <<EOF
+    local cmp = require('cmp')
+    function _G.cmp_buffer_debug_statusline()
+      local cmp_buffer = cmp.core.sources_by_name['buffer'][1].source
+      return cmp_buffer:buffer_indexing_progress_statusline(0, vim.fn.winwidth(0))
+    end
+EOF
+    setglobal tabline=%{v:lua.cmp_buffer_debug_statusline()}
+    call dotfiles#utils#array_remove_element(g:airline_extensions, 'tabline')
+  endif
 
 " }}}
 

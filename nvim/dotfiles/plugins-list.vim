@@ -74,7 +74,21 @@ let s:plug = function('dotfiles#plugman#register')
   call s:plug('https://github.com/ron-rs/ron.vim')
   call s:plug('https://github.com/kylelaker/riscv.vim')
   if g:vim_ide
-    if g:dotfiles_build_coc_from_source
+    if exists('*luaeval') && luaeval('vim.loop ~= nil')
+      call s:plug('https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' })
+    endif
+    if has('nvim-0.5.0') && get(g:, 'dotfiles_new_completion', 0)
+      call s:plug('https://github.com/neovim/nvim-lspconfig')
+      " call s:plug('https://github.com/hrsh7th/nvim-compe')
+      call s:plug('https://github.com/hrsh7th/vim-vsnip')
+      call s:plug('https://github.com/hrsh7th/nvim-cmp', { 'branch': 'main' })
+      call s:plug('https://github.com/hrsh7th/cmp-nvim-lsp', { 'branch': 'main' })
+      call s:plug('https://github.com/hrsh7th/cmp-nvim-lua', { 'branch': 'main' })
+      call s:plug('https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' })
+      call s:plug('https://github.com/f3fora/cmp-spell')
+      call s:plug('https://github.com/hrsh7th/cmp-path', { 'branch': 'main' })
+      call s:plug('https://github.com/hrsh7th/cmp-vsnip', { 'branch': 'main' })
+    elseif g:dotfiles_build_coc_from_source
       call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
       call s:plug('https://github.com/fannheyward/coc-rust-analyzer', { 'do': 'yarn install --frozen-lockfile' })
       " call s:plug('https://github.com/neoclide/coc-rls', { 'do': 'yarn install --frozen-lockfile' })
