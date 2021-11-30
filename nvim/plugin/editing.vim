@@ -147,12 +147,13 @@ endif
   nmap <silent> <leader>[ m'yygccP`'k
 
   function! PutOutput(cmd) abort
-    let output = execute(a:cmd)
+    let output = ''
+    silent! let output = execute(a:cmd)
     execute 'noswapfile pedit' '+' . fnameescape('setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile') fnameescape('preview://' . a:cmd)
     wincmd P
     call setline(1, split(output, "\n"))
   endfunction
-  command! -nargs=+ -complete=command PutOutput silent call PutOutput(<q-args>)
+  command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
 
   " ,c is easier to type than "+ because it doesn't require pressing Shift
   nnoremap <leader>c "+
