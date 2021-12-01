@@ -1,3 +1,4 @@
+--- TODO: split this module into categories
 local M = require('dotfiles.autoload')('dotfiles.utils')
 
 local vim_uri = require('vim.uri')
@@ -398,6 +399,40 @@ function M.schedule_once_wrap(fn)
     is_scheduled = true
     return vim.schedule(scheduled_fn)
   end
+end
+
+
+if vim.json then
+  M.json_encode = vim.json.encode
+  M.json_decode = vim.json.decode
+else
+  M.json_encode = vim.fn.json_encode
+  M.json_decode = vim.fn.json_decode
+end
+
+
+---@param path string
+---@param opts {binary: boolean}
+---@return string
+function M.read_file(path, opts)
+  opts = opts or {}
+  local file = assert(io.open(path, opts.binary and 'rb' or 'r'))
+  local data = file:read('*a')
+  file:close()
+  return data
+end
+
+
+---@param path string
+---@param data string
+---@param opts {binary: boolean}
+---@return string
+function M.write_file(path, data, opts)
+  opts = opts or {}
+  local file = assert(io.open(path, opts.binary and 'rw' or 'w'))
+  assert(file:write(data))
+  assert(file:flush())
+  file:close()
 end
 
 

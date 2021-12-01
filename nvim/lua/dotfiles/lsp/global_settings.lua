@@ -2,6 +2,7 @@
 local M = require('dotfiles.autoload')('dotfiles.lsp.global_settings')
 
 local lsp_protocol = require('vim.lsp.protocol')
+local utils = require('dotfiles.utils')
 
 
 -- <https://github.com/neoclide/coc.nvim/blob/705135211e84725766e434f59e63ae3592c609d9/data/schema.json#L992-L996>
@@ -28,7 +29,7 @@ M.MARKDOWN_DISABLED_SYNTAXES = {}
 -- TODO: Fetch schemas directly from <https://www.schemastore.org/api/json/catalog.json>
 M.JSON_SCHEMAS_CATALOG = {}
 for _, catalog_path in ipairs(vim.api.nvim_get_runtime_file('dotfiles/json_schema_catalog.json', true)) do
-  local catalog_json = vim.fn.json_decode(vim.fn.readfile(catalog_path))
+  local catalog_json = utils.json_decode(utils.read_file(catalog_path))
   assert(
     catalog_json['$schema'] == 'https://json.schemastore.org/schema-catalog' or
     catalog_json['$schema'] == 'https://json.schemastore.org/schema-catalog.json'
