@@ -65,6 +65,7 @@ function M.handler(err, params, ctx, opts)
   end
   lsp_utils.client_notify(ctx.client_id, 'hover not available', vim.log.levels.WARN)
 end
+lsp.handlers['textDocument/hover'] = lsp_utils.wrap_handler_compat(M.handler)
 
 
 -- See:

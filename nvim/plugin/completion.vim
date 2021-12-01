@@ -109,6 +109,22 @@ if dotfiles#plugman#is_registered('nvim-compe') " {{{
   inoremap <silent><expr>     <C-e> compe#close({'keys':"\<C-e>",'mode':'n'})
   inoremap <silent><expr>     <Esc> compe#close({'keys':"\<Esc>",'mode':'n'})
 
+  lua <<EOF
+  require('dotfiles.lsp.ignition').add_client_capabilities({
+    textDocument = {
+      -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#completionClientCapabilities>
+      completion = {
+        completionItem = {
+          snippetSupport = true;
+          resolveSupport = {
+            properties = {'documentation', 'detail', 'additionalTextEdits'};
+          };
+        };
+      };
+    };
+  })
+EOF
+
 endif  " }}}
 
 
@@ -153,8 +169,26 @@ EOF
 
   lua require('dotfiles.lsp.ignition').install_compat()
   lua require('dotfiles.lsp.ignition').setup()
+  lua require('lspconfig')
   lua require('dotfiles.lsp.dummy_entry_plug')
-  lua require('dotfiles.lsp')
+  lua <<EOF
+  require('dotfiles.lsp.ignition').add_default_config({
+    flags = {
+      debounce_text_changes = 100;
+    };
+  })
+EOF
+
+  lua require('dotfiles.lsp.basic_handlers')
+  lua require('dotfiles.lsp.diagnostics')
+  lua require('dotfiles.lsp.float')
+  lua require('dotfiles.lsp.global_settings')
+  lua require('dotfiles.lsp.hover')
+  lua require('dotfiles.lsp.markup')
+  lua require('dotfiles.lsp.progress')
+  lua require('dotfiles.lsp.signature_help')
+  lua require('dotfiles.lsp.symbols')
+  lua require('dotfiles.lsp.utils')
 
   " commands {{{
 

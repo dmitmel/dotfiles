@@ -29,12 +29,12 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.ignition')
 -- TODO: <https://github.com/neovim/nvim-lspconfig/pull/1174>
 -- TODO: <https://github.com/neovim/nvim-lspconfig/pulls?q=is%3Apr+author%3Amjlbach+is%3Aclosed>
 
+local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_utils = require('dotfiles.lsp.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local vim_uri = require('vim.uri')
-local lsp = require('vim.lsp')
 
 
 -- <https://github.com/neovim/neovim/pull/15430>
@@ -48,6 +48,7 @@ M.default_config = {
   init_options = vim.empty_dict(),
   handlers = vim.empty_dict(),
   autostart = true,
+  capabilities = lsp.protocol.make_client_capabilities(),
 }
 local compat_default_config_ref = function() vim.empty_dict() end
 
@@ -1075,6 +1076,15 @@ function M._command_completion_sort_configs(all_configs, matching_configs)
       return cfg_a.name < cfg_b.name
     end
   end)
+end
+
+
+function M.add_client_capabilities(extra_capabilities)
+  M.default_config.capabilities = vim.tbl_deep_extend('force', M.default_config.capabilities, extra_capabilities)
+end
+
+function M.add_default_config(extra_config)
+  M.default_config = vim.tbl_deep_extend('force', M.default_config, extra_config)
 end
 
 

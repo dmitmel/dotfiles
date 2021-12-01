@@ -9,7 +9,20 @@ local utils = require('dotfiles.utils')
 local lsp_markup = require('dotfiles.lsp.markup')
 local highlight_match = require('dotfiles.lsp.highlight_match')
 local lsp_progress = require('dotfiles.lsp.progress')
+local lsp_ignition = require('dotfiles.lsp.ignition')
 
+
+lsp_ignition.add_client_capabilities({
+  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureHelpClientCapabilities>
+  signatureHelp = {
+    signatureInformation = {
+      activeParameterSupport = true;
+      parameterInformation = {
+        labelOffsetSupport = true;
+      };
+    };
+  };
+})
 
 -- Based on <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/buf.lua#L93-L98>.
 function M.request()
@@ -57,6 +70,7 @@ function M.handler(err, params, ctx, opts)
   end
   lsp_utils.client_notify(ctx.client_id, 'signature help not available', vim.log.levels.WARN)
 end
+lsp.handlers['textDocument/signatureHelp'] = lsp_utils.wrap_handler_compat(M.handler)
 
 
 -- Copied from <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L844-L910>,

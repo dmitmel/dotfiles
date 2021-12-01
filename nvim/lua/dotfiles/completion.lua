@@ -18,6 +18,7 @@ local cmp = require('cmp')
 local utils_vim = require('dotfiles.utils.vim')
 local utils = require('dotfiles.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
+local lsp_ignition = require('dotfiles.lsp.ignition')
 
 
 -- """"""Polyfills"""""" {{{
@@ -287,6 +288,9 @@ cmp.setup({
     end;
   };
 })
+
+
+require('cmp_nvim_lsp').update_capabilities(lsp_ignition.default_config.capabilities)
 
 
 return M

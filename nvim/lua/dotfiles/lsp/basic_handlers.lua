@@ -62,35 +62,43 @@ end
 
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_declaration>
-M.declaration_handler, lsp.buf.declaration = M._create_simple_location_list_handler({
+M.declaration_handler, M.request_declaration = M._create_simple_location_list_handler({
   method = 'textDocument/declaration',
   not_found_message = 'declaration not found',
   list_title = 'declarations',
 })
+lsp.handlers['textDocument/declaration'] = M.declaration_handler
+lsp.buf.declaration = M.request_declaration
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_definition>
-M.definition_handler, lsp.buf.definition = M._create_simple_location_list_handler({
+M.definition_handler, M.request_definition = M._create_simple_location_list_handler({
   method = 'textDocument/definition',
   not_found_message = 'definition not found',
   list_title = 'definitions',
 })
+lsp.handlers['textDocument/definition'] = M.definition_handler
+lsp.buf.definition = M.request_definition
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_typeDefinition>
-M.type_definition_handler, lsp.buf.type_definition = M._create_simple_location_list_handler({
+M.type_definition_handler, M.request_type_definition = M._create_simple_location_list_handler({
   method = 'textDocument/typeDefinition',
   not_found_message = 'type definition not found',
   list_title = 'type definitions',
 })
+lsp.handlers['textDocument/typeDefinition'] = M.type_definition_handler
+lsp.buf.type_definition = M.request_type_definition
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_implementation>
-M.implementation_handler, lsp.buf.implementation = M._create_simple_location_list_handler({
+M.implementation_handler, M.request_implementation = M._create_simple_location_list_handler({
   method = 'textDocument/implementation',
   not_found_message = 'implementation not found',
   list_title = 'implementations',
 })
+lsp.handlers['textDocument/implementation'] = M.implementation_handler
+lsp.buf.implementation = M.request_implementation
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_references>
-M.references_handler, lsp.buf.references = M._create_simple_location_list_handler({
+M.references_handler, M.request_references = M._create_simple_location_list_handler({
   method = 'textDocument/references',
   not_found_message = 'references not found',
   list_title = 'references',
@@ -103,6 +111,8 @@ M.references_handler, lsp.buf.references = M._create_simple_location_list_handle
     }
   end,
 })
+lsp.handlers['textDocument/references'] = M.references_handler
+lsp.buf.references = M.request_references
 
 
 -- Backport of <https://github.com/neovim/neovim/pull/15121>. All code was

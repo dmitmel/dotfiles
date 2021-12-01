@@ -13,6 +13,7 @@ local Severity = vim_diagnostic.severity
 local utils = require('dotfiles.utils')
 local lsp = require('vim.lsp')
 local utils_vim = require('dotfiles.utils.vim')
+local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
 
 M.ALL_SEVERITIES = { Severity.ERROR, Severity.WARN, Severity.INFO, Severity.HINT }
@@ -353,6 +354,30 @@ vim_diagnostic.handlers['dotfiles/statusline_stats'] = {
     vim.api.nvim_buf_set_var(bufnr, 'dotfiles_lsp_diagnostics_statusline_stats', vim.NIL)
   end,
 }
+
+
+-- And now, for the cherry on the cake. Even I've gotta admit, configuring the
+-- system declaratively like this instead of hundreds of lines of
+-- monkey-patches feels pretty Nice.
+vim_diagnostic.config({
+  float = {
+    header = '',  -- Turn the header off
+    prefix = '',
+    format = M.format_diagnostic_for_list,
+    severity_sort = false,
+    max_width = lsp_global_settings.DIAGNOSTIC_WINDOW_MAX_WIDTH,
+    max_height = lsp_global_settings.DIAGNOSTIC_WINDOW_MAX_HEIGHT,
+  },
+  underline = true,
+  virtual_text = {
+    prefix = '#',
+    spacing = 1,
+  },
+  signs = {
+    priority = 10,  -- De-conflict with vim-signify.
+  },
+  severity_sort = true,
+})
 
 
 return M

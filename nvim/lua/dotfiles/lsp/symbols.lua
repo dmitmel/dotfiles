@@ -11,7 +11,7 @@ local utils = require('dotfiles.utils')
 local lsp_progress = require('dotfiles.lsp.progress')
 
 
-function lsp.buf.document_symbol()
+function M.request_document_symbols()
   local req_params = {
     textDocument = lsp.util.make_text_document_params(),
     workDoneToken = lsp_progress.random_token(),
@@ -25,9 +25,10 @@ function lsp.buf.document_symbol()
     end)
   )
 end
+lsp.buf.document_symbol = M.request_document_symbols
 
 
-function lsp.buf.workspace_symbol(query)
+function M.request_workspace_symbols(query)
   vim.validate({
     query = {query, 'string'};
   })
@@ -43,6 +44,7 @@ function lsp.buf.workspace_symbol(query)
     end)
   )
 end
+lsp.buf.workspace_symbol = M.request_workspace_symbols
 
 
 function M.handler(err, params, ctx, opts)
@@ -66,6 +68,8 @@ function M.handler(err, params, ctx, opts)
   opts.items = lsp.util.symbols_to_items(params, ctx.bufnr)
   vim.call('dotfiles#utils#push_qf_list', opts)
 end
+lsp.handlers['textDocument/documentSymbol'] = lsp_utils.wrap_handler_compat(M.handler)
+lsp.handlers['workspace/symbol'] = lsp_utils.wrap_handler_compat(M.handler)
 
 
 --[[

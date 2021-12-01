@@ -1,4 +1,5 @@
 -- <https://github.com/fannheyward/coc-pyright/blob/master/src/index.ts>
+-- TODO: reimplement good chunk of coc-pyright
 
 local lsp = require('vim.lsp')
 local lspconfig = require('lspconfig')

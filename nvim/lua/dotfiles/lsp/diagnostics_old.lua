@@ -10,6 +10,19 @@ local vim_highlight = require('vim.highlight')
 local utils = require('dotfiles.utils')
 
 
+lsp.handlers['textDocument/publishDiagnostics'] = lsp.with(lsp.diagnostic.on_publish_diagnostics, {
+  underline = true;
+  virtual_text = {
+    prefix = '#';
+    spacing = 1;
+  };
+  signs = {
+    priority = 10;  -- De-conflict with vim-signify.
+  };
+  severity_sort = true;
+})
+
+
 -- Copied from <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L14-L35>
 function M.to_severity(severity)
   if not severity then return nil end
@@ -218,8 +231,8 @@ function lsp.diagnostic.show_line_diagnostics(opts, bufnr, line_nr, client_id)
 
   for d_idx, d in ipairs(line_diagnostics) do
     if d_idx > 1 then
-      table.insert(lines, string.rep('─', opts.max_width))
-      table.insert(highlights, '')
+      -- table.insert(lines, string.rep('─', opts.max_width))
+      -- table.insert(highlights, '')
     end
 
     local higroup = get_severity_highlight(d.severity) or fallback_severity_highlight

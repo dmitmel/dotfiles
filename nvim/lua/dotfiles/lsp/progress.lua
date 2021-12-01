@@ -181,6 +181,12 @@ table.insert(lsp_ignition.service_hooks.on_create, M._hook_client_created)
 table.insert(lsp_ignition.service_hooks.before_init, M._hook_client_before_init)
 table.insert(lsp_ignition.service_hooks.on_init, M._hook_on_client_init)
 
+lsp_ignition.add_client_capabilities({
+  window = {
+    workDoneProgress = true;
+  };
+})
+
 
 function lsp.util.get_progress_messages()
   error('the original progress implementation has been replaced by ' .. MODULE_INFO.name)
