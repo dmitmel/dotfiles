@@ -174,30 +174,46 @@
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
-  hi! link LspDiagnosticsDefaultError         CocErrorSign
-  hi! link LspDiagnosticsDefaultWarning       CocWarningSign
-  hi! link LspDiagnosticsDefaultInformation   CocInfoSign
-  hi! link LspDiagnosticsDefaultHint          CocHintSign
-  hi! link LspDiagnosticsUnderlineError       CocUnderline
-  hi! link LspDiagnosticsUnderlineWarning     CocUnderline
-  hi! link LspDiagnosticsUnderlineInformation CocUnderline
-  hi! link LspDiagnosticsUnderlineHint        CocUnderline
-  hi! link LspDiagnosticsUnderlineUnnecessary CocFadeOut
-  hi! link LspDiagnosticsUnderlineDeprecated  CocStrikeThrough
-  hi! link LspHover                           Search
-  " <https://github.com/neovim/neovim/pull/15018>
-  hi! link LspSignatureActiveParameter        CocUnderline
+  if has('nvim-0.5.0')
+    let s:name_prefix = has('nvim-0.6.0') ? 'Diagnostic' : 'LspDiagnostics'
+    let s:severities_colors = [0x8, 0xA, 0xD, 0xD]
 
-  if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
-    for [s:level, s:color] in items({'Error': 0x8, 'Warning': 0xA, 'Information': 0xD, 'Hint': 0xD})
-      let s:color = s:colors[s:color]
-      call s:hi_raw('LspDiagnosticsLine' . s:level, {
-      \ 'guibg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:color, 0.1)),
-      \ })
-      call s:hi_raw('LspDiagnosticsVirtualText' . s:level, {
-      \ 'ctermfg': 'bg', 'ctermbg': s:color.cterm, 'guifg': s:color.gui, 'gui': 'bold',
-      \ })
+    for s:severity in range(4)
+      let s:severity_color = [0x8, 0xA, 0xD, 0xD][s:severity]
+      " The `:hi clear` calls are done to undo the default settings:
+      " <https://github.com/neovim/neovim/blob/v0.6.0/src/nvim/syntax.c#L6219-L6222>.
+      if has('nvim-0.6.0')
+        let s:severity_name = ['Error', 'Warn', 'Info', 'Hint'][s:severity]
+        let s:default_hl_name = s:name_prefix.s:severity_name
+      else
+        let s:severity_name = ['Error', 'Warning', 'Information', 'Hint'][s:severity]
+        let s:default_hl_name = s:name_prefix.'Default'.s:severity_name
+      endif
+
+      call s:hi(s:default_hl_name, { 'fg': 'bg', 'bg': s:severity_color })
+      call s:hi(s:name_prefix.'Underline'.s:severity_name, { 'underline': 1 })
+      exec 'hi! link '.s:name_prefix.'Floating'.s:severity_name.' '.s:default_hl_name
+      exec 'hi! link '.s:name_prefix.'Sign'.s:severity_name.' '.s:default_hl_name
+
+      if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
+        let s:severity_color = s:colors[s:severity_color]
+        call s:hi_raw(s:name_prefix.'Line'.s:severity_name, {
+        \ 'guibg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:severity_color, 0.1)),
+        \ })
+        call s:hi_raw(s:name_prefix.'VirtualText'.s:severity_name, {
+        \ 'ctermfg': 'bg', 'ctermbg': s:severity_color.cterm, 'guifg': s:severity_color.gui, 'gui': 'bold',
+        \ })
+      else
+        exec 'hi! link '.s:name_prefix.'VirtualText'.s:severity_name.' '.s:default_hl_name
+      endif
     endfor
+
+    call s:hi(s:name_prefix.'UnderlineUnnecessary', { 'fg': 0x3          })
+    call s:hi(s:name_prefix.'UnderlineDeprecated',  { 'strikethrough': 1 })
+
+    hi! link LspHover Search
+    " <https://github.com/neovim/neovim/pull/15018>
+    call s:hi('LspSignatureActiveParameter', { 'underline': 1 })
   endif
 
   call s:hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })

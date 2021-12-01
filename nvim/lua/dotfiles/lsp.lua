@@ -12,6 +12,7 @@ local lsp_progress = require('dotfiles.lsp.progress')
 local lsp_signature_help = require('dotfiles.lsp.signature_help')
 local lsp_symbols = require('dotfiles.lsp.symbols')
 local lsp_utils = require('dotfiles.lsp.utils')
+local utils_vim = require('dotfiles.utils.vim')
 
 -- TODO: copy server configurations
 -- TODO: reimplement good chunk of coc-pyright
@@ -51,6 +52,30 @@ if vim.call('dotfiles#plugman#is_registered', 'cmp-nvim-lsp') then
 end
 
 
+local lsp_diagnostics_handler
+local diagnostics_opts = {
+  float = {
+    header = '',  -- Turn the header off
+    prefix = '',
+  },
+  underline = true,
+  virtual_text = {
+    prefix = '#',
+    spacing = 1,
+  },
+  signs = {
+    priority = 10,  -- De-conflict with vim-signify.
+  },
+  severity_sort = true,
+}
+if utils_vim.has('nvim-0.6.0') then
+  require('vim.diagnostic').config(diagnostics_opts)
+else
+  diagnostics_opts.float = nil
+  lsp_diagnostics_handler = lsp.with(lsp.handlers['textDocument/publishDiagnostics'], diagnostics_opts);
+end
+
+
 lspconfig.util.default_config = vim.tbl_deep_extend('force', lspconfig.util.default_config, {
   capabilities = default_capabilities;
   flags = {
@@ -62,17 +87,7 @@ lspconfig.util.default_config = vim.tbl_deep_extend('force', lspconfig.util.defa
     ['textDocument/hover'] = lsp_utils.wrap_handler_compat(lsp_hover.handler);
     ['textDocument/signatureHelp'] = lsp_utils.wrap_handler_compat(lsp_signature_help.handler);
 
-    ['textDocument/publishDiagnostics'] = lsp.with(lsp.handlers['textDocument/publishDiagnostics'], {
-      underline = true,
-      virtual_text = {
-        prefix = '#',
-        spacing = 1,
-      },
-      signs = {
-        priority = 10,  -- De-conflict with vim-signify.
-      },
-      severity_sort = true,
-    });
+    ['textDocument/publishDiagnostics'] = lsp_diagnostics_handler;
 
     ['textDocument/declaration'] = lsp_utils.wrap_handler_compat(lsp_basic_handlers.declaration_handler);
     ['textDocument/definition'] = lsp_utils.wrap_handler_compat(lsp_basic_handlers.definition_handler);

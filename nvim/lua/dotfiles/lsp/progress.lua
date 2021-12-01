@@ -202,7 +202,8 @@ end
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#window_workDoneProgress_create>
 lsp.handlers['window/workDoneProgress/create'] = lsp_utils.wrap_handler_compat(function(err, result, ctx, config)
   if err then
-    return lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    return vim.NIL
   end
   local client = lsp_utils.assert_get_client_by_id(ctx.client_id)
   M._client_add_token(client, result.token)
@@ -212,7 +213,8 @@ end)
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#window_workDoneProgress_cancel>
 lsp.handlers['window/workDoneProgress/cancel'] = lsp_utils.wrap_handler_compat(function(err, result, ctx, config)
   if err then
-    return lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    return vim.NIL
   end
   local client = lsp_utils.assert_get_client_by_id(ctx.client_id)
   if client.dotfiles_progress_tokens[result.token] ~= nil then
@@ -227,7 +229,8 @@ end)
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#workDoneProgress>
 lsp.handlers['$/progress'] = lsp_utils.wrap_handler_compat(function(err, result, ctx, config)
   if err then
-    return lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    lsp_utils.client_notify(ctx.client_id, err, vim.log.levels.ERROR)
+    return vim.NIL
   end
   local client = lsp_utils.assert_get_client_by_id(ctx.client_id)
   local token_data = client.dotfiles_progress_tokens[result.token]

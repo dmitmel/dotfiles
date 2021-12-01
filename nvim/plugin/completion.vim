@@ -112,6 +112,9 @@ if dotfiles#plugman#is_registered('nvim-compe') " {{{
 endif  " }}}
 
 
+let s:diagnostic_sign_texts = { 'Error': 'XX', 'Warn': '!!', 'Info': '>>', 'Hint': '>>' }
+
+
 if dotfiles#plugman#is_registered('nvim-lspconfig')  " {{{
 
   lua <<EOF
@@ -127,6 +130,26 @@ EOF
 
   " Ensure that the built-in LSP module is initialized first.
   lua require('vim.lsp')
+
+  " <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L923-L963>
+  " <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L209-L231>
+  for s:severity in range(4)
+    let s:sign_opts = { 'text': '', 'texthl': '', 'linehl': '', 'numhl': '' }
+
+    let s:name_prefix = has('nvim-0.6.0') ? 'Diagnostic' : 'LspDiagnostics'
+    let s:severity_name = ['Error', 'Warn', 'Info', 'Hint'][s:severity]
+    let s:sign_opts.text = s:diagnostic_sign_texts[s:severity_name]
+    if !has('nvim-0.6.0')
+      let s:severity_name = ['Error', 'Warning', 'Information', 'Hint'][s:severity]
+    endif
+    let s:sign_opts.texthl = s:name_prefix.'Sign'.s:severity_name
+    let s:sign_opts.numhl = s:name_prefix.'Sign'.s:severity_name
+    if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
+      let s:sign_opts.linehl = s:name_prefix.'Line'.s:severity_name
+    endif
+
+    call sign_define(s:name_prefix.'Sign'.s:severity_name, s:sign_opts)
+  endfor
 
   lua require('dotfiles.lsp.ignition').install_compat()
   lua require('dotfiles.lsp.ignition').setup()
@@ -272,8 +295,10 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   \ 'virtualText': v:true,
   \ 'virtualTextCurrentLineOnly': v:false,
   \ 'enableMessage': 'jump',
-  \ 'errorSign': 'XX',
-  \ 'warningSign': '!!',
+  \ 'errorSign':   s:diagnostic_sign_texts.Error,
+  \ 'warningSign': s:diagnostic_sign_texts.Warn,
+  \ 'infoSign':    s:diagnostic_sign_texts.Info,
+  \ 'hintSign':    s:diagnostic_sign_texts.Hint,
   \ }
   let g:coc_user_config['suggest.floatEnable'] = v:false
   let g:coc_user_config['workspace.progressTarget'] = 'statusline'
