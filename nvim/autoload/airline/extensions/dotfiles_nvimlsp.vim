@@ -78,5 +78,5 @@ function! airline#extensions#dotfiles_nvimlsp#get_error() abort
 endfunction
 
 function! airline#extensions#dotfiles_nvimlsp#get_progress() abort
-  return printf(' %.3fMB %s', v:lua.vim.loop.resident_set_memory() / 1024.0 / 1024.0, luaeval('require("dotfiles.lsp.progress").get_status_text()'))
+  return luaeval('require("dotfiles.lsp.progress").get_status_text()')
 endfunction
