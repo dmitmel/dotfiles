@@ -194,11 +194,6 @@ function vim_diagnostic.toqflist(diagnostics)
   })
   local items = {}
   for i, v in pairs(diagnostics) do
-    local meta = {}
-    table.insert(meta, v.source)
-    table.insert(meta, ((v.user_data or {}).lsp or {}).code)
-    local text = v.message:gsub('\r', ' \\ '):gsub('\n', ' \\ ')
-    if #meta > 0 then text = '[' .. table.concat(meta, ' ') .. '] ' .. vim.trim(text) end
     items[i] = {
       bufnr = v.bufnr,
       lnum = v.lnum + 1,
@@ -207,7 +202,7 @@ function vim_diagnostic.toqflist(diagnostics)
       end_col = v.end_col and (v.end_col + 1) or nil,
       type = M.LOCLIST_TYPE_MAP[v.severity] or 'E',
       -- The only changed part:
-      text = text,
+      text = M.format_diagnostic_for_list(v):gsub('\r', ' \\ '):gsub('\n', ' \\ '),
     }
   end
   table.sort(items, function(a, b)
@@ -223,6 +218,18 @@ function vim_diagnostic.toqflist(diagnostics)
   return items
 end
 
+function M.format_diagnostic_for_list(diag)
+  local meta = {}
+  table.insert(meta, diag.source)
+  table.insert(meta, ((diag.user_data or {}).lsp or {}).code)
+  local text = diag.message
+  if #meta > 0 then
+    text = '[' .. table.concat(meta, ' ') .. '] ' .. vim.trim(text)
+  else
+    text = vim.trim(text)
+  end
+  return text
+end
 
 function vim_diagnostic.fromqflist(list)
   vim.validate({

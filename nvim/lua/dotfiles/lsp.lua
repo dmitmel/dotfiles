@@ -57,6 +57,10 @@ local diagnostics_opts = {
   float = {
     header = '',  -- Turn the header off
     prefix = '',
+    format = lsp_diagnostic.format_diagnostic_for_list,
+    severity_sort = false,
+    max_width = lsp_global_settings.DIAGNOSTIC_WINDOW_MAX_WIDTH,
+    max_height = lsp_global_settings.DIAGNOSTIC_WINDOW_MAX_HEIGHT,
   },
   underline = true,
   virtual_text = {

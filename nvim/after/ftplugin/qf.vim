@@ -9,11 +9,13 @@ if exists('g:qf_mapping_ack_style')
   nmap <buffer> ) <Plug>(qf_next_file)
   nmap <buffer> <C-p> <Plug>(qf_older)
   nmap <buffer> <C-n> <Plug>(qf_newer)
+  nmap <buffer> <CR> <CR>zv
   call dotfiles#utils#undo_ftplugin_hook(join([
   \ 'exe "silent! nunmap <buffer> <Esc>"',
   \ 'exe "silent! nunmap <buffer> ("',
   \ 'exe "silent! nunmap <buffer> )"',
   \ 'exe "silent! nunmap <buffer> <C-p>"',
   \ 'exe "silent! nunmap <buffer> <C-n>"',
+  \ 'exe "silent! nunmap <buffer> <CR>"',
   \ ], ' | '))
 endif
