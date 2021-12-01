@@ -2,6 +2,7 @@
 
 local lsp = require('vim.lsp')
 local lspconfig = require('lspconfig')
+local lspconfig_vimls = require('lspconfig.server_configurations.vimls').default_config
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local vim_uri = require('vim.uri')
 local rplugin_bridge = require('dotfiles.rplugin_bridge')
@@ -78,8 +79,8 @@ lspconfig['vimls'].setup({
 })
 
 lsp_ignition.setup_config('vint', {
-  filetypes = lspconfig['vimls'].document_config.default_config.filetypes;
-  root_dir = lspconfig['vimls'].document_config.default_config.root_dir;
+  filetypes = lspconfig_vimls.filetypes;
+  root_dir = lspconfig_vimls.root_dir;
   virtual_server = {
     capabilities = {
       textDocumentSync = {

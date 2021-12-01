@@ -3,6 +3,7 @@
 
 local lsp = require('vim.lsp')
 local lspconfig = require('lspconfig')
+local lspconfig_pyright = require('lspconfig.server_configurations.pyright')
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local vim_uri = require('vim.uri')
 local rplugin_bridge = require('dotfiles.rplugin_bridge')
@@ -77,8 +78,8 @@ lspconfig['pyright'].setup({
 
 
 lsp_ignition.setup_config('yapf', {
-  filetypes = lspconfig['pyright'].document_config.default_config.filetypes;
-  root_dir = lspconfig['pyright'].document_config.default_config.root_dir;
+  filetypes = lspconfig_pyright.filetypes;
+  root_dir = lspconfig_pyright.root_dir;
   virtual_server = {
     capabilities = {
       documentFormattingProvider = true;

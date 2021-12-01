@@ -2,6 +2,7 @@
 -- <https://github.com/microsoft/vscode/blob/main/extensions/json-language-features/client/src/jsonClient.ts>
 
 local lspconfig = require('lspconfig')
+local lspconfig_jsonls = require('lspconfig.server_configurations.jsonls')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local lsp_utils = require('dotfiles.lsp.utils')
 local lsp_ignition = require('dotfiles.lsp.ignition')
@@ -54,9 +55,8 @@ lspconfig['jsonls'].setup({
   };
 })
 
-local jsonls_config = lspconfig['jsonls'].document_config.default_config
 lsp_ignition.setup_config('jqfmt', {
-  filetypes = jsonls_config.filetypes;
+  filetypes = lspconfig_jsonls.filetypes;
   -- root_dir = jsonls_config.root_dir;
   virtual_server = {
     capabilities = {
