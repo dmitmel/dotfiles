@@ -106,7 +106,7 @@ function M.decorations_provider:on_win(winid, bufnr, topline, botline_guess)
   -- have to perform the buffer checks in on_win.
   local buf_info = self.bufs_info[bufnr]
   if buf_info == nil then
-    vim.api.nvim_buf_call(bufnr, function()
+    vim.api.nvim_win_call(winid, function()
       if self:check_disabled_for_buf(winid, bufnr) then
         buf_info = { excluded = true }
       else
@@ -179,7 +179,8 @@ function M.decorations_provider:on_line(winid, bufnr, row)
   local indent = 0
   local space_char = win_info.leading_space_char
   local space_hlgroups = self.hlgroups_space
-  vim.api.nvim_buf_call(bufnr, function()
+  -- NOTE: nvim_win_call also switches the buffer, and folds are window-local.
+  vim.api.nvim_win_call(winid, function()
     if self.show_on_folded_lines or vim.fn.foldclosed(row + 1) < 0 then
       indent = vim.fn.indent(row + 1)
       if indent == 0 then
