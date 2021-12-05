@@ -270,45 +270,45 @@ function lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config, ...)
 end
 
 
--- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L499-L528>.
-function M.jump_to_neighbor(opts, pos)
-  opts = opts or {}
-  if not pos then
-    vim.notify('No more valid diagnostics to move to', vim.log.levels.WARN)
-    return
-  end
-  local float = utils.if_nil(opts.float, true)
-  local winid = opts.win_id or vim.api.nvim_get_current_win()
-  -- Save position in the window's jumplist
-  vim.api.nvim_win_call(winid, function()
-    vim.cmd("normal! m'")
-    vim.api.nvim_win_set_cursor(winid, {pos[1] + 1, pos[2]})
-    if utils.if_nil(opts.foldopen, true) then
-      -- TODO: Contribute this feature to the upstream.
+-- NOTE: <https://github.com/neovim/neovim/pull/16520>
+if not utils_vim.has('nvim-0.7.0') then
+  -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L499-L528>.
+  function M.jump_to_neighbor(opts, pos)
+    opts = opts or {}
+    if not pos then
+      vim.notify('No more valid diagnostics to move to', vim.log.levels.WARN)
+      return
+    end
+    local float = utils.if_nil(opts.float, true)
+    local winid = opts.win_id or vim.api.nvim_get_current_win()
+    -- Save position in the window's jumplist
+    vim.api.nvim_win_call(winid, function()
+      vim.cmd("normal! m'")
+      vim.api.nvim_win_set_cursor(winid, {pos[1] + 1, pos[2]})
       vim.cmd('normal! zv')
-    end
-  end)
-  if float then
-    if type(float) ~= 'table' then
-      float = {}
-    end
-    -- Shrug, don't ask me why schedule() is needed. Ask the Nvim maintainers:
-    -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L532>.
-    vim.schedule(function()
-      vim_diagnostic.open_float(
-        vim.api.nvim_win_get_buf(winid),
-        vim.tbl_extend('keep', float, { scope = 'cursor', focus = false })
-      )
     end)
+    if float then
+      if type(float) ~= 'table' then
+        float = {}
+      end
+      -- Shrug, don't ask me why schedule() is needed. Ask the Nvim maintainers:
+      -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L532>.
+      vim.schedule(function()
+        vim_diagnostic.open_float(
+          vim.api.nvim_win_get_buf(winid),
+          vim.tbl_extend('keep', float, { scope = 'cursor', focus = false })
+        )
+      end)
+    end
   end
-end
 
-function vim_diagnostic.goto_prev(opts)
-  return M.jump_to_neighbor(opts, vim_diagnostic.get_prev_pos(opts))
-end
+  function vim_diagnostic.goto_prev(opts)
+    return M.jump_to_neighbor(opts, vim_diagnostic.get_prev_pos(opts))
+  end
 
-function vim_diagnostic.goto_next(opts)
-  return M.jump_to_neighbor(opts, vim_diagnostic.get_next_pos(opts))
+  function vim_diagnostic.goto_next(opts)
+    return M.jump_to_neighbor(opts, vim_diagnostic.get_next_pos(opts))
+  end
 end
 
 

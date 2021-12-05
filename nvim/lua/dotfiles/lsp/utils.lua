@@ -393,13 +393,16 @@ function lsp.util.locations_to_items(locations)
 end
 
 
-local orig_jump_to_location = lsp.util.jump_to_location
-function lsp.util.jump_to_location(...)
-  local ok = orig_jump_to_location(...)
-  if ok then
-    vim.cmd([[normal! zv]])
+-- NOTE: <https://github.com/neovim/neovim/pull/16520>
+if not utils_vim.has('nvim-0.7.0') then
+  local orig_jump_to_location = lsp.util.jump_to_location
+  function lsp.util.jump_to_location(...)
+    local ok = orig_jump_to_location(...)
+    if ok then
+      vim.cmd([[normal! zv]])
+    end
+    return ok
   end
-  return ok
 end
 
 
