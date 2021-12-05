@@ -278,40 +278,9 @@ endif
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
   command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal! /<C-r>/<CR>
 
-  " Loads all search results for the current buffer into a quickfix/location
-  " list. Based on <https://stackoverflow.com/a/1330556/12005228>, inspired by
-  " <https://gist.github.com/romainl/f7e2e506dc4d7827004e4994f1be2df6>, better
-  " than `vimgrep /pattern/ %`.
-  function! s:CmdQfSearch(loclist, bang, pattern) abort
-    let pattern = a:pattern
-    if !empty(pattern)
-      let @/ = pattern
-      call histadd('search', pattern)
-    else
-      let pattern = @/
-    endif
-    let bang = a:bang ? '!' : ''
-
-    let winnr = a:loclist ? winnr() : 0
-    let bufnr = bufnr()
-    let short_path = expand('%:.')
-    let items = []
-    let title = printf("Search%s /%s/ '%s'", bang, escape(pattern, '/'), short_path)
-
-    let cursor_pos = getcurpos()
-    " NOTE: :global doesn't position the cursor on the column where the search
-    " pattern has been matched and won't call the command multiple times if a
-    " line contains multiple matches, and so `col('.')` will return 1 on every
-    " invocation. As such, column information is not saved.
-    execute 'global'.bang."//call add(items, {'bufnr': bufnr, 'lnum': line('.'), 'text': getline('.')})"
-    call setpos('.', cursor_pos)
-
-    call dotfiles#utils#push_qf_list({'title': title, 'items': items, 'dotfiles_loclist_window': winnr})
-  endfunction
-
   " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
-  command! -bang -nargs=* Csearch call <SID>CmdQfSearch(0, <bang>0, <q-args>) | let v:hlsearch = 1
-  command! -bang -nargs=* Lsearch call <SID>CmdQfSearch(1, <bang>0, <q-args>) | let v:hlsearch = 1
+  command! -nargs=* Csearch call dotfiles#search#cmd_qf_search(0, <q-args>) | let v:hlsearch = 1
+  command! -nargs=* Lsearch call dotfiles#search#cmd_qf_search(1, <q-args>) | let v:hlsearch = 1
 
 " }}}
 
