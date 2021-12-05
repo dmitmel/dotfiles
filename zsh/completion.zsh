@@ -41,11 +41,13 @@ zstyle ':completion:*:processes' force-list always
 _completion_get_hosts() {
   print -r -- localhost
   local line
-  < ~/.ssh/config while IFS= read -r line; do
-    if [[ "$line" =~ '^Host[[:blank:]]+(.*)[[:blank:]]*' ]]; then
-      print -r -- "${match[1]}"
-    fi
-  done
+  if [[ -r ~/.ssh/config ]]; then
+    < ~/.ssh/config while IFS= read -r line; do
+      if [[ "$line" =~ '^Host[[:blank:]]+(.*)[[:blank:]]*' ]]; then
+        print -r -- "${match[1]}"
+      fi
+    done
+  fi
 }
 zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")'
 
