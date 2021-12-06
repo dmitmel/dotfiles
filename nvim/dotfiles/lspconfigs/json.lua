@@ -2,7 +2,7 @@
 -- <https://github.com/microsoft/vscode/blob/main/extensions/json-language-features/client/src/jsonClient.ts>
 
 local lspconfig = require('lspconfig')
-local lspconfig_jsonls = require('lspconfig.server_configurations.jsonls')
+local lspconfig_jsonls = require('lspconfig.server_configurations.jsonls').default_config
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local lsp_utils = require('dotfiles.lsp.utils')
 local lsp_ignition = require('dotfiles.lsp.ignition')
@@ -82,7 +82,7 @@ lsp_ignition.setup_config('jqfmt', {
         end
 
         local fmt_lines = vim.fn.systemlist(jq_args, buf_lines)
-        if fmt_lines[1] and fmt_lines[1]:match('^parse error:') then
+        if vim.v.shell_error ~= 0 then
           return reply(nil, nil)
         end
 

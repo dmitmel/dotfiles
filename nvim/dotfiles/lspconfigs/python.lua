@@ -3,7 +3,7 @@
 
 local lsp = require('vim.lsp')
 local lspconfig = require('lspconfig')
-local lspconfig_pyright = require('lspconfig.server_configurations.pyright')
+local lspconfig_pyright = require('lspconfig.server_configurations.pyright').default_config
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local vim_uri = require('vim.uri')
 local rplugin_bridge = require('dotfiles.rplugin_bridge')
