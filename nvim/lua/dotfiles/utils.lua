@@ -436,4 +436,17 @@ function M.write_file(path, data, opts)
 end
 
 
+-- Shamelessly taken from <https://github.com/dmitmel/neovim/blob/v0.6.0/runtime/lua/vim/lsp.lua#L289-L307>.
+-- This should be in the standard library.
+function M.once(fn)
+  local values
+  return function(...)
+    if not values then
+      values = M.pack(fn(...))
+    end
+    return M.unpack(values, 1, values.n)
+  end
+end
+
+
 return M

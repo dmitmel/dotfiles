@@ -1,3 +1,8 @@
+" See also:
+" <https://github.com/junegunn/fzf.vim/blob/master/autoload/fzf/vim.vim>
+" <https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim>
+" <https://github.com/junegunn/fzf/blob/master/plugin/fzf.vim>
+
 let g:dotfiles#fzf#manpage_search_actions = {
 \ 'ctrl-t': 'tab',
 \ 'ctrl-x': '',

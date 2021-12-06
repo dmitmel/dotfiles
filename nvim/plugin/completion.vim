@@ -180,6 +180,7 @@ EOF
 EOF
 
   lua require('dotfiles.lsp.basic_handlers')
+  lua require('dotfiles.lsp.custom_ui')
   lua require('dotfiles.lsp.diagnostics')
   lua require('dotfiles.lsp.float')
   lua require('dotfiles.lsp.global_settings')
