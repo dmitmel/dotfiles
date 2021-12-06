@@ -183,9 +183,15 @@ let &history = max([&history, 10000])
 
 
 " FZF {{{
+  let g:fzf_command_prefix = ''
+
+  command! -bar -bang Manpages call dotfiles#fzf#manpage_search(<bang>0)
+
   nnoremap <silent> <F1>      <Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
   nnoremap <silent> <leader>b <Cmd>Buffers<CR>
+  nnoremap <silent> <leader>m <Cmd>Manpages<CR>
+
   " <https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515>
   let $FZF_DEFAULT_OPTS = '--color=16'
   let g:fzf_layout = { 'down': '~40%' }
