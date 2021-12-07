@@ -12,15 +12,27 @@ let g:dotfiles#fzf#manpage_search_actions = {
 \ }
 
 function! dotfiles#fzf#manpage_search(fullscreen) abort
-  call fzf#run(fzf#wrap('manpages', {
-  \ 'source': 'man -k .',
+  call s:delete_manpages_script()
+  let s:manpages_script = tempname()
+  call writefile(['/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf("%-50s\t%s\n", sprintf("%s(%s)", $1, $2), $3)'], s:manpages_script)
+  let results = fzf#run(fzf#wrap('manpages', {
+  \ 'source': 'man -k . | perl -n ' . fzf#shellescape(s:manpages_script),
   \ 'sink*': function('s:manpage_search_sink'),
   \ 'options': ['--prompt=:Man ', '--tiebreak=begin', '--multi',
   \   '--expect=' . join(keys(g:dotfiles#fzf#manpage_search_actions), ',')],
   \ }, a:fullscreen))
+  return results
+endfunction
+
+function! s:delete_manpages_script() abort
+  if exists('s:manpages_script')
+    silent! call delete(s:manpages_script)
+    unlet! s:manpages_script
+  endif
 endfunction
 
 function! s:manpage_search_sink(lines) abort
+  call s:delete_manpages_script()
   if len(a:lines) < 2 | return | endif
   let pressed_key = a:lines[0]
   let modifiers = get(g:dotfiles#fzf#manpage_search_actions, pressed_key, '')
