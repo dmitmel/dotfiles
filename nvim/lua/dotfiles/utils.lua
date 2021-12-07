@@ -52,13 +52,7 @@ end
 
 -- Faster than `#string.format('%d', math.abs(n))` under LuaJIT, as expected.
 function M.int_digit_length(n)
-  local digits = 1
-  n = math.floor(math.abs(n))
-  while n >= 10 do
-    n = math.floor(n / 10)
-    digits = digits + 1
-  end
-  return digits
+  return math.floor(math.log10(math.max(1, math.floor(math.abs(n))))) + 1
 end
 
 
