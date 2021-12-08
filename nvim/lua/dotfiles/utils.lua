@@ -172,7 +172,7 @@ end
 function M.tbl_find(t, func)
   for k, v in pairs(t) do
     if func(v, k) then
-      return k, v
+      return v, k
     end
   end
 end

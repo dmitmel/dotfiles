@@ -1,7 +1,3 @@
-if not require('dotfiles.utils.vim').has('nvim-0.6.0') then
-  return require('dotfiles.lsp.diagnostics_old')
-end
-
 --- Primarily patches to <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua>
 --- and <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/diagnostic.lua>.
 ---
@@ -159,6 +155,7 @@ function M.set_list(loclist, opts)
   end
   local title = opts.title or ('Diagnostics from ' .. vim.fn.expand('%:.'))
   local items = vim_diagnostic.toqflist(vim_diagnostic.get(bufnr, opts))
+  vim.api.nvim_echo({{ string.format('Found %d diagnostics', #items) }}, false, {})
   vim.call('dotfiles#utils#push_qf_list', {
     title = title;
     dotfiles_loclist_window = winnr;

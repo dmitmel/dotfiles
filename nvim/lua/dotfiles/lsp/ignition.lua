@@ -636,7 +636,7 @@ function M.broadcast_workspace_root_dirs_change(changes)
         ) then
           client.notify('workspace/didChangeWorkspaceFolders', req_params)
         end
-        client.workspaceFolders = vim.tbl_values(M.workspace_root_dirs)
+        -- client.workspaceFolders = vim.tbl_values(M.workspace_root_dirs)
       end
     end
   end
@@ -749,10 +749,16 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
 
     -- Fake this for the purposes of :LspInfo. It's not like we or any
     -- remaining built-in functions read this field.
-    client.workspaceFolders = {{
+    local fake_workspace_folders_list = {{
       uri = vim_uri.uri_from_fname(tostring(client.config.root_dir));
       name = tostring(client.config.root_dir);
     }}
+    if utils_vim.has('nvim-0.6.0') then
+      client.workspace_folders = client.workspaceFolders
+    end
+    if not utils_vim.has('nvim-0.7.0') then
+      client.workspaceFolders = fake_workspace_folders_list
+    end
 
     -- See also: <https://github.com/neovim/nvim-lspconfig/pull/1360>.
     if type(init_result.offsetEncoding) == 'string' then
@@ -760,7 +766,7 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
     end
 
     -- See also: <https://github.com/neovim/neovim/pull/13659>.
-    -- TODO: Ensure that the settings aren't setn twice.
+    -- TODO: Ensure that the settings aren't set twice.
     local settings = client.config.settings
     if settings then
       if vim.tbl_isempty(settings) then
@@ -825,7 +831,7 @@ function M.ensure_client_attached_to_buf(config, client_id, bufnr)
   assert(vim.api.nvim_buf_is_valid(bufnr), 'buffer not found')
   -- This line <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L1133>
   -- may(?) cause a leak on repeated attachments, so we make a sanity check
-  -- beforehand. TODO: open a fix PR to the upstream.
+  -- beforehand. This was fixed in <https://github.com/neovim/neovim/pull/16099>.
   if not lsp.buf_is_attached(bufnr, client_id) then
     return lsp.buf_attach_client(bufnr, client_id)
   else

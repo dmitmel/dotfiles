@@ -180,8 +180,14 @@ EOF
 EOF
 
   lua require('dotfiles.lsp.basic_handlers')
-  lua require('dotfiles.lsp.custom_ui')
-  lua require('dotfiles.lsp.diagnostics')
+  if has('nvim-0.6.0')
+    lua require('dotfiles.lsp.custom_ui')
+  endif
+  if has('nvim-0.6.0')
+    lua require('dotfiles.lsp.diagnostics')
+  else
+    lua require('dotfiles.lsp.diagnostics_old')
+  endif
   lua require('dotfiles.lsp.float')
   lua require('dotfiles.lsp.global_settings')
   lua require('dotfiles.lsp.hover')
@@ -226,7 +232,7 @@ EOF
     xnoremap <silent> <space>f       :LspFormat<CR>
     nnoremap <silent> <space>o   <Cmd>lua vim.lsp.buf.document_symbol()<CR>
     nnoremap          <space>w       :LspWorkspaceSymbols<space>
-    nnoremap <silent> <space>c   <Cmd>Commands<CR>
+    nnoremap <silent> <space>c   <Cmd>call fzf#vim#commands({'options':['--query=Lsp']})<CR>
 
     " Create shorthands overriding default mappings which make sense when a
     " language server is connected. Note that these are not created in
@@ -242,6 +248,9 @@ EOF
   augroup dotfiles_lsp
     autocmd!
     autocmd User LspIgnitionBufAttach setlocal omnifunc=v:lua.vim.lsp.omnifunc
+    if has('nvim-0.6.0')
+      autocmd User LspIgnitionBufAttach setlocal formatexpr=v:lua.vim.lsp.formatexpr
+    endif
   augroup END
 
   runtime! dotfiles/lspconfigs/*.lua

@@ -2,10 +2,6 @@
 --- which don't fit into any other module.
 local M = require('dotfiles.autoload')('dotfiles.lsp.custom_ui')
 
-if not require('dotfiles.utils.vim').has('nvim-0.6.0') then
-  return M
-end
-
 local vim_ui = require('vim.ui')
 local utils = require('dotfiles.utils')
 

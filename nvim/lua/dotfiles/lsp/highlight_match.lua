@@ -17,11 +17,6 @@ local CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS = utils_vim.has('nvim-0.5.0') or uti
 -- <https://github.com/vim/vim/blob/53ba05b09075f14227f9be831a22ed16f7cc26b2/src/structs.h#L3298-L3299>
 local MAX_MATCHADDPOS_BATCH_SIZE = 8
 
--- TODO: Rewrite the window-switching stuff to use `nvim_win_call`.
-local helper_noautocmd_win_gotoid = utils_vim.define_adhoc_function({'winid'}, [[
-  noautocmd call win_gotoid(a:winid)
-]])
-
 
 -- Re-implementation of `coc#highlight#match_ranges`.
 function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
@@ -79,28 +74,26 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
   local slices_len = #slices
   local match_ids = {}
   if slices_len > 0 then
-    local current_winid
-    if not CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
-      current_winid = vim.api.nvim_get_current_win()
-      helper_noautocmd_win_gotoid(winid)
+    local function do_the_job()
+      for i = 1, slices_len, MAX_MATCHADDPOS_BATCH_SIZE do
+        local batch = {}
+        for j = 1, math.min(MAX_MATCHADDPOS_BATCH_SIZE, slices_len - (i - 1)) do
+          batch[j] = slices[(i - 1) + j]
+        end
+        local match_id
+        if CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
+          match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1, {window = winid})
+        else
+          match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1)
+        end
+        table.insert(match_ids, match_id)
+      end
     end
 
-    for i = 1, slices_len, MAX_MATCHADDPOS_BATCH_SIZE do
-      local batch = {}
-      for j = 1, math.min(MAX_MATCHADDPOS_BATCH_SIZE, slices_len - (i - 1)) do
-        batch[j] = slices[(i - 1) + j]
-      end
-      local match_id
-      if CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
-        match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1, {window = winid})
-      else
-        match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1)
-      end
-      table.insert(match_ids, match_id)
-    end
-
-    if not CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
-      helper_noautocmd_win_gotoid(current_winid)
+    if CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
+      do_the_job()
+    else
+      vim.api.nvim_win_call(winid, do_the_job)
     end
   end
 
@@ -125,14 +118,13 @@ function M.clear_by_predicate(winid, predicate)
       end
     end
   else
-    local current_winid = vim.api.nvim_get_current_win()
-    vim.call(helper_noautocmd_win_gotoid, winid)
-    for _, match in ipairs(vim.call('getmatches')) do
-      if predicate(match, winid) then
-        vim.call('matchdelete', match.id)
+    vim.api.nvim_win_call(winid, function()
+      for _, match in ipairs(vim.call('getmatches')) do
+        if predicate(match, winid) then
+          vim.call('matchdelete', match.id)
+        end
       end
-    end
-    vim.call(helper_noautocmd_win_gotoid, current_winid)
+    end)
   end
 end
 
@@ -154,12 +146,11 @@ function M.clear_by_ids(winid, match_ids)
       vim.call('matchdelete', match_id, winid)
     end
   else
-    local current_winid = vim.api.nvim_get_current_win()
-    vim.call(helper_noautocmd_win_gotoid, winid)
-    for _, match_id in ipairs(match_ids) do
-      vim.call('matchdelete', match_id)
-    end
-    vim.call(helper_noautocmd_win_gotoid, current_winid)
+    vim.api.nvim_win_call(winid, function()
+      for _, match_id in ipairs(match_ids) do
+        vim.call('matchdelete', match_id)
+      end
+    end)
   end
 end
 

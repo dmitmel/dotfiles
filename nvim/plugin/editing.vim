@@ -23,8 +23,15 @@ endif
 
 
 " Indentination {{{
+" <https://vim.fandom.com/wiki/Indenting_source_code>
 
   set autoindent
+  " `smartindent` is a "fallback" autoindentation mechanism which just uses
+  " curly brackets and the words from `cinwords` for determining indentation
+  " and is activated when `cindent` and `indentexpr` are not set. This will be
+  " the case only for buffers without a filetype because most ftplugins already
+  " define reasonable indentation settings, AND text files.
+  set smartindent
   " <Tab> inserts `shiftwidth` number spaces in front of a line, <BS> deletes
   " `shiftwidth` number spaces in front of a line.
   set smarttab

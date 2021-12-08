@@ -16,6 +16,7 @@
 ---
 --- TODO:
 --- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/src/handler/index.ts#L128-L167>
+--- Integrate <https://github.com/neovim/neovim/pull/15949>
 local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.lsp.progress')
 
 local lsp_ignition = require('dotfiles.lsp.ignition')
