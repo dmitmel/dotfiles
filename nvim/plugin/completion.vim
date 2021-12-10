@@ -199,7 +199,11 @@ EOF
 
   " commands {{{
 
-    command! -nargs=0 -bar LspDiagnostics lua vim.lsp.diagnostic.set_qflist({severity_limit='Information'})
+    if has('nvim-0.6.0')
+      command! -nargs=0 -bar LspDiagnostics lua vim.diagnostic.setqflist({severity={min='INFO'}})
+    else
+      command! -nargs=0 -bar LspDiagnostics lua vim.lsp.diagnostic.set_qflist({severity_limit='Information'})
+    endif
     command! -nargs=0 -bar LspOpenLog lua vim.call('dotfiles#utils#jump_to_file', vim.lsp.get_log_path())
     command! -nargs=0 -bar -range LspFormat lua if <range> == 0 then vim.lsp.buf.formatting() else vim.lsp.buf.range_formatting(nil, {<line1>, 0}, {<line2>, #vim.fn.getline(<line2>)}) end
     command! -nargs=0 -bar LspFormatSync lua vim.lsp.buf.formatting_sync()
@@ -224,9 +228,15 @@ EOF
     xnoremap <silent> <space>K  :<C-u>lua vim.lsp.buf.range_hover()<CR>
     nnoremap <silent> <space>s   <Cmd>lua vim.lsp.buf.signature_help()<CR>
     inoremap <silent> <F1>       <Cmd>lua vim.lsp.buf.signature_help()<CR>
-    nnoremap <silent> [c         <Cmd>lua vim.lsp.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
-    nnoremap <silent> ]c         <Cmd>lua vim.lsp.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
-    nnoremap <silent> <A-d>      <Cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>
+    if has('nvim-0.6.0')
+      nnoremap <silent> [c       <Cmd>lua vim.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
+      nnoremap <silent> ]c       <Cmd>lua vim.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      nnoremap <silent> <A-d>    <Cmd>lua vim.diagnostic.open_float(nil,{scope='line'})<CR>
+    else
+      nnoremap <silent> [c       <Cmd>lua vim.lsp.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
+      nnoremap <silent> ]c       <Cmd>lua vim.lsp.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      nnoremap <silent> <A-d>    <Cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>
+    endif
     nnoremap <silent> <space>d   <Cmd>LspDiagnostics<CR>
     nnoremap <silent> <space>f   <Cmd>LspFormat<CR>
     xnoremap <silent> <space>f       :LspFormat<CR>
