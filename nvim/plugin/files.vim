@@ -44,20 +44,38 @@ if has('path_extra')
 endif
 
 
-" ripgrep (rg) {{{
-  if executable('rg')
-    let s:rg_cmd = 'rg --hidden --follow'
-    let s:rg_ignore = split(&wildignore, ',') + [
-    \ 'node_modules', 'target', 'build', 'dist', '.stack-work', '.ccls-cache'
-    \ ]
-    let s:rg_cmd .= " --glob '!{'" . shellescape(join(s:rg_ignore, ','), 1) . "'}'"
+" grep {{{
 
+  if executable('rg') " {{{
+    let s:rg_cmd = 'rg --hidden --follow --smart-case'
     let &grepprg = s:rg_cmd . ' --vimgrep'
     set grepformat^=%f:%l:%c:%m
     let $FZF_DEFAULT_COMMAND = s:rg_cmd . ' --files'
-    command! -bang -nargs=* Rg call fzf#vim#grep(s:rg_cmd . ' --column --line-number --no-heading --fixed-strings --smart-case --color always ' . shellescape(<q-args>, 1), 1, <bang>0)
+    command! -bang -nargs=* Rg call fzf#vim#grep(
+    \ s:rg_cmd . ' --column --line-number --no-heading --color=always -- ' . shellescape(<q-args>),
+    \ 1, fzf#vim#with_preview(), <bang>0)
     command! -bang -nargs=* Find Rg<bang> <args>
-  endif
+    " }}}
+  elseif executable('ag') " {{{
+    let s:ag_cmd = 'ag --hidden --follow --smart-case'
+    let &grepprg = s:ag_cmd . ' --vimgrep'
+    set grepformat^=%f:%l:%c:%m
+    let $FZF_DEFAULT_COMMAND = s:ag_cmd . " --search-binary --files-with-matches ''"
+    command! -bang -nargs=* Ag call fzf#vim#grep(
+    \ s:ag_cmd . ' --column --line-number --nogroup --color -- ' . shellescape(<q-args>),
+    \ 1, fzf#vim#with_preview(), <bang>0)
+    command! -bang -nargs=* Find Ag<bang> <args>
+    " }}}
+  else " plain ol' grep {{{
+    " Short flags are used for compatibility with non-GNU grep implementations.
+    " Note that -H is a GNU extension, yet is supported by the BSD and Busybox
+    " grep. Long names of the flags:
+    " -R = --dereference-recursive
+    " -I = --binary-files=without-match
+    " -n = --line-number
+    " -H = --with-filename
+    let &grepprg = 'grep -R -I -n -H'
+  endif " }}}
 
   nnoremap <leader>/ :<C-u>grep<space>
 
@@ -65,20 +83,20 @@ endif
     let word = expand('<cword>')
     if !empty(word)
       let cmd = 'grep -- ' . shellescape('\b' . word . '\b', 1)
-      call histadd('cmd', cmd)
-      call feedkeys(":\<C-u>" . cmd, 'n')
+      call feedkeys(":\<C-u>" . cmd, 'nt')
     endif
   endfunction
   function! s:grep_mapping_star_visual() abort
     let tmp = @"
     normal! y
-    let cmd = 'grep -- ' . shellescape(@", 1)
-    call histadd('cmd', cmd)
-    call feedkeys(":\<C-u>" . cmd, 'n')
+    let text = @"
     let @" = tmp
+    let cmd = 'grep -- ' . shellescape(text, 1)
+    call feedkeys(":\<C-u>" . cmd, 'nt')
   endfunction
   nnoremap <leader>* <Cmd>call <SID>grep_mapping_star_normal()<CR>
   xnoremap <leader>* <Cmd>call <SID>grep_mapping_star_visual()<CR>
+
 " }}}
 
 
