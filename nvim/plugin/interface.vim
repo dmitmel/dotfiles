@@ -165,6 +165,9 @@ let &history = max([&history, 10000])
   if dotfiles#plugman#is_registered('vim-gitgutter') || dotfiles#plugman#is_registered('vim-signify')
     let g:airline_extensions += ['hunks']
   endif
+  if dotfiles#plugman#is_registered('gitsigns.nvim')
+    let g:airline_extensions += ['dotfiles_gitsigns_nvim']
+  endif
   if dotfiles#plugman#is_registered('coc.nvim')
     let g:airline_extensions += ['coc', 'dotfiles_coclist']
   endif

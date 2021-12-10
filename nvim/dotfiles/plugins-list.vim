@@ -4,6 +4,17 @@ let s:plug = function('dotfiles#plugman#register')
 " All plugin definitions are written as links to github.com (instead of the
 " typical `user/repo`) so that I can move the cursor over any and press `gx`.
 
+" General-purpose libraries {{{
+  if has('nvim-0.5.0')
+    " Required by:
+    " 1. gitsigns.nvim
+    call s:plug('https://github.com/nvim-lua/plenary.nvim')
+  endif
+  " Required by:
+  " 1. LineJuggler
+  call s:plug('https://github.com/inkarkat/vim-ingo-library')
+" }}}
+
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   call s:plug('https://github.com/tpope/vim-eunuch')
@@ -65,8 +76,6 @@ let s:plug = function('dotfiles#plugman#register')
   " languages which use English keywords for delimiting blocks (Vimscript, Lua,
   " Ruby etc).
   call s:plug('https://github.com/andymass/vim-matchup')
-  " A REALLY huge library. Used by LineJuggler.
-  call s:plug('https://github.com/inkarkat/vim-ingo-library')
   " Adds commands for inserting and moving around nearby lines: `[e` and `]e`
   " for swapping two lines, `]<Space>` and `[<Space>` for inserting blank ones,
   " `[d` and `]d` for duplicating the current line.
@@ -130,13 +139,17 @@ let s:plug = function('dotfiles#plugman#register')
     call s:plug('https://github.com/tpope/vim-rhubarb')
     call s:plug('https://github.com/shumphrey/fugitive-gitlab.vim')
     " Show change markers (relative to what is in the Git repository) in the
-    " sign column. vim-gitgutter[1] is a bit slow and creates lots of temporary
+    " sign column. vim-gitgutter is a bit slow and creates lots of temporary
     " files with `tempname()` (and then doesn't delete them), but vim-signify
     " flashes between results of `git diff` and `git diff --staged` when the
-    " file is staged. I'll consider using gitsigns.nvim[2].
-    " [1]: <https://github.com/airblade/vim-gitgutter>
-    " [2]: <https://github.com/lewis6991/gitsigns.nvim>
-    call s:plug('https://github.com/mhinz/vim-signify', (has('nvim') || has('patch-8.0.902')) ? {} : { 'branch': 'legacy' })
+    " file is staged.
+    if has('nvim-0.5.0')
+      call s:plug('https://github.com/lewis6991/gitsigns.nvim')
+    elseif has('nvim') || has('patch-8.0.902')
+      call s:plug('https://github.com/mhinz/vim-signify')
+    else
+      call s:plug('https://github.com/airblade/vim-gitgutter')
+    endif
   endif
 " }}}
 

@@ -378,6 +378,11 @@
   hi! link SignifySignAdd        DiffAdd
   hi! link SignifySignChange     DiffText
   hi! link SignifySignDelete     DiffDelete
+  hi! link GitSignsAdd           DiffAdd
+  hi! link GitSignsDelete        DiffDelete
+  hi! link GitSignsTopDelete     GitSignsTopDelete
+  hi! link GitSignsChange        DiffText
+  hi! link GitSignsChangeDelete  GitSignsChange
 " }}}
 
 " Vim scripts {{{

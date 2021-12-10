@@ -9,7 +9,7 @@ let g:signify_priority = g:gitgutter_sign_priority
 let g:gitgutter_sign_added                   = '+'
 let g:gitgutter_sign_modified                = '~'
 let g:gitgutter_sign_removed                 = '_'
-let g:gitgutter_sign_removed_first_line      = '‾'
+let g:gitgutter_sign_removed_first_line      = "\u203e"
 let g:gitgutter_sign_removed_above_and_below = g:gitgutter_sign_removed . g:gitgutter_sign_removed_first_line
 let g:gitgutter_sign_modified_removed        = g:gitgutter_sign_modified . g:gitgutter_sign_removed
 " Mirror the look of gitgutter here. TODO: Port this to vim-signify:
@@ -21,8 +21,32 @@ let g:signify_sign_delete_first_line = g:gitgutter_sign_removed_first_line
 let g:signify_sign_change            = g:gitgutter_sign_modified
 let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
 
+lua <<EOF
+  local ok, gitsigns = pcall(require, 'gitsigns')
+  vim.g.gitsigns_nvim_available = ok
+  if not ok then return end
+  gitsigns.setup({
+    signs = {
+      add          = { text = vim.g.gitgutter_sign_added              };
+      delete       = { text = vim.g.gitgutter_sign_removed            };
+      topdelete    = { text = vim.g.gitgutter_sign_removed_first_line };
+      change       = { text = vim.g.gitgutter_sign_modified           };
+      changedelete = { text = vim.g.gitgutter_sign_modified_removed   };
+    };
+    sign_priority = vim.g.gitgutter_sign_priority;
+    preview_config = {
+      border = 'none';
+      col = 0;
+      row = 1;
+    };
+    -- Disable the default mappings, we will define our own, and via the
+    -- intended way.
+    keymaps = {};
+  })
+EOF
+
 " mappings {{{
-  let g:gitgutter_map_keys = 0
+
   nnoremap <leader>gg :<C-u>G
   nnoremap <leader>g  :<C-u>Git<space>
   nnoremap <leader>gs :<C-u>vertical Git<CR>
@@ -37,10 +61,22 @@ let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
   nnoremap <leader>gl :<C-u>Gclog<CR>
   nnoremap <leader>gp :<C-u>Git push
   nnoremap <leader>gP :<C-u>Git push --force-with-lease
+
+  let g:gitgutter_map_keys = 0
+
   " Jump to the next/previous change in the diff mode because I replace the
   " built-in mappings with coc.nvim's for jumping through diagnostics.
+  " TODO: untangle these keybindings. Use `g` for diagnostics and `c` for diff hunks.
   nnoremap [g [c
   nnoremap ]g ]c
+
+  if g:gitsigns_nvim_available
+    nnoremap <silent><expr> [g &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"
+    nnoremap <silent><expr> ]g &diff ? ']c' : "\<Cmd>Gitsigns next_hunk\<CR>"
+    onoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
+    xnoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
+  endif
+
 " }}}
 
 " Fugitive.vim handlers {{{
