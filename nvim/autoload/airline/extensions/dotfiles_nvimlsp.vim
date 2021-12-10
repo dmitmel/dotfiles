@@ -21,7 +21,7 @@ function! airline#extensions#dotfiles_nvimlsp#init(ext) abort
   call airline#parts#define_function('coc_status', 'airline#extensions#dotfiles_nvimlsp#get_progress')
   if !has('nvim-0.6.0')
     lua <<EOF
-    local lsp_diagnostics = require('dotfiles.lsp.diagnostics')
+    local lsp_diagnostics = require('dotfiles.lsp.diagnostics_old')
     function dotfiles._airline_extension_on_diagnostics_changed()
       for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
         local stats = lsp_diagnostics.get_severity_stats_for_statusline(bufnr)
