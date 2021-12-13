@@ -1,4 +1,5 @@
 return function(catalog)
+
   local patchsteps_pattern = '**/assets/**/*.json.patch'
   table.insert(catalog, {
     name = 'CrossCode PatchSteps',
@@ -11,4 +12,12 @@ return function(catalog)
       table.insert(entry.fileMatch, '!' .. patchsteps_pattern)
     end
   end
+
+  table.insert(catalog, {
+    name = 'pyrightconfig.json',
+    description = 'Pyright Configuration Schema',
+    fileMatch = {'pyrightconfig.json'},
+    url = 'https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json',
+  })
+
 end

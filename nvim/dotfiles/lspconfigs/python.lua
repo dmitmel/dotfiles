@@ -10,8 +10,6 @@ local rplugin_bridge = require('dotfiles.rplugin_bridge')
 local utils = require('dotfiles.utils')
 local lsp_utils = require('dotfiles.lsp.utils')
 
--- TODO: pyrightconfig.json schema
-
 local DOTFILES_DIR = vim.fn.fnamemodify(utils.script_path(), ':p:h:h:h:h')
 
 lspconfig['pyright'].setup({
