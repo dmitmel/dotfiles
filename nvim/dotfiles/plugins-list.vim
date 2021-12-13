@@ -181,11 +181,22 @@ let s:plug = function('dotfiles#plugman#register')
   " installed is <https://github.com/dmitmel/riscv-playground>.
   call s:plug('https://github.com/kylelaker/riscv.vim')
   if g:vim_ide
-    if exists('*luaeval') && luaeval('vim.loop ~= nil')
-      " Mirror of the luv[1] documentation as a vimdoc file.
-      " [1]: <https://github.com/luvit/luv/blob/master/docs.md>
+    " The Lua standard library has been introduced in nvim 0.4.0, see
+    " <https://github.com/neovim/neovim/commit/e2cc5fe09d98ce1ccaaa666a835c896805ccc196>.
+    if has('nvim-0.4.0')
+      " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
+      call s:plug('https://github.com/bfredl/luarefvim')
+      " Type declaration files for the Lua Language Server[1] of Nvim's Lua
+      " APIs (actually includes other stuff, such as a pre-made configuration
+      " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
+      " plugins).
+      " [1]: <https://github.com/sumneko/lua-language-server>
+      call s:plug('https://github.com/folke/lua-dev.nvim')
+      " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
       call s:plug('https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' })
     endif
+    " The built-in LSP client has been introduced in nvim 0.5.0, see
+    " <https://github.com/neovim/neovim/commit/a5ac2f45ff84a688a09479f357a9909d5b914294>.
     if has('nvim-0.5.0') && get(g:, 'dotfiles_new_completion', 0)
       " Collection of pre-made Language Server configs for Neovim's built-in
       " LSP client. Only defines stuff like names of executables of the
@@ -203,9 +214,7 @@ let s:plug = function('dotfiles#plugman#register')
       " The following plugins are actually completion sources for nvim-cmp:
       " The built-in Language Server client.
       call s:plug('https://github.com/hrsh7th/cmp-nvim-lsp', { 'branch': 'main' })
-      " Global tables in the embedded Lua interpreter, such as `vim`.
-      call s:plug('https://github.com/hrsh7th/cmp-nvim-lua', { 'branch': 'main' })
-      " Words from buffers (as I like to call them, the "dump completions").
+      " Words from buffers (as I like to call them, the "dumb completions").
       call s:plug('https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' })
       " File paths.
       call s:plug('https://github.com/hrsh7th/cmp-path', { 'branch': 'main' })
