@@ -1,8 +1,6 @@
 -- <https://github.com/iamcco/coc-vimlsp/blob/master/src/index.ts>
 
 local lsp = require('vim.lsp')
-local lspconfig = require('lspconfig')
-local lspconfig_vimls = require('lspconfig.server_configurations.vimls').default_config
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local vim_uri = require('vim.uri')
 local rplugin_bridge = require('dotfiles.rplugin_bridge')
@@ -10,9 +8,12 @@ local utils = require('dotfiles.utils')
 local lsp_utils = require('dotfiles.lsp.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
-lspconfig['vimls'].setup({
+local vimscript_filetypes = {'vim'}
+lsp_ignition.setup_config('vimls', {
   -- Autocompletion for Vimscript turned out to be useless (no wonder).
   enabled = false;
+  cmd = {'vim-language-server', '--stdio'};
+  filetypes = vimscript_filetypes;
 
   completion_menu_label = 'Vim';
 
@@ -47,7 +48,10 @@ lspconfig['vimls'].setup({
       opts.iskeyword = vim.api.nvim_buf_get_option(bufnr, 'iskeyword')
     end
 
-    opts.runtimepath = vim.o.runtimepath
+    -- NOTE: Nvim doesn't put entries of packages into the RTP, see
+    -- |runtime-search-path|, but and calling nvim_get_runtime_file is the
+    -- recommended method of really getting all runtimepath entries.
+    opts.runtimepath = vim.api.nvim_get_runtime_file('', true)
   end;
 
   on_init = function(client)
@@ -79,8 +83,9 @@ lspconfig['vimls'].setup({
 })
 
 lsp_ignition.setup_config('vint', {
-  filetypes = lspconfig_vimls.filetypes;
-  root_dir = lspconfig_vimls.root_dir;
+  filetypes = vimscript_filetypes;
+  single_file_support = true;
+
   virtual_server = {
     capabilities = {
       textDocumentSync = {

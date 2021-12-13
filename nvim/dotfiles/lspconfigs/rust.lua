@@ -12,11 +12,18 @@
 -- <https://github.com/rust-analyzer/rust-analyzer/blob/2021-07-19/docs/dev/lsp-extensions.md>
 -- <https://github.com/akinsho/nvim-toggleterm.lua/blob/master/lua/toggleterm/config.lua>
 
+local lsp_ignition = require('dotfiles.lsp.ignition')
+local lspconfig_utils = require('lspconfig.util')
 local lsp_utils = require('dotfiles.lsp.utils')
-local lspconfig = require('lspconfig')
 local lsp = require('vim.lsp')
 
-lspconfig['rust_analyzer'].setup({
+lsp_ignition.setup_config('rust_analyzer', {
+  cmd = {'rust-analyzer'};
+  filetypes = {'rust'};
+  -- TODO: nvim-lspconfig's configuration for rust_analyzer contains a long and
+  -- convoluted function for detection of root_dir, apparently to support
+  -- multi-crate (Cargo workspace) projects. I'll figure that out later.
+  -- root_dir = lspconfig_utils.root_pattern('rust-project.json', 'Cargo.toml');
   completion_item_label = 'Rs';
 
   settings_scopes = {'rust-analyzer'};
@@ -65,7 +72,7 @@ lspconfig['rust_analyzer'].setup({
     )
   end;
 
-  ignition_commands = {
+  vim_user_commands = {
     -- <https://github.com/fannheyward/coc-rust-analyzer/blob/70a051e6877064dca71caa65f7b21ad2a7eb419a/src/commands.ts#L435-L439>
     -- <https://github.com/neovim/nvim-lspconfig/blob/4f72377143fc0961391fb0e42e751b9f677fca4e/lua/lspconfig/rust_analyzer.lua#L5-L13>
     LspRustReloadWorkspace = {handler = function(_, client, bufnr)

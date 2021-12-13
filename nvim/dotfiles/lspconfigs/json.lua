@@ -1,26 +1,32 @@
 -- <https://github.com/neoclide/coc-json/blob/master/src/index.ts>
 -- <https://github.com/microsoft/vscode/blob/main/extensions/json-language-features/client/src/jsonClient.ts>
 
-local lspconfig = require('lspconfig')
-local lspconfig_jsonls = require('lspconfig.server_configurations.jsonls').default_config
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local lsp_utils = require('dotfiles.lsp.utils')
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local vim_uri = require('vim.uri')
 
-local cmd = {'vscode-json-languageserver'}
-if lsp_utils.VSCODE_INSTALL_PATH then
-  cmd = {
-    'node',
-    lsp_utils.VSCODE_INSTALL_PATH ..
-    '/extensions/json-language-features/server/dist/node/jsonServerMain.js'
-  }
+local function find_exe()
+  for _, exe in ipairs({
+    'vscode-json-language-server', -- <https://github.com/hrsh7th/vscode-langservers-extracted>
+    'vscode-json-languageserver',  -- <https://archlinux.org/packages/community/any/vscode-json-languageserver/>
+  }) do
+    if vim.fn.executable(exe) ~= 0 then
+      return { exe }
+    end
+  end
+  if lsp_utils.VSCODE_INSTALL_PATH then
+    local path = lsp_utils.VSCODE_INSTALL_PATH .. '/extensions/json-language-features/server/dist/node/jsonServerMain.js'
+    if vim.fn.filereadable(path) ~= 0 then return { 'node', path } end
+  end
+  return { 'vscode-json-language-server' }  -- fallback
 end
-vim.list_extend(cmd, {'--stdio'})
 
-lspconfig['jsonls'].setup({
-  cmd = cmd;
-  filetypes = {'json', 'jsonc', 'json5'};
+local json_filetypes = {'json', 'jsonc', 'json5'}
+lsp_ignition.setup_config('jsonls', {
+  cmd = vim.list_extend(find_exe(), { '--stdio' });
+  filetypes = json_filetypes;
+  single_file_support = true;
   completion_menu_label = 'JSON';
 
   init_options = {
@@ -56,8 +62,10 @@ lspconfig['jsonls'].setup({
 })
 
 lsp_ignition.setup_config('jqfmt', {
-  filetypes = lspconfig_jsonls.filetypes;
+  filetypes = json_filetypes;
   -- root_dir = jsonls_config.root_dir;
+  single_file_support = true;
+
   virtual_server = {
     capabilities = {
       documentFormattingProvider = true;

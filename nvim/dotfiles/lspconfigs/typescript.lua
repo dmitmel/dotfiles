@@ -5,14 +5,20 @@
 -- TODO: custom server for prettier
 -- TODO TODO TODO: <https://github.com/fsouza/prettierd/blob/main/src/service.ts>
 
+local lsp_ignition = require('dotfiles.lsp.ignition')
+local lspconfig_utils = require('lspconfig.util')
 local lsp = require('vim.lsp')
-local lspconfig = require('lspconfig')
 local lsp_utils = require('dotfiles.lsp.utils')
 
-lspconfig['tsserver'].setup({
+local js_and_ts_filetypes = {'javascript', 'javascriptreact', 'javascript.jsx', 'typescript', 'typescriptreact', 'typescript.jsx'}
+lsp_ignition.setup_config('tsserver', {
+  cmd = {'typescript-language-server', '--stdio'};
+  filetypes = js_and_ts_filetypes;
+  -- root_dir = lspconfig_utils.root_pattern('tsconfig.json', 'jsconfig.json', 'package.json');
   completion_menu_label = 'TS';
 
   init_options = {
+    hostInfo = 'neovim';
     disableAutomaticTypingAcquisition = true;
   };
 
@@ -39,18 +45,30 @@ local function eslint_fix_all(client, bufnr)
   }, nil, bufnr)
 end
 
-lspconfig['eslint'].setup({
+-- TODO: Don't re-use the nvim-lspconfig config here.
+local lspconfig_eslint = require('lspconfig.server_configurations.eslint').default_config
+lsp_ignition.setup_config('eslint', {
+  cmd = {'vscode-eslint-language-server'};
+  filetypes = js_and_ts_filetypes;
+  -- https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
+  -- root_dir = lspconfig_utils.root_pattern('.eslintrc.js', '.eslintrc.cjs', '.eslintrc.yaml', '.eslintrc.yml', '.eslintrc.json', 'package.json');
   settings_scopes = {'eslint'};
 
-  handlers = {
+  settings = vim.tbl_deep_extend('force', lspconfig_eslint.settings, {});
+
+  on_new_config = function(final_config, root_dir)
+    lspconfig_eslint.on_new_config(final_config, root_dir)
+  end;
+
+  handlers = vim.tbl_deep_extend('force', lspconfig_eslint.handlers, {
     ['eslint/openDoc'] = lsp_utils.wrap_handler_errors(function(result, ctx, config)
       assert(type(result.url) == 'string')
       vim.call('dotfiles#utils#open_url', result.url)
       return vim.NIL
     end)
-  };
+  });
 
-  ignition_commands = {
+  vim_user_commands = {
     LspEslintFixAll = {handler = function(_, client, bufnr)
       return eslint_fix_all(client, bufnr)
     end}

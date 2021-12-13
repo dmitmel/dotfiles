@@ -15,7 +15,7 @@
 --- <https://github.com/neovim/nvim-lspconfig/issues/842>
 local M = require('dotfiles.autoload')('dotfiles.lsp.ignition')
 
--- TODO: get rid of presets altogether, add a function like `setup_config_from_lspconfig`
+-- TODO: get rid of presets altogether
 
 -- TODO: figure out autocommands for attachment
 -- TODO: more error messages
@@ -49,6 +49,14 @@ M.default_config = {
   handlers = vim.empty_dict(),
   autostart = true,
   capabilities = lsp.protocol.make_client_capabilities(),
+  -- TODO: Come up with a proper workspace root detection system. For now I
+  -- give up and will use the current working directory because that matches my
+  -- workflow (save a session file in the project root, and load it when
+  -- starting the editor, as such the CWD should be an appropriate root
+  -- directory most of the time) and the behavior of VSCode.
+  root_dir = function()
+    return vim.fn.getcwd(vim.api.nvim_get_current_win())
+  end,
 }
 local compat_default_config_ref = function() vim.empty_dict() end
 
@@ -212,6 +220,7 @@ function M.setup_config_preset(config_name, config_def)
     commands = { config_def.commands, 'table', true };
   })
   M._validate_config_name(config_name)
+  error(string.format('usage of config presets or lspconfig detected, refusing to install preset %q', config_name))
 
   M.delete_config_preset(config_name)
 
@@ -343,8 +352,8 @@ function M.setup_config(config_name, config_def)
     ft_configs_set[config] = true
   end
 
-  config.ignition_commands = config.ignition_commands or {}
-  for command_name, command_def in pairs(config.ignition_commands) do
+  config.vim_user_commands = config.vim_user_commands or {}
+  for command_name, command_def in pairs(config.vim_user_commands) do
     local orig_handler = command_def.handler
     command_def.handler = function(call_info, ...)
       local client_id = M.configs_to_client_ids_map[config]
@@ -402,6 +411,8 @@ function M.setup_config(config_name, config_def)
   for _, fn in ipairs(M.service_hooks.on_config_installed) do
     fn(config)
   end
+
+  return config
 end
 
 
@@ -435,7 +446,7 @@ function M.delete_config(config_name)
     ft_configs_set[config] = nil
   end
 
-  for command_name, _ in pairs(config.ignition_commands) do
+  for command_name, _ in pairs(config.vim_user_commands) do
     utils_vim.delete_command(command_name)
   end
 
@@ -766,7 +777,7 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
     end
 
     -- See also: <https://github.com/neovim/neovim/pull/13659>.
-    -- TODO: Ensure that the settings aren't set twice.
+    -- TODO: Ensure that the settings aren't sent twice.
     local settings = client.config.settings
     if settings then
       if vim.tbl_isempty(settings) then
@@ -812,11 +823,6 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
   call_hook('ON_NEW_CONFIG_CALLBACK_ERROR', function(...)
     for _, fn in ipairs(M.service_hooks.on_new_config) do
       fn(...)
-    end
-    -- TODO: New on_new_config, the current solution is temporary crap.
-    local config_preset = M.config_presets_registry[final_config.name]
-    if config_preset ~= nil and config_preset.on_new_config then
-      config_preset.on_new_config(...)
     end
     if final_config.on_new_config then
       final_config.on_new_config(...)

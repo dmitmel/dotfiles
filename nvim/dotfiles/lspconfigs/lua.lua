@@ -1,23 +1,28 @@
 -- <https://github.com/sumneko/vscode-lua/blob/master/client/src/languageserver.ts>
 -- <https://github.com/sumneko/vscode-lua/blob/master/setting/schema.json>
 
-local lspconfig = require('lspconfig')
+local lsp_ignition = require('dotfiles.lsp.ignition')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
 local data_path = vim.call('dotfiles#paths#xdg_cache_home') .. '/lua-language-server'
-lspconfig['sumneko_lua'].setup({
+lsp_ignition.setup_config('sumneko_lua', {
   cmd = {
     '/usr/lib/lua-language-server/bin/Linux/lua-language-server', '-E', '/usr/lib/lua-language-server/main.lua',
     '--logpath=' .. data_path .. '/log',
     '--metapath=' .. data_path .. '/meta',
   };
+  filetypes = {'lua'};
+  single_file_support = true;
 
   completion_menu_label = 'Lua';
 
   settings_scopes = {'Lua'};
   settings = {
     Lua = {
+      telemetry = {
+        enable = true;
+      };
       runtime = {
         version = 'LuaJIT';
         path = vim.NIL;

@@ -243,6 +243,7 @@ EOF
     nnoremap <silent> <space>o   <Cmd>lua vim.lsp.buf.document_symbol()<CR>
     nnoremap          <space>w       :LspWorkspaceSymbols<space>
     nnoremap <silent> <space>c   <Cmd>call fzf#vim#commands({'options':['--query=Lsp']})<CR>
+    nnoremap <silent> <space>e   <Cmd>LspInfo<CR>
 
     " Create shorthands overriding default mappings which make sense when a
     " language server is connected. Note that these are not created in

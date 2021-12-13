@@ -2,9 +2,8 @@
 -- TODO: reimplement good chunk of coc-pyright
 
 local lsp = require('vim.lsp')
-local lspconfig = require('lspconfig')
-local lspconfig_pyright = require('lspconfig.server_configurations.pyright').default_config
 local lsp_ignition = require('dotfiles.lsp.ignition')
+local lspconfig_utils = require('lspconfig.util')
 local vim_uri = require('vim.uri')
 local rplugin_bridge = require('dotfiles.rplugin_bridge')
 local utils = require('dotfiles.utils')
@@ -12,14 +11,22 @@ local lsp_utils = require('dotfiles.lsp.utils')
 
 local DOTFILES_DIR = vim.fn.fnamemodify(utils.script_path(), ':p:h:h:h:h')
 
-lspconfig['pyright'].setup({
+local python_filetypes = {'python'}
+lsp_ignition.setup_config('pyright', {
+  cmd = {'pyright-langserver', '--stdio'};
+  filetypes = python_filetypes;
+  -- root_dir = lspconfig_utils.root_pattern('pyproject.toml', 'pyrightconfig.json', 'Pipfile', 'setup.py', 'setup.cfg', 'requirements.txt');
+  single_file_support = true;
   completion_menu_label = 'Py';
 
   settings_scopes = {'python', 'pyright'};
   settings = {
     python = {
       analysis = {
-        typeCheckingMode = 'strict';
+        autoSearchPaths = true;
+        useLibraryCodeForTypes = true;
+        diagnosticMode = 'workspace';
+        -- typeCheckingMode = 'strict';
       }
     };
   };
@@ -52,7 +59,7 @@ lspconfig['pyright'].setup({
     end
   end;
 
-  ignition_commands = {
+  vim_user_commands = {
     -- <https://github.com/fannheyward/coc-pyright/blob/6a091180a076ec80b23d5fc46e4bc27d4e6b59fb/src/index.ts#L204-L208>
     LspPyrightRestartServer = {handler = function(_, client)
       client.request(
@@ -76,8 +83,10 @@ lspconfig['pyright'].setup({
 
 
 lsp_ignition.setup_config('yapf', {
-  filetypes = lspconfig_pyright.filetypes;
-  root_dir = lspconfig_pyright.root_dir;
+  filetypes = python_filetypes;
+  -- root_dir = lspconfig_utils.root_pattern('pyproject.toml', '.style.yapf', 'Pipfile', 'setup.py', 'setup.cfg', 'requirements.txt');
+  single_file_support = true;
+
   virtual_server = {
     capabilities = {
       documentFormattingProvider = true;

@@ -1,6 +1,6 @@
 -- <https://github.com/neoclide/coc-yaml/blob/master/src/index.ts>
 
-local lspconfig = require('lspconfig')
+local lsp_ignition = require('dotfiles.lsp.ignition')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
 -- <https://github.com/redhat-developer/yaml-language-server/blob/0.22.0/src/languageserver/handlers/settingsHandlers.ts#L184-L200>
@@ -18,11 +18,18 @@ for _, schema in pairs(lsp_global_settings.JSON_SCHEMAS_CATALOG) do
   end
 end
 
-lspconfig['yamlls'].setup({
+lsp_ignition.setup_config('yamlls', {
+  cmd = {'yaml-language-server', '--stdio'};
+  filetypes = {'yaml', 'yaml.docker-compose'};
+  single_file_support = true;
   completion_menu_label = 'YAML';
 
   settings_scopes = {'yaml', 'http'};
   settings = {
+    redhat = {
+      -- https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting
+      telemetry = { enabled = true; };
+    };
     yaml = {
       format = {
         enable = false;
