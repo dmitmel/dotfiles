@@ -567,16 +567,18 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
       else
         -- ZERO!!! PRIMARY ENGINE IGNITION!!!
         client_id = lsp.start_client(final_config)
-        M.configs_to_client_ids_map[config] = client_id
-
-        local client = lsp.get_client_by_id(client_id)
-        assert(client, 'lsp.start_client has returned an invalid client_id')
-        -- This extra hook is for tapping into the client just after it has
-        -- begun connecting to the server. This solves the problem that
-        -- `before_init` receives neither an instance of the client nor its ID,
-        -- and `on_init` is fired only after the server has been initialized is
-        -- received.
-        pcall(client.config.on_create, client)
+        if client_id ~= nil then
+          -- WE HAVE A LIFT-OFF!!!
+          M.configs_to_client_ids_map[config] = client_id
+          local client = lsp.get_client_by_id(client_id)
+          assert(client, 'lsp.start_client has returned an invalid client_id')
+          -- This extra hook is for tapping into the client just after it has
+          -- begun connecting to the server. This solves the problem that
+          -- `before_init` receives neither an instance of the client nor its
+          -- ID, and `on_init` is fired only after the server has been
+          -- initialized is received.
+          pcall(client.config.on_create, client)
+        end
       end
     end, debug.traceback)
 
@@ -592,6 +594,13 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
         vim.log.levels.ERROR
       )
       client_id = nil
+    elseif client_id == nil then
+      -- Everything went smoothly, but `lsp.start_client` returned `nil`. This
+      -- can happen if `uv_spawn` fails on nvim 0.6.0-and-onwards. See
+      -- <https://github.com/neovim/neovim/commit/1a60580925865445efbe476931dd02ef1a3a8e7f>.
+      -- A warning message has already been shown, the only remaining thing to
+      -- do is to prevent subsequent start attempts.
+      M.configs_to_client_ids_map[config] = false
     end
   end
 
