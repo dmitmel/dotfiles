@@ -5,10 +5,20 @@ local lsp_ignition = require('dotfiles.lsp.ignition')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
+local server_install_dir, server_bin_platform
+if utils_vim.has('macunix') then
+  server_install_dir = '/usr/local/opt/lua-language-server/libexec'
+  server_bin_platform = 'macOS'
+else
+  server_install_dir = '/usr/lib/lua-language-server'
+  server_bin_platform = 'Linux'
+end
+
 local data_path = vim.call('dotfiles#paths#xdg_cache_home') .. '/lua-language-server'
 lsp_ignition.setup_config('sumneko_lua', {
   cmd = {
-    '/usr/lib/lua-language-server/bin/Linux/lua-language-server', '-E', '/usr/lib/lua-language-server/main.lua',
+    server_install_dir .. '/bin/' .. server_bin_platform .. '/lua-language-server',
+    '-E', server_install_dir .. '/main.lua',
     '--logpath=' .. data_path .. '/log',
     '--metapath=' .. data_path .. '/meta',
   };
