@@ -1,0 +1,10 @@
+{
+  "code block": {
+    "prefix": "codeblock",
+    "body": [
+      "```$1",
+      "$0",
+      "```"
+    ]
+  }
+}

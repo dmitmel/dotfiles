@@ -1,0 +1,11 @@
+{
+  "main function": {
+    "prefix": "main",
+    "body": [
+      "int main(int argc, char *argv[]) {",
+      "\t$0",
+      "\treturn 0;",
+      "}"
+    ]
+  }
+}

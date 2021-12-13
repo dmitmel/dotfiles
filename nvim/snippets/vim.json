@@ -1,0 +1,61 @@
+{
+  "function": {
+    "prefix": "function",
+    "body": [
+      "function! $1($2) abort",
+      "\t$0",
+      "endfunction"
+    ]
+  },
+  "autoloaded function": {
+    "prefix": "autofunction",
+    "body": [
+      "function! ${VIM:dotfiles#ftplugin_helpers#vim#to_autoload_prefix(expand('%'))}$1($2) abort",
+      "\t$0",
+      "endfunction"
+    ]
+  },
+  "autocommand group": {
+    "prefix": "augroup",
+    "body": [
+      "augroup dotfiles_$1",
+      "\tautocmd!",
+      "\tautocmd $0",
+      "augroup END"
+    ]
+  },
+  "if block": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}",
+      "\t$0",
+      "endif"
+    ]
+  },
+  "for loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:var} in ${2:container}",
+      "\t$0",
+      "endfor"
+    ]
+  },
+  "while loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition}",
+      "\t$0",
+      "endwhile"
+    ]
+  },
+  "try-catch block": {
+    "prefix": "try",
+    "body": [
+      "try",
+      "\t$0",
+      "catch /.*/",
+      "\t",
+      "endtry"
+    ]
+  }
+}

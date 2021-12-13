@@ -218,8 +218,7 @@ let s:plug = function('dotfiles#plugman#register')
       call s:plug('https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' })
       " File paths.
       call s:plug('https://github.com/hrsh7th/cmp-path', { 'branch': 'main' })
-      " Snippets defined in vim-vsnip. May be worth removing since I don't use
-      " any snippet libraries (yet?).
+      " Snippets defined in vim-vsnip.
       call s:plug('https://github.com/hrsh7th/cmp-vsnip', { 'branch': 'main' })
     elseif g:dotfiles_build_coc_from_source
       " Plugins for the old completion-and-language-analysis system based

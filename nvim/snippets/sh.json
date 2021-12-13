@@ -1,0 +1,10 @@
+{
+  "Basic script template": {
+    "prefix": "!",
+    "body": [
+      "#!/usr/bin/env bash",
+      "set -euo pipefail",
+      "$0"
+    ]
+  }
+}

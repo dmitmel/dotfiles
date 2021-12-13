@@ -26,6 +26,14 @@ if dotfiles#plugman#is_registered('nvim-cmp')  " {{{
 endif  " }}}
 
 
+if dotfiles#plugman#is_registered('vim-vsnip')  " {{{
+
+  let g:vsnip_extra_mapping = v:false
+  let g:vsnip_snippet_dir = expand('<sfile>:p:h:h') . '/snippets'
+
+endif  " }}}
+
+
 if dotfiles#plugman#is_registered('nvim-compe') " {{{
 
   let g:compe                  = {}

@@ -1,0 +1,10 @@
+{
+  "Assertion": {
+    "prefix": "assert",
+    "body": [
+      "if (!($1)) {",
+      "\tthrow new Error(\"Assertion failed: $1\")",
+      "}"
+    ]
+  }
+}

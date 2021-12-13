@@ -1,0 +1,29 @@
+{
+  "dotfiles Lua module": {
+    "prefix": "!dotmod",
+    "body": [
+      "--- ${1:TODO: Documentation}",
+      "local M = require('dotfiles.autoload')('${VIM:dotfiles#ftplugin_helpers#lua#to_module_name(expand('%'))}')",
+      "",
+      "${2:local lsp = require('vim.lsp')}",
+      "",
+      "$0",
+      "",
+      "return M"
+    ]
+  },
+  "call to vim.schedule()": {
+    "prefix": "schedule",
+    "body": [
+      "vim.schedule(function()",
+      "\t$0",
+      "end)"
+    ]
+  },
+  "optional require()": {
+    "prefix": "optrequire",
+    "body": [
+      "local ${2:module}_available, ${2:module} = pcall(require, '$1')"
+    ]
+  }
+}

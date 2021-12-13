@@ -1,0 +1,20 @@
+{
+  "command-line tool script template": {
+    "prefix": "!",
+    "body": [
+      "#!/usr/bin/env python3",
+      "",
+      "import sys",
+      "from typing import List",
+      "",
+      "",
+      "def main(argv: List[str]) -> int:",
+      "\t$0",
+      "\treturn 0",
+      "",
+      "",
+      "if __name__ == \"__main__\":",
+      "\tsys.exit(main(sys.argv))"
+    ]
+  }
+}

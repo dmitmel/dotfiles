@@ -5,6 +5,14 @@ function! dotfiles#utils#array_remove_element(array, element) abort
   endif
 endfunction
 
+function! dotfiles#utils#starts_with(str, prefix) abort
+  return empty(a:prefix) || a:str[:len(a:prefix)-1] ==# a:prefix
+endfunction
+
+function! dotfiles#utils#ends_with(str, suffix) abort
+  return a:str[len(a:str)-len(a:suffix):] ==# a:suffix
+endfunction
+
 function! dotfiles#utils#undo_ftplugin_hook(cmd) abort
   if exists('b:undo_ftplugin')
     let b:undo_ftplugin .= ' | ' . a:cmd
@@ -118,3 +126,13 @@ function! dotfiles#utils#push_qf_list(opts) abort
     if auto_open | call qf#OpenQuickfix() | endif
   endif
 endfunction
+
+if has('*nvim_list_runtime_paths')
+  function! dotfiles#utils#list_runtime_paths() abort
+    return nvim_list_runtime_paths()
+  endfunction
+else
+  function! dotfiles#utils#list_runtime_paths() abort
+    return split(&runtimepath, ',')
+  endfunction
+endif
