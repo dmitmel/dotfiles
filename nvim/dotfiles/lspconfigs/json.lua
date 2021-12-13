@@ -23,6 +23,7 @@ local function find_exe()
 end
 
 local json_filetypes = {'json', 'jsonc', 'json5'}
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/jsonls.lua>
 lsp_ignition.setup_config('jsonls', {
   cmd = vim.list_extend(find_exe(), { '--stdio' });
   filetypes = json_filetypes;

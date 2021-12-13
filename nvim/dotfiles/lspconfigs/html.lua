@@ -21,6 +21,7 @@ local function find_exe()
   return { 'vscode-html-language-server' }  -- fallback
 end
 
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/html.lua>
 lsp_ignition.setup_config('htmlls', {
   cmd = vim.list_extend(find_exe(), { '--stdio' });
   filetypes = {'html', 'handlebars', 'htmldjango', 'blade'};

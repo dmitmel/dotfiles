@@ -4,6 +4,7 @@
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local lspconfig_utils = require('lspconfig.util')
 
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/hls.lua>
 lsp_ignition.setup_config('hls', {
   cmd = {'haskell-language-server-wrapper', '--lsp'};
   filetypes = {'haskell', 'lhaskell'};

@@ -21,6 +21,7 @@ local function find_exe()
   return { 'vscode-css-language-server' }  -- fallback
 end
 
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/cssls.lua>
 lsp_ignition.setup_config('cssls', {
   cmd = vim.list_extend(find_exe(), { '--stdio' });
   filetypes = {'css', 'less', 'sass', 'scss', 'wxss'};

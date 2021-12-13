@@ -15,6 +15,7 @@ else
 end
 
 local data_path = vim.call('dotfiles#paths#xdg_cache_home') .. '/lua-language-server'
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/sumneko_lua.lua>
 lsp_ignition.setup_config('sumneko_lua', {
   cmd = {
     server_install_dir .. '/bin/' .. server_bin_platform .. '/lua-language-server',

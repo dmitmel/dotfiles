@@ -18,6 +18,7 @@ for _, schema in pairs(lsp_global_settings.JSON_SCHEMAS_CATALOG) do
   end
 end
 
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/yamlls.lua>
 lsp_ignition.setup_config('yamlls', {
   cmd = {'yaml-language-server', '--stdio'};
   filetypes = {'yaml', 'yaml.docker-compose'};

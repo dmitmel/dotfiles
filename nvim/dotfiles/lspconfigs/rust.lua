@@ -17,6 +17,7 @@ local lspconfig_utils = require('lspconfig.util')
 local lsp_utils = require('dotfiles.lsp.utils')
 local lsp = require('vim.lsp')
 
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/rust_analyzer.lua>
 lsp_ignition.setup_config('rust_analyzer', {
   cmd = {'rust-analyzer'};
   filetypes = {'rust'};

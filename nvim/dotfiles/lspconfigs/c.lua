@@ -4,6 +4,7 @@ local lsp_ignition = require('dotfiles.lsp.ignition')
 local lspconfig_utils = require('lspconfig.util')
 
 local cache_dir = vim.call('dotfiles#paths#xdg_cache_home') .. '/ccls'
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/ccls.lua>
 lsp_ignition.setup_config('ccls', {
   cmd = {'ccls'};
   filetypes = {'c', 'cpp', 'objc', 'objcpp'};

@@ -11,6 +11,7 @@ local lsp = require('vim.lsp')
 local lsp_utils = require('dotfiles.lsp.utils')
 
 local js_and_ts_filetypes = {'javascript', 'javascriptreact', 'javascript.jsx', 'typescript', 'typescriptreact', 'typescript.jsx'}
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/tsserver.lua>
 lsp_ignition.setup_config('tsserver', {
   cmd = {'typescript-language-server', '--stdio'};
   filetypes = js_and_ts_filetypes;
@@ -47,13 +48,15 @@ end
 
 -- TODO: Don't re-use the nvim-lspconfig config here.
 local lspconfig_eslint = require('lspconfig.server_configurations.eslint').default_config
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/eslint.lua>
 lsp_ignition.setup_config('eslint', {
-  cmd = {'vscode-eslint-language-server'};
+  cmd = {'vscode-eslint-language-server', '--stdio'};
   filetypes = js_and_ts_filetypes;
-  -- https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
+  -- <https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats>
   -- root_dir = lspconfig_utils.root_pattern('.eslintrc.js', '.eslintrc.cjs', '.eslintrc.yaml', '.eslintrc.yml', '.eslintrc.json', 'package.json');
-  settings_scopes = {'eslint'};
 
+  settings_scopes = {'eslint'};
+  -- <https://github.com/Microsoft/vscode-eslint#settings-options>
   settings = vim.tbl_deep_extend('force', lspconfig_eslint.settings, {});
 
   on_new_config = function(final_config, root_dir)

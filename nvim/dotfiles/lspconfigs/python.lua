@@ -12,6 +12,7 @@ local lsp_utils = require('dotfiles.lsp.utils')
 local DOTFILES_DIR = vim.fn.fnamemodify(utils.script_path(), ':p:h:h:h:h')
 
 local python_filetypes = {'python'}
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/pyright.lua>
 lsp_ignition.setup_config('pyright', {
   cmd = {'pyright-langserver', '--stdio'};
   filetypes = python_filetypes;

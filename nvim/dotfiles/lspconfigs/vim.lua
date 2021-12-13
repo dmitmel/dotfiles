@@ -9,6 +9,7 @@ local lsp_utils = require('dotfiles.lsp.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
 local vimscript_filetypes = {'vim'}
+-- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/vimls.lua>
 lsp_ignition.setup_config('vimls', {
   -- Autocompletion for Vimscript turned out to be useless (no wonder).
   enabled = false;
