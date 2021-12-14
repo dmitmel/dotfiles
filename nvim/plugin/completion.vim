@@ -23,6 +23,10 @@ if dotfiles#plugman#is_registered('nvim-cmp')  " {{{
 
   lua require('dotfiles.completion')
 
+  if dotfiles#plugman#is_registered('cmp-nvim-lsp')
+    lua require('cmp_nvim_lsp').update_capabilities(require('dotfiles.lsp.ignition').default_config.capabilities)
+  endif
+
 endif  " }}}
 
 

@@ -18,7 +18,6 @@ local cmp = require('cmp')
 local utils_vim = require('dotfiles.utils.vim')
 local utils = require('dotfiles.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
-local lsp_ignition = require('dotfiles.lsp.ignition')
 
 -- """"""Polyfills"""""" {{{
 if cmp.get_selected_entry == nil then
@@ -63,13 +62,7 @@ cmp.setup({
     },
 
     {
-      name = 'nvim_lua',
-      menu_label = 'NLua',
-    },
-
-    {
       name = 'vsnip',
-      -- name = 'luasnip';
       menu_label = 'Snip',
     },
 
@@ -130,7 +123,7 @@ cmp.setup({
             if lsp_global_settings.MAX_FILE_SIZE then
               local file_size = utils_vim.buf_get_inmemory_text_byte_size(bufnr)
               if file_size > lsp_global_settings.MAX_FILE_SIZE then
-                goto continue -- TODO
+                goto continue
               end
             end
             table.insert(result, bufnr)
@@ -140,11 +133,6 @@ cmp.setup({
         end,
       },
     },
-
-    {
-      name = 'spell',
-      menu_label = 'Spl',
-    },
   },
 
   mapping = {
@@ -152,8 +140,6 @@ cmp.setup({
       local selected_entry = cmp.get_selected_entry()
       if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', 1)) then
         vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-next)'), '')
-        -- if not selected_entry and require('luasnip').jumpable(1) then
-        --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-next'), '')
       elseif cmp.visible() then
         cmp.select_next_item()
       else
@@ -165,8 +151,6 @@ cmp.setup({
       local selected_entry = cmp.get_selected_entry()
       if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', -1)) then
         vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-prev)'), '')
-        -- if not selected_entry and require('luasnip').jumpable(-1) then
-        --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-prev'), '')
       elseif cmp.visible() then
         cmp.select_prev_item()
       else
@@ -184,7 +168,6 @@ cmp.setup({
   snippet = {
     expand = function(args)
       vim.call('vsnip#anonymous', args.body)
-      -- require('luasnip').lsp_expand(args.body)
     end,
   },
 
@@ -293,7 +276,5 @@ cmp.setup({
     end,
   },
 })
-
-require('cmp_nvim_lsp').update_capabilities(lsp_ignition.default_config.capabilities)
 
 return M
