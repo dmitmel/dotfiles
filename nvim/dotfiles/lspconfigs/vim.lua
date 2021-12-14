@@ -143,7 +143,7 @@ lsp_ignition.setup_config('vint', {
           }
         end
 
-        vserver.send_message('textDocument/publishDiagnostics', {
+        vserver:send_message('textDocument/publishDiagnostics', {
           uri = buf_uri,
           version = buf_version,
           diagnostics = diagnostics,

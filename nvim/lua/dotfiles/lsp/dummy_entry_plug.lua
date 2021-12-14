@@ -88,12 +88,13 @@ local orig_rpc_start = lsp.rpc.start
 function lsp.rpc.start(...)
   local cmd = ...
   if cmd == M._RPC_FAKE_COMMAND_COOKIE then
-    return M._fake_rpc_start(...)
+    return M.fake_rpc_start(...)
   else
     return orig_rpc_start(...)
   end
 end
 
+---@alias dotfiles.VirtualServerRunState number
 M.VirtualServerRunState = vim.tbl_add_reverse_lookup({
   Uninitialized = 1,
   Initializing = 2,
@@ -120,277 +121,323 @@ M.virtual_server_errors = vim.tbl_add_reverse_lookup({
   CLIENT_REQUEST_CALLBACK_ERROR = 4,
 })
 
-function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
+function M.fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
   vim.validate({
     cmd = { cmd, 'string' },
     cmd_args = { cmd_args, 'table' },
     dispatchers = { dispatchers, 'table' },
     extra_spawn_params = { extra_spawn_params, 'table' },
   })
+
   local fake_cake = extra_spawn_params.env[M._RPC_FAKE_ENV_COOKIE]
-  vim.validate({
-    name = { fake_cake.name, 'string' },
-    config = { fake_cake.config, 'table' },
-  })
-  vim.validate({
-    capabilities = { fake_cake.config.capabilities, 'table', true },
-    handlers = { fake_cake.config.handlers, 'table', true },
-    on_init = { fake_cake.config.on_init, 'function', true },
-    on_error = { fake_cake.config.on_error, 'function', true },
-    on_exit = { fake_cake.config.on_exit, 'function', true },
-  })
-
-  -- TODO: Rewrite as a proper class.
-  local vserver = {
-    run_state = M.VirtualServerRunState.Uninitialized,
-    client_id = nil,
-    name = fake_cake.name,
-    config = fake_cake.config,
-    handlers = fake_cake.config.handlers or {},
-    -- For user methods and fields.
-    ext = {},
-  }
-  local next_client_request_id = 0
-  local next_server_request_id = 0
-  local pending_client_requests = {}
-  local pending_server_requests = {}
-
-  -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L704-L721>
-  vserver.on_error = fake_cake.config.on_error
-    or function(code, err)
-      if type(code) == 'number' then
-        code = M.virtual_server_errors[code]
-      else
-        code = tostring(code)
-      end
-      if type(err) ~= 'string' then
-        err = utils.inspect(err)
-      end
-      vim.api.nvim_err_writeln(string.format('LSVS[%s]: Error %s: %s', vserver.name, code, err))
-    end
-
-  function vserver.recv_message(method, params, callback)
-    vim.validate({
-      method = { method, 'string' },
-      callback = { callback, 'function', true },
-    })
-    local request_id = nil
-    if callback then
-      -- Yeah, the logic of message ID allocation is weird: it is only done for
-      -- requests (i.e. not for notifications), and even when the server has
-      -- been stopped. This replicates the behavior of the stock `lsp.rpc`
-      -- module, but, to be fair, I don't have to do it.
-      next_client_request_id = next_client_request_id + 1
-      request_id = next_client_request_id
-    end
-    if vserver.run_state >= M.VirtualServerRunState.Exited then
-      return false
-    end
-
-    if request_id then
-      pending_client_requests[request_id] = true
-    end
-    local function is_cancelled()
-      if request_id then
-        return not pending_client_requests[request_id]
-      else
-        return false
-      end
-    end
-
-    local replied = false
-    local function reply(...)
-      assert(not replied, 'a reply has already been sent')
-      replied = true
-      if callback and not is_cancelled() then
-        pending_client_requests[request_id] = nil
-        return callback(...)
-      end
-    end
-
-    -- The real handling must happen asynchronously.
-    local function actually_handle_message_from_client()
-      -- Phase 1: Early exit.
-      if vserver.run_state >= M.VirtualServerRunState.Exited or is_cancelled() then
-        return
-      end
-
-      -- Phase 2: Handle "special" methods, in particular ones which affect the
-      -- run state.
-      if method == 'initialize' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialize>
-        if vserver.run_state == M.VirtualServerRunState.Uninitialized then
-          vserver.run_state = M.VirtualServerRunState.Initializing
-          local response = vserver._handle_initialize_request(params)
-          return reply(nil, response)
-        end
-      elseif method == 'initialized' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialized>
-        if vserver.run_state == M.VirtualServerRunState.Initializing then
-          vserver.run_state = M.VirtualServerRunState.Active
-          return reply(nil)
-        end
-      elseif method == 'shutdown' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#shutdown>
-        if vserver.run_state == M.VirtualServerRunState.Active then
-          vserver.run_state = M.VirtualServerRunState.Stopping
-          return reply(nil)
-        end
-      elseif method == 'exit' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#exit>
-        -- As far as I understand, this notification can be sent at any run
-        -- state. Well, at least before `initialize` is sent, that one is
-        -- explicitly stated by the spec.
-        vserver.force_stop()
-        vserver.run_state = M.VirtualServerRunState.Exited
-        return reply(nil)
-      elseif method == '$/cancelRequest' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#cancelRequest>
-        -- Poor man's request cancellation.
-        if params and params.id then
-          pending_client_requests[params.id] = nil
-        end
-        return reply(nil)
-      else
-        -- Phase 3: Handle "regular" methods.
-        if vserver.run_state == M.VirtualServerRunState.Active then
-          local handler = vserver.handlers[method]
-          if not handler then
-            return reply(lsp.rpc_response_error(LspErrorCodes.MethodNotFound))
-          end
-          -- Thank God this stuff is asynchronous by design, otherwise I'd have
-          -- return parameters like `rpc_result_or_lua_err`.
-          local ok, err = xpcall(
-            handler,
-            debug.traceback,
-            reply,
-            method,
-            params,
-            request_id,
-            vserver
-          )
-          if not ok then
-            pcall(
-              vserver.on_error,
-              M.virtual_server_errors.CLIENT_REQUEST_HANDLER_ERROR,
-              err,
-              vserver
-            )
-            if not replied then
-              return reply(lsp.rpc_response_error(LspErrorCodes.InternalError, nil, err))
-            end
-          end
-          return
-        end
-      end
-
-      -- Phase 4: Handle errors due to invalid run states.
-      if vserver.run_state < M.VirtualServerRunState.Active then
-        return reply(lsp.rpc_response_error(LspErrorCodes.ServerNotInitialized))
-      end
-      return reply(lsp.rpc_response_error(LspErrorCodes.InvalidRequest))
-    end
-
-    -- NOTE: I want to mention that at first I tried to come up with some
-    -- clever solution involving `uv_check_t` for dispatching client request
-    -- handlers and stuff, primarily because `vim.schedule()` unconditionally
-    -- causes the screen to be refreshed (or, at least, the statusline to be
-    -- recomputed) for some reason (on every loop tick, I hope). However, the
-    -- main reason why I didn't do that is because the actual handlers that for
-    -- common tasks will almost always use Vim or API functions
-    -- (`nvim_buf_get_lines` is probably the most obvious example), so they
-    -- will have to be deferred with `vim.schedule()` regardless, and in the
-    -- case of `uv_check_t` I wouldn't actually win anything because I'd have
-    -- to do two reschedulings of the request callback.
-    --
-    -- P.S. `vim.schedule` callbacks should be executed in the order of
-    -- registration if I understand the codebase correctly... So I don't need
-    -- to ensure a single callback per one loop tick either.
-    vim.schedule(function()
-      local ok, err = xpcall(actually_handle_message_from_client, debug.traceback)
-      if not ok then
-        vim.api.nvim_err_writeln(tostring(err))
-      end
-    end)
-
-    return true, request_id
-  end
-
-  function vserver._handle_initialize_request(params)
-    if params.rootUri ~= nil and params.rootUri ~= vim.NIL then
-      vserver.root_uri = params.rootUri
-      vserver.root_dir = utils.uri_maybe_to_fname(params.rootUri)
-    end
-
-    -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initializeResult>
-    local response = {
-      capabilities = vim.tbl_deep_extend(
-        'force',
-        M.default_virtual_server_capabilities,
-        vserver.config.capabilities or vim.empty_dict()
-      ),
-      serverInfo = {
-        name = MODULE_INFO.name,
-      },
-    }
-
-    if vserver.config.on_init then
-      -- We handle errors correctly, UNLIKE THE DEFAULT IMPLEMENTATION
-      -- <https://cdn.discordapp.com/emojis/737998832884777013.png?name=lenya>
-      local ok, err = xpcall(vserver.config.on_init, debug.traceback, vserver, params, response)
-      if not ok then
-        pcall(vserver.on_error, M.virtual_server_errors.ON_INIT_CALLBACK_ERROR, err, vserver)
-      end
-    end
-    return response
-  end
-
-  function vserver.send_message(method, params, callback)
-    vim.validate({
-      method = { method, 'string' },
-      callback = { callback, 'function', true },
-    })
-    if callback then
-      error('server requests are not implemented currently')
-    else
-      local ok, err = xpcall(dispatchers.notification, debug.traceback, method, params)
-      if not ok then
-        pcall(vserver.on_error, M.virtual_server_errors.ON_INIT_CALLBACK_ERROR, err, vserver)
-      end
-    end
-  end
-
-  function vserver.force_stop()
-    if vserver.run_state >= M.VirtualServerRunState.Exited then
-      return
-    end
-    vserver.run_state = M.VirtualServerRunState.Exited
-    pending_client_requests = nil
-    if vserver.config.on_exit then
-      local ok, err = xpcall(vserver.config.on_exit, debug.traceback, vserver)
-      if not ok then
-        pcall(vserver.on_error, M.virtual_server_errors.ON_EXIT_CALLBACK_ERROR, err, vserver)
-      end
-    end
-    -- Both must be zero, so that the exit is treated as clean.
-    dispatchers.on_exit(0, 0) -- code, signal
-  end
+  local vserver = M.VirtualServer.new(fake_cake.name, fake_cake.config, nil, dispatchers)
 
   local rpc = {
     virtual_server = vserver,
     pid = -1,
     handle = {
       kill = function()
-        vserver.force_stop()
+        vserver:force_stop()
       end,
       is_closing = function()
         return vserver.run_state >= M.VirtualServerRunState.Exited
       end,
     },
     notify = function(method, params)
-      return vserver.recv_message(method, params, nil)
+      return vserver:recv_message(method, params, nil)
     end,
     request = function(method, params, callback)
-      return vserver.recv_message(method, params, callback)
+      return vserver:recv_message(method, params, callback)
     end,
   }
 
   return rpc
+end
+
+---@alias dotfiles.VirtualServerHandlerReply fun(error: any|nil, response: any|nil, ...): any
+---@alias dotfiles.VirtualServerOnError fun(code: number, error: any, vserver: dotfiles.VirtualServer)
+---@alias dotfiles.VirtualServerOnInit fun(vserver: dotfiles.VirtualServer, initialize_params: any, initialize_result: any)
+---@alias dotfiles.VirtualServerHandler fun(reply: dotfiles.VirtualServerHandlerReply, method: string, params: any, request_id: number, vserver: dotfiles.VirtualServer)
+
+---@class dotfiles.VirtualServer
+---@field run_state dotfiles.VirtualServerRunState
+---@field client_id number
+---@field client_dispatchers { notification: any, server_request: any, on_error: any, on_exit: any }
+---@field name string
+---@field config table - TODO write types for this field
+---@field handlers table<string, dotfiles.VirtualServerHandler>
+---@field on_error dotfiles.VirtualServerOnError
+---@field ext table
+---@field _next_client_request_id number
+---@field _next_server_request_id number
+---@field _pending_client_requests table<number, boolean>
+---@field _pending_server_requests table<number, boolean>
+---@field root_dir string|nil
+---@field root_uri string|nil
+M.VirtualServer = {}
+M.VirtualServer.__index = M.VirtualServer
+
+function M.VirtualServer.new(name, config, client_id, client_dispatchers)
+  vim.validate({
+    name = { name, 'string' },
+    config = { config, 'table' },
+    client_id = { client_id, 'number', true },
+    client_dispatchers = { client_dispatchers, 'table' },
+  })
+  vim.validate({
+    capabilities = { config.capabilities, 'table', true },
+    handlers = { config.handlers, 'table', true },
+    on_init = { config.on_init, 'function', true },
+    on_error = { config.on_error, 'function', true },
+    on_exit = { config.on_exit, 'function', true },
+  })
+
+  local self = setmetatable({}, M.VirtualServer)
+
+  -- For user methods and fields.
+  self.ext = {}
+
+  self.run_state = M.VirtualServerRunState.Uninitialized
+  self.client_id = client_id
+  self.client_dispatchers = client_dispatchers
+
+  self.name = name
+  self.config = config
+  self.handlers = config.handlers or {}
+  self.on_error = config.on_error or function(...)
+    return self:default_error_handler(...)
+  end
+
+  self._next_client_request_id = 0
+  self._next_server_request_id = 0
+  self._pending_client_requests = {}
+  self._pending_server_requests = {}
+
+  return self
+end
+
+--- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L704-L721>
+---@param code number
+---@param err any
+function M.VirtualServer:default_error_handler(code, err)
+  if type(code) == 'number' then
+    code = M.virtual_server_errors[code]
+  else
+    code = tostring(code)
+  end
+  if type(err) ~= 'string' then
+    err = utils.inspect(err)
+  end
+  vim.api.nvim_err_write(string.format('LSVS[%s]: Error %s: %s\n', self.name, code, err))
+end
+
+---@param method string
+---@param params any
+---@param callback fun(error: any|nil, result: any|nil)
+---@return boolean sucesss
+---@return number request_id
+function M.VirtualServer:recv_message(method, params, callback)
+  vim.validate({
+    method = { method, 'string' },
+    callback = { callback, 'function', true },
+  })
+  local request_id = nil
+  if callback then
+    -- Yeah, the logic of message ID allocation is weird: it is only done for
+    -- requests (i.e. not for notifications), and even when the server has
+    -- been stopped. This replicates the behavior of the stock `lsp.rpc`
+    -- module, but, to be fair, I don't have to do it.
+    self._next_client_request_id = self._next_client_request_id + 1
+    request_id = self._next_client_request_id
+  end
+  if self.run_state >= M.VirtualServerRunState.Exited then
+    return false
+  end
+
+  if request_id then
+    self._pending_client_requests[request_id] = true
+  end
+  local function is_cancelled()
+    if request_id then
+      return not self._pending_client_requests[request_id]
+    else
+      return false
+    end
+  end
+
+  local replied = false
+  local function reply(...)
+    assert(not replied, 'a reply has already been sent')
+    replied = true
+    if callback and not is_cancelled() then
+      self._pending_client_requests[request_id] = nil
+      return callback(...)
+    end
+  end
+
+  -- The real handling must happen asynchronously.
+  local function actually_handle_message_from_client()
+    -- Phase 1: Early exit.
+    if self.run_state >= M.VirtualServerRunState.Exited or is_cancelled() then
+      return
+    end
+
+    -- Phase 2: Handle "special" methods, in particular ones which affect the
+    -- run state.
+    if method == 'initialize' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialize>
+      if self.run_state == M.VirtualServerRunState.Uninitialized then
+        self.run_state = M.VirtualServerRunState.Initializing
+        local response = self:_handle_initialize_request(params)
+        return reply(nil, response)
+      end
+
+      --
+    elseif method == 'initialized' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialized>
+      if self.run_state == M.VirtualServerRunState.Initializing then
+        self.run_state = M.VirtualServerRunState.Active
+        return reply(nil)
+      end
+
+      --
+    elseif method == 'shutdown' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#shutdown>
+      if self.run_state == M.VirtualServerRunState.Active then
+        self.run_state = M.VirtualServerRunState.Stopping
+        return reply(nil)
+      end
+
+      --
+    elseif method == 'exit' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#exit>
+      -- As far as I understand, this notification can be sent at any run
+      -- state. Well, at least before `initialize` is sent, that one is
+      -- explicitly stated by the spec.
+      self:force_stop()
+      self.run_state = M.VirtualServerRunState.Exited
+      return reply(nil)
+
+      --
+    elseif method == '$/cancelRequest' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#cancelRequest>
+      -- Poor man's request cancellation.
+      if params and params.id then
+        self._pending_client_requests[params.id] = nil
+      end
+      return reply(nil)
+
+      --
+    else
+      -- Phase 3: Handle "regular" methods.
+      if self.run_state == M.VirtualServerRunState.Active then
+        local handler = self.handlers[method]
+        if not handler then
+          return reply(lsp.rpc_response_error(LspErrorCodes.MethodNotFound))
+        end
+        -- Thank God this stuff is asynchronous by design, otherwise I'd have
+        -- return parameters like `rpc_result_or_lua_err`.
+        local ok, err = xpcall(handler, debug.traceback, reply, method, params, request_id, self)
+        if not ok then
+          pcall(self.on_error, M.virtual_server_errors.CLIENT_REQUEST_HANDLER_ERROR, err, self)
+          if not replied then
+            return reply(lsp.rpc_response_error(LspErrorCodes.InternalError, nil, err))
+          end
+        end
+        return
+      end
+    end
+
+    -- Phase 4: Handle errors due to invalid run states.
+    if self.run_state < M.VirtualServerRunState.Active then
+      return reply(lsp.rpc_response_error(LspErrorCodes.ServerNotInitialized))
+    end
+    return reply(lsp.rpc_response_error(LspErrorCodes.InvalidRequest))
+  end
+
+  -- NOTE: I want to mention that at first I tried to come up with some
+  -- clever solution involving `uv_check_t` for dispatching client request
+  -- handlers and stuff, primarily because `vim.schedule()` unconditionally
+  -- causes the screen to be refreshed (or, at least, the statusline to be
+  -- recomputed) for some reason (on every loop tick, I hope). However, the
+  -- main reason why I didn't do that is because the actual handlers that for
+  -- common tasks will almost always use Vim or API functions
+  -- (`nvim_buf_get_lines` is probably the most obvious example), so they
+  -- will have to be deferred with `vim.schedule()` regardless, and in the
+  -- case of `uv_check_t` I wouldn't actually win anything because I'd have
+  -- to do two reschedulings of the request callback.
+  --
+  -- P.S. `vim.schedule` callbacks should be executed in the order of
+  -- registration if I understand the codebase correctly... So I don't need
+  -- to ensure a single callback per one loop tick either.
+  vim.schedule(function()
+    local ok, err = xpcall(actually_handle_message_from_client, debug.traceback)
+    if not ok then
+      vim.api.nvim_err_write(tostring(err) .. '\n')
+    end
+  end)
+
+  return true, request_id
+end
+
+---@param params any
+---@return any
+function M.VirtualServer:_handle_initialize_request(params)
+  if params.rootUri ~= nil and params.rootUri ~= vim.NIL then
+    self.root_uri = params.rootUri
+    self.root_dir = utils.uri_maybe_to_fname(params.rootUri)
+  end
+
+  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initializeResult>
+  local response = {
+    capabilities = vim.tbl_deep_extend(
+      'force',
+      M.default_virtual_server_capabilities,
+      self.config.capabilities or vim.empty_dict()
+    ),
+    serverInfo = {
+      name = MODULE_INFO.name,
+    },
+  }
+
+  if self.config.on_init then
+    -- We handle errors correctly, UNLIKE THE DEFAULT IMPLEMENTATION
+    -- <https://cdn.discordapp.com/emojis/737998832884777013.png?name=lenya>
+    local ok, err = xpcall(self.config.on_init, debug.traceback, self, params, response)
+    if not ok then
+      pcall(self.on_error, M.virtual_server_errors.ON_INIT_CALLBACK_ERROR, err, self)
+    end
+  end
+  return response
+end
+
+---@param method string
+---@param params any
+---@param callback any - TODO
+function M.VirtualServer:send_message(method, params, callback)
+  vim.validate({
+    method = { method, 'string' },
+    callback = { callback, 'function', true },
+  })
+  if callback then
+    error('server requests are not implemented currently')
+  else
+    local ok, err = xpcall(self.client_dispatchers.notification, debug.traceback, method, params)
+    if not ok then
+      pcall(self.on_error, M.virtual_server_errors.ON_INIT_CALLBACK_ERROR, err, self)
+    end
+  end
+end
+
+function M.VirtualServer:force_stop()
+  if self.run_state >= M.VirtualServerRunState.Exited then
+    return
+  end
+  self.run_state = M.VirtualServerRunState.Exited
+  self._pending_client_requests = nil
+  if self.config.on_exit then
+    local ok, err = xpcall(self.config.on_exit, debug.traceback, self)
+    if not ok then
+      pcall(self.on_error, M.virtual_server_errors.ON_EXIT_CALLBACK_ERROR, err, self)
+    end
+  end
+  -- Both must be zero, so that the exit is treated as clean.
+  self.client_dispatchers.on_exit(0, 0) -- code, signal
 end
 
 return M
