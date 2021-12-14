@@ -14,6 +14,13 @@ local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
 M.ALL_SEVERITIES = { Severity.ERROR, Severity.WARN, Severity.INFO, Severity.HINT }
 
+M.SEVERITY_NAMES = {
+  [Severity.ERROR] = 'error',
+  [Severity.WARN]  = 'warning',
+  [Severity.INFO]  = 'info',
+  [Severity.HINT]  = 'hint',
+}
+
 -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L191-L207>.
 local function make_highlight_map(base_name)
   local result = {}
@@ -155,7 +162,7 @@ function M.set_list(loclist, opts)
   end
   local title = opts.title or ('Diagnostics from ' .. vim.fn.expand('%:.'))
   local items = vim_diagnostic.toqflist(vim_diagnostic.get(bufnr, opts))
-  vim.api.nvim_echo({{ string.format('Found %d diagnostics', #items) }}, false, {})
+  utils_vim.echo({{string.format('Found %d diagnostics', #items)}})
   vim.call('dotfiles#utils#push_qf_list', {
     title = title;
     dotfiles_loclist_window = winnr;
@@ -268,44 +275,66 @@ end
 
 
 -- NOTE: <https://github.com/neovim/neovim/pull/16520>
-if not utils_vim.has('nvim-0.7.0') then
-  -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L499-L528>.
-  function M.jump_to_neighbor(opts, pos)
-    opts = opts or {}
-    if not pos then
-      vim.notify('No more valid diagnostics to move to', vim.log.levels.WARN)
-      return
-    end
-    local float = utils.if_nil(opts.float, true)
-    local winid = opts.win_id or vim.api.nvim_get_current_win()
+-- NOTE: But still, I added the logging of the current diagnostic, I must PR that (TODO)
+-- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L499-L528>.
+function M.jump_to_neighbor(opts, diag)
+  if not diag then
+    utils_vim.echomsg({{'No more valid diagnostics to move to', 'WarningMsg'}})
+    return false
+  end
+
+  opts = opts or {}
+  local float = utils.if_nil(opts.float, true)
+  local winid = opts.win_id or vim.api.nvim_get_current_win()
+  local bufnr = vim.api.nvim_win_get_buf(winid)
+
+  vim.api.nvim_win_call(winid, function()
     -- Save position in the window's jumplist
-    vim.api.nvim_win_call(winid, function()
-      vim.cmd("normal! m'")
-      vim.api.nvim_win_set_cursor(winid, {pos[1] + 1, pos[2]})
-      vim.cmd('normal! zv')
-    end)
-    if float then
-      if type(float) ~= 'table' then
-        float = {}
-      end
-      -- Shrug, don't ask me why schedule() is needed. Ask the Nvim maintainers:
-      -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L532>.
-      vim.schedule(function()
-        vim_diagnostic.open_float(
-          vim.api.nvim_win_get_buf(winid),
-          vim.tbl_extend('keep', float, { scope = 'cursor', focus = false })
-        )
-      end)
+    vim.cmd("normal! m'")
+    vim.api.nvim_win_set_cursor(winid, {diag.lnum + 1, diag.col})
+    vim.cmd('normal! zv')
+  end)
+
+  -- This is inefficient
+  local matching_diags = vim_diagnostic.get(bufnr, opts)
+  table.sort(matching_diags, function(a, b)
+    if a.lnum == b.lnum then
+      return a.col < b.col
+    end
+    return a.lnum < b.lnum
+  end)
+  local current_idx = nil
+  for idx, diag2 in ipairs(matching_diags) do
+    if rawequal(diag2, diag) then
+      current_idx = idx
     end
   end
-
-  function vim_diagnostic.goto_prev(opts)
-    return M.jump_to_neighbor(opts, vim_diagnostic.get_prev_pos(opts))
+  if current_idx then
+    utils_vim.echo({{
+      string.format(
+        '(%d of %d) %s: %s', current_idx, #matching_diags, M.SEVERITY_NAMES[diag.severity], M.format_diagnostic_for_list(diag)
+      )
+    }})
   end
 
-  function vim_diagnostic.goto_next(opts)
-    return M.jump_to_neighbor(opts, vim_diagnostic.get_next_pos(opts))
+  if float then
+    if type(float) ~= 'table' then
+      float = {}
+    end
+    -- Shrug, don't ask me why schedule() is needed. Ask the Nvim maintainers:
+    -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L532>.
+    vim.schedule(function()
+      vim_diagnostic.open_float(bufnr, vim.tbl_extend('keep', float, { scope = 'cursor', focus = false }))
+    end)
   end
+end
+
+function vim_diagnostic.goto_prev(opts)
+  return M.jump_to_neighbor(opts, vim_diagnostic.get_prev(opts))
+end
+
+function vim_diagnostic.goto_next(opts)
+  return M.jump_to_neighbor(opts, vim_diagnostic.get_next(opts))
 end
 
 

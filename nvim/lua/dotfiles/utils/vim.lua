@@ -369,4 +369,13 @@ function M.unsilent(fun, ...)
 end
 
 
+function M.echo(chunks)
+  return vim.api.nvim_echo(chunks, false, {})
+end
+
+function M.echomsg(chunks)
+  return vim.api.nvim_echo(chunks, true, {})
+end
+
+
 return M
