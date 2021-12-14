@@ -102,79 +102,86 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
     active_signature_idx = 0
   end
   -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureInformation>
-  local active_signature = signature_help.signatures[active_signature_idx + 1]
-  if not active_signature then
-    return parsing_ctx, nil
+  local active_sig = signature_help.signatures[active_signature_idx + 1]
+  local active_sig_linenr = nil
+
+  for idx, signature in ipairs(signature_help.signatures) do
+    if idx == active_signature_idx + 1 then
+      active_sig_linenr = parsing_ctx.linenr
+    end
+    lsp_markup.parse_plaintext_block(signature.label, syntax, parsing_ctx)
+    parsing_ctx:set_syntax_region_break()
   end
 
-  lsp_markup.parse_plaintext_block(active_signature.label, syntax, parsing_ctx)
-
   local active_param_range = nil
-  if active_signature.parameters and not vim.tbl_isempty(active_signature.parameters) then
-    local active_param_idx = active_signature.activeParameter
-      or signature_help.activeParameter
-      or 0
-    if not (0 <= active_param_idx and active_param_idx < #active_signature.parameters) then
+  if active_sig and active_sig.parameters and not vim.tbl_isempty(active_sig.parameters) then
+    local active_param_idx = active_sig.activeParameter or signature_help.activeParameter or 0
+    if not (0 <= active_param_idx and active_param_idx < #active_sig.parameters) then
       -- TODO: Evaluate this: <https://github.com/neovim/neovim/pull/15032#issuecomment-877033754>
       active_param_idx = 0
     end
     -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#parameterInformation>
-    local active_param = active_signature.parameters[active_param_idx + 1]
+    local active_param = active_sig.parameters[active_param_idx + 1]
 
-    if active_param then
-      if active_param.label then
-        local start_idx, end_idx
-        if type(active_param.label) == 'string' then
-          -- NOTE: See also: <https://github.com/neovim/neovim/pull/15032> and <https://github.com/neovim/neovim/issues/15022>.
-          local search_offset = 1
-          for _, char in ipairs(trigger_chars) do
-            local char_offset = active_signature.label:find(char, 1, true)
-            if char_offset and (search_offset == 1 or char_offset < search_offset) then
-              search_offset = char_offset
-            end
+    if active_param and active_param.label then
+      local start_idx, end_idx
+      if type(active_param.label) == 'string' then
+        -- NOTE: See also: <https://github.com/neovim/neovim/pull/15032> and <https://github.com/neovim/neovim/issues/15022>.
+        local search_offset = 1
+        for _, char in ipairs(trigger_chars) do
+          local char_offset = active_sig.label:find(char, 1, true)
+          if char_offset and (search_offset == 1 or char_offset < search_offset) then
+            search_offset = char_offset
           end
-          for param_idx, param in ipairs(active_signature.parameters) do
-            local match_start, match_end = active_signature.label:find(
-              param.label,
-              search_offset,
-              true
-            )
-            if not (match_start and match_end) then
-              break
-            end
-            if param_idx == active_param_idx + 1 then
-              start_idx, end_idx = match_start - 1, match_end - 1
-              break
-            else
-              search_offset = match_end + 1
-            end
-          end
-        else
-          start_idx, end_idx =
-            lsp_utils.char_offset_to_byte_offset(active_param.label[1], active_signature.label),
-            lsp_utils.char_offset_to_byte_offset(active_param.label[2], active_signature.label)
         end
-        local start_line, start_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
-          start_idx,
-          active_signature.label
-        )
-        local end_line, end_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
-          end_idx,
-          active_signature.label
-        )
-        active_param_range = { start_line, start_col, end_line, end_col }
+        for param_idx, param in ipairs(active_sig.parameters) do
+          local match_start, match_end = active_sig.label:find(param.label, search_offset, true)
+          if not (match_start and match_end) then
+            break
+          end
+          if param_idx == active_param_idx + 1 then
+            start_idx, end_idx = match_start - 1, match_end
+            break
+          else
+            search_offset = match_end + 1
+          end
+        end
+      else
+        start_idx, end_idx =
+          lsp_utils.char_offset_to_byte_offset(active_param.label[1], active_sig.label),
+          lsp_utils.char_offset_to_byte_offset(active_param.label[2], active_sig.label)
       end
+      local start_line, start_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
+        start_idx,
+        active_sig.label
+      )
+      local end_line, end_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
+        end_idx,
+        active_sig.label
+      )
+      active_param_range = {
+        start_line + active_sig_linenr,
+        start_col,
+        end_line + active_sig_linenr,
+        end_col,
+      }
+    elseif #signature_help.signatures > 1 then
+      local end_line, end_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
+        #active_sig.label,
+        active_sig.label
+      )
+      active_param_range = { active_sig_linenr, 0, end_line + active_sig_linenr, end_col }
+    end
 
-      if active_param.documentation then
-        parsing_ctx:push_separator()
-        lsp_markup.parse_documentation_blocks(active_param.documentation, parsing_ctx)
-      end
+    if active_param and active_param.documentation then
+      parsing_ctx:push_separator()
+      lsp_markup.parse_documentation_blocks(active_param.documentation, parsing_ctx)
     end
   end
 
-  if active_signature.documentation then
+  if active_sig and active_sig.documentation then
     parsing_ctx:push_separator()
-    lsp_markup.parse_documentation_blocks(active_signature.documentation, parsing_ctx)
+    lsp_markup.parse_documentation_blocks(active_sig.documentation, parsing_ctx)
   end
 
   return parsing_ctx, active_param_range

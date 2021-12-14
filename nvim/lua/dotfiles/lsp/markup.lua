@@ -47,6 +47,7 @@ function M.ParsingContext.new()
   self.linenr = 0
   self.lines = {}
   self.lines_syntaxes = {}
+  self.lines_syntax_region_breaks = {}
   self.lines_separators = {}
   return self
 end
@@ -66,6 +67,10 @@ function M.ParsingContext:push_separator()
   self.lines[self.linenr] = ''
   self.lines_syntaxes[self.linenr] = ''
   self.lines_separators[self.linenr] = true
+end
+
+function M.ParsingContext:set_syntax_region_break()
+  self.lines_syntax_region_breaks[self.linenr] = true
 end
 
 -- A rough re-implementation of <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/src/markdown/index.ts#L36-L75>.
@@ -339,6 +344,9 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
       local end_linenr = start_linenr + 1
       while end_linenr <= lines_count do
         if (parsing_ctx.lines_syntaxes[end_linenr] or '') ~= syntax then
+          break
+        end
+        if parsing_ctx.lines_syntax_region_breaks[end_linenr] then
           break
         end
         end_linenr = end_linenr + 1

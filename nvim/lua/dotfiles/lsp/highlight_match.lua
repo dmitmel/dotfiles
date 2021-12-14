@@ -39,7 +39,7 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
   local char_offset_to_byte_offset = lsp_utils.char_offset_to_byte_offset
   if not use_lsp_char_offsets then
     char_offset_to_byte_offset = function(char_idx, line_text)
-      return utils.clamp(char_idx, 0, #line_text - 1)
+      return utils.clamp(char_idx, 0, #line_text)
     end
   end
 
