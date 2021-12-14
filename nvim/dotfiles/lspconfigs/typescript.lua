@@ -23,8 +23,11 @@ lsp_ignition.setup_config('tsserver', {
     disableAutomaticTypingAcquisition = true;
   };
 
-  settings_scopes = {'tsserver', 'javascript', 'typescript'};
+  settings_scopes = {'tsserver', 'javascript', 'typescript', 'completions.completeFunctionCalls', 'diagnostics.ignoredCodes'};
   settings = {
+    completions = {
+      completeFunctionCalls = true;
+    };
     typescript = {
       format = false;
     };

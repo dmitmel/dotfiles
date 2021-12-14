@@ -46,6 +46,8 @@ function _G.measure_time(fn, ...)
 end
 
 
+-- TODO: This looks useful (probably a knockoff implementation of hyperfine):
+-- <https://github.com/nvim-lua/plenary.nvim/blob/master/lua/plenary/benchmark/init.lua>
 function _G.benchmark(runs, fn, ...)
   local start_time = vim.loop.hrtime()
   for i = 1, runs do

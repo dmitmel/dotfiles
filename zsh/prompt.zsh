@@ -99,11 +99,11 @@ PROMPT+=' in %F{cyan}%~%f'
 PROMPT+='$(prompt_vcs_info 2>/dev/null)'
 
 # Python's virtualenv
-PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}${VIRTUAL_ENV:t}%f"}'
+PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}$(prompt_escape "${VIRTUAL_ENV:t}")%f"}'
 VIRTUAL_ENV_DISABLE_PROMPT=true
 
 # pyenv
-PROMPT+='${PYENV_VERSION:+" %F{blue}pyenv:%F{magenta}${PYENV_VERSION:t}%f"}'
+PROMPT+='${PYENV_VERSION:+" %F{blue}pyenv:%F{magenta}$(prompt_escape "$PYENV_VERSION")%f"}'
 PYENV_VIRTUAL_ENV_DISABLE_PROMPT=true
 
 PROMPT+=' '
