@@ -11,14 +11,13 @@ local lsp = require('vim.lsp')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
-
 M.ALL_SEVERITIES = { Severity.ERROR, Severity.WARN, Severity.INFO, Severity.HINT }
 
 M.SEVERITY_NAMES = {
   [Severity.ERROR] = 'error',
-  [Severity.WARN]  = 'warning',
-  [Severity.INFO]  = 'info',
-  [Severity.HINT]  = 'hint',
+  [Severity.WARN] = 'warning',
+  [Severity.INFO] = 'info',
+  [Severity.HINT] = 'hint',
 }
 
 -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L191-L207>.
@@ -42,11 +41,13 @@ for name, tag in pairs(lsp.protocol.DiagnosticTag) do
   end
 end
 
-
 --- Stolen from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L68-L74>.
 function M.to_severity(severity)
   if type(severity) == 'string' then
-    return assert(M.severity[string.upper(severity)], string.format('Invalid severity: %s', severity))
+    return assert(
+      M.severity[string.upper(severity)],
+      string.format('Invalid severity: %s', severity)
+    )
   end
   return severity
 end
@@ -58,51 +59,55 @@ function M.filter_by_severity(severity, diagnostics)
   end
   if type(severity) ~= 'table' then
     severity = M.to_severity(severity)
-    return vim.tbl_filter(function(t) return t.severity == severity end, diagnostics)
+    return vim.tbl_filter(function(t)
+      return t.severity == severity
+    end, diagnostics)
   end
   local min_severity = M.to_severity(severity.min) or M.severity.HINT
   local max_severity = M.to_severity(severity.max) or M.severity.ERROR
-  return vim.tbl_filter(function(t) return t.severity <= min_severity and t.severity >= max_severity end, diagnostics)
+  return vim.tbl_filter(function(t)
+    return t.severity <= min_severity and t.severity >= max_severity
+  end, diagnostics)
 end
-
 
 -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L962-L998>
 -- See also <https://github.com/neoclide/coc.nvim/blob/705135211e84725766e434f59e63ae3592c609d9/src/diagnostic/buffer.ts#L255-L264>
 function vim_diagnostic._get_virt_text_chunks(line_diags, opts)
-  if #line_diags == 0 then return nil end
+  if #line_diags == 0 then
+    return nil
+  end
 
   opts = opts or {}
   local prefix = opts.prefix or '#'
   local spacing = opts.spacing or 4
 
-  local virt_texts = {{string.rep(' ', spacing)}}
+  local virt_texts = { { string.rep(' ', spacing) } }
 
   local main_diag = line_diags[#line_diags]
-  table.insert(virt_texts, {' ', M.virtual_text_highlight_map[main_diag.severity]})
+  table.insert(virt_texts, { ' ', M.virtual_text_highlight_map[main_diag.severity] })
   for i = #line_diags, 1, -1 do
     local diag = line_diags[i]
-    table.insert(virt_texts, {prefix, M.virtual_text_highlight_map[diag.severity]})
+    table.insert(virt_texts, { prefix, M.virtual_text_highlight_map[diag.severity] })
   end
 
   local str = ' '
   if main_diag.message then
     str = ' ' .. main_diag.message:gsub('\r', ' \\ '):gsub('\n', ' \\ ') .. ' '
   end
-  table.insert(virt_texts, {str, M.virtual_text_highlight_map[main_diag.severity]})
+  table.insert(virt_texts, { str, M.virtual_text_highlight_map[main_diag.severity] })
 
   return virt_texts
 end
-
 
 local orig_underline_handler_show = vim_diagnostic.handlers.underline.show
 -- Replacement for <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L859-L897>.
 -- Handles LSP DiagnosticTags, see <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#diagnosticTag>.
 function vim_diagnostic.handlers.underline.show(namespace, bufnr, diagnostics, opts, ...)
   vim.validate({
-    namespace = {namespace, 'number'};
-    bufnr = {bufnr, 'number'};
-    diagnostics = {diagnostics, 'table'};
-    opts = {opts, 'table', true};
+    namespace = { namespace, 'number' },
+    bufnr = { bufnr, 'number' },
+    diagnostics = { diagnostics, 'table' },
+    opts = { opts, 'table', true },
   })
 
   bufnr = utils_vim.normalize_bufnr(bufnr)
@@ -122,8 +127,8 @@ function vim_diagnostic.handlers.underline.show(namespace, bufnr, diagnostics, o
       ns.user_data.underline_ns,
       -- The changed part (abstracted in a function):
       M.get_underline_highlight_group(diagnostic),
-      {diagnostic.lnum, diagnostic.col},
-      {diagnostic.end_lnum, diagnostic.end_col}
+      { diagnostic.lnum, diagnostic.col },
+      { diagnostic.end_lnum, diagnostic.end_col }
     )
   end
 
@@ -144,13 +149,16 @@ end
 function M.get_underline_highlight_group(diagnostic)
   for _, tag in ipairs(((diagnostic.user_data or {}).lsp or {}).tags or {}) do
     local higroup = M.underline_tag_highlight_map[tag]
-    if higroup then return higroup end
+    if higroup then
+      return higroup
+    end
   end
   local higroup = M.underline_highlight_map[diagnostic.severity]
-  if higroup then return higroup end
-  return M.underline_highlight_map[Severity.ERROR]  -- fallback
+  if higroup then
+    return higroup
+  end
+  return M.underline_highlight_map[Severity.ERROR] -- fallback
 end
-
 
 --- Based on <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L434-L456>.
 function M.set_list(loclist, opts)
@@ -162,12 +170,12 @@ function M.set_list(loclist, opts)
   end
   local title = opts.title or ('Diagnostics from ' .. vim.fn.expand('%:.'))
   local items = vim_diagnostic.toqflist(vim_diagnostic.get(bufnr, opts))
-  utils_vim.echo({{string.format('Found %d diagnostics', #items)}})
+  utils_vim.echo({ { string.format('Found %d diagnostics', #items) } })
   vim.call('dotfiles#utils#push_qf_list', {
-    title = title;
-    dotfiles_loclist_window = winnr;
-    dotfiles_auto_open = opts.open;
-    items = items;
+    title = title,
+    dotfiles_loclist_window = winnr,
+    dotfiles_auto_open = opts.open,
+    items = items,
   })
 end
 
@@ -181,7 +189,6 @@ function vim_diagnostic.setloclist(opts)
   return M.set_list(true, opts)
 end
 
-
 -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L1484-L1489>.
 M.LOCLIST_TYPE_MAP = {
   [Severity.ERROR] = 'E',
@@ -190,12 +197,11 @@ M.LOCLIST_TYPE_MAP = {
   [Severity.HINT] = 'N',
 }
 
-
 -- Copy of <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L1491-L1520>,
 -- plus some formatting. See also <https://github.com/neoclide/coc.nvim/blob/0ad03ca857ae9ea30e51d7d8317096e1d378aa41/src/list/source/diagnostics.ts#L26-L30>.
 function vim_diagnostic.toqflist(diagnostics)
   vim.validate({
-    diagnostics = {diagnostics, 'table'};
+    diagnostics = { diagnostics, 'table' },
   })
   local items = {}
   for i, v in pairs(diagnostics) do
@@ -238,24 +244,28 @@ end
 
 function vim_diagnostic.fromqflist(list)
   vim.validate({
-    list = {list, 'table'};
+    list = { list, 'table' },
   })
   -- TODO: Because I apply some formatting to the diagnostic messages in
   -- toqflist, this will have to handle that and parse the original message.
   error('not yet implemented')
 end
 
-
 function M.patch_lsp_diagnostics(diagnostics, client_id)
   local client = lsp.get_client_by_id(client_id)
   -- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/src/diagnostic/collection.ts#L47-L51>
   for _, diag in ipairs(diagnostics) do
-    if diag.severity == nil then diag.severity = lsp.protocol.DiagnosticSeverity.Error end
-    if diag.message == nil then diag.message = 'unknown diagnostic message' end
-    if diag.source == nil then diag.source = client.name end
+    if diag.severity == nil then
+      diag.severity = lsp.protocol.DiagnosticSeverity.Error
+    end
+    if diag.message == nil then
+      diag.message = 'unknown diagnostic message'
+    end
+    if diag.source == nil then
+      diag.source = client.name
+    end
   end
 end
-
 
 local orig_lsp_diagnostic_save = lsp.diagnostic.save
 function lsp.diagnostic.save(diagnostics, bufnr, client_id, ...)
@@ -273,13 +283,12 @@ function lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config, ...)
   return orig_lsp_diagnostic_on_publish_diagnostics(err, result, ctx, config, ...)
 end
 
-
 -- NOTE: <https://github.com/neovim/neovim/pull/16520>
 -- NOTE: But still, I added the logging of the current diagnostic, I must PR that (TODO)
 -- Copied from <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L499-L528>.
 function M.jump_to_neighbor(opts, diag)
   if not diag then
-    utils_vim.echomsg({{'No more valid diagnostics to move to', 'WarningMsg'}})
+    utils_vim.echomsg({ { 'No more valid diagnostics to move to', 'WarningMsg' } })
     return false
   end
 
@@ -291,7 +300,7 @@ function M.jump_to_neighbor(opts, diag)
   vim.api.nvim_win_call(winid, function()
     -- Save position in the window's jumplist
     vim.cmd("normal! m'")
-    vim.api.nvim_win_set_cursor(winid, {diag.lnum + 1, diag.col})
+    vim.api.nvim_win_set_cursor(winid, { diag.lnum + 1, diag.col })
     vim.cmd('normal! zv')
   end)
 
@@ -310,11 +319,14 @@ function M.jump_to_neighbor(opts, diag)
     end
   end
   if current_idx then
-    utils_vim.echo({{
-      string.format(
-        '(%d of %d) %s: %s', current_idx, #matching_diags, M.SEVERITY_NAMES[diag.severity], M.format_diagnostic_for_list(diag)
-      )
-    }})
+    local message = string.format(
+      '(%d of %d) %s: %s',
+      current_idx,
+      #matching_diags,
+      M.SEVERITY_NAMES[diag.severity],
+      M.format_diagnostic_for_list(diag)
+    )
+    utils_vim.echo({ { message } })
   end
 
   if float then
@@ -324,7 +336,10 @@ function M.jump_to_neighbor(opts, diag)
     -- Shrug, don't ask me why schedule() is needed. Ask the Nvim maintainers:
     -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/diagnostic.lua#L532>.
     vim.schedule(function()
-      vim_diagnostic.open_float(bufnr, vim.tbl_extend('keep', float, { scope = 'cursor', focus = false }))
+      vim_diagnostic.open_float(
+        bufnr,
+        vim.tbl_extend('keep', float, { scope = 'cursor', focus = false })
+      )
     end)
   end
 end
@@ -336,7 +351,6 @@ end
 function vim_diagnostic.goto_next(opts)
   return M.jump_to_neighbor(opts, vim_diagnostic.get_next(opts))
 end
-
 
 -- This one is a little bit too domain-specfic... Based on
 -- <https://github.com/neoclide/coc.nvim/blob/eb47e40c52e21a5ce66bee6e51f1fafafe18a232/src/diagnostic/buffer.ts#L225-L253>.
@@ -369,7 +383,6 @@ function M.get_severity_stats_for_statusline(bufnr, diagnostics)
   return vim_result
 end
 
-
 -- Thank God the handlers system exists, it makes my life so much easier.
 vim_diagnostic.handlers['dotfiles/statusline_stats'] = {
   show = function(_, bufnr, diagnostics, _)
@@ -381,13 +394,12 @@ vim_diagnostic.handlers['dotfiles/statusline_stats'] = {
   end,
 }
 
-
 -- And now, for the cherry on the cake. Even I've gotta admit, configuring the
 -- system declaratively like this instead of hundreds of lines of
 -- monkey-patches feels pretty Nice.
 vim_diagnostic.config({
   float = {
-    header = '',  -- Turn the header off
+    header = '', -- Turn the header off
     prefix = '',
     format = M.format_diagnostic_for_list,
     severity_sort = false,
@@ -400,10 +412,9 @@ vim_diagnostic.config({
     spacing = 1,
   },
   signs = {
-    priority = 10,  -- De-conflict with vim-signify.
+    priority = 10, -- De-conflict with vim-signify.
   },
   severity_sort = true,
 })
-
 
 return M

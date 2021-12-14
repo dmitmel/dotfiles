@@ -24,24 +24,26 @@ let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
 lua <<EOF
   local ok, gitsigns = pcall(require, 'gitsigns')
   vim.g.gitsigns_nvim_available = ok
-  if not ok then return end
+  if not ok then
+    return
+  end
   gitsigns.setup({
     signs = {
-      add          = { text = vim.g.gitgutter_sign_added              };
-      delete       = { text = vim.g.gitgutter_sign_removed            };
-      topdelete    = { text = vim.g.gitgutter_sign_removed_first_line };
-      change       = { text = vim.g.gitgutter_sign_modified           };
-      changedelete = { text = vim.g.gitgutter_sign_modified_removed   };
-    };
-    sign_priority = vim.g.gitgutter_sign_priority;
+      add          = { text = vim.g.gitgutter_sign_added              },
+      delete       = { text = vim.g.gitgutter_sign_removed            },
+      topdelete    = { text = vim.g.gitgutter_sign_removed_first_line },
+      change       = { text = vim.g.gitgutter_sign_modified           },
+      changedelete = { text = vim.g.gitgutter_sign_modified_removed   },
+    },
+    sign_priority = vim.g.gitgutter_sign_priority,
     preview_config = {
-      border = 'none';
-      col = 0;
-      row = 1;
-    };
-    -- Disable the default mappings, we will define our own, and via the
-    -- intended way.
-    keymaps = {};
+      border = 'none',
+      col = 0,
+      row = 1,
+    },
+      -- Disable the default mappings, we will define our own, and via the
+      -- intended way.
+    keymaps = {},
   })
 EOF
 

@@ -5,7 +5,6 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.custom_ui')
 local vim_ui = require('vim.ui')
 local utils = require('dotfiles.utils')
 
-
 local fzf_buf_marker_counter = 0
 
 --- Overrides <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/ui.lua#L21-L38>
@@ -14,9 +13,9 @@ local fzf_buf_marker_counter = 0
 --- (if not all) it will be used for is LSP code actions.
 function vim_ui.select(items, opts, on_choice)
   vim.validate({
-    items = { items, 'table' };
-    opts = { opts, 'table', true };
-    on_choice = { on_choice, 'function' };
+    items = { items, 'table' },
+    opts = { opts, 'table', true },
+    on_choice = { on_choice, 'function' },
   })
   opts = opts or {}
 
@@ -157,11 +156,14 @@ function vim_ui.select(items, opts, on_choice)
   assert(vim.api.nvim_eval([[ &filetype ==# 'fzf' && exists('b:fzf') ]]) ~= 0)
   -- Vimscript eval is used ot avoid copying the b:fzf dictionary which
   -- contains funcrefs.
-  assert(vim.api.nvim_eval([[ get(b:fzf, '_dotfiles_lsp_custom_ui_marker', v:null) ]]) == buf_marker)
+  assert(
+    vim.api.nvim_eval([[ get(b:fzf, '_dotfiles_lsp_custom_ui_marker', v:null) ]]) == buf_marker
+  )
 
   -- That's it, we are in the fzf buffer!
-  vim.cmd([[ autocmd TermClose <buffer> ++once ++nested call timer_start(0, b:fzf._dotfiles_lsp_custom_ui_on_exit) ]])
+  vim.cmd([[
+    autocmd TermClose <buffer> ++once ++nested call timer_start(0, b:fzf._dotfiles_lsp_custom_ui_on_exit)
+  ]])
 end
-
 
 return M

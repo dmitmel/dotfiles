@@ -12,7 +12,6 @@ local lsp_markup = require('dotfiles.lsp.markup')
 local utils = require('dotfiles.utils')
 local lsp_progress = require('dotfiles.lsp.progress')
 
-
 -- The disabled implementation using builtin APIs has a FATAL FLAW which is
 -- described in the `highlight_match` module.
 local USE_NVIM_ADD_BUF_HIGHLIGHT = false
@@ -22,7 +21,6 @@ M.highlight_last_bufnr = nil
 M.highlight_match_ids = {}
 M.highlight_timer_stop = nil
 
-
 -- Based on <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/buf.lua#L57-L62>.
 function M.request()
   local params = lsp.util.make_position_params()
@@ -30,7 +28,6 @@ function M.request()
   lsp.buf_request(0, 'textDocument/hover', params)
 end
 lsp.buf.hover = M.request
-
 
 -- Based on <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/handlers.lua#L250-L277>.
 function M.handler(err, params, ctx, opts)
@@ -67,7 +64,6 @@ function M.handler(err, params, ctx, opts)
 end
 lsp.handlers['textDocument/hover'] = lsp_utils.wrap_handler_compat(M.handler)
 
-
 -- See:
 -- <https://github.com/neoclide/coc.nvim/blob/705135211e84725766e434f59e63ae3592c609d9/src/handler/hover.ts#L74-L79>
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/highlight.lua#L42-L91>
@@ -87,24 +83,35 @@ function M.highlight_handler(err, params, ctx, opts)
     M.highlight_timer_stop = nil
   end
 
-  if not (params and params.range) then return end
+  if not (params and params.range) then
+    return
+  end
 
   M.highlight_last_bufnr = ctx.bufnr
   if USE_NVIM_ADD_BUF_HIGHLIGHT then
     local start_pos, end_pos = params.range['start'], params.range['end']
     vim_highlight.range(
-      ctx.bufnr, M.nvim_namespace, higroup,
-      {lsp_utils.position_to_linenr_colnr(ctx.bufnr, start_pos)},
-      {lsp_utils.position_to_linenr_colnr(ctx.bufnr, end_pos)}
+      ctx.bufnr,
+      M.nvim_namespace,
+      higroup,
+      { lsp_utils.position_to_linenr_colnr(ctx.bufnr, start_pos) },
+      { lsp_utils.position_to_linenr_colnr(ctx.bufnr, end_pos) }
     )
   else
     for _, winid in ipairs(buf_winids) do
       local range = {
-        params.range['start']['line'], params.range['start']['character'],
-        params.range['end']['line'], params.range['end']['character'],
+        params.range['start']['line'],
+        params.range['start']['character'],
+        params.range['end']['line'],
+        params.range['end']['character'],
       }
-      M.highlight_match_ids[winid] =
-        highlight_match.add_ranges(winid, {range}, higroup, priority, true)
+      M.highlight_match_ids[winid] = highlight_match.add_ranges(
+        winid,
+        { range },
+        higroup,
+        priority,
+        true
+      )
     end
   end
 
@@ -113,7 +120,6 @@ function M.highlight_handler(err, params, ctx, opts)
     M.clear_highlights()
   end)
 end
-
 
 function M.clear_highlights()
   if USE_NVIM_ADD_BUF_HIGHLIGHT then
@@ -130,13 +136,11 @@ function M.clear_highlights()
   end
 end
 
-
 vim.cmd([[
   augroup dotfiles_lsp_hover
     autocmd!
     autocmd CursorMoved,CursorMovedI,TextChanged,TextChangedI,TextChangedP * unsilent lua require('dotfiles.lsp.hover').clear_highlights()
   augroup END
 ]])
-
 
 return M

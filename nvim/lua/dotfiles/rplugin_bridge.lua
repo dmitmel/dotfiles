@@ -29,7 +29,6 @@ local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 assert(utils_vim.has('nvim'), MODULE_INFO.name .. ' is currently only supported in neovim!')
 
-
 M.FUNCTION_NAME_PREFIX = '_dotfiles_rplugin_'
 
 M.rplugins_dir = vim.fn.fnamemodify(utils.script_path(), ':p:h:h:h') .. '/dotfiles/rplugin'
@@ -37,29 +36,29 @@ M.rplugins = {
   python3 = {
     -- NOTE: The directory itself must be specified here and not a path to
     -- `__init__.py` or something for imports to work correctly.
-    main_file = 'dotfiles';
-    public_specs = {};
-  };
+    main_file = 'dotfiles',
+    public_specs = {},
+  },
   node = {
-    main_file = 'rplugin_main.js';
-    public_specs = {};
-  }
+    main_file = 'rplugin_main.js',
+    public_specs = {},
+  },
 }
 
 for rplugin_host, rplugin in pairs(M.rplugins) do
   vim.validate({
-    host = {rplugin_host, 'string'};
-    main_file = {rplugin.main_file, 'string'};
-    specs = {rplugin.public_specs, vim.tbl_islist, 'list'};
+    host = { rplugin_host, 'string' },
+    main_file = { rplugin.main_file, 'string' },
+    specs = { rplugin.public_specs, vim.tbl_islist, 'list' },
   })
   rplugin.full_path = M.rplugins_dir .. '/' .. rplugin_host .. '/' .. rplugin.main_file
   rplugin.channel = nil
   for i, spec in ipairs(rplugin.public_specs) do
     vim.validate({
-      [string.format('specs[%d].type', i)] = {spec.type, 'string'};
-      [string.format('specs[%d].name', i)] = {spec.name, 'string'};
-      [string.format('specs[%d].sync', i)] = {spec.sync, 'boolean', true};
-      [string.format('specs[%d].opts', i)] = {spec.opts, 'table', true};
+      [string.format('specs[%d].type', i)] = { spec.type, 'string' },
+      [string.format('specs[%d].name', i)] = { spec.name, 'string' },
+      [string.format('specs[%d].sync', i)] = { spec.sync, 'boolean', true },
+      [string.format('specs[%d].opts', i)] = { spec.opts, 'table', true },
     })
     spec.sync = spec.sync or false
     spec.opts = spec.opts or vim.empty_dict()
@@ -67,45 +66,45 @@ for rplugin_host, rplugin in pairs(M.rplugins) do
   vim.call('remote#host#RegisterPlugin', rplugin_host, rplugin.full_path, rplugin.public_specs)
 end
 
-
 function M.ensure_running(host)
   vim.validate({
-    host = {host, 'string'};
+    host = { host, 'string' },
   })
   local rplugin = assert(M.rplugins[host], 'unknown host')
   rplugin.channel = rplugin.channel or vim.call('remote#host#Require', host)
   return rplugin
 end
 
-
 function M.notify(host, method, ...)
   vim.validate({
-    host = {host, 'string'};
-    method = {method, 'string'};
+    host = { host, 'string' },
+    method = { method, 'string' },
   })
   local rplugin = M.ensure_running(host)
   return vim.rpcnotify(
-    rplugin.channel, rplugin.full_path .. ':function:' .. M.FUNCTION_NAME_PREFIX .. method, ...
+    rplugin.channel,
+    rplugin.full_path .. ':function:' .. M.FUNCTION_NAME_PREFIX .. method,
+    ...
   )
 end
-
 
 function M.request(host, method, ...)
   vim.validate({
-    host = {host, 'string'};
-    method = {method, 'string'};
+    host = { host, 'string' },
+    method = { method, 'string' },
   })
   local rplugin = M.ensure_running(host)
   return vim.rpcrequest(
-    rplugin.channel, rplugin.full_path .. ':function:' .. M.FUNCTION_NAME_PREFIX .. method, ...
+    rplugin.channel,
+    rplugin.full_path .. ':function:' .. M.FUNCTION_NAME_PREFIX .. method,
+    ...
   )
 end
 
-
 function M.request_async(host, method, ...)
   vim.validate({
-    host = {host, 'string'};
-    method = {method, 'string'};
+    host = { host, 'string' },
+    method = { method, 'string' },
   })
   local rplugin = M.ensure_running(host)
   local async_call_ctx = {}
@@ -116,6 +115,5 @@ function M.request_async(host, method, ...)
     ...
   )
 end
-
 
 return M

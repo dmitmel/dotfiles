@@ -14,18 +14,21 @@ local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 local lsp_ignition = require('dotfiles.lsp.ignition')
 
-
 -- Prior art:
 -- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/src/configuration/util.ts#L38-L69>
 -- <https://github.com/tamago324/nlsp-settings.nvim/blob/4e2523aa56d2814fd78f60fb41d7a5ccfa429207/lua/nlspsettings.lua#L31-L62>
 function M.normalize(settings, vscode_style, output)
   vim.validate({
-    settings = {settings, 'table'};
-    vscode_style = {vscode_style, 'boolean', true};
-    output = {output, 'table', true};
+    settings = { settings, 'table' },
+    vscode_style = { vscode_style, 'boolean', true },
+    output = { output, 'table', true },
   })
-  if vscode_style == nil then vscode_style = true end
-  if output == nil then output = vim.empty_dict() end
+  if vscode_style == nil then
+    vscode_style = true
+  end
+  if output == nil then
+    output = vim.empty_dict()
+  end
 
   local current_path = {}
 
@@ -55,11 +58,13 @@ function M.normalize(settings, vscode_style, output)
           -- Whoops, sorry, can't drill into lists!
           error(
             string.format(
-              "path '%s': attempted to drill a new dictionary table into the key '%s' " ..
-              'while expanding dots in the settings key %q, but that key already exists ' ..
-              'and has a value which does not look like a dictionary (we can only drill ' ..
-              'into dictionaries!)',
-              utils.json_path_to_string(current_path), deeper_key, key
+              "path '%s': attempted to drill a new dictionary table into the key '%s' "
+                .. 'while expanding dots in the settings key %q, but that key already exists '
+                .. 'and has a value which does not look like a dictionary (we can only drill '
+                .. 'into dictionaries!)',
+              utils.json_path_to_string(current_path),
+              deeper_key,
+              key
             )
           )
         end
@@ -81,8 +86,8 @@ function M.normalize(settings, vscode_style, output)
       if type(key) ~= 'string' then
         error(
           string.format(
-            "path '%s': table contains a non-string key, but only string keys may be used for " ..
-            'the settings tables (as they will later be converted into JSON)',
+            "path '%s': table contains a non-string key, but only string keys may be used for "
+              .. 'the settings tables (as they will later be converted into JSON)',
             utils.json_path_to_string(current_path)
           )
         )
@@ -98,7 +103,9 @@ function M.normalize(settings, vscode_style, output)
 
       if type(value) == 'table' and not vim.tbl_islist(value) then
         local value2 = {}
-        if getmetatable(value) == utils.EMPTY_DICT_MT then value2 = vim.empty_dict() end
+        if getmetatable(value) == utils.EMPTY_DICT_MT then
+          value2 = vim.empty_dict()
+        end
         deeper_dest[key] = value2
         -- Dot-expansion should be performed only on the first/outer layer.
         normalize_internal(value, value2, false)
@@ -120,22 +127,18 @@ function M.normalize(settings, vscode_style, output)
   return output
 end
 
-
 function M.update(changed_settings)
   -- return M.update_raw(M.normalize(changed_settings))
 end
 
-
 function M.update_raw(changed_settings)
   -- dump(changed_settings)
 end
-
 
 function M.hook_on_config_installed(settings)
   settings = M.normalize(settings, true)
   -- dump(settings)
 end
 table.insert(lsp_ignition.service_hooks.on_config_installed, M.hook_on_config_installed)
-
 
 return M

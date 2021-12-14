@@ -7,7 +7,6 @@ local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_sync_available, lsp_sync = pcall(require, 'vim.lsp.sync')
 
-
 -- CLIENTS {{{
 
 function M.client_notify(client_id, message, log_level, ...)
@@ -20,7 +19,6 @@ function M.client_notify(client_id, message, log_level, ...)
   vim.notify(string.format('LSP[%s] %s', client_name, message), log_level, ...)
   vim.cmd('redraw')
 end
-
 
 -- Implements the following frequently repeated pattern:
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/handlers.lua#L30-L34>.
@@ -36,7 +34,6 @@ function M.assert_get_client_by_id(client_id)
   return client
 end
 
-
 function M.try_get_client_name(client_id)
   local client
   if type(client_id) == 'table' then
@@ -47,12 +44,13 @@ function M.try_get_client_name(client_id)
   return (client and client.name) or string.format('id=%s', client_id)
 end
 
-
 function M.is_any_client_attached_to_buf(bufnr)
   local result = false
   -- `lsp.buf_get_clients()` allocates a table, but uses
   -- `lsp.for_each_buffer_client()` internally. This is the fastest we can do.
-  lsp.for_each_buffer_client(bufnr, function() result = true end)
+  lsp.for_each_buffer_client(bufnr, function()
+    result = true
+  end)
   return result
 end
 
@@ -60,7 +58,6 @@ end
 function lsp.buf_is_any_attached(bufnr)
   return M.is_any_client_attached_to_buf(bufnr)
 end
-
 
 function M.any_attached_client_supports_method(bufnr, method)
   local result = false
@@ -78,7 +75,6 @@ end
 
 -- }}}
 
-
 -- VSCODE DETECTION AND INTEGR... err, I mean, HIJACKING {{{
 
 M.VSCODE_POSSIBLE_INSTALL_PATHS = {}
@@ -90,10 +86,10 @@ if utils_vim.has('macunix') then
   })
 elseif utils_vim.has('unix') then
   vim.list_extend(M.VSCODE_POSSIBLE_INSTALL_PATHS, {
-    '/opt/visual-studio-code-insiders/resources/app',  -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-insiders-bin/>
-    '/opt/visual-studio-code/resources/app',  -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-bin/>
-    '/usr/lib/code/extensions',  -- Arch Linux <https://archlinux.org/packages/community/x86_64/code/>
-    '/usr/share/code/resources/app',  -- Debian/Ubuntu <https://code.visualstudio.com/docs/setup/linux#_debian-and-ubuntu-based-distributions>
+    '/opt/visual-studio-code-insiders/resources/app', -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-insiders-bin/>
+    '/opt/visual-studio-code/resources/app', -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-bin/>
+    '/usr/lib/code/extensions', -- Arch Linux <https://archlinux.org/packages/community/x86_64/code/>
+    '/usr/share/code/resources/app', -- Debian/Ubuntu <https://code.visualstudio.com/docs/setup/linux#_debian-and-ubuntu-based-distributions>
   })
 end
 
@@ -106,7 +102,6 @@ for _, dir in ipairs(M.VSCODE_POSSIBLE_INSTALL_PATHS) do
 end
 
 -- }}}
-
 
 -- THE MULTIBYTE CHARACTER UNIFIED SUPPORT PROJECT {{{
 -- NOTE: LSP's lines and characters are 0-indexed, however, Vim's lines and
@@ -191,7 +186,7 @@ function M.get_buf_line(bufnr, linenr)
     -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1499-L1521>
     -- if the buffer is already loaded. Line numbers are not clamped to be
     -- consistent with `vim.lsp.util.get_line`.
-    local line_text = (vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, false) or {''})[1]
+    local line_text = (vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, false) or { '' })[1]
     return line_text, linenr
   else
     return lsp.util.get_line(vim_uri.uri_from_bufnr(bufnr), linenr), linenr
@@ -276,7 +271,6 @@ function lsp.util.make_range_params()
   }
 end
 
-
 -- Add NUL-byte support.
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1268-L1341>.
 local orig_util_make_floating_popup_size = lsp.util._make_floating_popup_size
@@ -288,12 +282,11 @@ function lsp.util._make_floating_popup_size(contents, ...)
   return orig_util_make_floating_popup_size(contents_patched, ...)
 end
 
-
 -- `byte_idx` is 0-based, returned `linenr` and `colnr` are 0-based as well.
 function M.byte_offset_to_linenr_colnr_in_str(byte_idx, text)
   vim.validate({
-    byte_idx = {byte_idx, 'number'};
-    text = {text, 'string'};
+    byte_idx = { byte_idx, 'number' },
+    text = { text, 'string' },
   })
   -- We are really only interested in the text preceding the `byte_idx`. Also,
   -- note that we are operating here (and in the remaining part of this
@@ -301,15 +294,15 @@ function M.byte_offset_to_linenr_colnr_in_str(byte_idx, text)
   -- 0-based, the string will be sliced up to the character that `byte_idx`
   -- really points to (in other words, the final character is excluded).
   text = text:sub(1, byte_idx)
-  local line_start_idx = 1  -- This one (along with `line_end_idx`) is 1-based.
-  local linenr = 0  -- However, this one is 0-based.
+  local line_start_idx = 1 -- This one (along with `line_end_idx`) is 1-based.
+  local linenr = 0 -- However, this one is 0-based.
   while true do
     local line_end_idx = text:find('\n', line_start_idx, true)
     if line_end_idx then
       linenr = linenr + 1
       line_start_idx = line_end_idx + 1
     else
-      local colnr = #text - (line_start_idx - 1)  -- This one is 0-based.
+      local colnr = #text - (line_start_idx - 1) -- This one is 0-based.
       return linenr, colnr
     end
   end
@@ -317,19 +310,22 @@ end
 
 -- }}}
 
-
 -- LOCATIONS AND LOCATION LISTS {{{
 
 -- Extension of <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1629-L1638>.
 -- Fortunately, the function is really tiny.
 function lsp.util.set_qflist(items, opts)
-  if opts == nil then opts = vim.empty_dict() end
-  vim.call('dotfiles#utils#push_qf_list', vim.tbl_extend('keep', opts, {
-    title = 'Language Server';
-    items = items;
-  }))
+  if opts == nil then
+    opts = vim.empty_dict()
+  end
+  vim.call(
+    'dotfiles#utils#push_qf_list',
+    vim.tbl_extend('keep', opts, {
+      title = 'Language Server',
+      items = items,
+    })
+  )
 end
-
 
 local orig_util_preview_location = lsp.util.preview_location
 function lsp.util.preview_location(location, opts, ...)
@@ -339,7 +335,6 @@ function lsp.util.preview_location(location, opts, ...)
   opts.wrap = opts.wrap or false
   return orig_util_preview_location(location, opts, ...)
 end
-
 
 -- Copy of <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1560-L1615>
 -- with multibyte character support and simplified code.
@@ -356,7 +351,7 @@ function lsp.util.locations_to_items(locations)
     if group ~= nil then
       table.insert(group, range)
     else
-      ranges_grouped_by_uri[uri] = {range}
+      ranges_grouped_by_uri[uri] = { range }
       table.insert(sorted_uris, uri)
     end
   end
@@ -374,9 +369,12 @@ function lsp.util.locations_to_items(locations)
     end)
     local filename = vim_uri.uri_to_fname(uri)
 
-    local lines = lsp.util.get_lines(uri, vim.tbl_map(function(range)
-      return range.start.line
-    end, ranges))
+    local lines = lsp.util.get_lines(
+      uri,
+      vim.tbl_map(function(range)
+        return range.start.line
+      end, ranges)
+    )
 
     for _, range in ipairs(ranges) do
       local line = lines[range.start.line] or ''
@@ -384,14 +382,13 @@ function lsp.util.locations_to_items(locations)
       table.insert(items, {
         filename = filename,
         lnum = range.start.line + 1,
-        col = col + 1;
-        text = line;
+        col = col + 1,
+        text = line,
       })
     end
   end
   return items
 end
-
 
 -- NOTE: <https://github.com/neovim/neovim/pull/16520>
 if not utils_vim.has('nvim-0.7.0') then
@@ -405,11 +402,14 @@ if not utils_vim.has('nvim-0.7.0') then
   end
 end
 
-
 -- Essentially a copy of <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/handlers.lua#L282-L307>.
 function M.jump_to_location_maybe_many(locations, opts)
-  if not locations or vim.tbl_isempty(locations) then return end
-  if not vim.tbl_islist(locations) then locations = {locations} end
+  if not locations or vim.tbl_isempty(locations) then
+    return
+  end
+  if not vim.tbl_islist(locations) then
+    locations = { locations }
+  end
   if vim.tbl_islist(locations) then
     local ok = lsp.util.jump_to_location(locations[1])
     if ok then
@@ -426,15 +426,14 @@ end
 
 -- }}}
 
-
 -- The reference implementation of my Simple Line Diffing algorithm. One of its
 -- major uses is described in the `dotfiles.rplugin_bridge` module.
 function M.simple_line_diff(old_lines, new_lines, search_from_start_offset, search_from_end_offset)
   vim.validate({
-    old_lines = {old_lines, 'table'};
-    new_lines = {new_lines, 'table'};
-    search_from_start_offset = {search_from_start_offset, 'number', true};
-    search_from_end_offset = {search_from_end_offset, 'number', true};
+    old_lines = { old_lines, 'table' },
+    new_lines = { new_lines, 'table' },
+    search_from_start_offset = { search_from_start_offset, 'number', true },
+    search_from_end_offset = { search_from_end_offset, 'number', true },
   })
   local old_lines_len, new_lines_len = #old_lines, #new_lines
   local min_lines_len = math.min(old_lines_len, new_lines_len)
@@ -462,9 +461,7 @@ function M.simple_line_diff(old_lines, new_lines, search_from_start_offset, sear
   return true, common_lines_from_start, common_lines_from_end
 end
 
-
 if lsp_sync_available then
-
   local orig_compute_diff = lsp_sync.compute_diff
   --- The callback for on_lines sometimes receives "inefficient" events whose
   --- reported range of changes (firstline/lastline/new_lastline) is larger
@@ -512,13 +509,10 @@ if lsp_sync_available then
 
     return orig_compute_diff(prev_lines, curr_lines, firstline, lastline, new_lastline, ...)
   end
-
 end
-
 
 --- :SanCheeseAngry: <https://github.com/neovim/neovim/pull/15504> {{{
 if utils_vim.has('nvim-0.5.1') then
-
   ---@param handler fun(err: any, result: any, context: any, config: any): any
   ---@return fun(err: any, result: any, context: any, config: any): any
   function M.wrap_handler_compat(handler)
@@ -546,9 +540,7 @@ if utils_vim.has('nvim-0.5.1') then
   function M.call_handler_compat(handler, err, result, context, config, ...)
     return handler(err, result, context, config, ...)
   end
-
 else
-
   ---@param handler fun(err: any, result: any, context: any, config: any): any
   ---@return fun(err: any, method: string, result: any, client_id: number, bufnr: number, config: any): any
   function M.wrap_handler_compat(handler)
@@ -576,7 +568,7 @@ else
         { method = method, client_id = client_id, bufnr = bufnr },
         config,
         ...
-        )
+      )
     end
   end
 
@@ -589,10 +581,8 @@ else
   function M.call_handler_compat(handler, err, result, context, config, ...)
     return handler(err, context.method, result, context.client_id, context.bufnr, config, ...)
   end
-
 end
 -- }}}
-
 
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1815-L1821>,
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocumentIdentifier>.
@@ -608,6 +598,5 @@ function M.make_versioned_text_document_params(bufnr)
   result.version = lsp.util.buf_versions[bufnr]
   return result
 end
-
 
 return M

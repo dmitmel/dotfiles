@@ -9,26 +9,28 @@ local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_utils = require('dotfiles.lsp.utils')
 
-
-local CAN_ADD_MATCHES_TO_OTHER_WINDOWS = utils_vim.has('nvim-0.4.0') or utils_vim.has('patch-8.1.0218')
-local CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS = utils_vim.has('nvim-0.5.0') or utils_vim.has('patch-8.1.1084')
+local CAN_ADD_MATCHES_TO_OTHER_WINDOWS = utils_vim.has('nvim-0.4.0')
+  or utils_vim.has('patch-8.1.0218')
+local CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS = utils_vim.has('nvim-0.5.0')
+  or utils_vim.has('patch-8.1.1084')
 -- implementation-defined?
 -- <https://github.com/neovim/neovim/blob/1c416892879de6b78038f2cc2f1487eff46abb60/src/nvim/buffer_defs.h#L1013-L1014>
 -- <https://github.com/vim/vim/blob/53ba05b09075f14227f9be831a22ed16f7cc26b2/src/structs.h#L3298-L3299>
 local MAX_MATCHADDPOS_BATCH_SIZE = 8
 
-
 -- Re-implementation of `coc#highlight#match_ranges`.
 function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
   vim.validate({
-    winid = {winid, 'number'};
-    ranges = {ranges, 'table'};
-    hlgroup = {hlgroup, 'string'};
-    priority = {priority, 'number'};
-    use_char_offsets = {use_lsp_char_offsets, 'boolean', true};
+    winid = { winid, 'number' },
+    ranges = { ranges, 'table' },
+    hlgroup = { hlgroup, 'string' },
+    priority = { priority, 'number' },
+    use_char_offsets = { use_lsp_char_offsets, 'boolean', true },
   })
 
-  if winid == 0 then winid = vim.api.nvim_get_current_win() end
+  if winid == 0 then
+    winid = vim.api.nvim_get_current_win()
+  end
   local bufnr = vim.api.nvim_win_get_buf(winid)
 
   local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
@@ -44,7 +46,10 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
   local slices = {}
   for _, range in ipairs(ranges) do
     local start_line, start_char, end_line, end_char = utils.unpack4(range)
-    assert(start_line >= 0 and start_char >= 0 and end_line >= 0 and end_char >= 0, 'invalid range')
+    assert(
+      start_line >= 0 and start_char >= 0 and end_line >= 0 and end_char >= 0,
+      'invalid range'
+    )
     start_line = utils.clamp(start_line, 0, buf_line_count - 1)
     end_line = utils.clamp(end_line, 0, buf_line_count - 1)
     assert(start_line <= end_line, 'invalid range')
@@ -66,7 +71,7 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
         slice_end = char_offset_to_byte_offset(end_char, line)
       end
       if slice_end > slice_start then
-        table.insert(slices, {linenr + 1, slice_start + 1, slice_end - slice_start})
+        table.insert(slices, { linenr + 1, slice_start + 1, slice_end - slice_start })
       end
     end
   end
@@ -82,7 +87,7 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
         end
         local match_id
         if CAN_ADD_MATCHES_TO_OTHER_WINDOWS then
-          match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1, {window = winid})
+          match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1, { window = winid })
         else
           match_id = vim.call('matchaddpos', hlgroup, batch, priority, -1)
         end
@@ -100,15 +105,16 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
   return match_ids
 end
 
-
 -- Re-implementation of `coc#highlight#clear_match_group`.
 function M.clear_by_predicate(winid, predicate)
   vim.validate({
-    winid = {winid, 'number'};
-    predicate = {predicate, 'callable'};
+    winid = { winid, 'number' },
+    predicate = { predicate, 'callable' },
   })
 
-  if winid == 0 then winid = vim.api.nvim_get_current_win() end
+  if winid == 0 then
+    winid = vim.api.nvim_get_current_win()
+  end
   local _ = vim.api.nvim_win_get_buf(winid)
 
   if CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS then
@@ -128,18 +134,21 @@ function M.clear_by_predicate(winid, predicate)
   end
 end
 
-
 -- Re-implementation of `coc#highlight#clear_matches`.
 function M.clear_by_ids(winid, match_ids)
   vim.validate({
-    winid = {winid, 'number'};
-    ids = {match_ids, 'table'};
+    winid = { winid, 'number' },
+    ids = { match_ids, 'table' },
   })
 
-  if winid == 0 then winid = vim.api.nvim_get_current_win() end
+  if winid == 0 then
+    winid = vim.api.nvim_get_current_win()
+  end
   local _ = vim.api.nvim_win_get_buf(winid)
 
-  if vim.tbl_isempty(match_ids) then return end
+  if vim.tbl_isempty(match_ids) then
+    return
+  end
 
   if CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS then
     for _, match_id in ipairs(match_ids) do
@@ -153,6 +162,5 @@ function M.clear_by_ids(winid, match_ids)
     end)
   end
 end
-
 
 return M

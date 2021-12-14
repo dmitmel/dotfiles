@@ -32,10 +32,8 @@ local LspErrorCodes = lsp.protocol.ErrorCodes
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local utils = require('dotfiles.utils')
 
-
 M._RPC_FAKE_COMMAND_COOKIE = vim.v.progpath
 M._RPC_FAKE_ENV_COOKIE = MODULE_INFO.name
-
 
 local orig_start_client = lsp.start_client
 function lsp.start_client(...)
@@ -46,7 +44,7 @@ function lsp.start_client(...)
 
   -- This is the trigger that `lsp.rpc.start()` will recognize. Note that a
   -- command has to be defined for the config to pass validation.
-  config.cmd = {M._RPC_FAKE_COMMAND_COOKIE}
+  config.cmd = { M._RPC_FAKE_COMMAND_COOKIE }
   -- This one is not useful to us anymore.
   config.cmd_cwd = nil
   -- We are using `cmd_env` as a side-channel for smuggling our callbacks in
@@ -58,8 +56,8 @@ function lsp.start_client(...)
   -- before setting the env variables.
   config.cmd_env = {
     [M._RPC_FAKE_ENV_COOKIE] = setmetatable({
-      name = config.name;
-      config = config.virtual_server;
+      name = config.name,
+      config = config.virtual_server,
     }, {
       -- In our case, however, we hijack the code path in `lsp.rpc.start()`
       -- (which leads to stringification of env variables), so we can get our
@@ -67,13 +65,12 @@ function lsp.start_client(...)
       -- to catch potential changes in the internals.
       __tostring = function()
         error(
-          string.format(
-            'this function is not supposed to ever be invoked! some internals of ' ..
-            'lsp.start_client() and lsp.rpc.start() have changed, the ' .. MODULE_INFO.name ..
-            ' module needs updating!'
-          )
+          'this function is not supposed to ever be invoked! some internals of '
+            .. 'lsp.start_client() and lsp.rpc.start() have changed, the '
+            .. MODULE_INFO.name
+            .. ' module needs updating!'
         )
-      end;
+      end,
     }),
   }
 
@@ -83,7 +80,6 @@ function lsp.start_client(...)
   client.rpc.virtual_server.client_id = client_id
   return client_id
 end
-
 
 -- The reason for overwriting `lsp.rpc.start()` is that we can get real client
 -- IDs allocated to us which will never collide with the IDs for normal clients
@@ -98,7 +94,6 @@ function lsp.rpc.start(...)
   end
 end
 
-
 M.VirtualServerRunState = vim.tbl_add_reverse_lookup({
   Uninitialized = 1,
   Initializing = 2,
@@ -106,7 +101,6 @@ M.VirtualServerRunState = vim.tbl_add_reverse_lookup({
   Stopping = 4,
   Exited = 5,
 })
-
 
 -- <https://github.com/jose-elias-alvarez/null-ls.nvim/blob/f907d945d0285f42dc9ebffbc075ea725b93b6aa/lua/null-ls/rpc.lua#L12-L21>
 M.default_virtual_server_capabilities = {
@@ -118,70 +112,67 @@ M.default_virtual_server_capabilities = {
   -- };
 }
 
-
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/rpc.lua#L194-L202>
 M.virtual_server_errors = vim.tbl_add_reverse_lookup({
-  ON_INIT_CALLBACK_ERROR        = 1;
-  ON_EXIT_CALLBACK_ERROR        = 2;
-  CLIENT_REQUEST_HANDLER_ERROR  = 3;
-  CLIENT_REQUEST_CALLBACK_ERROR = 4;
+  ON_INIT_CALLBACK_ERROR = 1,
+  ON_EXIT_CALLBACK_ERROR = 2,
+  CLIENT_REQUEST_HANDLER_ERROR = 3,
+  CLIENT_REQUEST_CALLBACK_ERROR = 4,
 })
-
 
 function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
   vim.validate({
-    cmd = {cmd, 'string'};
-    cmd_args = {cmd_args, 'table'};
-    dispatchers = {dispatchers, 'table'};
-    extra_spawn_params = {extra_spawn_params, 'table'};
+    cmd = { cmd, 'string' },
+    cmd_args = { cmd_args, 'table' },
+    dispatchers = { dispatchers, 'table' },
+    extra_spawn_params = { extra_spawn_params, 'table' },
   })
   local fake_cake = extra_spawn_params.env[M._RPC_FAKE_ENV_COOKIE]
   vim.validate({
-    name = {fake_cake.name, 'string'};
-    config = {fake_cake.config, 'table'};
+    name = { fake_cake.name, 'string' },
+    config = { fake_cake.config, 'table' },
   })
   vim.validate({
-    capabilities = {fake_cake.config.capabilities, 'table', true};
-    handlers     = {fake_cake.config.handlers, 'table', true};
-    on_init      = {fake_cake.config.on_init, 'function', true};
-    on_error     = {fake_cake.config.on_error, 'function', true};
-    on_exit      = {fake_cake.config.on_exit, 'function', true};
+    capabilities = { fake_cake.config.capabilities, 'table', true },
+    handlers = { fake_cake.config.handlers, 'table', true },
+    on_init = { fake_cake.config.on_init, 'function', true },
+    on_error = { fake_cake.config.on_error, 'function', true },
+    on_exit = { fake_cake.config.on_exit, 'function', true },
   })
 
   -- TODO: Rewrite as a proper class.
   local vserver = {
-    run_state = M.VirtualServerRunState.Uninitialized;
-    client_id = nil;
-    name = fake_cake.name;
-    config = fake_cake.config;
-    handlers = fake_cake.config.handlers or {};
+    run_state = M.VirtualServerRunState.Uninitialized,
+    client_id = nil,
+    name = fake_cake.name,
+    config = fake_cake.config,
+    handlers = fake_cake.config.handlers or {},
     -- For user methods and fields.
-    ext = {};
+    ext = {},
   }
   local next_client_request_id = 0
   local next_server_request_id = 0
   local pending_client_requests = {}
   local pending_server_requests = {}
 
-
   -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L704-L721>
-  vserver.on_error = fake_cake.config.on_error or function(code, err)
-    if type(code) == 'number' then
-      code = M.virtual_server_errors[code]
-    else
-      code = tostring(code)
+  vserver.on_error = fake_cake.config.on_error
+    or function(code, err)
+      if type(code) == 'number' then
+        code = M.virtual_server_errors[code]
+      else
+        code = tostring(code)
+      end
+      if type(err) ~= 'string' then
+        err = utils.inspect(err)
+      end
+      vim.api.nvim_err_writeln(string.format('LSVS[%s]: Error %s: %s', vserver.name, code, err))
     end
-    if type(err) ~= 'string' then
-      err = utils.inspect(err)
-    end
-    vim.api.nvim_err_writeln(string.format('LSVS[%s]: Error %s: %s', vserver.name, code, err))
-  end
-
 
   function vserver.recv_message(method, params, callback)
     vim.validate({
-      method = {method, 'string'};
-      callback = {callback, 'function', true};
+      method = { method, 'string' },
+      callback = { callback, 'function', true },
     })
     local request_id = nil
     if callback then
@@ -226,30 +217,30 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
 
       -- Phase 2: Handle "special" methods, in particular ones which affect the
       -- run state.
-      if method == 'initialize' then  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialize>
+      if method == 'initialize' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialize>
         if vserver.run_state == M.VirtualServerRunState.Uninitialized then
           vserver.run_state = M.VirtualServerRunState.Initializing
           local response = vserver._handle_initialize_request(params)
           return reply(nil, response)
         end
-      elseif method == 'initialized' then  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialized>
+      elseif method == 'initialized' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#initialized>
         if vserver.run_state == M.VirtualServerRunState.Initializing then
           vserver.run_state = M.VirtualServerRunState.Active
           return reply(nil)
         end
-      elseif method == 'shutdown' then  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#shutdown>
+      elseif method == 'shutdown' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#shutdown>
         if vserver.run_state == M.VirtualServerRunState.Active then
           vserver.run_state = M.VirtualServerRunState.Stopping
           return reply(nil)
         end
-      elseif method == 'exit' then  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#exit>
+      elseif method == 'exit' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#exit>
         -- As far as I understand, this notification can be sent at any run
         -- state. Well, at least before `initialize` is sent, that one is
         -- explicitly stated by the spec.
         vserver.force_stop()
         vserver.run_state = M.VirtualServerRunState.Exited
         return reply(nil)
-      elseif method == '$/cancelRequest' then  -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#cancelRequest>
+      elseif method == '$/cancelRequest' then -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#cancelRequest>
         -- Poor man's request cancellation.
         if params and params.id then
           pending_client_requests[params.id] = nil
@@ -264,9 +255,22 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
           end
           -- Thank God this stuff is asynchronous by design, otherwise I'd have
           -- return parameters like `rpc_result_or_lua_err`.
-          local ok, err = xpcall(handler, debug.traceback, reply, method, params, request_id, vserver)
+          local ok, err = xpcall(
+            handler,
+            debug.traceback,
+            reply,
+            method,
+            params,
+            request_id,
+            vserver
+          )
           if not ok then
-            pcall(vserver.on_error, M.virtual_server_errors.CLIENT_REQUEST_HANDLER_ERROR, err, vserver)
+            pcall(
+              vserver.on_error,
+              M.virtual_server_errors.CLIENT_REQUEST_HANDLER_ERROR,
+              err,
+              vserver
+            )
             if not replied then
               return reply(lsp.rpc_response_error(LspErrorCodes.InternalError, nil, err))
             end
@@ -307,7 +311,6 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
     return true, request_id
   end
 
-
   function vserver._handle_initialize_request(params)
     if params.rootUri ~= nil and params.rootUri ~= vim.NIL then
       vserver.root_uri = params.rootUri
@@ -320,10 +323,10 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
         'force',
         M.default_virtual_server_capabilities,
         vserver.config.capabilities or vim.empty_dict()
-      );
+      ),
       serverInfo = {
-        name = MODULE_INFO.name;
-      };
+        name = MODULE_INFO.name,
+      },
     }
 
     if vserver.config.on_init then
@@ -337,11 +340,10 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
     return response
   end
 
-
   function vserver.send_message(method, params, callback)
     vim.validate({
-      method = {method, 'string'};
-      callback = {callback, 'function', true};
+      method = { method, 'string' },
+      callback = { callback, 'function', true },
     })
     if callback then
       error('server requests are not implemented currently')
@@ -352,7 +354,6 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
       end
     end
   end
-
 
   function vserver.force_stop()
     if vserver.run_state >= M.VirtualServerRunState.Exited then
@@ -367,31 +368,29 @@ function M._fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
       end
     end
     -- Both must be zero, so that the exit is treated as clean.
-    dispatchers.on_exit(0, 0)  -- code, signal
+    dispatchers.on_exit(0, 0) -- code, signal
   end
 
-
   local rpc = {
-    virtual_server = vserver;
-    pid = -1;
+    virtual_server = vserver,
+    pid = -1,
     handle = {
       kill = function()
         vserver.force_stop()
-      end;
+      end,
       is_closing = function()
         return vserver.run_state >= M.VirtualServerRunState.Exited
-      end;
-    };
+      end,
+    },
     notify = function(method, params)
       return vserver.recv_message(method, params, nil)
-    end;
+    end,
     request = function(method, params, callback)
       return vserver.recv_message(method, params, callback)
-    end;
+    end,
   }
 
   return rpc
 end
-
 
 return M

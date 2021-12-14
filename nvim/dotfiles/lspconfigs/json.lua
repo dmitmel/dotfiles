@@ -9,47 +9,50 @@ local vim_uri = require('vim.uri')
 local function find_exe()
   for _, exe in ipairs({
     'vscode-json-language-server', -- <https://github.com/hrsh7th/vscode-langservers-extracted>
-    'vscode-json-languageserver',  -- <https://archlinux.org/packages/community/any/vscode-json-languageserver/>
+    'vscode-json-languageserver', -- <https://archlinux.org/packages/community/any/vscode-json-languageserver/>
   }) do
     if vim.fn.executable(exe) ~= 0 then
       return { exe }
     end
   end
   if lsp_utils.VSCODE_INSTALL_PATH then
-    local path = lsp_utils.VSCODE_INSTALL_PATH .. '/extensions/json-language-features/server/dist/node/jsonServerMain.js'
-    if vim.fn.filereadable(path) ~= 0 then return { 'node', path } end
+    local path = lsp_utils.VSCODE_INSTALL_PATH
+      .. '/extensions/json-language-features/server/dist/node/jsonServerMain.js'
+    if vim.fn.filereadable(path) ~= 0 then
+      return { 'node', path }
+    end
   end
-  return { 'vscode-json-language-server' }  -- fallback
+  return { 'vscode-json-language-server' } -- fallback
 end
 
-local json_filetypes = {'json', 'jsonc', 'json5'}
+local json_filetypes = { 'json', 'jsonc', 'json5' }
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/jsonls.lua>
 lsp_ignition.setup_config('jsonls', {
-  cmd = vim.list_extend(find_exe(), { '--stdio' });
-  filetypes = json_filetypes;
-  single_file_support = true;
-  completion_menu_label = 'JSON';
+  cmd = vim.list_extend(find_exe(), { '--stdio' }),
+  filetypes = json_filetypes,
+  single_file_support = true,
+  completion_menu_label = 'JSON',
 
   init_options = {
-    provideFormatter = false;
+    provideFormatter = false,
     -- handledSchemaProtocols = {'file'};
-  };
+  },
 
-  settings_scopes = {'json', 'http'};
+  settings_scopes = { 'json', 'http' },
   settings = {
     json = {
       format = {
-        enable = false;
-      };
-      schemas = lsp_global_settings.JSON_SCHEMAS_CATALOG;
-    };
-  };
+        enable = false,
+      },
+      schemas = lsp_global_settings.JSON_SCHEMAS_CATALOG,
+    },
+  },
 
   handlers = {
     -- <https://github.com/microsoft/vscode/tree/main/extensions/json-language-features/server#item-limit>
     ['json/resultLimitReached'] = lsp_utils.wrap_handler_errors(function(params, ctx, _)
       lsp_utils.client_notify(ctx.client_id, params[1], vim.log.levels.WARN)
-    end);
+    end),
 
     ['vscode/content'] = lsp_utils.wrap_handler_errors(function(params, ctx, _)
       lsp_utils.client_notify(
@@ -58,19 +61,19 @@ lsp_ignition.setup_config('jsonls', {
         vim.log.levels.ERROR
       )
       return '{}'
-    end);
-  };
+    end),
+  },
 })
 
 lsp_ignition.setup_config('jqfmt', {
-  filetypes = json_filetypes;
+  filetypes = json_filetypes,
   -- root_dir = jsonls_config.root_dir;
-  single_file_support = true;
+  single_file_support = true,
 
   virtual_server = {
     capabilities = {
-      documentFormattingProvider = true;
-    };
+      documentFormattingProvider = true,
+    },
     handlers = {
       ['textDocument/formatting'] = function(reply, _, params, _, vserver)
         local buf_uri = params.textDocument.uri
@@ -82,7 +85,7 @@ lsp_ignition.setup_config('jqfmt', {
           return vim.fn.shiftwidth()
         end)
 
-        local jq_args = {'jq'}
+        local jq_args = { 'jq' }
         if vim.api.nvim_buf_get_option(bufnr, 'expandtab') then
           table.insert(jq_args, '--indent')
           table.insert(jq_args, shiftwidth)
@@ -96,7 +99,10 @@ lsp_ignition.setup_config('jqfmt', {
         end
 
         local any_changes, common_lines_from_start, common_lines_from_end =
-          lsp_utils.simple_line_diff(buf_lines, fmt_lines)
+          lsp_utils.simple_line_diff(
+            buf_lines,
+            fmt_lines
+          )
         if not any_changes then
           return reply(nil, nil)
         end
@@ -112,8 +118,8 @@ lsp_ignition.setup_config('jqfmt', {
           },
           newText = table.concat(changed_lines),
         }
-        return reply(nil, {one_big_text_edit})
-      end;
-    };
-  };
+        return reply(nil, { one_big_text_edit })
+      end,
+    },
+  },
 })

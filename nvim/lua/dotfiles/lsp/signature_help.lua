@@ -11,17 +11,16 @@ local highlight_match = require('dotfiles.lsp.highlight_match')
 local lsp_progress = require('dotfiles.lsp.progress')
 local lsp_ignition = require('dotfiles.lsp.ignition')
 
-
 lsp_ignition.add_client_capabilities({
   -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureHelpClientCapabilities>
   signatureHelp = {
     signatureInformation = {
-      activeParameterSupport = true;
+      activeParameterSupport = true,
       parameterInformation = {
-        labelOffsetSupport = true;
-      };
-    };
-  };
+        labelOffsetSupport = true,
+      },
+    },
+  },
 })
 
 -- Based on <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/buf.lua#L93-L98>.
@@ -31,7 +30,6 @@ function M.request()
   lsp.buf_request(0, 'textDocument/signatureHelp', params)
 end
 lsp.buf.signature_help = M.request
-
 
 -- Based on <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/handlers.lua#L318-L348>.
 function M.handler(err, params, ctx, opts)
@@ -49,8 +47,11 @@ function M.handler(err, params, ctx, opts)
     local filetype = utils.npcall(vim.api.nvim_buf_get_option, ctx.bufnr, 'filetype')
     local client = lsp.get_client_by_id(ctx.client_id)
     local trigger_chars = client and client.resolved_capabilities.signature_help_trigger_characters
-    local parsing_ctx, active_param_range =
-      M.convert_signature_help_to_docblocks(params, filetype, trigger_chars)
+    local parsing_ctx, active_param_range = M.convert_signature_help_to_docblocks(
+      params,
+      filetype,
+      trigger_chars
+    )
     -- Faster replacement for `vim.tbl_isempty(lsp.util.trim_empty_lines(markdown_lines))`
     local are_all_markdown_lines_empty = true
     for _, line in ipairs(parsing_ctx.lines) do
@@ -63,7 +64,12 @@ function M.handler(err, params, ctx, opts)
       opts.dotfiles_markup_parsing_ctx = parsing_ctx
       local _, float_winid = lsp.util.open_floating_preview(parsing_ctx.lines, 'markdown', opts)
       if active_param_range then
-        highlight_match.add_ranges(float_winid, {active_param_range}, param_higroup, param_priority)
+        highlight_match.add_ranges(
+          float_winid,
+          { active_param_range },
+          param_higroup,
+          param_priority
+        )
       end
       return
     end
@@ -72,13 +78,16 @@ function M.handler(err, params, ctx, opts)
 end
 lsp.handlers['textDocument/signatureHelp'] = lsp_utils.wrap_handler_compat(M.handler)
 
-
 -- Copied from <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L844-L910>,
 -- with <https://github.com/neovim/neovim/pull/15018> backported on top. See
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureHelp>.
 function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_chars, parsing_ctx)
-  if trigger_chars == nil then trigger_chars = {} end
-  if parsing_ctx == nil then parsing_ctx = lsp_markup.ParsingContext.new() end
+  if trigger_chars == nil then
+    trigger_chars = {}
+  end
+  if parsing_ctx == nil then
+    parsing_ctx = lsp_markup.ParsingContext.new()
+  end
 
   if not signature_help.signatures or vim.tbl_isempty(signature_help.signatures) then
     return parsing_ctx, nil
@@ -102,7 +111,9 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
 
   local active_param_range = nil
   if active_signature.parameters and not vim.tbl_isempty(active_signature.parameters) then
-    local active_param_idx = active_signature.activeParameter or signature_help.activeParameter or 0
+    local active_param_idx = active_signature.activeParameter
+      or signature_help.activeParameter
+      or 0
     if not (0 <= active_param_idx and active_param_idx < #active_signature.parameters) then
       -- TODO: Evaluate this: <https://github.com/neovim/neovim/pull/15032#issuecomment-877033754>
       active_param_idx = 0
@@ -123,7 +134,11 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
             end
           end
           for param_idx, param in ipairs(active_signature.parameters) do
-            local match_start, match_end = active_signature.label:find(param.label, search_offset, true)
+            local match_start, match_end = active_signature.label:find(
+              param.label,
+              search_offset,
+              true
+            )
             if not (match_start and match_end) then
               break
             end
@@ -139,11 +154,15 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
             lsp_utils.char_offset_to_byte_offset(active_param.label[1], active_signature.label),
             lsp_utils.char_offset_to_byte_offset(active_param.label[2], active_signature.label)
         end
-        local start_line, start_col =
-          lsp_utils.byte_offset_to_linenr_colnr_in_str(start_idx, active_signature.label)
-        local end_line, end_col =
-          lsp_utils.byte_offset_to_linenr_colnr_in_str(end_idx, active_signature.label)
-        active_param_range = {start_line, start_col, end_line, end_col}
+        local start_line, start_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
+          start_idx,
+          active_signature.label
+        )
+        local end_line, end_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
+          end_idx,
+          active_signature.label
+        )
+        active_param_range = { start_line, start_col, end_line, end_col }
       end
 
       if active_param.documentation then
@@ -160,6 +179,5 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
 
   return parsing_ctx, active_param_range
 end
-
 
 return M

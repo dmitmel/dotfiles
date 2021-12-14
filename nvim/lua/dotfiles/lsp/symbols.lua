@@ -10,7 +10,6 @@ local vim_uri = require('vim.uri')
 local utils = require('dotfiles.utils')
 local lsp_progress = require('dotfiles.lsp.progress')
 
-
 function M.request_document_symbols()
   local req_params = {
     textDocument = lsp.util.make_text_document_params(),
@@ -18,7 +17,9 @@ function M.request_document_symbols()
   }
   local file_path = vim.fn.expand('%:.')
   return lsp.buf_request(
-    0, 'textDocument/documentSymbol', req_params,
+    0,
+    'textDocument/documentSymbol',
+    req_params,
     lsp_utils.wrap_handler_compat(function(err, params, ctx, opts)
       ctx.source_file_path = file_path
       return M.handler(err, params, ctx, opts)
@@ -27,17 +28,18 @@ function M.request_document_symbols()
 end
 lsp.buf.document_symbol = M.request_document_symbols
 
-
 function M.request_workspace_symbols(query)
   vim.validate({
-    query = {query, 'string'};
+    query = { query, 'string' },
   })
   local req_params = {
     query = query,
     workDoneToken = lsp_progress.random_token(),
   }
   return lsp.buf_request(
-    0, 'workspace/symbol', req_params,
+    0,
+    'workspace/symbol',
+    req_params,
     lsp_utils.wrap_handler_compat(function(err, params, ctx, opts)
       ctx.source_query = query
       return M.handler(err, params, ctx, opts)
@@ -45,7 +47,6 @@ function M.request_workspace_symbols(query)
   )
 end
 lsp.buf.workspace_symbol = M.request_workspace_symbols
-
 
 function M.handler(err, params, ctx, opts)
   if err then
@@ -71,7 +72,6 @@ end
 lsp.handlers['textDocument/documentSymbol'] = lsp_utils.wrap_handler_compat(M.handler)
 lsp.handlers['workspace/symbol'] = lsp_utils.wrap_handler_compat(M.handler)
 
-
 --[[
 -- A replacement for <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1640-L1645>.
 -- See also: <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#symbolKind>.
@@ -79,7 +79,6 @@ function lsp.util._get_symbol_kind_name(symbol_kind)
   return lsp_global_settings.SYMBOL_KIND_LABELS[symbol_kind] or lsp_global_settings.FALLBACK_SYMBOL_KIND_LABEL
 end
 --]]
-
 
 -- A replacement for <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1647-L1684>.
 -- See also: <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_documentSymbol>.
@@ -94,8 +93,9 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
   local items = {}
 
   local function render_node(prefix, sym, sym_range, sym_bufnr)
-    local kind = lsp_global_settings.SYMBOL_KIND_LABELS[sym.kind] or lsp_global_settings.FALLBACK_SYMBOL_KIND_LABEL
-    local text_parts = {prefix, '[', kind, '] ', sym.name}
+    local kind = lsp_global_settings.SYMBOL_KIND_LABELS[sym.kind]
+      or lsp_global_settings.FALLBACK_SYMBOL_KIND_LABEL
+    local text_parts = { prefix, '[', kind, '] ', sym.name }
     if sym.detail ~= nil and #sym.detail > 0 then
       table.insert(text_parts, ': ')
       table.insert(text_parts, sym.detail)
@@ -144,9 +144,9 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
       if use_alignment_hack then
         local align_len = 0
         if item.lnum > 0 then
-          align_len = align_len + utils.int_digit_length(item.lnum)  -- "%d"
+          align_len = align_len + utils.int_digit_length(item.lnum) -- "%d"
           if item.col > 0 then
-            align_len = align_len + 5 + utils.int_digit_length(item.col)  -- " col %d"
+            align_len = align_len + 5 + utils.int_digit_length(item.col) -- " col %d"
           end
         end
         if align_len > max_align_len then
@@ -154,7 +154,6 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
         end
         table.insert(items_align_lens, align_len)
       end
-
 
       if symbol.children ~= nil and not vim.tbl_isempty(symbol.children) then
         if stack_depth > 0 then
@@ -179,12 +178,12 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
     -- this function receives is enough for detecting the type of every
     -- element; b) once we step into a DocumentSymbol we can rest assured that
     -- all of the recursive children will be DocumentSymbols as well.
-    if symbols[1].location then  -- SymbolInformation (most likely workspace symbols)
-      use_alignment_hack = false  -- Not a tree-based structure.
+    if symbols[1].location then -- SymbolInformation (most likely workspace symbols)
+      use_alignment_hack = false -- Not a tree-based structure.
       for _, symbol in ipairs(symbols) do
         render_node('', symbol, symbol.location.range, vim_uri.uri_to_bufnr(symbol.location.uri))
       end
-    else  -- DocumentSymbol (probably document symbols)
+    else -- DocumentSymbol (probably document symbols)
       render_tree(symbols)
     end
   end
@@ -200,6 +199,5 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
 
   return items
 end
-
 
 return M

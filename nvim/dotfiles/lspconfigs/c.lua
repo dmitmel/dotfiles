@@ -6,18 +6,18 @@ local lspconfig_utils = require('lspconfig.util')
 local cache_dir = vim.call('dotfiles#paths#xdg_cache_home') .. '/ccls'
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/ccls.lua>
 lsp_ignition.setup_config('ccls', {
-  cmd = {'ccls'};
-  filetypes = {'c', 'cpp', 'objc', 'objcpp'};
+  cmd = { 'ccls' },
+  filetypes = { 'c', 'cpp', 'objc', 'objcpp' },
   -- root_dir = lspconfig_utils.root_pattern('compile_commands.json', '.ccls');
-  single_file_support = false;
-  completion_menu_label = 'C';
+  single_file_support = false,
+  completion_menu_label = 'C',
 
   init_options = {
     cache = {
-      directory = cache_dir;
-    };
-    cacheDirectory = cache_dir;
-  };
+      directory = cache_dir,
+    },
+    cacheDirectory = cache_dir,
+  },
 
-  settings_scopes = {'ccls'};
+  settings_scopes = { 'ccls' },
 })

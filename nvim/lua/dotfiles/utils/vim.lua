@@ -2,38 +2,36 @@ local M = require('dotfiles.autoload')('dotfiles.utils.vim')
 
 local utils = require('dotfiles.utils')
 
-
-M.HLGROUP_NAME_PATTERN = '^[a-zA-Z0-9_]+$'            -- :h group-name
-M.USER_COMMAND_PATTERN = '^[A-Z][a-zA-Z0-9]*$'        -- :h user-cmd-ambiguous
-M.FUNCTION_NAME_PATTERN = '^[A-Z_][a-zA-Z0-9_]*$'     -- :h :function
-M.VARIABLE_NAME_PATTERN = '^[A-Za-z_][A-Za-z0-9_]*$'  -- shrug
-
+M.HLGROUP_NAME_PATTERN = '^[a-zA-Z0-9_]+$' -- :h group-name
+M.USER_COMMAND_PATTERN = '^[A-Z][a-zA-Z0-9]*$' -- :h user-cmd-ambiguous
+M.FUNCTION_NAME_PATTERN = '^[A-Z_][a-zA-Z0-9_]*$' -- :h :function
+M.VARIABLE_NAME_PATTERN = '^[A-Za-z_][A-Za-z0-9_]*$' -- shrug
 
 -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval/typval.c#L2963-L3012>
 -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval.c#L678-L711>
 function M.is_truthy(value)
   local t = type(value)
+  -- stylua: ignore start
   if t == 'boolean' then return value end
   if t == 'number' then return value ~= 0 end
   if t == 'string' then return value ~= '' end
   if t == 'nil' then return false end
+  -- stylua: ignore end
   -- return true
   -- In accordance to the behavior of VimL:
   error(string.format('value of type %s cannot be converted to boolean', type(t)))
 end
 
-
 function M.has(feature)
   return M.is_truthy(vim.fn.has(feature))
 end
-
 
 M.COMMAND_HANDLERS = {}
 
 function M.define_command(cmd_name, def)
   vim.validate({
-    command_name = { cmd_name, 'string' };
-    command_def = { def, 'table' };
+    command_name = { cmd_name, 'string' },
+    command_def = { def, 'table' },
   })
   if not cmd_name:match(M.USER_COMMAND_PATTERN) then
     error(string.format('invalid command name %q', cmd_name))
@@ -46,7 +44,9 @@ function M.define_command(cmd_name, def)
   local call_info_parts = {}
 
   local force = def.force
-  if force == nil then force = false end
+  if force == nil then
+    force = false
+  end
   if type(force) ~= 'boolean' then
     error(string.format('%s.force: expected boolean, got %s', cmd_name, type(force)))
   end
@@ -64,7 +64,9 @@ function M.define_command(cmd_name, def)
     error(string.format('%s.nargs: expected string, got %s', cmd_name, type(nargs)))
   end
   if nargs ~= '0' and nargs ~= '1' and nargs ~= '*' and nargs ~= '?' and nargs ~= '+' then
-    error(string.format('%s.nargs: expected any of "01*?+", got %s', cmd_name, utils.inspect(nargs)))
+    error(
+      string.format('%s.nargs: expected any of "01*?+", got %s', cmd_name, utils.inspect(nargs))
+    )
   end
   table.insert(definition_parts, '-nargs=' .. tostring(nargs))
   if nargs ~= '0' then
@@ -85,10 +87,22 @@ function M.define_command(cmd_name, def)
   local range = def.range
   if range ~= nil then
     if type(range) ~= 'boolean' and type(range) ~= 'string' and type(range) ~= 'number' then
-      error(string.format('%s.range: expected boolean or string or number, got %s', cmd_name, type(range)))
+      error(
+        string.format(
+          '%s.range: expected boolean or string or number, got %s',
+          cmd_name,
+          type(range)
+        )
+      )
     end
     if not (range == '%' or type(range) == 'boolean' or type(range) == 'number') then
-      error(string.format('%s.range: expected "%%" or boolean or number, got %s', cmd_name, utils.inspect(range)))
+      error(
+        string.format(
+          '%s.range: expected "%%" or boolean or number, got %s',
+          cmd_name,
+          utils.inspect(range)
+        )
+      )
     end
     if range ~= false then
       if range == true then
@@ -111,7 +125,13 @@ function M.define_command(cmd_name, def)
       error(string.format('%s.count: expected boolean or number, got %s', cmd_name, type(count)))
     end
     if not (type(count) == 'boolean' or (type(count) == 'number')) then
-      error(string.format('%s.count: expected boolean or number, got %s', cmd_name, utils.inspect(count)))
+      error(
+        string.format(
+          '%s.count: expected boolean or number, got %s',
+          cmd_name,
+          utils.inspect(count)
+        )
+      )
     end
     if count ~= false then
       if count == true then
@@ -129,11 +149,24 @@ function M.define_command(cmd_name, def)
       error(string.format('%s.addr: expected string, got %s', cmd_name, type(addr)))
     end
     local addr_values = {
-      lines = true, arguments = true, buffers = true, loaded_buffers = true, windows = true,
-      tabs = true, quickfix = true, other = true,
+      lines = true,
+      arguments = true,
+      buffers = true,
+      loaded_buffers = true,
+      windows = true,
+      tabs = true,
+      quickfix = true,
+      other = true,
     }
     if not addr_values[addr] then
-      error(string.format('%s.addr: expected any of %s, got %s', cmd_name, utils.inspect(vim.tbl_keys(addr_values)), utils.inspect(count)))
+      error(
+        string.format(
+          '%s.addr: expected any of %s, got %s',
+          cmd_name,
+          utils.inspect(vim.tbl_keys(addr_values)),
+          utils.inspect(count)
+        )
+      )
     end
     table.insert(definition_parts, '-addr=' .. addr)
   end
@@ -170,7 +203,9 @@ function M.define_command(cmd_name, def)
 
   if def.custom_attrs ~= nil then
     if type(def.custom_attrs) ~= 'string' then
-      error(string.format('%s.custom_attrs: expected string, got %s', cmd_name, type(def.custom_attrs)))
+      error(
+        string.format('%s.custom_attrs: expected string, got %s', cmd_name, type(def.custom_attrs))
+      )
     end
     table.insert(definition_parts, def.custom_attrs)
   end
@@ -192,7 +227,8 @@ function M.define_command(cmd_name, def)
     definition_parts,
     string.format(
       'lua require("dotfiles.utils.vim").COMMAND_HANDLERS.%s({%s})',
-      cmd_name, table.concat(call_info_parts, ',')
+      cmd_name,
+      table.concat(call_info_parts, ',')
     )
   )
 
@@ -201,7 +237,7 @@ end
 
 function M.delete_command(cmd_name)
   vim.validate({
-    command_name = { cmd_name, 'string' };
+    command_name = { cmd_name, 'string' },
   })
   if not cmd_name:match(M.USER_COMMAND_PATTERN) then
     error(string.format('invalid command name %q', cmd_name))
@@ -214,18 +250,17 @@ function M.delete_command(cmd_name)
   M.COMMAND_HANDLERS[cmd_name] = nil
 end
 
-
 M.next_function_id = 0
 
 function M.define_adhoc_function(opts, body)
   vim.validate({
-    opts = {opts, 'table'};
-    body = {body, 'string'};
+    opts = { opts, 'table' },
+    body = { body, 'string' },
   })
   vim.validate({
-    ['opts.name_suffix'] = {opts.name_suffix, 'string', true};
-    ['opts.abort'] = {opts.abort, 'boolean', true};
-    ['opts.range'] = {opts.range, 'boolean', true};
+    ['opts.name_suffix'] = { opts.name_suffix, 'string', true },
+    ['opts.abort'] = { opts.abort, 'boolean', true },
+    ['opts.range'] = { opts.range, 'boolean', true },
   })
 
   if opts.name_suffix ~= nil and not opts.name_suffix:match('^[A-Za-z0-9_]*$') then
@@ -241,7 +276,7 @@ function M.define_adhoc_function(opts, body)
   local actual_name = string.format('_lua%08x%s', M.next_function_id, opts.name_suffix or '')
   M.next_function_id = M.next_function_id + 1
 
-  local def_code = {'function ', actual_name, '('}
+  local def_code = { 'function ', actual_name, '(' }
   for arg_i, arg in ipairs(opts) do
     if type(arg) ~= 'string' then
       error(string.format('args[%d]: expected string, got %s', arg_i, type(arg)))
@@ -264,23 +299,32 @@ function M.define_adhoc_function(opts, body)
   end
   table.insert(def_code, ')')
 
-  if opts.abort == true or opts.abort == nil then table.insert(def_code, ' abort') end
-  if opts.range == true then table.insert(def_code, ' range') end
+  if opts.abort == true or opts.abort == nil then
+    table.insert(def_code, ' abort')
+  end
+  if opts.range == true then
+    table.insert(def_code, ' range')
+  end
 
-  if body:sub(1) ~= '\n' then table.insert(def_code, '\n') end
+  if body:sub(1) ~= '\n' then
+    table.insert(def_code, '\n')
+  end
   table.insert(def_code, body)
-  if body:sub(-1) ~= '\n' then table.insert(def_code, '\n') end
+  if body:sub(-1) ~= '\n' then
+    table.insert(def_code, '\n')
+  end
 
   table.insert(def_code, 'endfunction')
   vim.cmd(table.concat(def_code))
-  return function(...) return vim.call(actual_name, ...) end, actual_name
+  return function(...)
+    return vim.call(actual_name, ...)
+  end, actual_name
 end
 
-
 M.FILEFORMAT_OPTION_TO_NEWLINE_CHAR = {
-  dos = '\r\n';
-  unix = '\n';
-  mac = '\r';
+  dos = '\r\n',
+  unix = '\n',
+  mac = '\r',
 }
 
 function M.buf_get_newline_char(bufnr)
@@ -297,10 +341,11 @@ end
 function M.buf_lines_to_full_text(bufnr, lines)
   local nl_char = M.buf_get_newline_char(bufnr)
   local text = table.concat(lines, nl_char)
-  if vim.api.nvim_buf_get_option(bufnr, 'endofline') then text = text .. nl_char end
+  if vim.api.nvim_buf_get_option(bufnr, 'endofline') then
+    text = text .. nl_char
+  end
   return text
 end
-
 
 do
   local function accurate_impl()
@@ -318,7 +363,6 @@ do
     return vim.api.nvim_buf_get_offset(bufnr, vim.api.nvim_buf_line_count(bufnr))
   end
 end
-
 
 function M.replace_keys(str)
   return vim.api.nvim_replace_termcodes(str, true, true, true)
@@ -354,10 +398,12 @@ function M.normalize_tabpagenr(tabpagenr)
   end
 end
 
-
-M._unsilent_helper = M.define_adhoc_function({'fun'}, [[
+M._unsilent_helper = M.define_adhoc_function(
+  { 'fun' },
+  [[
   unsilent call a:fun()
-]])
+]]
+)
 
 function M.unsilent(fun, ...)
   local args = utils.pack(...)
@@ -368,7 +414,6 @@ function M.unsilent(fun, ...)
   return ret
 end
 
-
 function M.echo(chunks)
   return vim.api.nvim_echo(chunks, false, {})
 end
@@ -376,6 +421,5 @@ end
 function M.echomsg(chunks)
   return vim.api.nvim_echo(chunks, true, {})
 end
-
 
 return M

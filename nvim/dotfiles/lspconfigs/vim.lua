@@ -8,24 +8,24 @@ local utils = require('dotfiles.utils')
 local lsp_utils = require('dotfiles.lsp.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
-local vimscript_filetypes = {'vim'}
+local vimscript_filetypes = { 'vim' }
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/vimls.lua>
 lsp_ignition.setup_config('vimls', {
   -- Autocompletion for Vimscript turned out to be useless (no wonder).
-  enabled = false;
-  cmd = {'vim-language-server', '--stdio'};
-  filetypes = vimscript_filetypes;
+  enabled = false,
+  cmd = { 'vim-language-server', '--stdio' },
+  filetypes = vimscript_filetypes,
 
-  completion_menu_label = 'Vim';
+  completion_menu_label = 'Vim',
 
   init_options = {
-    isNeovim = utils_vim.has('nvim');
-    vimruntime = vim.env.VIMRUNTIME;
+    isNeovim = utils_vim.has('nvim'),
+    vimruntime = vim.env.VIMRUNTIME,
     suggest = {
-      fromVimruntime = true;
-      fromRuntimepath = true;
-    }
-  };
+      fromVimruntime = true,
+      fromRuntimepath = true,
+    },
+  },
 
   -- This hook is used to fill in the remaining initialization options
   -- because:
@@ -43,9 +43,9 @@ lsp_ignition.setup_config('vimls', {
 
     -- Check just to be sure. NOTE: This check is, as I've understood later,
     -- actually justified because bufnr might be nil.
-    if (
+    if
       vim.tbl_contains(final_config.filetypes, vim.api.nvim_buf_get_option(bufnr, 'filetype'))
-    ) then
+    then
       opts.iskeyword = vim.api.nvim_buf_get_option(bufnr, 'iskeyword')
     end
 
@@ -53,7 +53,7 @@ lsp_ignition.setup_config('vimls', {
     -- |runtime-search-path|, but and calling nvim_get_runtime_file is the
     -- recommended method of really getting all runtimepath entries.
     opts.runtimepath = vim.api.nvim_get_runtime_file('', true)
-  end;
+  end,
 
   on_init = function(client)
     vim.schedule(function()
@@ -70,7 +70,7 @@ lsp_ignition.setup_config('vimls', {
         augroup END
       ]])
     end)
-  end;
+  end,
 
   on_exit = function()
     vim.schedule(function()
@@ -80,23 +80,23 @@ lsp_ignition.setup_config('vimls', {
         augroup! dotfiles_lsp_vimls
       ]])
     end)
-  end;
+  end,
 })
 
 lsp_ignition.setup_config('vint', {
-  filetypes = vimscript_filetypes;
-  single_file_support = true;
+  filetypes = vimscript_filetypes,
+  single_file_support = true,
 
   virtual_server = {
     capabilities = {
       textDocumentSync = {
-        openClose = true;
-        save = true;
-      };
-    };
+        openClose = true,
+        save = true,
+      },
+    },
     on_init = function()
       rplugin_bridge.notify('python3', 'init', {})
-    end;
+    end,
     handlers = (function()
       local function trigger_diagnostics(buf_uri, vserver)
         local bufnr = vim_uri.uri_to_bufnr(buf_uri)
@@ -106,9 +106,11 @@ lsp_ignition.setup_config('vint', {
         local buf_root_dir = vserver.root_dir or vim.fn.getcwd()
         local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
 
-        local rpc_result = rplugin_bridge.request('python3', 'lsp_linter_vint', utils.nil_pack(
-          buf_path, buf_root_dir, buf_lines
-        ))
+        local rpc_result = rplugin_bridge.request(
+          'python3',
+          'lsp_linter_vint',
+          utils.nil_pack(buf_path, buf_root_dir, buf_lines)
+        )
         if rpc_result == nil or rpc_result == vim.NIL then
           return
         end
@@ -116,9 +118,9 @@ lsp_ignition.setup_config('vint', {
         local DiagnosticSeverity = lsp.protocol.DiagnosticSeverity
         -- See <https://github.com/Vimjas/vint/blob/v0.3.21/vint/linting/level.py>.
         local VINT_LEVEL_TO_LSP_SEVERITY = {
-          [0] = DiagnosticSeverity.Error,    -- ERROR
-          [1] = DiagnosticSeverity.Warning,  -- WARNING
-          [2] = DiagnosticSeverity.Warning,  -- STYLE_PROBLEM
+          [0] = DiagnosticSeverity.Error, -- ERROR
+          [1] = DiagnosticSeverity.Warning, -- WARNING
+          [2] = DiagnosticSeverity.Warning, -- STYLE_PROBLEM
         }
 
         local diagnostics = {}
@@ -157,6 +159,6 @@ lsp_ignition.setup_config('vint', {
           return reply(nil)
         end,
       }
-    end)();
-  };
+    end)(),
+  },
 })

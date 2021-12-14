@@ -7,7 +7,6 @@ _G.dotfiles = _G.dotfiles or {}
 _G.dotfiles.utils = utils
 _G.dotfiles.utils_vim = utils_vim
 
-
 local function dump_impl(opts, ...)
   local len = select('#', ...)
   if len == 1 then
@@ -30,11 +29,9 @@ function _G.dump_compact(...)
   return dump_impl({ newline = ' ', indent = '' }, ...)
 end
 
-
 function _G.printf(...)
   return print(string.format(...))
 end
-
 
 function _G.measure_time(fn, ...)
   local start_time = vim.loop.hrtime()
@@ -44,7 +41,6 @@ function _G.measure_time(fn, ...)
   end
   return measure_time_results_handler(fn(...))
 end
-
 
 -- TODO: This looks useful (probably a knockoff implementation of hyperfine):
 -- <https://github.com/nvim-lua/plenary.nvim/blob/master/lua/plenary/benchmark/init.lua>
@@ -57,17 +53,17 @@ function _G.benchmark(runs, fn, ...)
   return (end_time - start_time) / 1e9
 end
 
-
 -- Taken from <https://github.com/nvim-lua/plenary.nvim/blob/15c3cb9e6311dc1a875eacb9fc8df69ca48d7402/lua/plenary/profile.lua#L7-L18>.
 function _G.profile_start(out, opts)
-  out = out or "profile.log"
+  out = out or 'profile.log'
   opts = opts or { flame = true }
   -- Description of profiler options: <https://github.com/LuaJIT/LuaJIT/blob/v2.1/src/jit/p.lua#L22-L38>.
-  local popts = "10,i1,s,m0"
-  if opts.flame then popts = popts .. ",G" end
+  local popts = '10,i1,s,m0'
+  if opts.flame then
+    popts = popts .. ',G'
+  end
   require('jit.p').start(popts, out)
 end
-
 
 function _G.profile_stop()
   require('jit.p').stop()

@@ -10,7 +10,6 @@ local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.sane_indentline')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 
-
 M.ns_id = M.ns_id or vim.api.nvim_create_namespace(MODULE_INFO.name)
 M.decorations_provider = M.decorations_provider or {}
 
@@ -52,42 +51,61 @@ end
 function M.decorations_provider:on_start(tick)
   self:reset()
 
-  if not utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_enabled, vim.g.indentLine_enabled, true)) then
+  if
+    not utils_vim.is_truthy(
+      utils.first_non_nil(vim.g.indent_blankline_enabled, vim.g.indentLine_enabled, true)
+    )
+  then
     return false
   end
 
+  -- stylua: ignore
   self.chars = utils.first_non_nil(vim.g.indent_blankline_char_list, vim.g.indentLine_char_list, {})
   if #self.chars == 0 then
+  -- stylua: ignore
     self.chars = {utils.first_non_nil(vim.g.indent_blankline_char, vim.g.indentLine_char, '|')}
   end
   self.char_widths = {}
   for i = 1, #self.chars do
     self.char_widths[i] = vim.fn.strdisplaywidth(self.chars[i])
   end
+    -- stylua: ignore
   self.blankline_char = utils.first_non_nil(vim.g.indent_blankline_space_char_blankline, ' ')
 
+    -- stylua: ignore
   self.hlgroups = utils.first_non_nil(vim.g.indent_blankline_char_highlight_list, {})
   if #self.hlgroups == 0 then
-    self.hlgroups = {'IndentBlanklineChar'}
+    self.hlgroups = { 'IndentBlanklineChar' }
   end
+    -- stylua: ignore
   self.hlgroups_space = utils.first_non_nil(vim.g.indent_blankline_space_char_highlight_list, {})
   if #self.hlgroups_space == 0 then
-    self.hlgroups_space = {'IndentBlanklineChar'}
+    self.hlgroups_space = { 'IndentBlanklineChar' }
   end
+    -- stylua: ignore
   self.hlgroups_space_blankline = utils.first_non_nil(vim.g.indent_blankline_space_char_blankline_highlight_list, {})
   if #self.hlgroups_space_blankline == 0 then
-    self.hlgroups_space_blankline = {'IndentBlanklineSpaceCharBlankline'}
+    self.hlgroups_space_blankline = { 'IndentBlanklineSpaceCharBlankline' }
   end
 
+    -- stylua: ignore
   self.max_indent_level = utils.first_non_nil(vim.g.indentLine_indentLevel, vim.g.indent_blankline_indent_level, 20)
+    -- stylua: ignore
   self.add_one_more_indent_on_blanklines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_trailing_blankline_indent, true))
+    -- stylua: ignore
   self.show_first_indent_level = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_first_indent_level, vim.g.indentLine_showFirstIndentLevel, true))
+    -- stylua: ignore
   self.show_on_folded_lines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_foldtext, false))
 
+    -- stylua: ignore
   self.disable_with_nolist = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_disable_with_nolist, false))
+    -- stylua: ignore
   self.filetypes_include = utils.tbl_to_set(utils.first_non_nil(vim.g.indent_blankline_filetype, vim.g.indentLine_fileType, {}))
+    -- stylua: ignore
   self.filetypes_exclude = utils.tbl_to_set(utils.first_non_nil(vim.g.indent_blankline_filetype_exclude, vim.g.indentLine_fileTypeExclude, {}))
+    -- stylua: ignore
   self.buftype_exclude = utils.tbl_to_set(utils.first_non_nil(vim.g.indent_blankline_buftype_exclude, vim.g.indentLine_bufTypeExclude, {}))
+    -- stylua: ignore
   self.bufname_exclude = utils.first_non_nil(vim.g.indent_blankline_bufname_exclude, vim.g.indentLine_bufNameExclude, {})
 
   self.bufs_info = {}
@@ -146,7 +164,11 @@ end
 --- Replicates the logic in <https://github.com/Yggdroot/indentLine/blob/5617a1cf7d315e6e6f84d825c85e3b669d220bfa/after/plugin/indentLine.vim#L286-L306>
 --- and <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L50-L101>.
 function M.decorations_provider:check_disabled_for_buf(winid, bufnr)
-  if not utils_vim.is_truthy(utils.first_non_nil(vim.b.indent_blankline_enabled, vim.b.indentLine_enabled, true)) then
+  if
+    not utils_vim.is_truthy(
+      utils.first_non_nil(vim.b.indent_blankline_enabled, vim.b.indentLine_enabled, true)
+    )
+  then
     return true
   end
   local ft = vim.bo.filetype
@@ -216,7 +238,7 @@ function M.decorations_provider:on_line(winid, bufnr, row)
     local unrendered_char_cols = 0
     if curr_indent_level > 0 or self.show_first_indent_level then
       if left_offset >= 0 then
-        chunks[#chunks + 1] = {char, self.hlgroups[curr_indent_level % #self.hlgroups + 1]}
+        chunks[#chunks + 1] = { char, self.hlgroups[curr_indent_level % #self.hlgroups + 1] }
       else
         unrendered_char_cols = math.max(char_width + left_offset, 0)
       end
@@ -227,10 +249,11 @@ function M.decorations_provider:on_line(winid, bufnr, row)
 
     local space_width = math.max(0, shiftwidth - char_width)
     local space = string.rep(
-      space_char, space_width + unrendered_char_cols + math.min(left_offset, 0)
+      space_char,
+      space_width + unrendered_char_cols + math.min(left_offset, 0)
     )
     if #space > 0 then
-      chunks[#chunks + 1] = {space, space_hlgroups[curr_indent_level % #space_hlgroups + 1]}
+      chunks[#chunks + 1] = { space, space_hlgroups[curr_indent_level % #space_hlgroups + 1] }
     end
     left_offset = left_offset + space_width
 
@@ -254,6 +277,7 @@ function M.decorations_provider:on_end(tick)
   self:reset()
 end
 
+-- stylua: ignore start
 vim.api.nvim_set_decoration_provider(M.ns_id, {
   on_start = function(_, ...) return M.decorations_provider:on_start(...) end,
   -- on_buf = function(_, ...) return M.decorations_provider:on_buf(...) end,
@@ -261,6 +285,6 @@ vim.api.nvim_set_decoration_provider(M.ns_id, {
   on_line = function(_, ...) return M.decorations_provider:on_line(...) end,
   on_end = function(_, ...) return M.decorations_provider:on_end(...) end,
 })
-
+-- stylua: ignore end
 
 return M

@@ -20,26 +20,26 @@ end
 
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/yamlls.lua>
 lsp_ignition.setup_config('yamlls', {
-  cmd = {'yaml-language-server', '--stdio'};
-  filetypes = {'yaml', 'yaml.docker-compose'};
-  single_file_support = true;
-  completion_menu_label = 'YAML';
+  cmd = { 'yaml-language-server', '--stdio' },
+  filetypes = { 'yaml', 'yaml.docker-compose' },
+  single_file_support = true,
+  completion_menu_label = 'YAML',
 
-  settings_scopes = {'yaml', 'http'};
+  settings_scopes = { 'yaml', 'http' },
   settings = {
     redhat = {
       -- https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting
-      telemetry = { enabled = true; };
-    };
+      telemetry = { enabled = true },
+    },
     yaml = {
       format = {
-        enable = false;
-      };
+        enable = false,
+      },
       schemaStore = {
-        enable = false;
-        url = '';  -- Workaround for a crash, basically.
-      };
-      schemas = janky_schemas;
-    };
-  };
+        enable = false,
+        url = '', -- Workaround for a crash, basically.
+      },
+      schemas = janky_schemas,
+    },
+  },
 })

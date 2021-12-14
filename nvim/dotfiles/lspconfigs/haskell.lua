@@ -6,10 +6,10 @@ local lspconfig_utils = require('lspconfig.util')
 
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/hls.lua>
 lsp_ignition.setup_config('hls', {
-  cmd = {'haskell-language-server-wrapper', '--lsp'};
-  filetypes = {'haskell', 'lhaskell'};
+  cmd = { 'haskell-language-server-wrapper', '--lsp' },
+  filetypes = { 'haskell', 'lhaskell' },
   -- root_dir = lspconfig_utils.root_pattern('*.cabal', 'stack.yaml', 'cabal.project', 'package.yaml', 'hie.yaml');
-  completion_menu_label = 'Hs';
+  completion_menu_label = 'Hs',
 
-  settings_scopes = {'haskell'};
+  settings_scopes = { 'haskell' },
 })

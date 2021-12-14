@@ -36,7 +36,6 @@ local lsp_utils = require('dotfiles.lsp.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local vim_uri = require('vim.uri')
 
-
 -- <https://github.com/neovim/neovim/pull/15430>
 -- <https://github.com/neovim/neovim/pull/15132>
 local CAN_USE_NIL_ROOT_DIR = utils_vim.has('nvim-0.5.1')
@@ -58,7 +57,9 @@ M.default_config = {
     return vim.fn.getcwd(vim.api.nvim_get_current_win())
   end,
 }
-local compat_default_config_ref = function() vim.empty_dict() end
+local compat_default_config_ref = function()
+  return vim.empty_dict()
+end
 
 M.config_presets_registry = {}
 M.configs_registry = {}
@@ -75,21 +76,20 @@ M.workspace_root_dirs = {}
 
 -- For integration of other subsystems.
 M.service_hooks = {
-  before_config_installed = {};
-  on_config_installed = {};
-  before_config_uninstalled = {};
-  on_config_uninstalled = {};
-  before_init = {};
-  on_create = {};
-  on_init = {};
-  on_attach = {};
-  on_exit = {};
-  on_new_config = {};
+  before_config_installed = {},
+  on_config_installed = {},
+  before_config_uninstalled = {},
+  on_config_uninstalled = {},
+  before_init = {},
+  on_create = {},
+  on_init = {},
+  on_attach = {},
+  on_exit = {},
+  on_new_config = {},
 }
 
 -- Give the clients some time to stop. nvim-lspconfig uses 500ms timeout.
 M._CLIENT_RESTART_TIMEOUT = 1000
-
 
 -- TODO: Contribute the following to upstream.
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L747>
@@ -97,29 +97,32 @@ M._CLIENT_RESTART_TIMEOUT = 1000
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L1016-L1017>
 do
   local maxn = table.maxn(lsp.client_errors)
-  lsp.client_errors = vim.tbl_extend('keep', lsp.client_errors, vim.tbl_add_reverse_lookup {
-    BEFORE_INIT_CALLBACK_ERROR   = maxn + 1,
-    ON_CREATE_CALLBACK_ERROR     = maxn + 2,  -- My invention
-    ON_INIT_CALLBACK_ERROR       = maxn + 3,
-    ON_ATTACH_CALLBACK_ERROR     = maxn + 4,
-    ON_EXIT_CALLBACK_ERROR       = maxn + 5,
-    ON_NEW_CONFIG_CALLBACK_ERROR = maxn + 6,  -- Not really a built-in callback, isn't it?
-  })
+  lsp.client_errors = vim.tbl_extend(
+    'keep',
+    lsp.client_errors,
+    vim.tbl_add_reverse_lookup({
+      BEFORE_INIT_CALLBACK_ERROR = maxn + 1,
+      ON_CREATE_CALLBACK_ERROR = maxn + 2, -- My invention
+      ON_INIT_CALLBACK_ERROR = maxn + 3,
+      ON_ATTACH_CALLBACK_ERROR = maxn + 4,
+      ON_EXIT_CALLBACK_ERROR = maxn + 5,
+      ON_NEW_CONFIG_CALLBACK_ERROR = maxn + 6, -- Not really a built-in callback, isn't it?
+    })
+  )
 end
-
 
 -- These are, quite frankly, terrible APIs in their current form, but can be
 -- easily emulated with my functions.
 do
   function lsp.buf.add_workspace_folder(workspace_folder)
     vim.validate({
-      workspace_folder = {workspace_folder, 'string'};
+      workspace_folder = { workspace_folder, 'string' },
     })
     M.broadcast_workspace_root_dirs_change({ [workspace_folder] = true })
   end
   function lsp.buf.remove_workspace_folder(workspace_folder)
     vim.validate({
-      workspace_folder = {workspace_folder, 'string'};
+      workspace_folder = { workspace_folder, 'string' },
     })
     M.broadcast_workspace_root_dirs_change({ [workspace_folder] = false })
   end
@@ -127,7 +130,6 @@ do
     return vim.tbl_keys(M.workspace_root_dirs)
   end
 end
-
 
 function M.setup()
   vim.cmd([[
@@ -164,16 +166,16 @@ function M.setup()
   })
 end
 
-
 function M.install_compat()
   package.loaded['lspconfig/configs'] = M._loaded_config_presets_compat
   package.loaded['lspconfig.configs'] = M._loaded_config_presets_compat
   local ok, lspconfig = pcall(require, 'lspconfig')
   assert(ok, 'nvim-lspconfig is not installed, the compat layer is not necessary!')
   lspconfig.util.create_module_commands = function() end
-  compat_default_config_ref = function() return lspconfig.util.default_config end
+  compat_default_config_ref = function()
+    return lspconfig.util.default_config
+  end
 end
-
 
 M._loaded_config_presets_compat = setmetatable({}, {
   __newindex = function(self, config_name, config_def)
@@ -182,17 +184,18 @@ M._loaded_config_presets_compat = setmetatable({}, {
       if k ~= 'default_config' and k ~= 'on_new_config' and k ~= 'commands' and k ~= 'docs' then
         vim.notify(
           string.format(
-            'warning: encountered an unknown key %q in a config preset %q received from ' ..
-            'nvim-lspconfig, the compat layer needs updating', k, config_name
+            'warning: encountered an unknown key %q in a config preset %q received from '
+              .. 'nvim-lspconfig, the compat layer needs updating',
+            k,
+            config_name
           ),
           vim.log.levels.WARN
         )
       end
     end
     return M.setup_config_preset(config_name, config_def)
-  end
+  end,
 })
-
 
 function M._validate_config_name(config_name)
   if not config_name:match('^[a-zA-Z0-9_-]+$') then
@@ -205,30 +208,33 @@ function M._validate_config_name(config_name)
   end
 end
 
-
 function M.get_config_preset(config_name)
   return M.config_presets_registry[config_name]
 end
 
-
 function M.setup_config_preset(config_name, config_def)
   vim.validate({
-    config_name = { config_name, 'string' };
-    config_def = { config_def, 'table' };
-    default_config = { config_def.default_config, 'table' };
-    on_new_config = { config_def.on_new_config, 'function', true };
-    commands = { config_def.commands, 'table', true };
+    config_name = { config_name, 'string' },
+    config_def = { config_def, 'table' },
+    default_config = { config_def.default_config, 'table' },
+    on_new_config = { config_def.on_new_config, 'function', true },
+    commands = { config_def.commands, 'table', true },
   })
   M._validate_config_name(config_name)
-  error(string.format('usage of config presets or lspconfig detected, refusing to install preset %q', config_name))
+  error(
+    string.format(
+      'usage of config presets or lspconfig detected, refusing to install preset %q',
+      config_name
+    )
+  )
 
   M.delete_config_preset(config_name)
 
   local config_preset = {
-    name = config_name;
-    default_config = config_def.default_config;
-    on_new_config = config_def.on_new_config;
-    commands = config_def.commands;
+    name = config_name,
+    default_config = config_def.default_config,
+    on_new_config = config_def.on_new_config,
+    commands = config_def.commands,
   }
   M.config_presets_registry[config_name] = config_preset
 
@@ -241,10 +247,9 @@ function M.setup_config_preset(config_name, config_def)
   return config_preset
 end
 
-
 function M.delete_config_preset(config_name)
   vim.validate({
-    config_name = { config_name, 'string' };
+    config_name = { config_name, 'string' },
   })
   -- Deleting config presets actually has much less consequences than deleting
   -- configs themselves, but still be careful.
@@ -261,45 +266,43 @@ function M.delete_config_preset(config_name)
   return config_preset
 end
 
-
 function M._setup_config_compat_ghost(config_name)
   if rawget(M._loaded_config_presets_compat, config_name) ~= nil then
     error(string.format('a config compat ghost with the name %q already exists', config_name))
   end
 
   local compat_ghost = {
-    name = config_name;
+    name = config_name,
     -- Public API.
     setup = function(config_def2)
       M.setup_config(config_name, config_def2)
-    end;
+    end,
     -- Used in :LspInfo
     make_config = function(root_dir)
       local config = M.configs_registry[config_name]
-      if not config then return end
+      if not config then
+        return
+      end
       return M.make_final_client_config_for_buf(config, root_dir)
-    end
+    end,
   }
   rawset(M._loaded_config_presets_compat, config_name, compat_ghost)
   return compat_ghost
 end
 
-
 function M._delete_config_compat_ghost(config_name)
   rawset(M._loaded_config_presets_compat, config_name, nil)
 end
-
 
 function M.get_config(config_name)
   return M.configs_registry[config_name]
 end
 
-
 function M.setup_config(config_name, config_def)
   vim.validate({
-    config_name = { config_name, 'string' };
-    config_def = { config_def, 'table' };
-  -- TODO: more typechecks
+    config_name = { config_name, 'string' },
+    config_def = { config_def, 'table' },
+    -- TODO: more typechecks
   })
   M._validate_config_name(config_name)
 
@@ -331,7 +334,10 @@ function M.setup_config(config_name, config_def)
     'force',
     -- The configs will be merged in the order they are written down here, in
     -- other words, with increasing priority.
-    compat_default_config, M.default_config, config_preset_config, config_def
+    compat_default_config,
+    M.default_config,
+    config_preset_config,
+    config_def
   )
   config.name = config_name
 
@@ -370,9 +376,12 @@ function M.setup_config(config_name, config_def)
       end, buf_clients)
       vim.notify(
         string.format(
-          '%s.%s: This command may only be executed in buffers to which the client %q is ' ..
-          'attached. Clients attached to the current buffer are: %s.',
-          config_name, command_name, config_name, table.concat(buf_client_names, ', ')
+          '%s.%s: This command may only be executed in buffers to which the client %q is '
+            .. 'attached. Clients attached to the current buffer are: %s.',
+          config_name,
+          command_name,
+          config_name,
+          table.concat(buf_client_names, ', ')
         ),
         vim.log.levels.ERROR
       )
@@ -415,10 +424,9 @@ function M.setup_config(config_name, config_def)
   return config
 end
 
-
 function M.delete_config(config_name)
   vim.validate({
-    config_name = { config_name, 'string' };
+    config_name = { config_name, 'string' },
   })
   -- Config uninstallation is a responsible task, be vigilant.
 
@@ -460,42 +468,53 @@ function M.delete_config(config_name)
   return config
 end
 
-
 function M.should_attach(bufnr)
   local buftype = vim.api.nvim_buf_get_option(bufnr, 'buftype')
-  if buftype ~= '' and buftype ~= 'acwrite' then return false end
+  if buftype ~= '' and buftype ~= 'acwrite' then
+    return false
+  end
 
   local path = vim.api.nvim_buf_get_name(bufnr)
-  if path:match(utils.URI_SCHEME_PATTERN) then return false end
+  if path:match(utils.URI_SCHEME_PATTERN) then
+    return false
+  end
 
   local buf_filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
-  if lsp_global_settings.IGNORED_FILETYPES[buf_filetype] then return false end
+  if lsp_global_settings.IGNORED_FILETYPES[buf_filetype] then
+    return false
+  end
 
   local ok, value = pcall(vim.api.nvim_buf_get_var, bufnr, 'lsp_enabled')
-  if ok and utils_vim.is_truthy(value) then return false end
+  if ok and utils_vim.is_truthy(value) then
+    return false
+  end
 
-  if vim.api.nvim_buf_get_option(bufnr, 'binary') then return false end
+  if vim.api.nvim_buf_get_option(bufnr, 'binary') then
+    return false
+  end
 
   if lsp_global_settings.MAX_FILE_SIZE then
     local file_size = utils_vim.buf_get_inmemory_text_byte_size(bufnr)
-    if file_size > lsp_global_settings.MAX_FILE_SIZE then return false end
+    if file_size > lsp_global_settings.MAX_FILE_SIZE then
+      return false
+    end
   end
 
   return true
 end
-
 
 function M.on_buf_created(bufnr)
   if M.should_attach(bufnr) then
     for config, _ in pairs(M.get_matching_configs_for_buf(bufnr)) do
       if config.autostart ~= false then
         local client_id = M.ensure_client_started_for_buf(config, bufnr)
-        if client_id then M.ensure_client_attached_to_buf(config, client_id, bufnr) end
+        if client_id then
+          M.ensure_client_attached_to_buf(config, client_id, bufnr)
+        end
       end
     end
   end
 end
-
 
 function M.get_matching_configs_for_buf(bufnr)
   local results = {}
@@ -503,18 +522,21 @@ function M.get_matching_configs_for_buf(bufnr)
 
   local configs_set = M.filetypes_to_configs_map[ft]
   if configs_set ~= nil then
-    for config, _ in pairs(configs_set) do results[config] = true end
+    for config, _ in pairs(configs_set) do
+      results[config] = true
+    end
   end
-  if ft ~= '*' then  -- What the heck?
+  if ft ~= '*' then -- What the heck?
     configs_set = M.filetypes_to_configs_map['*']
     if configs_set ~= nil then
-      for config, _ in pairs(configs_set) do results[config] = true end
+      for config, _ in pairs(configs_set) do
+        results[config] = true
+      end
     end
   end
 
   return results
 end
-
 
 function M.ensure_client_started_for_buf(config, bufnr)
   local root_dir = nil
@@ -540,7 +562,6 @@ function M.ensure_client_started_for_buf(config, bufnr)
   return M.ensure_client_started_for_config(config, root_dir, bufnr)
 end
 
-
 -- NOTE: The bufnr here is optional. Servers can be started without a "trigger"
 -- buffer, for instance, when performing an :LspRestart.
 function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
@@ -558,10 +579,9 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
     client_id = nil
   elseif client_id == nil then
     -- Great, no client is running! Begin the activation sequence.
-    local ok, result = xpcall(function()  -- Three...
-      local final_config =
-        M.make_final_client_config_for_buf(config, root_dir, responsible_bufnr)  -- Two...
-      if final_config.enabled == false then  -- One...
+    local ok, result = xpcall(function() -- Three...
+      local final_config = M.make_final_client_config_for_buf(config, root_dir, responsible_bufnr) -- Two...
+      if final_config.enabled == false then -- One...
         -- Disable the client and forbid further attempts of starting it.
         M.configs_to_client_ids_map[config] = false
       else
@@ -589,7 +609,9 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
       vim.notify(
         string.format(
           'failed to start a client for %q (root dir is %q):\n%s',
-          config.name, tostring(root_dir), result
+          config.name,
+          tostring(root_dir),
+          result
         ),
         vim.log.levels.ERROR
       )
@@ -607,10 +629,9 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
   return client_id
 end
 
-
 function M.broadcast_workspace_root_dirs_change(changes)
   vim.validate({
-    changes = {changes, 'table'};
+    changes = { changes, 'table' },
   })
 
   local req_params = { event = { added = {}, removed = {} } }
@@ -624,23 +645,19 @@ function M.broadcast_workspace_root_dirs_change(changes)
       error(string.format('changes value #%d: expected boolean, got %s', i, type(add)))
     end
     if add then
-
       if M.workspace_root_dirs[root_dir] then
         error(string.format('root directory %q has already been registered', root_dir))
       end
       local new_workspace_folder = { uri = vim_uri.uri_from_fname(root_dir), name = root_dir }
       M.workspace_root_dirs[root_dir] = new_workspace_folder
       table.insert(req_params.event.added, new_workspace_folder)
-
     else
-
       local old_workspace_folder = M.workspace_root_dirs[root_dir]
       if not old_workspace_folder then
         error(string.format("root directory %q hasn't been registered before", root_dir))
       end
       M.workspace_root_dirs[root_dir] = nil
       table.insert(req_params.event.removed, old_workspace_folder)
-
     end
   end
 
@@ -650,10 +667,10 @@ function M.broadcast_workspace_root_dirs_change(changes)
       if client.initialized then
         -- assert(client.workspaceFolders)
         local capabilities = client.resolved_capabilities
-        if (
-          capabilities.workspace_folder_properties.supported and
-          capabilities.workspace_folder_properties.changeNotifications
-        ) then
+        if
+          capabilities.workspace_folder_properties.supported
+          and capabilities.workspace_folder_properties.changeNotifications
+        then
           client.notify('workspace/didChangeWorkspaceFolders', req_params)
         end
         -- client.workspaceFolders = vim.tbl_values(M.workspace_root_dirs)
@@ -661,7 +678,6 @@ function M.broadcast_workspace_root_dirs_change(changes)
     end
   end
 end
-
 
 function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bufnr)
   -- `vim.deepcopy` won't let me copy `vim.NIL`s...
@@ -702,19 +718,24 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
   final_config.capabilities = final_config.capabilities or lsp.protocol.make_client_capabilities()
   final_config.capabilities = vim.tbl_deep_extend('keep', final_config.capabilities, {
     workspace = {
-      configuration = true;  -- Allows us sending settings.
-      didChangeConfiguration = { dynamicRegistration = false };  -- Same.
-      workspaceFolders = true;  -- Allows multiple workspace roots.
-    };
+      configuration = true, -- Allows us sending settings.
+      didChangeConfiguration = { dynamicRegistration = false }, -- Same.
+      workspaceFolders = true, -- Allows multiple workspace roots.
+    },
   })
 
   if not final_config.on_error then
     function final_config.on_error(code, err)
       local msg = string.format(
-        'LSP[%s]: Error %s: %s', final_config.name, lsp.client_errors[code], err
+        'LSP[%s]: Error %s: %s',
+        final_config.name,
+        lsp.client_errors[code],
+        err
       )
       if vim.in_fast_event() then
-        vim.schedule(function() vim.api.nvim_err_writeln(msg) end)
+        vim.schedule(function()
+          vim.api.nvim_err_writeln(msg)
+        end)
       else
         vim.api.nvim_err_writeln(msg)
       end
@@ -728,7 +749,9 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
     end
   end
   local function wrap_hook(error_type, fn)
-    return function(...) return call_hook(error_type, fn, ...) end
+    return function(...)
+      return call_hook(error_type, fn, ...)
+    end
   end
 
   local orig_before_init = final_config.before_init
@@ -769,10 +792,12 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
 
     -- Fake this for the purposes of :LspInfo. It's not like we or any
     -- remaining built-in functions read this field.
-    local fake_workspace_folders_list = {{
-      uri = vim_uri.uri_from_fname(tostring(client.config.root_dir));
-      name = tostring(client.config.root_dir);
-    }}
+    local fake_workspace_folders_list = {
+      {
+        uri = vim_uri.uri_from_fname(tostring(client.config.root_dir)),
+        name = tostring(client.config.root_dir),
+      },
+    }
     if utils_vim.has('nvim-0.6.0') then
       client.workspace_folders = client.workspaceFolders
     end
@@ -841,7 +866,6 @@ function M.make_final_client_config_for_buf(src_config, root_dir, responsible_bu
   return final_config
 end
 
-
 function M.ensure_client_attached_to_buf(config, client_id, bufnr)
   assert(vim.api.nvim_buf_is_valid(bufnr), 'buffer not found')
   -- This line <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp.lua#L1133>
@@ -853,7 +877,6 @@ function M.ensure_client_attached_to_buf(config, client_id, bufnr)
     return true
   end
 end
-
 
 function M.get_all_client_ids()
   local result = {}
@@ -867,19 +890,16 @@ function M.get_all_client_ids()
   return result
 end
 
-
 function M.get_client_by_config_name(name)
   -- This should pass through all the intermediary `nil`s...
   return lsp.get_client_by_id(M.configs_to_client_ids_map[M.configs_registry[name]])
 end
-
 
 function M.command_info()
   local ok, lspconfig = pcall(require, 'lspconfig')
   assert(ok, 'sorry, this command is not implemented yet!')
   lspconfig._root.commands.LspInfo[1]()
 end
-
 
 function M.command_start(call_info)
   local requested_configs = nil
@@ -908,12 +928,13 @@ function M.command_start(call_info)
       -- project that this `Cargo.toml` resides in.
       local client_id = M.ensure_client_started_for_buf(config, bufnr)
       if matching_configs[config] ~= nil then
-        if client_id then M.ensure_client_attached_to_buf(config, client_id, bufnr) end
+        if client_id then
+          M.ensure_client_attached_to_buf(config, client_id, bufnr)
+        end
       end
     end
   end
 end
-
 
 function M.command_start_completion()
   local results = {}
@@ -932,14 +953,15 @@ function M.command_start_completion()
   return table.concat(results, '\n')
 end
 
-
 function M.command_stop(call_info)
   local requested_client_ids = {}
 
   if vim.tbl_isempty(call_info.f_args) then
     -- Stop all clients that we are in charge of.
     for config, client_id in pairs(M.configs_to_client_ids_map) do
-      if client_id then requested_client_ids[client_id] = {config = config} end
+      if client_id then
+        requested_client_ids[client_id] = { config = config }
+      end
     end
   else
     -- Stop only the clients the user has requested.
@@ -954,7 +976,7 @@ function M.command_stop(call_info)
       if config ~= nil then
         client_id = M.configs_to_client_ids_map[config]
         if client_id then
-          requested_client_ids[client_id] = {config = config}
+          requested_client_ids[client_id] = { config = config }
         end
         goto continue
       else
@@ -968,12 +990,15 @@ function M.command_stop(call_info)
   local force = call_info.bang
   for client_id, client_meta_bag in pairs(requested_client_ids) do
     local config = client_meta_bag.config
-    if config then config.autostart = false end
+    if config then
+      config.autostart = false
+    end
     local client = lsp.get_client_by_id(client_id)
-    if client then client.stop(force) end
+    if client then
+      client.stop(force)
+    end
   end
 end
-
 
 function M.command_stop_completion()
   local results = {}
@@ -999,7 +1024,6 @@ function M.command_stop_completion()
   end
   return table.concat(results, '\n')
 end
-
 
 function M.command_restart(call_info)
   local requested_configs_with_root_dirs = {}
@@ -1051,13 +1075,14 @@ function M.command_restart(call_info)
         -- NOTE: See the comment in `M.command_start()`.
         local client_id = M.ensure_client_started_for_buf(config, bufnr)
         if matching_configs[config] ~= nil then
-          if client_id then M.ensure_client_attached_to_buf(config, client_id, bufnr) end
+          if client_id then
+            M.ensure_client_attached_to_buf(config, client_id, bufnr)
+          end
         end
       end
     end
   end)
 end
-
 
 function M.command_restart_completion()
   local results = {}
@@ -1083,7 +1108,6 @@ function M.command_restart_completion()
   return table.concat(results, '\n')
 end
 
-
 function M._command_completion_sort_configs(all_configs, matching_configs)
   matching_configs = matching_configs or {}
   return table.sort(all_configs, function(cfg_a, cfg_b)
@@ -1099,14 +1123,16 @@ function M._command_completion_sort_configs(all_configs, matching_configs)
   end)
 end
 
-
 function M.add_client_capabilities(extra_capabilities)
-  M.default_config.capabilities = vim.tbl_deep_extend('force', M.default_config.capabilities, extra_capabilities)
+  M.default_config.capabilities = vim.tbl_deep_extend(
+    'force',
+    M.default_config.capabilities,
+    extra_capabilities
+  )
 end
 
 function M.add_default_config(extra_config)
   M.default_config = vim.tbl_deep_extend('force', M.default_config, extra_config)
 end
-
 
 return M

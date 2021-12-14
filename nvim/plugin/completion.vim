@@ -123,13 +123,13 @@ if dotfiles#plugman#is_registered('nvim-compe') " {{{
       -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#completionClientCapabilities>
       completion = {
         completionItem = {
-          snippetSupport = true;
+          snippetSupport = true,
           resolveSupport = {
-            properties = {'documentation', 'detail', 'additionalTextEdits'};
-          };
-        };
-      };
-    };
+            properties = { 'documentation', 'detail', 'additionalTextEdits' },
+          },
+        },
+      },
+    },
   })
 EOF
 
@@ -144,7 +144,9 @@ if dotfiles#plugman#is_registered('nvim-lspconfig')  " {{{
   lua <<EOF
   local log = require('vim.lsp.log')
   if log.set_format_func then
-    log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
+    log.set_format_func(function(arg)
+      return vim.inspect(arg, { newline = ' ', indent = '' })
+    end)
   end
   local log_level_var = vim.env.NVIM_LSP_LOG_LEVEL
   if log_level_var ~= nil and log_level_var ~= '' then
@@ -182,8 +184,8 @@ EOF
   lua <<EOF
   require('dotfiles.lsp.ignition').add_default_config({
     flags = {
-      debounce_text_changes = 100;
-    };
+      debounce_text_changes = 100,
+    },
   })
 EOF
 

@@ -20,7 +20,6 @@ local utils = require('dotfiles.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local lsp_ignition = require('dotfiles.lsp.ignition')
 
-
 -- """"""Polyfills"""""" {{{
 if cmp.get_selected_entry == nil then
   function cmp.get_selected_entry()
@@ -34,24 +33,22 @@ if cmp.get_active_entry == nil then
 end
 -- }}}
 
-
 --[[
 function cmp.core.view.custom_entries_view.entries_win:has_scrollbar()
   return false
 end
 --]]
 
-
 cmp.setup({
   experimental = {
     -- The new floating window menu breaks undo history when <CR> is pressed.
     -- <https://github.com/neovim/neovim/issues/11439>
-    native_menu = true;
-  };
+    native_menu = true,
+  },
 
   sources = {
     {
-      name = 'nvim_lsp';
+      name = 'nvim_lsp',
       menu_label = function(source)
         local result = 'LS'
         local client = source and source.source and source.source.client
@@ -62,23 +59,23 @@ cmp.setup({
           end
         end
         return result
-      end;
+      end,
     },
 
     {
-      name = 'nvim_lua';
-      menu_label = 'NLua';
+      name = 'nvim_lua',
+      menu_label = 'NLua',
     },
 
     {
-      name = 'vsnip';
+      name = 'vsnip',
       -- name = 'luasnip';
-      menu_label = 'Snip';
+      menu_label = 'Snip',
     },
 
     {
-      name = 'path';
-      menu_label = 'Path';
+      name = 'path',
+      menu_label = 'Path',
     },
 
     {
@@ -91,12 +88,12 @@ cmp.setup({
       -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/charset.c#L83-L262>
       -- <https://github.com/neoclide/coc.nvim/blob/03c9add7cd867a013102dcb45fb4e75304d227d7/src/model/document.ts>
       -- <https://github.com/neoclide/coc.nvim/blob/03c9add7cd867a013102dcb45fb4e75304d227d7/src/model/chars.ts>
-      name = 'buffer';
-      menu_label = 'Buf';
+      name = 'buffer',
+      menu_label = 'Buf',
       option = {
         -- NOTE: This pattern is actually faster than the default one because
         -- of its syntactical simplificty.
-        keyword_pattern = [[\k\+]];
+        keyword_pattern = [[\k\+]],
         -- Use the synchronous indexing algorithm.
         -- indexing_interval = 20;
         -- NOTE: This function is invoked every time the (auto-)completion menu
@@ -115,95 +112,103 @@ cmp.setup({
           local result = {}
           -- TODO: Merge this logic with `lsp_ignition.should_attach(bufnr)`.
           for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-            if not vim.api.nvim_buf_is_loaded(bufnr) then goto continue end
+            if not vim.api.nvim_buf_is_loaded(bufnr) then
+              goto continue
+            end
             if not visible_bufs[bufnr] then
-              if not vim.api.nvim_buf_get_option(bufnr, 'buflisted') then goto continue end
+              if not vim.api.nvim_buf_get_option(bufnr, 'buflisted') then
+                goto continue
+              end
             end
             local bt = vim.api.nvim_buf_get_option(bufnr, 'buftype')
             if bt == 'help' or bt == 'quickfix' or bt == 'terminal' or bt == 'prompt' then
               goto continue
             end
-            if vim.api.nvim_buf_get_option(bufnr, 'binary') then goto continue end
+            if vim.api.nvim_buf_get_option(bufnr, 'binary') then
+              goto continue
+            end
             if lsp_global_settings.MAX_FILE_SIZE then
               local file_size = utils_vim.buf_get_inmemory_text_byte_size(bufnr)
-              if file_size > lsp_global_settings.MAX_FILE_SIZE then goto continue end -- TODO
+              if file_size > lsp_global_settings.MAX_FILE_SIZE then
+                goto continue -- TODO
+              end
             end
             table.insert(result, bufnr)
             ::continue::
           end
           return result
-        end;
-      };
+        end,
+      },
     },
 
     {
-      name = 'spell';
-      menu_label = 'Spl';
+      name = 'spell',
+      menu_label = 'Spl',
     },
-  };
+  },
 
   mapping = {
     ['<Tab>'] = cmp.mapping(function(fallback)
       local selected_entry = cmp.get_selected_entry()
       if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', 1)) then
         vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-next)'), '')
-      -- if not selected_entry and require('luasnip').jumpable(1) then
-      --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-next'), '')
+        -- if not selected_entry and require('luasnip').jumpable(1) then
+        --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-next'), '')
       elseif cmp.visible() then
         cmp.select_next_item()
       else
         fallback()
       end
-    end, {'i', 's'});
+    end, { 'i', 's' }),
 
     ['<S-Tab>'] = cmp.mapping(function(fallback)
       local selected_entry = cmp.get_selected_entry()
       if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', -1)) then
         vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-prev)'), '')
-      -- if not selected_entry and require('luasnip').jumpable(-1) then
-      --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-prev'), '')
+        -- if not selected_entry and require('luasnip').jumpable(-1) then
+        --   vim.fn.feedkeys(utils_vim.replace_keys('<Plug>luasnip-jump-prev'), '')
       elseif cmp.visible() then
         cmp.select_prev_item()
       else
         fallback()
       end
-    end, {'i', 's'});
+    end, { 'i', 's' }),
 
-    ['<C-Space>'] = cmp.mapping.complete();
-    ['<CR>'] = cmp.mapping.confirm();
-    ['<C-y>'] = cmp.mapping.confirm();
-    ['<C-e>'] = cmp.mapping.abort();
-    ['<Esc>'] = cmp.mapping.close();
-  };
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<CR>'] = cmp.mapping.confirm(),
+    ['<C-y>'] = cmp.mapping.confirm(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<Esc>'] = cmp.mapping.close(),
+  },
 
   snippet = {
     expand = function(args)
       vim.call('vsnip#anonymous', args.body)
       -- require('luasnip').lsp_expand(args.body)
-    end;
-  };
+    end,
+  },
 
   completion = {
-    keyword_pattern = [[\k\+]];
+    keyword_pattern = [[\k\+]],
 
     -- Currently this doesn't work nicely under nvim-cmp, but coc.nvim actually
     -- does roughly the same. Taken from <https://github.com/timbedard/dotfiles/blob/089422aad4705e029d33729079ab5e685e2ebe1a/config/nvim/lua/plugins.lua#L316>
     -- keyword_length = 0;
 
     -- Use whatever I have configured in `nvim/plugin/completion.vim`.
-    completeopt = vim.o.completeopt;
-  };
+    completeopt = vim.o.completeopt,
+  },
 
-  preselect = cmp.PreselectMode.None;
+  preselect = cmp.PreselectMode.None,
 
   confirmation = {
     -- What to do when the cursor is positioned inside an existing word.
     -- Beware: <https://www.youtube.com/watch?v=wCllU4YkxBk&t=107s>.
-    default_behavior = cmp.ConfirmBehavior.Replace;
-  };
+    default_behavior = cmp.ConfirmBehavior.Replace,
+  },
 
   -- Reduce distractions.
-  documentation = false;
+  documentation = false,
 
   sorting = {
     comparators = {
@@ -214,14 +219,14 @@ cmp.setup({
       cmp.config.compare.sort_text,
       -- cmp.config.compare.length,
       cmp.config.compare.order,
-    };
-  };
+    },
+  },
 
   formatting = {
     -- Remove strikethroughs of deprecated items because, apparently, those are
     -- implemented with goddamn modifier characters:
     -- <https://github.com/hrsh7th/nvim-cmp/blob/24406f995ea20abba816c0356ebff1a025c18a72/lua/cmp/utils/str.lua#L58-L73>.
-    deprecated = false;
+    deprecated = false,
 
     -- See `:h complete-items` and:
     -- <https://github.com/neoclide/coc.nvim/blob/30a46412ebc66c0475bca7e49deb119fb14f0f00/src/sources/source-language.ts#L248-L308>
@@ -256,7 +261,8 @@ cmp.setup({
 
       -- <https://github.com/neoclide/coc.nvim/blob/30a46412ebc66c0475bca7e49deb119fb14f0f00/src/sources/source-language.ts#L257>
       -- <https://github.com/hrsh7th/nvim-cmp/blob/405581e7405da53924fd9723e3e42411b66d545d/lua/cmp/entry.lua#L242>
-      vim_item.kind = lsp_global_settings.COMPLETION_KIND_LABELS[kind] or lsp_global_settings.FALLBACK_COMPLETION_KIND_LABEL
+      vim_item.kind = lsp_global_settings.COMPLETION_KIND_LABELS[kind]
+        or lsp_global_settings.FALLBACK_COMPLETION_KIND_LABEL
 
       local menu_labels = {}
 
@@ -281,16 +287,13 @@ cmp.setup({
         end
       end
 
-
       vim_item.menu = table.concat(menu_labels, ' ')
 
       return vim_item
-    end;
-  };
+    end,
+  },
 })
 
-
 require('cmp_nvim_lsp').update_capabilities(lsp_ignition.default_config.capabilities)
-
 
 return M

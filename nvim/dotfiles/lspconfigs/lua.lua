@@ -21,28 +21,29 @@ local data_path = vim.call('dotfiles#paths#xdg_cache_home') .. '/lua-language-se
 local lua_config = lsp_ignition.setup_config('sumneko_lua', {
   cmd = {
     server_install_dir .. '/bin/' .. server_bin_platform .. '/lua-language-server',
-    '-E', server_install_dir .. '/main.lua',
+    '-E',
+    server_install_dir .. '/main.lua',
     '--logpath=' .. data_path .. '/log',
     '--metapath=' .. data_path .. '/meta',
-  };
-  filetypes = {'lua'};
-  single_file_support = true;
+  },
+  filetypes = { 'lua' },
+  single_file_support = true,
 
-  completion_menu_label = 'Lua';
+  completion_menu_label = 'Lua',
 
-  settings_scopes = {'Lua'};
+  settings_scopes = { 'Lua' },
   settings = {
     Lua = {
       telemetry = {
-        enable = true;
-      };
+        enable = true,
+      },
       runtime = {
-        version = 'LuaJIT';
-        path = vim.NIL;
-      };
+        version = 'LuaJIT',
+        path = vim.NIL,
+      },
       workspace = {
-        library = vim.NIL;
-      };
+        library = vim.NIL,
+      },
       diagnostics = {
         globals = {
           -- Vim configs
@@ -50,18 +51,24 @@ local lua_config = lsp_ignition.setup_config('sumneko_lua', {
           -- Hammerspoon configs
           'hs',
           -- Neovim's testing framework
-          'describe', 'it', 'setup', 'teardown', 'before_each', 'after_each', 'pending',
-        };
-        disable = {'empty-block'};
-        libraryFiles = 'Opened';
-      };
+          'describe',
+          'it',
+          'setup',
+          'teardown',
+          'before_each',
+          'after_each',
+          'pending',
+        },
+        disable = { 'empty-block' },
+        libraryFiles = 'Opened',
+      },
       completion = {
-        workspaceWord = false;
-        showWord = 'Disable';
-        callSnippet = 'Replace';
-      };
-    };
-  };
+        workspaceWord = false,
+        showWord = 'Disable',
+        callSnippet = 'Replace',
+      },
+    },
+  },
 
   on_new_config = function(final_config, root_dir)
     -- Yep, that's right, the library list is resolved at runtime, no need for
@@ -88,27 +95,29 @@ local lua_config = lsp_ignition.setup_config('sumneko_lua', {
     -- The Vim-specific paths are tried before Lua's `package.path` stuff, and
     -- `init.lua` must come after literal files.
     table.insert(cfg_package_path, 'lua' .. pc.dir_sep .. pc.template_char .. '.lua')
-    table.insert(cfg_package_path, 'lua' .. pc.dir_sep .. pc.template_char .. pc.dir_sep .. 'init.lua')
+    table.insert(
+      cfg_package_path,
+      'lua' .. pc.dir_sep .. pc.template_char .. pc.dir_sep .. 'init.lua'
+    )
     for path in vim.gsplit(package.path, pc.path_list_sep) do
       table.insert(cfg_package_path, path)
     end
 
     final_config.settings.Lua.runtime.path = cfg_package_path
     final_config.settings.Lua.workspace.library = cfg_libraries
-  end;
+  end,
 })
 
-
 lsp_ignition.setup_config('stylua', {
-  filetypes = lua_config.filetypes;
-  root_dir = lua_config.root_dir;
-  single_file_support = true;
+  filetypes = lua_config.filetypes,
+  root_dir = lua_config.root_dir,
+  single_file_support = true,
 
   virtual_server = {
     capabilities = {
-      documentFormattingProvider = true;
-      documentRangeFormattingProvider = true; -- TODO
-    };
+      documentFormattingProvider = true,
+      documentRangeFormattingProvider = true, -- TODO
+    },
     handlers = {
       ['textDocument/formatting'] = function(reply, _, params, _, vserver)
         local buf_uri = params.textDocument.uri
@@ -135,7 +144,9 @@ lsp_ignition.setup_config('stylua', {
           end,
           stderr_buffered = true,
           on_stderr = function(_, lines, _)
-            if lines[#lines] == '' then lines[#lines] = nil end
+            if lines[#lines] == '' then
+              lines[#lines] = nil
+            end
             err_output = table.concat(lines, '\n')
           end,
 
@@ -150,7 +161,10 @@ lsp_ignition.setup_config('stylua', {
             end
 
             local any_changes, common_lines_from_start, common_lines_from_end =
-              lsp_utils.simple_line_diff(buf_lines, fmt_lines)
+              lsp_utils.simple_line_diff(
+                buf_lines,
+                fmt_lines
+              )
             if not any_changes then
               return reply(nil, nil)
             end
@@ -166,13 +180,13 @@ lsp_ignition.setup_config('stylua', {
               },
               newText = table.concat(changed_lines),
             }
-            return reply(nil, {one_big_text_edit})
+            return reply(nil, { one_big_text_edit })
           end,
         })
 
         vim.fn.chansend(job, buf_lines)
         vim.fn.chanclose(job, 'stdin')
-      end;
-    };
-  };
+      end,
+    },
+  },
 })

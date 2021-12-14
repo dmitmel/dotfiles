@@ -8,7 +8,6 @@ local utils = require('dotfiles.utils')
 local lsp_progress = require('dotfiles.lsp.progress')
 local utils_vim = require('dotfiles.utils.vim')
 
-
 -- Basically <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/handlers.lua#L282-L316>,
 -- but N i c e r.
 function M._create_simple_location_list_handler(meta_opts)
@@ -27,8 +26,12 @@ function M._create_simple_location_list_handler(meta_opts)
     if source then
       opts.title = string.format(
         'LSP[%s] %s of %s from %s:%s:%s',
-        client_name, meta_opts.list_title, source.identifier, source.file_path,
-        source.linenr, source.colnr
+        client_name,
+        meta_opts.list_title,
+        source.identifier,
+        source.file_path,
+        source.linenr,
+        source.colnr
       )
     else
       opts.title = string.format('LSP[%s] %s', client_name, meta_opts.list_title)
@@ -49,8 +52,10 @@ function M._create_simple_location_list_handler(meta_opts)
       identifier = vim.fn.expand('<cword>'),
     }
     return lsp.buf_request(
-      0, meta_opts.method, req_params,
-      lsp_utils.wrap_handler_compat(function (err, params, ctx, opts)
+      0,
+      meta_opts.method,
+      req_params,
+      lsp_utils.wrap_handler_compat(function(err, params, ctx, opts)
         ctx.source = source
         return the_handler(err, params, ctx, opts)
       end)
@@ -59,7 +64,6 @@ function M._create_simple_location_list_handler(meta_opts)
 
   return the_handler, smarter_request
 end
-
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_declaration>
 M.declaration_handler, M.request_declaration = M._create_simple_location_list_handler({
@@ -104,16 +108,15 @@ M.references_handler, M.request_references = M._create_simple_location_list_hand
   list_title = 'references',
   tweak_request_params = function(req_params, opts)
     vim.validate({
-      opts = {opts, 'table', true};
+      opts = { opts, 'table', true },
     })
     req_params.context = {
-      includeDeclaration = utils.if_nil(opts.includeDeclaration, true);
+      includeDeclaration = utils.if_nil(opts.includeDeclaration, true),
     }
   end,
 })
 lsp.handlers['textDocument/references'] = M.references_handler
 lsp.buf.references = M.request_references
-
 
 -- Backport of <https://github.com/neovim/neovim/pull/15121>. All code was
 -- taken from that PR.
@@ -139,7 +142,7 @@ if not utils_vim.has('nvim-0.5.2') then
 
   function lsp.buf.code_action(context)
     vim.validate({
-      context = { context, 't', true };
+      context = { context, 't', true },
     })
     context = context or { diagnostics = lsp.diagnostic.get_line_diagnostics() }
     local params = lsp.util.make_range_params()
@@ -149,7 +152,7 @@ if not utils_vim.has('nvim-0.5.2') then
 
   function lsp.buf.range_code_action(context, start_pos, end_pos)
     vim.validate({
-      context = { context, 't', true };
+      context = { context, 't', true },
     })
     context = context or { diagnostics = lsp.diagnostic.get_line_diagnostics() }
     local params = lsp.util.make_given_range_params(start_pos, end_pos)
@@ -157,6 +160,5 @@ if not utils_vim.has('nvim-0.5.2') then
     M._code_action_request(params)
   end
 end
-
 
 return M
