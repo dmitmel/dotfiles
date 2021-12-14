@@ -148,6 +148,19 @@ let &history = max([&history, 10000])
 
   " <https://github.com/vim-airline/vim-airline/issues/1779>
   let g:airline_highlighting_cache = 1
+  " Disable definition of `<Plug>AirlineSelectTab` shortcuts. This is a
+  " low-impact optimization. So, one day I was debugging significant lag
+  " occuring while typing (or rather mashing keys in the Insert mode) with the
+  " completion menu open. I narrowed it down to a function called `map_keys` in
+  " vim-airline's tabline extension:
+  " <https://github.com/vim-airline/vim-airline/blob/de73a219034eb0f94be0b50cc1f2414559816796/autoload/airline/extensions/tabline/buffers.vim#L195-L213>,
+  " the profiler showed it and a few other tabline-related functions high in
+  " the profile. I later realized that the lag was actually caused by a
+  " `:redrawtabline` command I used for debugging cmp-buffer (I had a debug
+  " display which would be drawn onto the tabline), but, after running the
+  " profiler again, this function would show up high in the profiling results,
+  " so I decided to keep the optimization because I don't use those maps anyway.
+  let g:airline#extensions#tabline#buffer_idx_mode = 0
 
   let g:airline_extensions = [
     \ 'quickfix',
