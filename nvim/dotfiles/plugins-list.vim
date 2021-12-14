@@ -10,9 +10,6 @@ let s:plug = function('dotfiles#plugman#register')
     " 1. gitsigns.nvim
     call s:plug('https://github.com/nvim-lua/plenary.nvim')
   endif
-  " Required by:
-  " 1. LineJuggler
-  call s:plug('https://github.com/inkarkat/vim-ingo-library')
 " }}}
 
 " Files {{{
@@ -77,9 +74,10 @@ let s:plug = function('dotfiles#plugman#register')
   " Ruby etc).
   call s:plug('https://github.com/andymass/vim-matchup')
   " Adds commands for inserting and moving around nearby lines: `[e` and `]e`
-  " for swapping two lines, `]<Space>` and `[<Space>` for inserting blank ones,
-  " `[d` and `]d` for duplicating the current line.
-  call s:plug('https://github.com/inkarkat/vim-LineJuggler', { 'branch': 'stable' })
+  " for swapping two lines, `]<Space>` and `[<Space>` for inserting blank ones.
+  " Also adds many more useful (URL and XML encoding/decoding of selection, for
+  " instance) and useless utilities.
+  call s:plug('https://github.com/tpope/vim-unimpaired')
   " Sets up quite a few defaults for straightforward prose writing in Vim. Just
   " read its README for the set of features.
   call s:plug('https://github.com/reedes/vim-pencil')

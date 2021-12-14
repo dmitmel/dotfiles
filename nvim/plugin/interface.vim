@@ -220,6 +220,8 @@ let &history = max([&history, 10000])
   nmap [l <Plug>(qf_loc_previous)
   nmap ]l <Plug>(qf_loc_next)
   nmap Q <Plug>(qf_qf_toggle)
+  " Jump to the currently selected error in the qflist again
+  nnoremap <leader>q <Cmd>cc<CR>zv
   let g:qf_mapping_ack_style = 1
 " }}}
 

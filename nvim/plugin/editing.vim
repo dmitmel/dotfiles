@@ -153,6 +153,11 @@ endif
   nmap <silent> <leader>] m'yygccp`'j
   nmap <silent> <leader>[ m'yygccP`'k
 
+  " A dead-simple implementation of the `[d` and `]d` mappings of LineJuggler
+  " for duplicating lines back and forth.
+  nmap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><CR>
+  nmap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
+
   function! PutOutput(cmd) abort
     let output = ''
     silent! let output = execute(a:cmd)

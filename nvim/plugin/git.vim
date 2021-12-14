@@ -64,15 +64,9 @@ EOF
 
   let g:gitgutter_map_keys = 0
 
-  " Jump to the next/previous change in the diff mode because I replace the
-  " built-in mappings with coc.nvim's for jumping through diagnostics.
-  " TODO: untangle these keybindings. Use `g` for diagnostics and `c` for diff hunks.
-  nnoremap [g [c
-  nnoremap ]g ]c
-
   if g:gitsigns_nvim_available
-    nnoremap <silent><expr> [g &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"
-    nnoremap <silent><expr> ]g &diff ? ']c' : "\<Cmd>Gitsigns next_hunk\<CR>"
+    nnoremap <silent><expr> [c &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"
+    nnoremap <silent><expr> ]c &diff ? ']c' : "\<Cmd>Gitsigns next_hunk\<CR>"
     onoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
     xnoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
   endif

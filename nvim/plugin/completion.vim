@@ -237,12 +237,21 @@ EOF
     nnoremap <silent> <space>s   <Cmd>lua vim.lsp.buf.signature_help()<CR>
     inoremap <silent> <F1>       <Cmd>lua vim.lsp.buf.signature_help()<CR>
     if has('nvim-0.6.0')
-      nnoremap <silent> [c       <Cmd>lua vim.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
-      nnoremap <silent> ]c       <Cmd>lua vim.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      " The mnemonic here is "diaGnostic". Very intuitive, I know, but `]d` and
+      " `[d` are taken by the line duplication mappings. The previous mappings
+      " for diagnostics jumps used `c`, which meant 'coc', obviously, but that
+      " one is taken by the mappings for Git hunk jumps, and I really wanted to
+      " untangle those two.
+      noremap <silent> [g       <Cmd>lua vim.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
+      noremap <silent> ]g       <Cmd>lua vim.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      sunmap [g
+      sunmap ]g
       nnoremap <silent> <A-d>    <Cmd>lua vim.diagnostic.open_float(nil,{scope='line'})<CR>
     else
-      nnoremap <silent> [c       <Cmd>lua vim.lsp.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
-      nnoremap <silent> ]c       <Cmd>lua vim.lsp.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      noremap <silent> [g       <Cmd>lua vim.lsp.diagnostic.goto_prev({wrap=vim.o.wrapscan})<CR>
+      noremap <silent> ]g       <Cmd>lua vim.lsp.diagnostic.goto_next({wrap=vim.o.wrapscan})<CR>
+      sunmap [g
+      sunmap ]g
       nnoremap <silent> <A-d>    <Cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>
     endif
     nnoremap <silent> <space>d   <Cmd>LspDiagnostics<CR>
@@ -308,8 +317,8 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     inoremap <silent> <A-s> <Cmd>call CocActionAsync('showSignatureHelp')<CR>
     imap <F1> <A-s>
 
-    nmap <silent> [c <Plug>(coc-diagnostic-prev)
-    nmap <silent> ]c <Plug>(coc-diagnostic-next)
+    nmap <silent> [d <Plug>(coc-diagnostic-prev)
+    nmap <silent> ]d <Plug>(coc-diagnostic-next)
 
     nmap <silent> <space>gd <Plug>(coc-definition)
     nmap <silent> <space>gt <Plug>(coc-type-definition)
