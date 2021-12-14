@@ -149,9 +149,42 @@ endif
   xnoremap < <gv
   xnoremap > >gv
 
-  " 2 mappings for quick prototyping: duplicate this line and comment it out
-  nmap <silent> <leader>] m'yygccp`'j
-  nmap <silent> <leader>[ m'yygccP`'k
+
+  " Mappings for quick prototyping: duplicate this line and comment it out.
+  " Explanation for how they work:
+  " 1. First, a mark of the cursor position is recorded. This is done so that
+  " we can later return back to the original position on the duplicated line.
+  " 2. Then, a `:copy` command is inserted. In this instance it is the same as
+  " doing `yyp` or `yyP`, but doesn't clobber the yank register.
+  " 3. Afterwards the commenting command of the appropriate plugin is inserted.
+  " It is done in a weird way using `:normal` so that the rest of the mapping
+  " can be defined as non-recursive.
+  " 4. Lastly, we return to the previously saved cursor position with CTRL-O
+  " by popping from the jump list.
+  " Also, please note that the number of spaces before the line continuation
+  " backslashes matters here!
+
+  nnoremap <silent> <Plug>dotfiles_dup_and_comment_up
+  \ m':<C-u>copy.<Bar>exe "normal \<Plug>dotfiles_dup_and_comment_gcc"<CR><C-o>
+  \:<C-u>silent! call repeat#set("\<Plug>dotfiles_dup_and_comment_up")<CR>
+
+  nnoremap <silent> <Plug>dotfiles_dup_and_comment_down
+  \ m':<C-u>copy-<Bar>exe "normal \<Plug>dotfiles_dup_and_comment_gcc"<CR><C-o>
+  \:<C-u>silent! call repeat#set("\<Plug>dotfiles_dup_and_comment_down")<CR>
+
+  if dotfiles#plugman#is_registered('tcomment_vim')
+    " Tcomment allows us to comment out a line if it is a comment already
+    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc <Plug>TComment_Commentc
+  elseif dotfiles#plugman#is_registered('vim-commentary')
+    " vim-commentary does not
+    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc <Plug>CommentaryLine
+  else
+    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc :<C-u>unsilent echo 'No commenting plugin found!'<CR>
+  endif
+
+  nmap <silent> <leader>[ <Plug>dotfiles_dup_and_comment_up
+  nmap <silent> <leader>] <Plug>dotfiles_dup_and_comment_down
+
 
   " A dead-simple implementation of the `[d` and `]d` mappings of LineJuggler
   " for duplicating lines back and forth.
