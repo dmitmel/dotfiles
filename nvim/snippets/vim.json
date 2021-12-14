@@ -57,5 +57,11 @@
       "\t",
       "endtry"
     ]
+  },
+  "Assign a default value to a variable": {
+    "prefix": "letdefault",
+    "body": [
+      "let g:$1 = get(g:, '$1', $2)"
+    ]
   }
 }

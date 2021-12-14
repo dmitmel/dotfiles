@@ -20,6 +20,14 @@
       "end)"
     ]
   },
+  "call to vim.schedule_wrap()": {
+    "prefix": "schedulewrap",
+    "body": [
+      "vim.schedule_wrap(function()",
+      "\t$0",
+      "end)"
+    ]
+  },
   "optional require()": {
     "prefix": "optrequire",
     "body": [

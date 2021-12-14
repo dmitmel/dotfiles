@@ -6,5 +6,70 @@
       "\tthrow new Error(\"Assertion failed: $1\")",
       "}"
     ]
+  },
+  "fast for-loop over an array": {
+    "prefix": "foriarr",
+    "body": [
+      "for (let ${2:i} = 0, len = ${1:array}.length; ${2:i} < len; ${2:i}++) {",
+      "\tlet ${3:element} = ${1:array}[${2:i}]",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Immediately-invoked function expression (IIFE)": {
+    "prefix": "iife",
+    "body": [
+      "(function() {",
+      "\t'use strict';",
+      "\t$0",
+      "})();"
+    ]
+  },
+  "Immediately-invoked function expression (IIFE), arrow edition": {
+    "prefix": "iifearr",
+    "body": [
+      "(() => {",
+      "\t$0",
+      "})();"
+    ]
+  },
+  "Immediately-invoked function expression (IIFE), async arrow edition": {
+    "prefix": "iifeasync",
+    "body": [
+      "(async () => {",
+      "\t$0",
+      "})();"
+    ]
+  },
+  "Old-school Node.js callback": {
+    "prefix": "nodecallback",
+    "body": [
+      "(err, $1) => {",
+      "\tif (err != null) throw err;",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Import the 'fs' module": {
+    "prefix": "reqfs",
+    "body": [
+      "const fs = require('fs');"
+    ]
+  },
+  "Import the 'path' module": {
+    "prefix": "reqpaths",
+    "body": [
+      "const path = require('path');"
+    ]
+  },
+  "Impact.js module": {
+    "prefix": "igmodule",
+    "body": [
+      "ig.module('$1')",
+      "\t.requires('$2')",
+      "\t.defines(() => {",
+      "\t\t$0",
+      "\t});"
+    ]
   }
 }

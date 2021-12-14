@@ -16,5 +16,11 @@
       "if __name__ == \"__main__\":",
       "\tsys.exit(main(sys.argv))"
     ]
+  },
+  "Save path to the script's parent directory into __dir__": {
+    "prefix": "__dir__",
+    "body": [
+      "__dir__ = os.path.dirname(os.path.realpath(__file__))"
+    ]
   }
 }
