@@ -1,5 +1,3 @@
-if b:current_syntax !=# 'python' | finish | endif
-
 let s:saved_syntax = b:current_syntax
 let s:restore_syn_case = trim(execute('syntax case', 'silent'))
 unlet! b:current_syntax
@@ -20,3 +18,8 @@ syn region pythonSqlString start=/\v\C\z("""|''')\zs\_s*<(sql|SQL|SELECT|INSERT|
 
 syn keyword pythonOperatorKeyword and in is not or
 hi def link pythonOperatorKeyword Keyword
+
+if hlexists('pythonTodo')
+  syn clear pythonTodo
+  execute 'syn match pythonTodo contained' dotfiles#todo_comments#get_pattern()
+endif
