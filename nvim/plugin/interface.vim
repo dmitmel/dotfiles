@@ -202,6 +202,8 @@ let &history = max([&history, 10000])
   let g:fzf_command_prefix = ''
 
   command! -bar -bang Manpages call dotfiles#fzf#manpage_search(<bang>0)
+  command! -bar -bang CListFuzzy call dotfiles#fzf#qflist_fuzzy(0, <bang>0)
+  command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
 
   nnoremap <silent> <F1>      <Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
@@ -236,6 +238,8 @@ let &history = max([&history, 10000])
   " Jump to the currently selected error in the qflist again
   nnoremap <leader>q <Cmd>cc<CR>zv
   let g:qf_mapping_ack_style = 1
+  " Pick and jump using fzf
+  nnoremap <leader>z <Cmd>CListFuzzy<CR>
 " }}}
 
 

@@ -101,6 +101,7 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
       table.insert(text_parts, sym.detail)
     end
     local linenr, colnr = lsp_utils.position_to_linenr_colnr(sym_bufnr, sym_range.start)
+    -- TODO: define end_lnum and end_col
     local item = {
       bufnr = sym_bufnr,
       lnum = linenr + 1,

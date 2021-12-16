@@ -14,6 +14,7 @@ local orig_util_close_preview_autocmd = lsp.util.close_preview_autocmd
 -- `close_preview_autocmd` is always called only during setup of the window
 -- (<https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1432>),
 -- which is an ideal injection point for me.
+-- TODO: <https://github.com/neovim/neovim/pull/16557>
 function lsp.util.close_preview_autocmd(...)
   local _, floating_winid = ...
   local floating_bufnr = vim.api.nvim_win_get_buf(floating_winid)
