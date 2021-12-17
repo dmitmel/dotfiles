@@ -188,8 +188,8 @@ endif
 
   " A dead-simple implementation of the `[d` and `]d` mappings of LineJuggler
   " for duplicating lines back and forth.
-  nmap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><CR>
-  nmap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
+  nnoremap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><CR>
+  nnoremap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
 
   function! PutOutput(cmd) abort
     let output = ''
@@ -221,9 +221,11 @@ endif
   " normal mode
   nnoremap <leader>dg :.diffget<CR>
   nnoremap <leader>dp :.diffput<CR>
+  nnoremap <leader>dl <Plug>(linediff-operator)
   " visual mode
   xnoremap <leader>dg :diffget<CR>
   xnoremap <leader>dp :diffput<CR>
+  xnoremap <leader>dl :Linediff<CR>
 
   " Horizontal scroll
   " Alt+hjkl and Alt+Arrow  - scroll one column/row
@@ -373,7 +375,8 @@ endif
   " -t: don't auto-wrap regular code while typing
   " -c: don't auto-wrap comments while typing
   " +j: the J command should remove the comment leader when concating comments
-  let s:formatoptions_changes = 'fo-=o fo+=r fo-=t fo-=c fo+=j'
+  " +n: recognize numbered lists (using `formatlistpat`) when wrapping text
+  let s:formatoptions_changes = 'fo-=o fo+=r fo-=t fo-=c fo+=j fo+=n'
   exe 'set' s:formatoptions_changes
   augroup dotfiles_formatoptions
     autocmd!
@@ -452,6 +455,8 @@ endif
 " language-specific settings {{{
 
   let g:rust_recommended_style = 0
+  " <https://github.com/vigoux/dotfiles/blob/eec3b72d2132a55f5cfeb6902f88b25106a33a36/neovim/.config/nvim/after/ftplugin/rust.vim#L6>
+  let g:cargo_makeprg_params = 'build --message-format=short'
 
   let g:vim_markdown_conceal = 0
   let g:vim_markdown_conceal_code_blocks = 0

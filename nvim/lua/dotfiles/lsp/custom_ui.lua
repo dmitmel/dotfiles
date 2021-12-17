@@ -64,7 +64,16 @@ function vim_ui.select(items, opts, on_choice)
       on_choice_once(items[picked_index], picked_index)
     end,
     _dotfiles_lsp_custom_ui_on_exit = function()
-      on_choice_once(nil, nil)
+      -- Under normal circumstances this callback gets invoked before the sink
+      -- callback (see hacks below), so we have to give the `sinklist` function
+      -- a chance to run first. `set_timeout` with 0ms is used instead of
+      -- simply `vim.schedule` on purpose: it seems that `vim.schedule`d
+      -- callbacks can run in between autocommands. The way `set_timeout` is
+      -- implemented ensures that this function will really be called on the
+      -- next event loop tick.
+      utils.set_timeout(0, function()
+        on_choice_once(nil, nil)
+      end)
     end,
 
     options = {
@@ -162,7 +171,7 @@ function vim_ui.select(items, opts, on_choice)
 
   -- That's it, we are in the fzf buffer!
   vim.cmd([[
-    autocmd TermClose <buffer> ++once ++nested call timer_start(0, b:fzf._dotfiles_lsp_custom_ui_on_exit)
+    autocmd TermClose <buffer> ++once ++nested call b:fzf._dotfiles_lsp_custom_ui_on_exit()
   ]])
 end
 

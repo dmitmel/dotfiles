@@ -95,6 +95,10 @@ let s:plug = function('dotfiles#plugman#register')
   " to EasyMotion[1].
   " [1]: <https://github.com/easymotion/vim-easymotion>
   call s:plug('https://github.com/justinmk/vim-sneak')
+  " Shows a diff between two selected ranges of lines, or Git conflict markers.
+  " Discovered this one thanks to TJ[1].
+  " [1]: <https://github.com/tjdevries/config_manager/blob/1b7d2f60ed6685022e29c1bdef2625bb7856e1eb/xdg_config/nvim/lua/tj/plugins.lua#L604>
+  call s:plug('https://github.com/AndrewRadev/linediff.vim')
 " }}}
 
 " Text objects {{{
@@ -189,7 +193,7 @@ let s:plug = function('dotfiles#plugman#register')
       " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
       " plugins).
       " [1]: <https://github.com/sumneko/lua-language-server>
-      call s:plug('https://github.com/folke/lua-dev.nvim')
+      " call s:plug('https://github.com/folke/lua-dev.nvim')
       " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
       call s:plug('https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' })
     endif

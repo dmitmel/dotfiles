@@ -10,7 +10,7 @@
   "autoloaded function": {
     "prefix": "autofunction",
     "body": [
-      "function! ${VIM:dotfiles#ftplugin_helpers#vim#to_autoload_prefix(expand('%'))}$1($2) abort",
+      "function! ${VIM:dotfiles#ftplugin_helpers#vim#autoload_prefix()}$1($2) abort",
       "\t$0",
       "endfunction"
     ]
@@ -61,7 +61,13 @@
   "Assign a default value to a variable": {
     "prefix": "letdefault",
     "body": [
-      "let g:$1 = get(g:, '$1', $2)"
+      "let g:${VIM:dotfiles#ftplugin_helpers#vim#autoload_prefix()}$1 = get(g:, '${VIM:dotfiles#ftplugin_helpers#vim#autoload_prefix()}$1', $2)"
+    ]
+  },
+  "Get script's autoloaded identifier prefix": {
+    "prefix": "autoid",
+    "body": [
+      "${VIM:dotfiles#ftplugin_helpers#vim#autoload_prefix()}"
     ]
   }
 }

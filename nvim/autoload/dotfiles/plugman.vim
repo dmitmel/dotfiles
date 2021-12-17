@@ -2,6 +2,7 @@
 
 let g:dotfiles#plugman#implementation = 'vim-plug'
 let g:dotfiles#plugman#inhibited_plugins = get(g:, 'dotfiles#plugman#inhibited_plugins', {})
+let g:dotfiles#plugman#local_plugins = get(g:, 'dotfiles#plugman#local_plugins', {})
 
 let g:dotfiles#plugman#repo_name = 'vim-plug'
 let g:dotfiles#plugman#repo = 'junegunn/' . g:dotfiles#plugman#repo_name
@@ -59,6 +60,12 @@ function! dotfiles#plugman#register(repo, ...) abort
   let name = dotfiles#plugman#derive_name(a:repo, spec)
   " Ensure consistency in case the upstream algorithm changes.
   let spec['as'] = name
+  let repo = a:repo
+  " The local plugin overrides idea was taken from
+  " <https://github.com/lewis6991/dotfiles/blob/8d204b923a5e4bfd3366de8998686815626df0a4/config/nvim/lua/lewis6991/plugins.lua#L311-L337>.
+  if has_key(g:dotfiles#plugman#local_plugins, name)
+    let repo = fnamemodify(g:dotfiles#plugman#local_plugins[name], ':p')
+  endif
   if !has_key(g:dotfiles#plugman#inhibited_plugins, name)
     call plug#(a:repo, spec)
   endif

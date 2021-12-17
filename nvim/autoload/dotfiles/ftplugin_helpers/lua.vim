@@ -33,8 +33,8 @@ function! dotfiles#ftplugin_helpers#lua#includeexpr(fname) abort
   return tr(a:fname, '.', '/')
 endfunction
 
-function! dotfiles#ftplugin_helpers#lua#to_module_name(path) abort
-  let path = fnamemodify(a:path, ':p')
+function! dotfiles#ftplugin_helpers#lua#module_name() abort
+  let path = expand('%:p')
   if dotfiles#utils#ends_with(path, '.lua')
     let path = has('win32') ? tr(path, '\', '/') : path
     for dir in dotfiles#utils#list_runtime_paths()

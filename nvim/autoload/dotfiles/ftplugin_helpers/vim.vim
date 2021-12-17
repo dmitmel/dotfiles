@@ -1,5 +1,5 @@
-function! dotfiles#ftplugin_helpers#vim#to_autoload_prefix(path) abort
-  let path = fnamemodify(a:path, ':p')
+function! dotfiles#ftplugin_helpers#vim#autoload_prefix() abort
+  let path = expand('%:p')
   if dotfiles#utils#ends_with(path, '.vim')
     let path = has('win32') ? tr(path, '\', '/') : path
     for dir in dotfiles#utils#list_runtime_paths()

@@ -213,7 +213,7 @@ function vim_diagnostic.toqflist(diagnostics)
       end_col = v.end_col and (v.end_col + 1) or nil,
       type = M.LOCLIST_TYPE_MAP[v.severity] or 'E',
       -- The only changed part:
-      text = M.format_diagnostic_for_list(v):gsub('\r', ' \\ '):gsub('\n', ' \\ '),
+      text = M.format_diagnostic_for_list(v),
     }
   end
   table.sort(items, function(a, b)
@@ -233,7 +233,7 @@ function M.format_diagnostic_for_list(diag)
   local meta = {}
   table.insert(meta, diag.source)
   table.insert(meta, ((diag.user_data or {}).lsp or {}).code)
-  local text = diag.message
+  local text = diag.message:gsub('\n', ' \\ '):gsub('\r', ' \\ ')
   if #meta > 0 then
     text = '[' .. table.concat(meta, ' ') .. '] ' .. vim.trim(text)
   else
