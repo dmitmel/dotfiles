@@ -23,7 +23,16 @@ set showcmd
 set belloff=
 
 set title
-let &titlestring = "%{$USER}@%{substitute(hostname(),'\\..*$','','')}: %F%m (%{v:progname})"
+let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\\..*$', '', '')
+function! DotfilesTitlestring() abort
+  if &filetype ==# 'fzf' && exists('b:fzf')
+    let str = 'FZF %{b:fzf.name}'
+  else
+    let str = '%F%m'
+  endif
+  return '%{g:dotfiles_titlestring_user_host}: ' . str . ' (%{v:progname})'
+endfunction
+let &titlestring = '%{%DotfilesTitlestring()%}'
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
 set mouse=a
