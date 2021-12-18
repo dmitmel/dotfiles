@@ -33,6 +33,7 @@ function M._create_simple_location_list_handler(meta_opts)
         source.linenr,
         source.colnr
       )
+      opts.current_position_params = source.text_doc_pos_params
     else
       opts.title = string.format('LSP[%s] %s', client_name, meta_opts.list_title)
     end
@@ -50,6 +51,7 @@ function M._create_simple_location_list_handler(meta_opts)
       linenr = vim.fn.line('.'),
       colnr = vim.fn.col('.'),
       identifier = vim.fn.expand('<cword>'),
+      text_doc_pos_params = req_params,
     }
     return lsp.buf_request(
       0,

@@ -308,6 +308,21 @@ function M.byte_offset_to_linenr_colnr_in_str(byte_idx, text)
   end
 end
 
+function M.range_contains_position(range, pos)
+  local start_pos, end_pos = range.start, range['end']
+  if pos.line < start_pos.line or pos.line > end_pos.line then
+    return false
+  end
+  if pos.line == start_pos.line and pos.character < start_pos.character then
+    return false
+  end
+  -- NOTE: LSP ranges are exclusive at the end position
+  if pos.line == end_pos.line and pos.character >= end_pos.character then
+    return false
+  end
+  return true
+end
+
 -- }}}
 
 -- LOCATIONS AND LOCATION LISTS {{{
@@ -337,8 +352,8 @@ function lsp.util.preview_location(location, opts, ...)
 end
 
 -- Copy of <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1560-L1615>
--- with multibyte character support and simplified code.
-function lsp.util.locations_to_items(locations)
+-- with multibyte character support, simplified code and current item tracking.
+function M.locations_to_items(locations, current_text_doc_pos)
   local ranges_grouped_by_uri = {}
   local sorted_uris = {}
   for _, location in ipairs(locations) do
@@ -358,6 +373,7 @@ function lsp.util.locations_to_items(locations)
   table.sort(sorted_uris)
 
   local items = {}
+  local current_item_idx = nil
   for _, uri in ipairs(sorted_uris) do
     local ranges = ranges_grouped_by_uri[uri]
     table.sort(ranges, function(range_a, range_b)
@@ -377,16 +393,30 @@ function lsp.util.locations_to_items(locations)
     )
 
     for _, range in ipairs(ranges) do
+      local item_idx = #items + 1
+      if
+        current_text_doc_pos
+        and not current_item_idx
+        and uri == current_text_doc_pos.textDocument.uri
+        and M.range_contains_position(range, current_text_doc_pos.position)
+      then
+        current_item_idx = item_idx
+      end
       local line = lines[range.start.line] or ''
       local col = M.char_offset_to_byte_offset(range.start.character, line)
-      table.insert(items, {
+      items[item_idx] = {
         filename = filename,
         lnum = range.start.line + 1,
         col = col + 1,
         text = line,
-      })
+      }
     end
   end
+  return items, current_item_idx
+end
+
+function lsp.util.locations_to_items(locations)
+  local items = M.locations_to_items(locations)
   return items
 end
 
@@ -410,17 +440,13 @@ function M.jump_to_location_maybe_many(locations, opts)
   if not vim.tbl_islist(locations) then
     locations = { locations }
   end
-  if vim.tbl_islist(locations) then
-    local ok = lsp.util.jump_to_location(locations[1])
-    if ok then
-      opts.title = opts.title or 'Language Server'
-      opts.items = lsp.util.locations_to_items(locations)
-      opts.dotfiles_auto_open = #locations > 1
-      vim.call('dotfiles#utils#push_qf_list', opts)
-    end
-    return ok
-  else
-    return lsp.util.jump_to_location(locations)
+  local list_opts = {}
+  list_opts.title = opts.title or 'Language Server'
+  list_opts.items, list_opts.idx = M.locations_to_items(locations, opts.current_position_params)
+  list_opts.dotfiles_auto_open = #locations > 1
+  vim.call('dotfiles#utils#push_qf_list', list_opts)
+  if #locations == 1 then
+    lsp.util.jump_to_location(locations[1])
   end
 end
 
