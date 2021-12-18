@@ -325,9 +325,33 @@ endif
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
   command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal! /<C-r>/<CR>
 
-  " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
-  command! -nargs=* Csearch call dotfiles#search#cmd_qf_search(0, <q-args>) | let v:hlsearch = 1
-  command! -nargs=* Lsearch call dotfiles#search#cmd_qf_search(1, <q-args>) | let v:hlsearch = 1
+  " Loads all search results for the current buffer into a quickfix/location
+  " list. This comment used to say "better than `vimgrep /pattern/ %`", but this
+  " is untrue since patch 8.2.3019: now vimgrep can record the end positions of
+  " matches, while I have no easy way of doing that with what is given to me by
+  " Vimscript. So, as they say, "if you can't beat 'em, join 'em", so there.
+  " See also:
+  " <https://stackoverflow.com/a/1330556/12005228>
+  " <https://gist.github.com/romainl/f7e2e506dc4d7827004e4994f1be2df6>
+  " <https://github.com/vim/vim/commit/6864efa59636ccede2af24e3f5f92d78d210d77b>
+  function! s:cmd_qf_search(loclist, pattern) abort
+    if !empty(a:pattern)
+      let @/ = a:pattern
+      call histadd('search', a:pattern)
+    endif
+    " I actually went to the trouble of finding in which exact patch flags were
+    " added to vimgrep! See, patches that old weren't even checked-in into Git
+    " properly (and, rather, pushed in batches), so I had to binary-search
+    " through the archives on their FTP server.
+    " <https://github.com/vim/vim/commit/05159a0c6a27a030c8497c5cf836977090f9e75d>.
+    let flags = has('patch-7.0047') ? 'gj' : ''
+    " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
+    " NOTE: The command is returned as a string and executed later so that "No
+    " match" errors don't display as a stack trace.
+    return 'let v:hlsearch = 1 | '.a:loclist.'vimgrep '.dotfiles#utils#escape_and_wrap_regex(a:pattern).flags.' %'
+  endfunction
+  command! -nargs=* Csearch execute s:cmd_qf_search('',  <q-args>)
+  command! -nargs=* Lsearch execute s:cmd_qf_search('l', <q-args>)
 
 " }}}
 

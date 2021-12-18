@@ -136,3 +136,14 @@ else
     return split(&runtimepath, ',')
   endfunction
 endif
+
+" Escapes a regular expression and wraps it into slashes, for use in Ex
+" commands which take a `{pattern}`.
+function! dotfiles#utils#escape_and_wrap_regex(pat) abort
+  let pat = a:pat
+  let pat = substitute(pat, '\n', '\\n', 'g')
+  let pat = substitute(pat, '\r', '\\r', 'g')
+  let pat = escape(pat, '/')
+  let pat .= pat[-1] ==# '\' ? '\' : ''
+  return '/'.pat.'/'
+endfunction
