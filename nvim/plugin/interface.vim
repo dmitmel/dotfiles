@@ -23,7 +23,7 @@ set showcmd
 set belloff=
 
 set title
-let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\\..*$', '', '')
+let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\.local$', '', '')
 function! DotfilesTitlestring() abort
   if &filetype ==# 'fzf' && exists('b:fzf')
     let str = 'FZF %{b:fzf.name}'
