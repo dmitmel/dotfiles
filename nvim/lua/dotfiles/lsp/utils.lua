@@ -276,7 +276,7 @@ function M.get_buf_lines_batch(bufnr, out_lines)
   -- what I was particularly interested in. So, by making Vim load the buffer,
   -- I ensure that the behavior of handling loaded and unloaded buffers lines
   -- up exactly.
-  local opt_title
+  local opt_title, opt_swapfile
   if not was_loaded then
     -- Suspend updates to the terminal title, otherwise it will flash with the
     -- files that are being processed. Note that unsetting `title` doesn't
@@ -284,6 +284,11 @@ function M.get_buf_lines_batch(bufnr, out_lines)
     -- apparently...).
     opt_title = vim.api.nvim_get_option('title')
     vim.api.nvim_set_option('title', false)
+    -- `:noswapfile` won't do good here since it makes the buffer remember that
+    -- there was no swapfile attached to it. Also bufload for some reason shows
+    -- the swapfile warning, despite the documentation stating otherwise.
+    opt_swapfile = vim.api.nvim_buf_get_option(bufnr, 'swapfile')
+    vim.api.nvim_buf_set_option(bufnr, 'swapfile', false)
     -- This is the core part of the hack: we use bufload, just like slow path,
     -- but disable autocommands, so that plugins don't run and slow down the
     -- process. NOTE: But then again, this is literally thousands of times
@@ -297,6 +302,7 @@ function M.get_buf_lines_batch(bufnr, out_lines)
     -- autocommands like syntax and ftplugins that we ignored run the next time
     -- the file is opened for real by the user.
     vim.cmd(string.format('noautocmd %dbunload', bufnr))
+    vim.api.nvim_buf_set_option(bufnr, 'swapfile', opt_swapfile)
     vim.api.nvim_set_option('title', opt_title)
   end
   -- Rethrows the error if it has occured.
