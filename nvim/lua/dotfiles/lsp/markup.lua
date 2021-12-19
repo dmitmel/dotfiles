@@ -356,7 +356,9 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
 
       if syntax ~= '' and syntax ~= 'txt' and not disabled_syntaxes[syntax] then
         syntax = syntax_name_mapping[syntax] or syntax
-        -- This also implicitly checks that the type of `syntax`.
+        -- This also implicitly checks that the type of `syntax` is string and
+        -- that it won't have any special characters when interpolated into the
+        -- `syntax include` command.
         if not string.match(syntax, utils_vim.HLGROUP_NAME_PATTERN) then
           error(string.format('invalid syntax name %q', syntax))
         end

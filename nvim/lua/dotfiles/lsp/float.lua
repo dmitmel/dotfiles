@@ -5,6 +5,8 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.float')
 
 local lsp = require('vim.lsp')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
+local utils_vim = require('dotfiles.utils.vim')
+local utils = require('dotfiles.utils')
 
 local orig_util_close_preview_autocmd = lsp.util.close_preview_autocmd
 -- We patch this function instead of `open_floating_preview` for customizing
@@ -37,6 +39,9 @@ function lsp.util.close_preview_autocmd(...)
   return orig_util_close_preview_autocmd(...)
 end
 
+-- <https://github.com/neovim/neovim/pull/16465>
+local HAS_OPEN_FLOAT_OPTION_FOCUS = utils_vim.has('nvim-0.6.0')
+
 local orig_util_open_floating_preview = lsp.util.open_floating_preview
 -- ...Although patching the `open_floating_preview` function is still useful,
 -- for instance, to set global default options.
@@ -54,7 +59,11 @@ function lsp.util.open_floating_preview(contents, syntax, opts, ...)
       'BufLeave',
       -- 'WinScrolled'
     }
-  opts.focus_id = nil
+  if HAS_OPEN_FLOAT_OPTION_FOCUS then
+    opts.focus = utils.if_nil(opts.focus, false)
+  else
+    opts.focus_id = nil
+  end
   return orig_util_open_floating_preview(contents, syntax, opts, ...)
 end
 
