@@ -108,8 +108,13 @@ end
 -- columns are 1-indexed. Also NOTE: LSP uses UTF-16 for character offsets!!!
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocuments>
 
--- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>.
-function M.char_offset_to_byte_offset(char_idx, line_text)
+-- TODO: <https://github.com/neovim/neovim/pull/16382>
+
+-- See also:
+-- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>
+-- <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/util.lua#L237-L263>
+-- <https://github.com/neovim/neovim/pull/16218>
+function M.char_offset_to_byte_offset(char_idx, line_text, offset_encoding)
   if type(char_idx) ~= 'number' then
     error(string.format('char_idx: expected number, got %s', type(char_idx)))
   end
@@ -121,18 +126,44 @@ function M.char_offset_to_byte_offset(char_idx, line_text)
     -- or character position. Accordingly, return the first column.
     return 0
   end
-  local _, line_char_len = vim.str_utfindex(line_text)
+
+  local use_utf16 = true
+  if offset_encoding == nil or offset_encoding == 'utf-16' then
+    -- The most common case. UTF-16 is baked into the LSP specification,
+    -- although there are talks of changing that:
+    -- <https://github.com/microsoft/language-server-protocol/issues/376>.
+    use_utf16 = true
+  elseif offset_encoding == 'utf-8' then
+    -- Vim uses UTF-8 internally, no difference here.
+    return math.min(char_idx, #line_text)
+  elseif offset_encoding == 'utf-32' then
+    -- The least common case.
+    use_utf16 = false
+  else
+    error(
+      string.format(
+        'offset_encoding: expected "utf-8" or "utf-16" or "utf-32", got %s',
+        offset_encoding
+      )
+    )
+  end
+
+  local line_len_utf32, line_len_utf16 = vim.str_utfindex(line_text)
+  local line_char_len = line_len_utf16
+  if not use_utf16 then
+    line_char_len = line_len_utf32
+  end
   if char_idx >= line_char_len then
     -- Early exit if the character is past EOL.
     return #line_text
   end
   -- str_byteindex() shouldn't ever fail now because we have already checked
   -- that char_idx is in bounds of the string and it works fine on invalid UTF.
-  return vim.str_byteindex(line_text, char_idx, true)
+  return vim.str_byteindex(line_text, char_idx, use_utf16)
 end
 
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1858-L1872>.
-function M.byte_offset_to_char_offset(byte_idx, line_text)
+function M.byte_offset_to_char_offset(byte_idx, line_text, offset_encoding)
   if type(byte_idx) ~= 'number' then
     error(string.format('byte_idx: expected number, got %s', type(byte_idx)))
   end
@@ -143,85 +174,186 @@ function M.byte_offset_to_char_offset(byte_idx, line_text)
     -- First column, see a comment above.
     return 0
   end
+
+  -- See comments in the function above about UTF encodings.
+  local use_utf16 = true
+  if offset_encoding == nil or offset_encoding == 'utf-16' then
+    use_utf16 = true
+  elseif offset_encoding == 'utf-8' then
+    return math.min(byte_idx, #line_text)
+  elseif offset_encoding == 'utf-32' then
+    use_utf16 = false
+  else
+    error(
+      string.format(
+        'offset_encoding: expected "utf-8" or "utf-16" or "utf-32", got %s',
+        offset_encoding
+      )
+    )
+  end
+
+  local char_idx_utf16, char_idx_utf32
   if byte_idx > #line_text then
     -- Use the line length if we are past EOL.
-    local _, line_len = vim.str_utfindex(line_text)
-    return line_len
+    char_idx_utf32, char_idx_utf16 = vim.str_utfindex(line_text)
+  else
+    char_idx_utf32, char_idx_utf16 = vim.str_utfindex(line_text, byte_idx)
   end
-  local _, char_idx = vim.str_utfindex(line_text, byte_idx)
-  return char_idx
+  if use_utf16 then
+    return char_idx_utf16
+  else
+    return char_idx_utf32
+  end
 end
 
-function M.get_buf_line(bufnr, linenr)
+--- Rerwite of <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/util.lua#L150-L221>
+--- and <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1489-L1558>.
+function M.get_buf_lines_batch(bufnr, out_lines)
   if bufnr ~= nil and type(bufnr) ~= 'number' then
     error(string.format('bufnr: expected number, got %s', type(bufnr)))
   end
-  if type(linenr) ~= 'number' then
-    error(string.format('linenr: expected number, got %s', type(linenr)))
+  for linenr, _ in pairs(out_lines) do
+    if type(linenr) ~= 'number' then
+      error(string.format('linenr: expected number, got %s', type(linenr)))
+    end
   end
 
-  --[[ -- This implementation is SLOW because of bufload:
-  -- The nvim_buf_is_loaded check is not really redundant as it prevents us
-  -- from making an expensive Vimscript function call in the hot path.
-  if not vim.api.nvim_buf_is_loaded(bufnr) then
+  local function buf_lines()
+    for linenr, _ in pairs(out_lines) do
+      -- Not batching `nvim_buf_get_lines` calls is not as slow as you might
+      -- think: my experience with contributing to cmp-buffer suggests that
+      -- performing line requests in small chunks lowers memory usage and
+      -- doesn't hurt performance much. Tested on the CC source code (185k
+      -- lines): requesting it all line-by-line is about 2-3 times slower than
+      -- requesting the entire buffer at once, and we are talking about
+      -- hundreds of thousands of lines here, whereas the most common use-case
+      -- of `get_buf_lines_batch` is `locations_to_items`, which will generate
+      -- disjoint ranges of lines. As such, batching line numbers into joined
+      -- ranges to then pass them to `nvim_buf_get_lines` just complicates the
+      -- code and is not worth it (but, apparently, is worth writing a ten-line
+      -- comment about...).
+      out_lines[linenr] = vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, true)[1] or ''
+    end
+    return out_lines
+  end
+
+  local function empty_lines()
+    for linenr, _ in pairs(out_lines) do
+      out_lines[linenr] = ''
+    end
+    return out_lines
+  end
+
+  local was_loaded = vim.api.nvim_buf_is_loaded(bufnr)
+  if was_loaded then
+    -- Shortcut for the hot path
+    return buf_lines()
+  end
+
+  local uri = vim_uri.uri_from_bufnr(bufnr)
+  local file_path = utils.uri_maybe_to_fname(uri)
+  -- The server sent back a non-file URI, it must be loaded by a `BufReadCmd`
+  -- autocommand.
+  if not file_path then
+    -- This branch will be inherently slow due to buffer loading.
     vim.fn.bufload(bufnr)
+    return buf_lines()
   end
-  local line_count = vim.api.nvim_buf_line_count(bufnr)
-  assert(line_count > 0)  -- Zero is returned ONLY for unloaded buffers.
-  linenr = utils.clamp(linenr, 0, line_count - 1)
-  local line_text = vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, true)[1]
-  assert(line_text)
-  return line_text, linenr, line_count
-  --]]
 
-  --[[ This implementation performs redundant conversions:
-  -- On the other hand, get_lines() reads the file with libUV if it is not
-  -- already loaded in a buffer, which greatly improves performance.
-  return lsp.util.get_line(vim_uri.uri_from_bufnr(bufnr), linenr), linenr
-  --]]
-
-  -- As such, I present to you, the hybrid implementation:
-  if vim.api.nvim_buf_is_loaded(bufnr) then
-    -- The hot path, identical to
-    -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1499-L1521>
-    -- if the buffer is already loaded. Line numbers are not clamped to be
-    -- consistent with `vim.lsp.util.get_line`.
-    local line_text = (vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, false) or { '' })[1]
-    return line_text, linenr
-  else
-    return lsp.util.get_line(vim_uri.uri_from_bufnr(bufnr), linenr), linenr
+  -- Check if the file exists, is readable and is a file (i.e. not a
+  -- directory). I know that this is has a TOCTOU error, but the original
+  -- implementation with fs_stat before fs_open wasn't safe either.
+  local fd = vim.loop.fs_open(file_path, 'r', tonumber('666', 8))
+  if not fd then
+    return empty_lines()
   end
+  vim.loop.fs_close(fd)
+
+  -- Now comes the HACK part. The original implementation opens the file with
+  -- libUV and tries to heuristically find the requested lines, but the thing
+  -- is that Vim's buffer loading handles much more than that: UTF-16 decoding,
+  -- BOM detection, line ending detection and so on, of which the last one was
+  -- what I was particularly interested in. So, by making Vim load the buffer,
+  -- I ensure that the behavior of handling loaded and unloaded buffers lines
+  -- up exactly.
+  local opt_title
+  if not was_loaded then
+    -- Suspend updates to the terminal title, otherwise it will flash with the
+    -- files that are being processed. Note that unsetting `title` doesn't
+    -- actually clear the window title (though this is not the case with GUIs,
+    -- apparently...).
+    opt_title = vim.api.nvim_get_option('title')
+    vim.api.nvim_set_option('title', false)
+    -- This is the core part of the hack: we use bufload, just like slow path,
+    -- but disable autocommands, so that plugins don't run and slow down the
+    -- process. NOTE: But then again, this is literally thousands of times
+    -- slower than the default implementation...
+    vim.cmd(string.format('noautocmd call bufload(%d)', bufnr))
+  end
+  -- pcall here works as a sort of try-finally block.
+  local ok, lines = xpcall(buf_lines, debug.traceback)
+  if not was_loaded then
+    -- Unload the buffer once we finish the job. This is to ensure that
+    -- autocommands like syntax and ftplugins that we ignored run the next time
+    -- the file is opened for real by the user.
+    vim.cmd(string.format('noautocmd %dbunload', bufnr))
+    vim.api.nvim_set_option('title', opt_title)
+  end
+  -- Rethrows the error if it has occured.
+  assert(ok, lines)
+
+  return lines
+end
+
+function M.get_buf_line(bufnr, linenr)
+  return M.get_buf_lines_batch(bufnr, { [linenr] = true })[linenr]
+end
+
+-- In v0.6.0 this function and `get_line` are no longer exported, but I
+-- "polyfill" those to use my internals instead because plugins may perform a
+-- check like this: <https://github.com/folke/trouble.nvim/blob/aae12e7b23b3a2b8337ec5b1d6b7b4317aa3929b/lua/trouble/util.lua#L149-L155>.
+function lsp.util.get_lines(bufnr, lines)
+  local lines_request
+  for _, linenr in ipairs(lines) do
+    lines_request[linenr] = true
+  end
+  return M.get_buf_lines_batch(bufnr, lines_request)
+end
+
+function lsp.util.get_line(bufnr, linenr)
+  return M.get_buf_line(bufnr, linenr)
 end
 
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#position>
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>.
-function M.position_to_linenr_colnr(bufnr, position)
+function M.position_to_linenr_colnr(bufnr, position, offset_encoding)
   if type(position) ~= 'table' then
     error(string.format('position: expected table, got %s', type(position)))
   end
-  local line_text, linenr = M.get_buf_line(bufnr, position.line)
-  local colnr = M.char_offset_to_byte_offset(position.character, line_text)
+  local linenr = position.line
+  local line_text = M.get_buf_line(bufnr, linenr)
+  local colnr = M.char_offset_to_byte_offset(position.character, line_text, offset_encoding)
   return linenr, colnr
 end
 
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1736-L1746>.
-function M.linenr_colnr_to_position(bufnr, linenr, colnr)
+function M.linenr_colnr_to_position(bufnr, linenr, colnr, offset_encoding)
   if type(linenr) ~= 'number' then
     error(string.format('linenr: expected number, got %s', type(linenr)))
   end
   if type(colnr) ~= 'number' then
     error(string.format('colnr: expected number, got %s', type(colnr)))
   end
-  local line_text, linenr2 = M.get_buf_line(bufnr, linenr)
-  local colnr2 = M.byte_offset_to_char_offset(colnr, line_text)
-  return { line = linenr2, character = colnr2 }
+  local line_text = M.get_buf_line(bufnr, linenr)
+  local charnr = M.byte_offset_to_char_offset(colnr, line_text, offset_encoding)
+  return { line = linenr, character = charnr }
 end
 
 -- The default implementation actually doesn't treat text as UTF-16 (instead
 -- operates on UTF-32) and I have more additional checks.
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>.
-function lsp.util._get_line_byte_from_position(bufnr, position)
-  local _, colnr = M.position_to_linenr_colnr(bufnr, position)
+function lsp.util._get_line_byte_from_position(bufnr, position, offset_encoding)
+  local _, colnr = M.position_to_linenr_colnr(bufnr, position, offset_encoding)
   return colnr
 end
 
@@ -229,8 +361,9 @@ end
 -- (vim_uri.uri_from_bufnr, to pass the URI to lsp.util.get_line, even though
 -- bufnr is already known and usage of nvim_buf_get_lines is not forbidden).
 -- And also its users (only lsp.util.make_given_range_params) suffer from the
--- same problem as above, operating on UTF-32 instead of UTF-16, so TODO. See
--- also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1858-L1872>.
+-- same problem as above, operating on UTF-32 instead of UTF-16. See also:
+-- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1858-L1872>.
+-- These problems have largely been addressed in version 0.6.0.
 function lsp.util.character_offset(bufnr, linenr, colnr)
   local charnr = M.linenr_colnr_to_position(bufnr, linenr, colnr).character
   -- HACK: Violation of an API contract of lsp.util.character_offset() (which
@@ -385,12 +518,11 @@ function M.locations_to_items(locations, current_text_doc_pos)
     end)
     local filename = vim_uri.uri_to_fname(uri)
 
-    local lines = lsp.util.get_lines(
-      uri,
-      vim.tbl_map(function(range)
-        return range.start.line
-      end, ranges)
-    )
+    local lines_request = {}
+    for _, range in ipairs(ranges) do
+      lines_request[range.start.line] = true
+    end
+    M.get_buf_lines_batch(vim_uri.uri_to_bufnr(uri), lines_request)
 
     for _, range in ipairs(ranges) do
       local item_idx = #items + 1
@@ -402,7 +534,7 @@ function M.locations_to_items(locations, current_text_doc_pos)
       then
         current_item_idx = item_idx
       end
-      local line = lines[range.start.line] or ''
+      local line = lines_request[range.start.line]
       local col = M.char_offset_to_byte_offset(range.start.character, line)
       items[item_idx] = {
         filename = filename,

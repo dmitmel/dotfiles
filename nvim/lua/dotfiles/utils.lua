@@ -314,7 +314,8 @@ M.nice_package_config = {
 }
 
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/uri.lua#L77>
-M.URI_SCHEME_PATTERN = '^([a-zA-Z][a-zA-Z0-9+-.]*)://'
+-- <https://github.com/neovim/neovim/commit/a2c2a086528d74bb0f6b2b68745b015f22ddd68a#diff-0ff1311ddfd42d7213ccbc416ef5783991c5fc46d1fc95a1b408f38e82aeafa1R77>
+M.URI_SCHEME_PATTERN = '^([a-zA-Z][a-zA-Z0-9+-.]*):/+'
 
 -- Same as `vim_uri.uri_to_fname`, but works only on actual `file://` URLs
 -- unlike the original which returns non-`file://` URLs as-is (pretending that
