@@ -12,12 +12,6 @@ set complete-=i
 " <https://github.com/hrsh7th/nvim-compe/blob/077329e6bd1704d1acdff087ef1a73df23e92789/autoload/compe.vim#L46-L53>
 set completeopt=menuone,noselect
 
-" " Unused, uncomment in case of fire.
-" function! s:check_back_space() abort
-"   let col = col('.') - 1
-"   return col ==# 0 || getline('.')[col - 1] =~# '\s'
-" endfunction
-
 
 if dotfiles#plugman#is_registered('nvim-cmp')  " {{{
 
@@ -34,108 +28,6 @@ if dotfiles#plugman#is_registered('vim-vsnip')  " {{{
 
   let g:vsnip_extra_mapping = v:false
   let g:vsnip_snippet_dir = expand('<sfile>:p:h:h') . '/snippets'
-
-endif  " }}}
-
-
-if dotfiles#plugman#is_registered('nvim-compe') " {{{
-
-  let g:compe                  = {}
-  let g:compe.enabled          = v:true
-  let g:compe.autocomplete     = v:true
-  let g:compe.debug            = v:false
-  let g:compe.min_length       = 1
-  let g:compe.preselect        = 'disable'
-  let g:compe.throttle_time    = 80
-  let g:compe.source_timeout   = 200
-  let g:compe.resolve_timeout  = 800
-  let g:compe.incomplete_delay = 400
-  let g:compe.max_abbr_width   = 100
-  let g:compe.max_kind_width   = 100
-  let g:compe.max_menu_width   = 100
-  let g:compe.documentation    = v:false
-
-  let g:compe.source           = {}
-  let g:compe.source.nvim_lsp  = v:true
-  let g:compe.source.nvim_lua  = v:true
-  let g:compe.source.buffer    = v:true
-  let g:compe.source.tags      = v:true
-  let g:compe.source.spell     = v:true
-  let g:compe.source.path      = v:true
-  let g:compe.source.vsnip     = v:true
-
-  " I dunno. Don't ask me. Read the comment below. Taken from
-  " <https://github.com/hrsh7th/nvim-compe/blob/9012b8f51ffc97604b3ff99a5d5b67c79aac9417/autoload/compe.vim#L120-L129>.
-  function! s:compe_like_fallback(option) abort
-    if has_key(a:option, 'keys') && get(a:option, 'mode', 'n') !=# 'n'
-      call feedkeys(a:option.keys, a:option.mode)
-      return "\<Ignore>"
-    endif
-    return get(a:option, 'keys', "\<Ignore>")
-  endfunction
-
-  function! s:mapping_tab() abort
-    if pumvisible()
-      return "\<C-n>"
-    elseif vsnip#available(1)
-      return s:compe_like_fallback({'keys':"\<Plug>(vsnip-jump-next)",'mode':''})
-    " elseif s:check_back_space()
-    "   return "\<Tab>"
-    else
-      " return compe#complete()
-      return "\<Tab>"
-    endif
-  endfunction
-
-  function! s:mapping_s_tab() abort
-    if pumvisible()
-      return "\<C-p>"
-    elseif vsnip#available(-1)
-      return s:compe_like_fallback({'keys':"\<Plug>(vsnip-jump-prev)",'mode':''})
-    else
-      return "\<S-Tab>"
-    endif
-  endfunction
-
-  inoremap <silent><expr>     <Tab> <SID>mapping_tab()
-  snoremap <silent><expr>     <Tab> <SID>mapping_tab()
-  inoremap <silent><expr>   <S-Tab> <SID>mapping_s_tab()
-  snoremap <silent><expr>   <S-Tab> <SID>mapping_s_tab()
-  inoremap <silent><expr> <C-Space> compe#complete()
-  " The `mode` parameter to the following functions essentially switches
-  " between recursive and non-recursive mappings. Normally it is supplied
-  " as-is directly to `feedkeys` (check help for the meaning of its flags),
-  " with the exception of when `mode` is set to the default value of `n`.
-  " `feedkeys` itself considers that as the flag for inserting the keys
-  " without user remaps, but compe's implementation goes a step further by
-  " just returning the `keys` value from the function, thus they fall out of
-  " the `<expr>` mappings defined here. What this means for us is that when
-  " `mode` is set to `n` (default) then the FALLBACK `keys` will be executed
-  " non-recursively, and when it is any other string (which doesn't contain
-  " `n` though because that would be seen by `feedkeys`), including an empty
-  " string, the mapping is executed recursively, thus allowing `<Plug>` and
-  " others. Here's where these fallbacks are actually implemented:
-  " <https://github.com/hrsh7th/nvim-compe/blob/83b33e70f4b210ebfae86a2ec2d054ca31f467dd/autoload/compe.vim#L110-L129>
-  inoremap <silent><expr>      <CR> compe#confirm({'keys':"\<Plug>delimitMateCR",'mode':''})
-  inoremap <silent><expr>     <C-y> compe#confirm({'keys':"\<C-y>",'mode':'n'})
-  inoremap <silent><expr>     <C-e> compe#close({'keys':"\<C-e>",'mode':'n'})
-  inoremap <silent><expr>     <Esc> compe#close({'keys':"\<Esc>",'mode':'n'})
-
-  lua <<EOF
-  require('dotfiles.lsp.ignition').add_client_capabilities({
-    textDocument = {
-      -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#completionClientCapabilities>
-      completion = {
-        completionItem = {
-          snippetSupport = true,
-          resolveSupport = {
-            properties = { 'documentation', 'detail', 'additionalTextEdits' },
-          },
-        },
-      },
-    },
-  })
-EOF
 
 endif  " }}}
 

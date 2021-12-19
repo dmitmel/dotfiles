@@ -205,9 +205,6 @@ let s:plug = function('dotfiles#plugman#register')
       " Servers, default settings and initializationOptions, workspace root
       " dir patterns etc. Might get rid of this soon.
       call s:plug('https://github.com/neovim/nvim-lspconfig')
-      " The predecessor of nvim-cmp. I should note that the config for it is
-      " still included within this repository.
-      " call s:plug('https://github.com/hrsh7th/nvim-compe')
       " The current snippet expansion plugin. Doesn't contain any snippet
       " libraries of its own.
       call s:plug('https://github.com/hrsh7th/vim-vsnip')

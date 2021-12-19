@@ -73,10 +73,6 @@ cmp.setup({
 
     {
       -- In case our buffer word source is ever desired, see:
-      -- <https://github.com/hrsh7th/cmp-buffer/blob/5dde5430757696be4169ad409210cf5088554ed6/lua/cmp_buffer/init.lua>
-      -- <https://github.com/hrsh7th/cmp-buffer/blob/5dde5430757696be4169ad409210cf5088554ed6/lua/cmp_buffer/buffer.lua>
-      -- <https://github.com/hrsh7th/nvim-compe/blob/980357a9eeabe84f29c96d38421c9bff321a2bc8/lua/compe_buffer/init.lua>
-      -- <https://github.com/hrsh7th/nvim-compe/blob/980357a9eeabe84f29c96d38421c9bff321a2bc8/lua/compe_buffer/buffer.lua>
       -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/charset.c#L831-L843>
       -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/charset.c#L83-L262>
       -- <https://github.com/neoclide/coc.nvim/blob/03c9add7cd867a013102dcb45fb4e75304d227d7/src/model/document.ts>
