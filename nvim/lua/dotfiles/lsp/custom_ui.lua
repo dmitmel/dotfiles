@@ -50,6 +50,7 @@ function vim_ui.select(items, opts, on_choice)
   local original_bufnr = vim.api.nvim_get_current_buf()
 
   local immediately_returned_lines = vim.call('fzf#run', {
+    name = 'vim.ui.select',
     _dotfiles_lsp_custom_ui_marker = buf_marker,
 
     source = choices,

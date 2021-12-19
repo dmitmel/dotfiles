@@ -26,7 +26,7 @@ set title
 let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\.local$', '', '')
 function! DotfilesTitlestring() abort
   if &filetype ==# 'fzf' && exists('b:fzf')
-    let str = 'FZF %{b:fzf.name}'
+    let str = "FZF %{get(b:fzf,'name','')}"
   else
     let str = '%F%m'
   endif
