@@ -207,11 +207,11 @@ function! dotfiles#fzf#qflist_fuzzy(is_loclist, fullscreen) abort
   \ 'source': formatted_items,
   \ 'sink*': function('s:qflist_fuzzy_handler', [a:is_loclist, initial_winid, list]),
   \ 'options': ['--ansi', '--prompt='.(a:is_loclist ? 'LocList' : 'QuickFix').'> ', '--no-multi',
-  \   '--layout=reverse-list', "--delimiter=\t", '--with-nth=3..',
+  \   '--layout=reverse-list', "--delimiter=\t", '--with-nth=3..', '--preview-window=hidden',
   \   '--color=fg+:' . dotfiles#fzf#hlgroup_to_fzf_color('QuickFixLine', 'fg'),
   \   '--color=bg+:' . dotfiles#fzf#hlgroup_to_fzf_color('QuickFixLine', 'bg')
   \   ],
-  \   'placeholder': '--tag {2}',
+  \ 'placeholder': '--tag {2}',
   \ }), a:fullscreen))
   return results
 endfunction
