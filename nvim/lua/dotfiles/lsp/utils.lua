@@ -521,6 +521,7 @@ function M.locations_to_items(locations, current_text_doc_pos)
     local lines_request = {}
     for _, range in ipairs(ranges) do
       lines_request[range.start.line] = true
+      lines_request[range['end'].line] = true
     end
     M.get_buf_lines_batch(vim_uri.uri_to_bufnr(uri), lines_request)
 
@@ -534,13 +535,17 @@ function M.locations_to_items(locations, current_text_doc_pos)
       then
         current_item_idx = item_idx
       end
-      local line = lines_request[range.start.line]
-      local col = M.char_offset_to_byte_offset(range.start.character, line)
+      local start_pos, end_pos = range.start, range['end']
+      local start_text, end_text = lines_request[start_pos.line], lines_request[end_pos.line]
+      local start_col = M.char_offset_to_byte_offset(start_pos.character, start_text)
+      local end_col = M.char_offset_to_byte_offset(end_pos.character, end_text)
       items[item_idx] = {
         filename = filename,
-        lnum = range.start.line + 1,
-        col = col + 1,
-        text = line,
+        lnum = start_pos.line + 1,
+        col = start_col + 1,
+        end_lnum = end_pos.line + 1,
+        end_col = end_col + 1,
+        text = start_text,
       }
     end
   end
