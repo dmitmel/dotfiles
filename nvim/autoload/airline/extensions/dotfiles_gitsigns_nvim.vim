@@ -16,13 +16,15 @@ function! airline#extensions#dotfiles_gitsigns_nvim#get_hunks() abort
   let hunks = [get(status, 'added', 0), get(status, 'changed', 0), get(status, 'removed', 0)]
 
   let str = ''
-  for i in range(3)
-    if s:non_zero_only && hunks[i] == 0 | continue | endif
-    let str .= s:hunk_symbols[i] . hunks[i] . ' '
-  endfor
+  if hunks !=# [0, 0, 0]
+    for i in range(3)
+      if s:non_zero_only && hunks[i] == 0 | continue | endif
+      let str .= s:hunk_symbols[i] . hunks[i] . ' '
+    endfor
+  endif
 
   let has_branch_ext = index(airline#extensions#get_loaded_extensions(), 'branch') >= 0
-  if !has_branch_ext && str[-1:] == ' '
+  if !has_branch_ext && str[-1:] ==# ' '
     " branch extension not loaded, skip trailing whitespace
     let str = str[0:-2]
   endif
