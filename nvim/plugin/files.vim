@@ -48,6 +48,7 @@ endif
 
   if executable('rg') " {{{
     let s:rg_cmd = 'rg --hidden --follow --smart-case'
+    let s:rg_cmd .= ' --'.(&wildignorecase ? 'i' : '').'glob=' . shellescape('!{'.&wildignore.'}')
     let &grepprg = s:rg_cmd . ' --vimgrep'
     set grepformat^=%f:%l:%c:%m
     let $FZF_DEFAULT_COMMAND = s:rg_cmd . ' --files'
@@ -58,6 +59,7 @@ endif
     " }}}
   elseif executable('ag') " {{{
     let s:ag_cmd = 'ag --hidden --follow --smart-case'
+    let s:ag_cmd .= ' --ignore={' . join(map(split(&wildignore, ','), 'shellescape(v:val)'), ',') . '}'
     let &grepprg = s:ag_cmd . ' --vimgrep'
     set grepformat^=%f:%l:%c:%m
     let $FZF_DEFAULT_COMMAND = s:ag_cmd . " --search-binary --files-with-matches ''"
@@ -105,11 +107,8 @@ endif
   " helper functions (which I use in my dotfiles)
   let g:loaded_netrwPlugin = 1
   " re-add Netrw's gx mappings since we've disabled them
-  nnoremap <silent> gx <Cmd>call netrw#BrowseX(expand('<cfile>'),netrw#CheckIfRemote())<CR>
-  " This one can be rewritten in a way to not clobber the yank register...
-  " Most notably, the built-in mapping, which uses netrw#BrowseXVis(), doesn't
-  " work and breaks the editor, at least for me.
-  xnoremap <silent> gx y:<C-u>call netrw#BrowseX(@",netrw#CheckIfRemote())<CR>
+  nnoremap <silent> gx :call netrw#BrowseX(netrw#GX(),netrw#CheckIfRemote(netrw#GX()))<CR>
+  xnoremap <silent> gx :<C-u>call netrw#BrowseXVis()<CR>
 " }}}
 
 
@@ -134,9 +133,12 @@ endif
     function! s:DiffWithSaved() abort
       let filetype = &filetype
       diffthis
-      vnew | read # | normal! ggdd
+      vnew
+      setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodeline
+      read #
+      normal! ggdd
+      setlocal readonly nomodifiable
       diffthis
-      setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile readonly nomodifiable
       let &filetype = filetype
     endfunction
     command DiffWithSaved call s:DiffWithSaved()
@@ -145,6 +147,15 @@ endif
   " Reveal {{{
     " Reveal file in the system file explorer
     function! s:Reveal(path) abort
+      " TODO: Implement on Linux. See
+      " <http://www.freedesktop.org/wiki/Specifications/file-manager-interface/>
+      " <https://dbus.freedesktop.org/doc/dbus-python/tutorial.html>
+      " <https://github.com/deluge-torrent/deluge/blob/deluge-2.0.5/deluge/common.py#L339-L377>
+      " <https://github.com/GNOME/shotwell/blob/shotwell-0.31.3/src/util/system.vala#L24-L49>
+      " <https://github.com/mixxxdj/mixxx/blob/2.3/src/util/desktophelper.cpp>
+      " <https://github.com/mozilla/gecko-dev/blob/beb8961e1298f3a09f443ebd7374353d684923d2/xpcom/io/nsLocalFileUnix.cpp#L2083-L2108>
+      " <https://github.com/mozilla/gecko-dev/blob/beb8961e1298f3a09f443ebd7374353d684923d2/toolkit/system/gnome/nsGIOService.cpp#L543-L632>
+      " (NOTE: GPL code, must put into a separate binary to avoid licensing issues)
       if has('macunix')
         " only macOS has functionality to really 'reveal' a file, that is, to open
         " its parent directory in Finder and select this file
