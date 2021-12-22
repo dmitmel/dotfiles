@@ -83,8 +83,6 @@ cmp.setup({
         -- NOTE: This pattern is actually faster than the default one because
         -- of its syntactical simplificty.
         keyword_pattern = [[\k\+]],
-        -- Use the synchronous indexing algorithm.
-        -- indexing_interval = 20;
         -- NOTE: This function is invoked every time the (auto-)completion menu
         -- is opened! Don't do anything slow here. Also, as another note,
         -- despite the constant API calls here, rewriting this function in

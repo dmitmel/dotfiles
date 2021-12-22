@@ -43,6 +43,9 @@ if has('path_extra')
   setglobal tags-=./tags tags-=./tags; tags^=./tags;
 endif
 
+" For CCDL contributions:
+set nofixendofline
+
 
 " grep {{{
 

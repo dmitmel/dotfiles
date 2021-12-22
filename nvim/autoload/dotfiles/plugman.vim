@@ -9,6 +9,9 @@ let g:dotfiles#plugman#repo = 'junegunn/' . g:dotfiles#plugman#repo_name
 let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
 let g:dotfiles#plugman#plugins_dir = get(g:, 'dotfiles#plugman#plugins_dir', s:stdpath_config . '/plugged')
 
+let g:dotfiles#plugman#autoinstall = get(g:, 'dotfiles#plugman#autoinstall', 1)
+let g:dotfiles#plugman#autoclean = get(g:, 'dotfiles#plugman#autoclean', 1)
+
 
 function! dotfiles#plugman#derive_name(repo, spec) abort
   " <https://github.com/junegunn/vim-plug/blob/fc2813ef4484c7a5c080021ceaa6d1f70390d920/plug.vim#L715>
@@ -97,6 +100,13 @@ function! dotfiles#plugman#check_sync() abort
       let need_install[name] = 1
     endif
   endfor
+
+  if !g:dotfiles#plugman#autoinstall
+    let need_install = {}
+  endif
+  if !g:dotfiles#plugman#autoclean
+    let need_clean = {}
+  endif
 
   if !empty(need_install) || !empty(need_clean)
     enew
