@@ -27,6 +27,6 @@ function! s:open_help_online()
   endif
 endfunction
 
-command! -bar OpenHelpOnline call s:open_help_online()
+command! -bar -buffer OpenHelpOnline call s:open_help_online()
 
 call dotfiles#utils#undo_ftplugin_hook('silent! delcommand OpenHelpOnline')
