@@ -21,11 +21,13 @@ local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
 -- """"""Polyfills"""""" {{{
 if cmp.get_selected_entry == nil then
+  ---@return cmp.Entry
   function cmp.get_selected_entry()
     return cmp.core.view:get_selected_entry()
   end
 end
 if cmp.get_active_entry == nil then
+  ---@return cmp.Entry
   function cmp.get_active_entry()
     return cmp.core.view:get_active_entry()
   end
@@ -33,10 +35,18 @@ end
 -- }}}
 
 --[[
+---@return boolean
 function cmp.core.view.custom_entries_view.entries_win:has_scrollbar()
   return false
 end
 --]]
+
+-- My extensions to cmp's types {{{
+
+---@class cmp.SourceConfig
+---@field public menu_label string | fun(source: cmp.Source): string
+
+-- }}}
 
 cmp.setup({
   experimental = {
@@ -45,9 +55,12 @@ cmp.setup({
     native_menu = true,
   },
 
+  ---@type cmp.SourceConfig[]
   sources = {
     {
       name = 'nvim_lsp',
+      ---@param source cmp.Source
+      ---@return string
       menu_label = function(source)
         local result = 'LS'
         local client = source and source.source and source.source.client
@@ -79,6 +92,7 @@ cmp.setup({
       -- <https://github.com/neoclide/coc.nvim/blob/03c9add7cd867a013102dcb45fb4e75304d227d7/src/model/chars.ts>
       name = 'buffer',
       menu_label = 'Buf',
+      ---@type cmp_buffer.Options
       option = {
         -- NOTE: This pattern is actually faster than the default one because
         -- of its syntactical simplificty.
@@ -208,6 +222,9 @@ cmp.setup({
     -- See `:h complete-items` and:
     -- <https://github.com/neoclide/coc.nvim/blob/30a46412ebc66c0475bca7e49deb119fb14f0f00/src/sources/source-language.ts#L248-L308>
     -- <https://github.com/hrsh7th/nvim-cmp/blob/405581e7405da53924fd9723e3e42411b66d545d/lua/cmp/entry.lua#L188-L255>
+    ---@param entry cmp.Entry
+    ---@param vim_item vim.CompletedItem
+    ---@return vim.CompletedItem
     format = function(entry, vim_item)
       local comp_item = entry.completion_item
       local kind = entry:get_kind()
