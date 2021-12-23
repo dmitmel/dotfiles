@@ -49,6 +49,10 @@ end
 -- }}}
 
 cmp.setup({
+  enabled = function()
+    return vim.fn.reg_recording() == ''
+  end,
+
   experimental = {
     -- The new floating window menu breaks undo history when <CR> is pressed.
     -- <https://github.com/neovim/neovim/issues/11439>
@@ -144,33 +148,42 @@ cmp.setup({
   },
 
   mapping = {
-    ['<Tab>'] = cmp.mapping(function(fallback)
-      local selected_entry = cmp.get_selected_entry()
-      if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', 1)) then
-        vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-next)'), '')
-      elseif cmp.visible() then
-        cmp.select_next_item()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
+    ['<Tab>'] = (function(default_mapping_func)
+      return cmp.mapping(function(fallback)
+        local selected_entry = cmp.get_selected_entry()
+        if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', 1)) then
+          vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-next)'), '')
+        else
+          default_mapping_func(fallback)
+        end
+      end, { 'i', 's' })
+    end)(cmp.mapping.select_next_item()),
 
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-      local selected_entry = cmp.get_selected_entry()
-      if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', -1)) then
-        vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-prev)'), '')
-      elseif cmp.visible() then
-        cmp.select_prev_item()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
+    ['<S-Tab>'] = (function(default_mapping_func)
+      return cmp.mapping(function(fallback)
+        local selected_entry = cmp.get_selected_entry()
+        if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', -1)) then
+          vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-prev)'), '')
+        else
+          default_mapping_func(fallback)
+        end
+      end, { 'i', 's' })
+    end)(cmp.mapping.select_prev_item()),
 
     ['<C-Space>'] = cmp.mapping.complete(),
     ['<CR>'] = cmp.mapping.confirm(),
     ['<C-y>'] = cmp.mapping.confirm(),
     ['<C-e>'] = cmp.mapping.abort(),
-    ['<Esc>'] = cmp.mapping.close(),
+
+    ['<Esc>'] = (function(default_mapping_func)
+      return cmp.mapping(function(fallback)
+        if vim.fn.reg_recording() ~= '' then
+          fallback()
+        else
+          default_mapping_func(fallback)
+        end
+      end)
+    end)(cmp.mapping.close()),
   },
 
   snippet = {
