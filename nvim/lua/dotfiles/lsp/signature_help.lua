@@ -47,22 +47,13 @@ function M.handler(err, params, ctx, opts)
     local filetype = utils.npcall(vim.api.nvim_buf_get_option, ctx.bufnr, 'filetype')
     local client = lsp.get_client_by_id(ctx.client_id)
     local trigger_chars = client and client.resolved_capabilities.signature_help_trigger_characters
-    local parsing_ctx, active_param_range = M.convert_signature_help_to_docblocks(
+    local renderer, active_param_range = M.convert_signature_help_to_docblocks(
       params,
       filetype,
       trigger_chars
     )
-    -- Faster replacement for `vim.tbl_isempty(lsp.util.trim_empty_lines(markdown_lines))`
-    local are_all_markdown_lines_empty = true
-    for _, line in ipairs(parsing_ctx.lines) do
-      if #line > 0 then
-        are_all_markdown_lines_empty = false
-        break
-      end
-    end
-    if not are_all_markdown_lines_empty then
-      opts.dotfiles_markup_parsing_ctx = parsing_ctx
-      local _, float_winid = lsp.util.open_floating_preview(parsing_ctx.lines, 'markdown', opts)
+    if not renderer:are_all_lines_empty() then
+      local _, float_winid = renderer:open_in_floating_window(opts)
       if active_param_range then
         highlight_match.add_ranges(
           float_winid,
@@ -81,16 +72,17 @@ lsp.handlers['textDocument/signatureHelp'] = lsp_utils.wrap_handler_compat(M.han
 -- Copied from <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L844-L910>,
 -- with <https://github.com/neovim/neovim/pull/15018> backported on top. See
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureHelp>.
-function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_chars, parsing_ctx)
+---@param renderer dotfiles.MarkupRenderer
+function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_chars, renderer)
   if trigger_chars == nil then
     trigger_chars = {}
   end
-  if parsing_ctx == nil then
-    parsing_ctx = lsp_markup.ParsingContext.new()
+  if renderer == nil then
+    renderer = lsp_markup.Renderer.new()
   end
 
   if not signature_help.signatures or vim.tbl_isempty(signature_help.signatures) then
-    return parsing_ctx, nil
+    return renderer, nil
   end
 
   -- I have to mention that, as per specification, 0 is used both as the
@@ -107,10 +99,10 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
 
   for idx, signature in ipairs(signature_help.signatures) do
     if idx == active_signature_idx + 1 then
-      active_sig_linenr = parsing_ctx.linenr
+      active_sig_linenr = renderer.linenr
     end
-    lsp_markup.parse_plaintext_block(signature.label, syntax, parsing_ctx)
-    parsing_ctx:set_syntax_region_break()
+    renderer:parse_plaintext_block(signature.label, syntax)
+    renderer:set_syntax_region_break()
   end
 
   local active_param_range = nil
@@ -174,17 +166,17 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
     end
 
     if active_param and active_param.documentation then
-      parsing_ctx:push_separator()
-      lsp_markup.parse_documentation_blocks(active_param.documentation, parsing_ctx)
+      renderer:push_separator()
+      renderer:parse_documentation_blocks(active_param.documentation)
     end
   end
 
   if active_sig and active_sig.documentation then
-    parsing_ctx:push_separator()
-    lsp_markup.parse_documentation_blocks(active_sig.documentation, parsing_ctx)
+    renderer:push_separator()
+    renderer:parse_documentation_blocks(active_sig.documentation)
   end
 
-  return parsing_ctx, active_param_range
+  return renderer, active_param_range
 end
 
 return M

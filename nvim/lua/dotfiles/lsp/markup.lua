@@ -37,13 +37,18 @@ local lsp = require('vim.lsp')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
 
--- Parsing context stores temporary state and results of parsing documentation
--- blocks. It may be reused across invocations of the parser.
-M.ParsingContext = {}
-M.ParsingContext.__index = M.ParsingContext
+---@class dotfiles.MarkupRenderer
+---@field public linenr number
+---@field public lines string[]
+---@field public lines_syntaxes table<number, string>
+---@field public lines_separators table<number, string>
+---@field public lines_syntax_region_breaks table<number, string>
+M.Renderer = {}
+M.Renderer.__index = M.Renderer
 
-function M.ParsingContext.new()
-  local self = setmetatable({}, M.ParsingContext)
+---@return dotfiles.MarkupRenderer
+function M.Renderer.new()
+  local self = setmetatable({}, M.Renderer)
   self.linenr = 0
   self.lines = {}
   self.lines_syntaxes = {}
@@ -52,7 +57,7 @@ function M.ParsingContext.new()
   return self
 end
 
-function M.ParsingContext:push_line(text, syntax)
+function M.Renderer:push_line(text, syntax)
   vim.validate({
     text = { text, 'string' },
     syntax = { syntax, 'string', true },
@@ -62,14 +67,14 @@ function M.ParsingContext:push_line(text, syntax)
   self.lines_syntaxes[self.linenr] = syntax or ''
 end
 
-function M.ParsingContext:push_separator()
+function M.Renderer:push_separator()
   self.linenr = self.linenr + 1
   self.lines[self.linenr] = ''
   self.lines_syntaxes[self.linenr] = ''
   self.lines_separators[self.linenr] = true
 end
 
-function M.ParsingContext:set_syntax_region_break()
+function M.Renderer:set_syntax_region_break()
   self.lines_syntax_region_breaks[self.linenr] = true
 end
 
@@ -77,18 +82,14 @@ end
 -- Handles values of type `MarkedString | MarkedString[] | MarkupContent`.
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markedString>
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markupContentInnerDefinition>
-function M.parse_documentation_blocks(blocks, parsing_ctx, markdown_syntax_name)
+function M.Renderer:parse_documentation_blocks(blocks, markdown_syntax_name)
   vim.validate({
-    parsing_ctx = { parsing_ctx, 'table', true },
     markdown_syntax_name = { markdown_syntax_name, 'string', true },
   })
-  if parsing_ctx == nil then
-    parsing_ctx = M.ParsingContext.new()
-  end
 
   if type(blocks) == 'string' then
     -- MarkedString, markdown variation. Short-circuiting is fine here.
-    M.parse_markdown_block(blocks, markdown_syntax_name, parsing_ctx)
+    self:parse_markdown_block(blocks, markdown_syntax_name)
   elseif type(blocks) == 'table' then
     if blocks.kind then
       -- MarkupContent. Also, there can't be an array of these.
@@ -98,9 +99,9 @@ function M.parse_documentation_blocks(blocks, parsing_ctx, markdown_syntax_name)
       local block_value = blocks.value or ''
       -- See MarkupKind under <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markupContent>.
       if blocks.kind == 'markdown' then
-        M.parse_markdown_block(block_value, markdown_syntax_name, parsing_ctx)
+        self:parse_markdown_block(block_value, markdown_syntax_name)
       elseif blocks.kind == 'plaintext' then
-        M.parse_plaintext_block(block_value, '', parsing_ctx)
+        self:parse_plaintext_block(block_value, '')
       end
     else
       -- MarkedString or MarkedString[].
@@ -114,18 +115,18 @@ function M.parse_documentation_blocks(blocks, parsing_ctx, markdown_syntax_name)
         if type(block) == 'string' then
           if block ~= '' then
             if not is_first_block then
-              parsing_ctx:push_separator()
+              self:push_separator()
             end
             is_first_block = false
-            M.parse_markdown_block(block, markdown_syntax_name, parsing_ctx)
+            self:parse_markdown_block(block, markdown_syntax_name)
           end
         elseif type(block) == 'table' then
           if block.value and block.value ~= '' then
             if not is_first_block then
-              parsing_ctx:push_separator()
+              self:push_separator()
             end
             is_first_block = false
-            M.parse_plaintext_block(block.value, block.language, parsing_ctx)
+            self:parse_plaintext_block(block.value, block.language)
           end
         else
           error(string.format('blocks[%d]: unexpected type %s', block_i, type(blocks)))
@@ -135,16 +136,13 @@ function M.parse_documentation_blocks(blocks, parsing_ctx, markdown_syntax_name)
   else
     error(string.format('blocks: unexpected type %s', type(blocks)))
   end
-
-  return parsing_ctx
 end
 
 -- Rough re-implementation of <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/src/markdown/index.ts#L118-L199>.
-function M.parse_markdown_block(block_text, markdown_syntax_name, parsing_ctx)
+function M.Renderer:parse_markdown_block(block_text, markdown_syntax_name)
   vim.validate({
     block_text = { block_text, 'string' },
     markdown_syntax_name = { markdown_syntax_name, 'string', true },
-    parsing_ctx = { parsing_ctx, 'table' },
   })
 
   -- NOTE: highlighting Markdown using Vim's built-in highlighter tends to
@@ -186,7 +184,7 @@ function M.parse_markdown_block(block_text, markdown_syntax_name, parsing_ctx)
         is_within_code_block = false
         goto continue
       end
-      parsing_ctx:push_line(line, code_block_syntax)
+      self:push_line(line, code_block_syntax)
       goto continue
     end
 
@@ -196,14 +194,14 @@ function M.parse_markdown_block(block_text, markdown_syntax_name, parsing_ctx)
     end
 
     if line_trimmed:match('^%-%-%-+$') then
-      parsing_ctx:push_separator()
+      self:push_separator()
       is_first_paragraph = true
       goto continue
     end
 
     if not is_first_paragraph then
       if empty_lines_counter > 0 then
-        parsing_ctx:push_line('', markdown_syntax_name)
+        self:push_line('', markdown_syntax_name)
       end
     end
     is_first_paragraph = false
@@ -219,43 +217,38 @@ function M.parse_markdown_block(block_text, markdown_syntax_name, parsing_ctx)
       end
     end
 
-    parsing_ctx:push_line(line_trimmed, markdown_syntax_name)
+    self:push_line(line, markdown_syntax_name)
 
     ::continue::
   end
-
-  return parsing_ctx
 end
 
-function M.parse_plaintext_block(block_text, block_syntax, parsing_ctx)
+function M.Renderer:parse_plaintext_block(block_text, block_syntax)
   vim.validate({
     block_text = { block_text, 'string' },
     block_syntax = { block_syntax, 'string' },
-    parsing_ctx = { parsing_ctx, 'table' },
   })
 
   local empty_lines_counter = 0
   local is_first_paragraph = true
 
   -- Equivalent to `lsp.util.trim_empty_lines(vim.split(block_syntax, '\n'))`,
-  -- but with iterators and less iterations.
+  -- but with more iterators and less iterations.
   for line in vim.gsplit(block_text, '\n', true) do
     if #line > 0 then
       if not is_first_paragraph then
         for _ = 1, empty_lines_counter do
-          parsing_ctx:push_line('', block_syntax)
+          self:push_line('', block_syntax)
         end
       end
       is_first_paragraph = false
 
       empty_lines_counter = 0
-      parsing_ctx:push_line(line, block_syntax)
+      self:push_line(line, block_syntax)
     else
       empty_lines_counter = empty_lines_counter + 1
     end
   end
-
-  return parsing_ctx
 end
 
 -- But of course, the same one as what coc uses!
@@ -266,10 +259,10 @@ M.HORIZONTAL_SEPARATOR_CHAR = '—'
 -- decoupled into functions above and is more precise. See:
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1074-L1246>
 -- <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/autoload/coc/highlight.vim#L252-L319>
-function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
+function M.Renderer:render_documentation_into_buf(bufnr, winid, opts)
   vim.validate({
-    bufnr = { bufnr, 'number' },
-    parsing_ctx = { parsing_ctx, 'table' },
+    bufnr = { bufnr, 'number', true },
+    winid = { winid, 'number', true },
     opts = { opts, 'table', true },
   })
   opts = opts or {}
@@ -278,7 +271,7 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
 
   opts.wrap_at = opts.wrap_at
     or (vim.api.nvim_win_get_option(winid, 'wrap') and vim.api.nvim_win_get_width(winid))
-  local width, height = lsp.util._make_floating_popup_size(parsing_ctx.lines, opts)
+  local width, height = lsp.util._make_floating_popup_size(self.lines, opts)
   local separator = string.rep(M.HORIZONTAL_SEPARATOR_CHAR, math.min(width, opts.wrap_at or width))
 
   local lines_rendered = {}
@@ -288,8 +281,8 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
     lines_rendered[i] = ''
     linenr_offset = linenr_offset + 1
   end
-  for linenr, line in ipairs(parsing_ctx.lines) do
-    if parsing_ctx.lines_separators[linenr] then
+  for linenr, line in ipairs(self.lines) do
+    if self.lines_separators[linenr] then
       lines_rendered[linenr_offset + linenr] = separator
     else
       lines_rendered[linenr_offset + linenr] = line
@@ -340,13 +333,13 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
     local region_id = 1
     local start_linenr = 1
     while start_linenr <= lines_count do
-      local syntax = parsing_ctx.lines_syntaxes[start_linenr] or ''
+      local syntax = self.lines_syntaxes[start_linenr] or ''
       local end_linenr = start_linenr + 1
       while end_linenr <= lines_count do
-        if (parsing_ctx.lines_syntaxes[end_linenr] or '') ~= syntax then
+        if (self.lines_syntaxes[end_linenr] or '') ~= syntax then
           break
         end
-        if parsing_ctx.lines_syntax_region_breaks[end_linenr] then
+        if self.lines_syntax_region_breaks[end_linenr] then
           break
         end
         end_linenr = end_linenr + 1
@@ -390,15 +383,33 @@ function M.render_documentation_into_buf(bufnr, winid, parsing_ctx, opts)
     end
   end)
 
-  return parsing_ctx.lines
+  return self.lines
 end
 
 local orig_util_stylize_markdown = lsp.util.stylize_markdown
 function lsp.util.stylize_markdown(bufnr, contents, opts, ...)
-  if opts.dotfiles_markup_parsing_ctx then
-    return M.render_documentation_into_buf(bufnr, 0, opts.dotfiles_markup_parsing_ctx, opts)
+  ---@type dotfiles.MarkupRenderer|nil
+  local renderer = opts.dotfiles_markup_renderer
+  if renderer then
+    return renderer:render_documentation_into_buf(bufnr, 0, opts)
   end
   return orig_util_stylize_markdown(bufnr, contents, opts, ...)
+end
+
+-- Faster replacement for `vim.tbl_isempty(lsp.util.trim_empty_lines(markdown_lines))`
+function M.Renderer:are_all_lines_empty()
+  for _, line in ipairs(self.lines) do
+    if #line > 0 then
+      return false
+    end
+  end
+  return true
+end
+
+function M.Renderer:open_in_floating_window(opts)
+  opts = opts or {}
+  opts.dotfiles_markup_renderer = self
+  return lsp.util.open_floating_preview(self.lines, 'markdown', opts)
 end
 
 return M

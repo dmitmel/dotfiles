@@ -41,19 +41,10 @@ function M.handler(err, params, ctx, opts)
   opts.focus_id = ctx.method
   if params and params.contents then
     M.highlight_handler(err, params, ctx, opts)
-    vim.g.lsp_hover_params_contents = params.contents
-    local parsing_ctx = lsp_markup.parse_documentation_blocks(params.contents)
-    -- Faster replacement for `vim.tbl_isempty(lsp.util.trim_empty_lines(parsing_ctx.lines))`
-    local are_all_markdown_lines_empty = true
-    for _, line in ipairs(parsing_ctx.lines) do
-      if #line > 0 then
-        are_all_markdown_lines_empty = false
-        break
-      end
-    end
-    if not are_all_markdown_lines_empty then
-      opts.dotfiles_markup_parsing_ctx = parsing_ctx
-      lsp.util.open_floating_preview(parsing_ctx.lines, 'markdown', opts)
+    local renderer = lsp_markup.Renderer:new()
+    renderer:parse_documentation_blocks(params.contents)
+    if not renderer:are_all_lines_empty() then
+      renderer:open_in_floating_window(opts)
     end
     -- Note that the error message shouldn't be displayed even when we received
     -- no documentation blocks because the `highlight_handler` can be fired in
