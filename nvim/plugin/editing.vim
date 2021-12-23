@@ -302,8 +302,8 @@ endif
   endif
 
   " search inside a visual selection
-  xnoremap / <Esc>/\%><C-r>=line("'<")-1<CR>l\%<<C-r>=line("'>")+1<CR>l
-  xnoremap ? <Esc>?\%><C-r>=line("'<")-1<CR>l\%<<C-r>=line("'>")+1<CR>l
+  xnoremap / <Esc>/\%V
+  xnoremap ? <Esc>?\%V
 
   " * and # in the Visual mode will search the selected text
   function! s:VisualStarSearch(search_cmd) abort
@@ -367,7 +367,7 @@ endif
 
   " quick insertion of the substitution command
   nnoremap gs/ :%s///g<Left><Left><Left>
-  xnoremap gs/ :s///g<Left><Left><Left>
+  xnoremap gs/ :s/\%V//g<Left><Left><Left>
   nnoremap gss :%s///g<Left><Left>
   xnoremap gss :s///g<Left><Left>
 
