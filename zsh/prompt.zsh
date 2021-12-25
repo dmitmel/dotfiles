@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+# NOTE: This script must be loaded after `alias_tips.zsh` and `plugins.zsh`, so
+# that the precmd hook is added last. This has to be done so that this script
+# can get an accurate assesment of the command run-time.
+
 # Escapes `%` in all arguments by replacing it with `%%`. Escaping is needed so
 # that untrusted input (e.g. git branch names) doesn't affect prompt rendering.
 prompt_escape() {
@@ -31,7 +35,8 @@ prompt_precmd_hook() {
       (( m > 0 )) && _PROMPT_EXEC_TIME+="${m}m"
       _PROMPT_EXEC_TIME+="${s}s"
     else
-      unset _PROMPT_EXEC_TIME
+      local -i t="$((duration*1000))"
+      _PROMPT_EXEC_TIME="${t}ms"
     fi
   fi
 }
