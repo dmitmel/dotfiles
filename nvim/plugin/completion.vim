@@ -13,6 +13,21 @@ set complete-=i
 set completeopt=menuone,noselect
 
 
+if dotfiles#plugman#is_registered('nvim-snippy')  " {{{
+
+  lua <<EOF
+  local snippy = require('snippy')
+  snippy.setup({
+    -- shrug
+  })
+EOF
+
+  " Stolen from <https://github.com/hrsh7th/vim-vsnip/blob/fd13f3fb09823cdefb2c9bebb614a13afd1920cc/plugin/vsnip.vim#L74-L76>
+  snoremap <expr> <BS> ("\<BS>" . (getcurpos()[2] == col('$') - 1 ? 'a' : 'i'))
+
+endif  " }}}
+
+
 if dotfiles#plugman#is_registered('nvim-cmp')  " {{{
 
   lua require('dotfiles.completion')

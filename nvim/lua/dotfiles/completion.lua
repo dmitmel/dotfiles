@@ -49,10 +49,6 @@ end
 
 -- }}}
 
-snippy.setup({
-  -- shrug
-})
-
 cmp.setup({
   enabled = function()
     return vim.fn.reg_recording() == ''
