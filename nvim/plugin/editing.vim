@@ -191,13 +191,6 @@ endif
   nnoremap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><CR>
   nnoremap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
 
-  function! PutOutput(cmd) abort
-    let output = ''
-    silent! let output = execute(a:cmd)
-    call dotfiles#utils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
-  endfunction
-  command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
-
   " ,c is easier to type than "+ because it doesn't require pressing Shift
   nnoremap <leader>c "+
   xnoremap <leader>c "+
@@ -494,5 +487,22 @@ endif
   let g:sql_type_default = 'sqlinformix'
 
   let g:yats_host_keyword = 0
+
+" }}}
+
+
+" Script-writing and debugging {{{
+
+  function! PutOutput(cmd) abort
+    let output = ''
+    silent! let output = dotfiles#sandboxed_execute#(a:cmd)
+    call dotfiles#utils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
+  endfunction
+  command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
+
+  " Same as typing commands literally, but creating local variables doesn't
+  " pollute the global scope. Intended for interactive-mode debugging of
+  " Vimscript.
+  command! -nargs=+ -complete=command Execute try | call dotfiles#sandboxed_execute#(<q-args>) | catch | echoerr v:exception | endtry
 
 " }}}
