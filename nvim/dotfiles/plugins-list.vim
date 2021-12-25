@@ -207,7 +207,7 @@ let s:plug = function('dotfiles#plugman#register')
       call s:plug('https://github.com/neovim/nvim-lspconfig')
       " The current snippet expansion plugin. Doesn't contain any snippet
       " libraries of its own.
-      call s:plug('https://github.com/hrsh7th/vim-vsnip')
+      call s:plug('https://github.com/dcampos/nvim-snippy')
       " The current completion plugin.
       call s:plug('https://github.com/hrsh7th/nvim-cmp', { 'branch': 'main' })
       " The following plugins are actually completion sources for nvim-cmp:
@@ -217,8 +217,8 @@ let s:plug = function('dotfiles#plugman#register')
       call s:plug('https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' })
       " File paths.
       call s:plug('https://github.com/hrsh7th/cmp-path', { 'branch': 'main' })
-      " Snippets defined in vim-vsnip.
-      call s:plug('https://github.com/hrsh7th/cmp-vsnip', { 'branch': 'main' })
+      " Snippets registered in the snippet engine.
+      call s:plug('https://github.com/dcampos/cmp-snippy')
     elseif g:dotfiles_build_coc_from_source
       " Plugins for the old completion-and-language-analysis system based
       " around coc.nvim.

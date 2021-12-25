@@ -15,6 +15,7 @@ local M = require('dotfiles.autoload')('dotfiles.completion')
 -- substitute()
 
 local cmp = require('cmp')
+local snippy = require('snippy')
 local utils_vim = require('dotfiles.utils.vim')
 local utils = require('dotfiles.utils')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
@@ -48,6 +49,10 @@ end
 
 -- }}}
 
+snippy.setup({
+  -- shrug
+})
+
 cmp.setup({
   enabled = function()
     return vim.fn.reg_recording() == ''
@@ -79,7 +84,7 @@ cmp.setup({
     },
 
     {
-      name = 'vsnip',
+      name = 'snippy',
       menu_label = 'Snip',
     },
 
@@ -151,8 +156,8 @@ cmp.setup({
     ['<Tab>'] = (function(default_mapping_func)
       return cmp.mapping(function(fallback)
         local selected_entry = cmp.get_selected_entry()
-        if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', 1)) then
-          vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-next)'), '')
+        if not selected_entry and snippy.can_jump(1) then
+          snippy.next()
         else
           default_mapping_func(fallback)
         end
@@ -162,8 +167,8 @@ cmp.setup({
     ['<S-Tab>'] = (function(default_mapping_func)
       return cmp.mapping(function(fallback)
         local selected_entry = cmp.get_selected_entry()
-        if not selected_entry and utils_vim.is_truthy(vim.call('vsnip#available', -1)) then
-          vim.fn.feedkeys(utils_vim.replace_keys('<Plug>(vsnip-jump-prev)'), '')
+        if not selected_entry and snippy.can_jump(-1) then
+          snippy.previous()
         else
           default_mapping_func(fallback)
         end
@@ -188,7 +193,7 @@ cmp.setup({
 
   snippet = {
     expand = function(args)
-      vim.call('vsnip#anonymous', args.body)
+      snippy.expand_snippet(args.body)
     end,
   },
 
