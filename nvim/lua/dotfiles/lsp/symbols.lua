@@ -9,6 +9,7 @@ local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local vim_uri = require('vim.uri')
 local utils = require('dotfiles.utils')
 local lsp_progress = require('dotfiles.lsp.progress')
+local utils_vim = require('dotfiles.utils.vim')
 
 function M.request_document_symbols()
   local req_params = {
@@ -80,6 +81,8 @@ function lsp.util._get_symbol_kind_name(symbol_kind)
 end
 --]]
 
+local HAS_LOC_LIST_END_POSITION = utils_vim.has('nvim-0.6.0')
+
 -- A replacement for <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1647-L1684>.
 -- See also: <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_documentSymbol>.
 function lsp.util.symbols_to_items(symbols, bufnr, opts)
@@ -100,12 +103,14 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
       table.insert(text_parts, ': ')
       table.insert(text_parts, sym.detail)
     end
-    local linenr, colnr = lsp_utils.position_to_linenr_colnr(sym_bufnr, sym_range.start)
-    -- TODO: define end_lnum and end_col
+    local start_lnum, start_col = lsp_utils.position_to_linenr_colnr(sym_bufnr, sym_range.start)
+    local end_lnum, end_col = lsp_utils.position_to_linenr_colnr(sym_bufnr, sym_range['end'])
     local item = {
       bufnr = sym_bufnr,
-      lnum = linenr + 1,
-      col = colnr + 1,
+      lnum = start_lnum + 1,
+      col = start_col + 1,
+      end_lnum = end_lnum + 1,
+      end_col = end_col + 1,
       text = table.concat(text_parts),
     }
     table.insert(items, item)
@@ -146,8 +151,14 @@ function lsp.util.symbols_to_items(symbols, bufnr, opts)
         local align_len = 0
         if item.lnum > 0 then
           align_len = align_len + utils.int_digit_length(item.lnum) -- "%d"
+          if HAS_LOC_LIST_END_POSITION and item.end_lnum > 0 and item.end_lnum ~= item.lnum then
+            align_len = align_len + 1 + utils.int_digit_length(item.end_lnum) -- "-%d"
+          end
           if item.col > 0 then
             align_len = align_len + 5 + utils.int_digit_length(item.col) -- " col %d"
+            if HAS_LOC_LIST_END_POSITION and item.end_col > 0 and item.end_col ~= item.col then
+              align_len = align_len + 1 + utils.int_digit_length(item.end_col) -- "-%d"
+            end
           end
         end
         if align_len > max_align_len then

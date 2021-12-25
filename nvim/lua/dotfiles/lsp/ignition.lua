@@ -29,6 +29,8 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.ignition')
 -- TODO: <https://github.com/neovim/nvim-lspconfig/pull/1174>
 -- TODO: <https://github.com/neovim/nvim-lspconfig/pulls?q=is%3Apr+author%3Amjlbach+is%3Aclosed>
 
+-- TODO TODO TODO: <https://github.com/neovim/neovim/pull/16250>
+
 local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
