@@ -165,6 +165,8 @@ let s:plug = function('dotfiles#plugman#register')
 " }}}
 
 " Programming {{{
+  " Automatic indentation detection.
+  call s:plug('https://github.com/tpope/vim-sleuth')
   " A gigantic collection of syntax, ftplugin, indent, ftdetect etc scripts for
   " a lot of programming languages (the entire list[1]). Also bundles
   " vim-sensible[2] and vim-sleuth[3].
@@ -176,6 +178,9 @@ let s:plug = function('dotfiles#plugman#register')
   " I disable the bundled version of vim-sensible because I define those
   " settings myself.
   call add(g:polyglot_disabled, 'sensible')
+  " Bundled vim-sleuth is disabled because the upstream has more features and
+  " requires less hacks to work with my setup.
+  call add(g:polyglot_disabled, 'autoindent')
   " Highlighting of mediawiki markup. Installed while I was working on
   " <https://wiki.c2dl.info/>.
   call s:plug('https://github.com/chikamichi/mediawiki.vim')

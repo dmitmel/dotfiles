@@ -1,3 +1,3 @@
-IndentTabs 2
+setlocal noexpandtab
 
-call dotfiles#utils#undo_ftplugin_hook('IndentReset')
+call dotfiles#utils#undo_ftplugin_hook('setlocal expandtab<')

@@ -36,15 +36,28 @@ endif
   " `shiftwidth` number spaces in front of a line.
   set smarttab
 
-  function! SetIndent(expandtab, shiftwidth) abort
+  function! DotfilesSetIndent(expandtab, shiftwidth) abort
     let &l:expandtab = a:expandtab
-    let &l:shiftwidth = str2nr(a:shiftwidth)
-    let &l:tabstop = &l:shiftwidth
-    let &l:softtabstop = &l:shiftwidth
+    let &l:shiftwidth = a:shiftwidth
+    let &l:tabstop = a:shiftwidth
+    let &l:softtabstop = a:shiftwidth
   endfunction
-  command -nargs=1 -bar Indent call SetIndent(1, <q-args>)
-  command -nargs=1 -bar IndentTabs call SetIndent(0, <q-args>)
+  command -nargs=1 -bar Indent call DotfilesSetIndent(1, str2nr(<q-args>))
+  command -nargs=1 -bar IndentTabs call DotfilesSetIndent(0, str2nr(<q-args>))
   command -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
+
+  let g:sleuth_automatic = 0
+  function! DotfilesSleuth() abort
+    if get(b:, 'sleuth_automatic', 1)
+      silent Sleuth
+    endif
+    " Sync shiftwidth, tabstop and softtabstop with each other.
+    call DotfilesSetIndent(&l:expandtab, &l:expandtab ? shiftwidth() : &l:tabstop)
+  endfunction
+  augroup dotfiles_sleuth_hack
+    autocmd!
+    autocmd FileType * nested call DotfilesSleuth()
+  augroup END
 
   " use 2 spaces for indentination
   set expandtab shiftwidth=2 tabstop=2 softtabstop=2
