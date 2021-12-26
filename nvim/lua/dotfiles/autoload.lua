@@ -24,20 +24,23 @@ return setmetatable({}, {
     if type(module_name) ~= 'string' then
       error(string.format('module_name: expected string, got %s', type(module_name)))
     end
-    local module_ref = rawget(self, module_name)
-    if module_ref == nil then
-      module_ref = {
+    local module_internals = rawget(self, module_name)
+    if module_internals == nil then
+      local meta = {
         name = module_name,
         reloading = false,
         reload_count = 0,
-        exports = {},
       }
-      rawset(self, module_name, module_ref)
+      module_internals = {
+        meta = meta,
+        exports = { __module = meta },
+      }
+      rawset(self, module_name, module_internals)
     else
-      module_ref.name = module_name
-      module_ref.reloading = true
-      module_ref.reload_count = module_ref.reload_count + 1
+      local meta = module_internals.meta
+      meta.reloading = true
+      meta.reload_count = meta.reload_count + 1
     end
-    return module_ref.exports, module_ref
+    return module_internals.exports
   end,
 })

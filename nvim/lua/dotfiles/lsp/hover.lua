@@ -1,7 +1,7 @@
 --- See also:
 --- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocument_hover>
 --- <https://github.com/neoclide/coc.nvim/blob/master/autoload/coc/float.vim#L470-L514>
-local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.lsp.hover')
+local M = require('dotfiles.autoload')('dotfiles.lsp.hover')
 
 local lsp = require('vim.lsp')
 local highlight_match = require('dotfiles.lsp.highlight_match')
@@ -16,7 +16,7 @@ local lsp_progress = require('dotfiles.lsp.progress')
 -- described in the `highlight_match` module.
 local USE_NVIM_ADD_BUF_HIGHLIGHT = false
 
-M.nvim_namespace = vim.api.nvim_create_namespace(MODULE_INFO.name)
+M.nvim_namespace = vim.api.nvim_create_namespace(M.__module.name)
 M.highlight_last_bufnr = nil
 M.highlight_match_ids = {}
 M.highlight_timer_stop = nil

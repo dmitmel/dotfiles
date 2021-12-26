@@ -21,13 +21,13 @@
 --- performing direct `rpcnotify()` calls from Lua, this bypasses the need to
 --- enter the Vimscript layer and allows direct conversion of Lua values into
 --- msgpack structures instead of, again, a middle layer (i.e. Vimscript).
-local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.rplugin_bridge')
+local M = require('dotfiles.autoload')('dotfiles.rplugin_bridge')
 
 -- TODO comment about format of RPC methods unlikely to change
 
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
-assert(utils_vim.has('nvim'), MODULE_INFO.name .. ' is currently only supported in neovim!')
+assert(utils_vim.has('nvim'), M.__module.name .. ' is currently only supported in neovim!')
 
 M.FUNCTION_NAME_PREFIX = '_dotfiles_rplugin_'
 

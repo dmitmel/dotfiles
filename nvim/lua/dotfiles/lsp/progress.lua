@@ -17,7 +17,7 @@
 --- TODO:
 --- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/src/handler/index.ts#L128-L167>
 --- Integrate <https://github.com/neovim/neovim/pull/15949>
-local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.lsp.progress')
+local M = require('dotfiles.autoload')('dotfiles.lsp.progress')
 
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local lsp = require('vim.lsp')
@@ -184,7 +184,7 @@ lsp_ignition.add_client_capabilities({
 })
 
 function lsp.util.get_progress_messages()
-  error('the original progress implementation has been replaced by ' .. MODULE_INFO.name)
+  error('the original progress implementation has been replaced by ' .. M.__module.name)
 end
 
 function M._client_add_token(client, token)

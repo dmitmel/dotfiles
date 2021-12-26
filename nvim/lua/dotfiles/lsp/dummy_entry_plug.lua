@@ -17,7 +17,7 @@
 --- provides a nice interface. Be sure to update it if something significant in
 --- the internals of `lsp.start_client` and/or `lsp.rpc` changes, there are
 --- failsafes in place which can notify about that.
-local M, MODULE_INFO = require('dotfiles.autoload')('dotfiles.lsp.dummy_entry_plug')
+local M = require('dotfiles.autoload')('dotfiles.lsp.dummy_entry_plug')
 
 -- TODO: Better request cancellation? Copy VSCode's CancellationToken abstraction. <https://github.com/microsoft/vscode/blob/1.59.1/src/vs/base/common/cancellation.ts>
 
@@ -33,7 +33,7 @@ local lsp_ignition = require('dotfiles.lsp.ignition')
 local utils = require('dotfiles.utils')
 
 M._RPC_FAKE_COMMAND_COOKIE = vim.v.progpath
-M._RPC_FAKE_ENV_COOKIE = MODULE_INFO.name
+M._RPC_FAKE_ENV_COOKIE = M.__module.name
 
 local orig_start_client = lsp.start_client
 function lsp.start_client(...)
@@ -67,7 +67,7 @@ function lsp.start_client(...)
         error(
           'this function is not supposed to ever be invoked! some internals of '
             .. 'lsp.start_client() and lsp.rpc.start() have changed, the '
-            .. MODULE_INFO.name
+            .. M.__module.name
             .. ' module needs updating!'
         )
       end,
@@ -391,7 +391,7 @@ function M.VirtualServer:_handle_initialize_request(params)
       self.config.capabilities or vim.empty_dict()
     ),
     serverInfo = {
-      name = MODULE_INFO.name,
+      name = M.__module.name,
     },
   }
 
