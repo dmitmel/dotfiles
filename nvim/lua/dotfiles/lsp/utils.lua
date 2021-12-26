@@ -232,7 +232,10 @@ function M.get_buf_lines_batch(bufnr, out_lines)
       -- ranges to then pass them to `nvim_buf_get_lines` just complicates the
       -- code and is not worth it (but, apparently, is worth writing a ten-line
       -- comment about...).
-      out_lines[linenr] = vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, true)[1] or ''
+      -- NOTE: Non-strict index mode is used here deliberately, some language
+      -- servers may return invalid line numbers, case in point: rust_analyzer,
+      -- when jumping to the definition of a module.
+      out_lines[linenr] = vim.api.nvim_buf_get_lines(bufnr, linenr, linenr + 1, false)[1] or ''
     end
     return out_lines
   end
