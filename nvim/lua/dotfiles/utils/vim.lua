@@ -414,11 +414,17 @@ function M.unsilent(fun, ...)
   return ret
 end
 
-function M.echo(chunks)
+function M.echo(chunks, hl_group)
+  if type(chunks) == 'string' then
+    chunks = { chunks, hl_group }
+  end
   return vim.api.nvim_echo(chunks, false, {})
 end
 
-function M.echomsg(chunks)
+function M.echomsg(chunks, hl_group)
+  if type(chunks) == 'string' then
+    chunks = { { chunks, hl_group } }
+  end
   return vim.api.nvim_echo(chunks, true, {})
 end
 

@@ -19,6 +19,21 @@ do
   M.nil_wrap = vim_fn.nil_wrap
 end
 
+-- Faster and lighter alternative to `vim.validate`.
+---@param name string
+---@param value any
+---@param expected_type type
+---@param optional? boolean
+function M.check_type(name, value, expected_type, optional)
+  if optional and value == nil then
+    return
+  end
+  local actual_type = type(value)
+  if actual_type ~= expected_type then
+    error(string.format('%s: expected %s, got %s', name, expected_type, actual_type))
+  end
+end
+
 --- Taken from <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L231-L235>.
 function M.first_non_nil(...)
   for i = 1, select('#', ...) do
@@ -249,6 +264,22 @@ function M.str_contains(str, pattern, plain)
   return string.find(str, pattern, 1, plain) ~= nil
 end
 
+function M.remove_prefix(s, prefix)
+  if vim.startswith(s, prefix) then
+    return s:sub(#prefix + 1)
+  else
+    return s
+  end
+end
+
+function M.remove_suffix(s, suffix)
+  if vim.endswith(s, suffix) then
+    return s:sub(1, -#suffix - 1)
+  else
+    return s
+  end
+end
+
 -- <https://github.com/dmitmel/ccloader3/blob/314624e307e0f53b48133af456e0f29d7f50090f/src/manifest.ts#L54-L72>
 function M.json_path_to_string(path)
   if type(path) ~= 'table' then
@@ -315,7 +346,7 @@ M.nice_package_config = {
 
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/uri.lua#L77>
 -- <https://github.com/neovim/neovim/commit/a2c2a086528d74bb0f6b2b68745b015f22ddd68a#diff-0ff1311ddfd42d7213ccbc416ef5783991c5fc46d1fc95a1b408f38e82aeafa1R77>
-M.URI_SCHEME_PATTERN = '^([a-zA-Z][a-zA-Z0-9+-.]*):/+'
+M.URI_SCHEME_PATTERN = '^([a-zA-Z][a-zA-Z0-9.+-]*):/'
 
 -- Same as `vim_uri.uri_to_fname`, but works only on actual `file://` URLs
 -- unlike the original which returns non-`file://` URLs as-is (pretending that

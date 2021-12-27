@@ -41,27 +41,13 @@ function M.handler(err, params, ctx, opts)
   opts.max_width = lsp_global_settings.SIGNATURE_WINDOW_MAX_WIDTH
   opts.max_height = lsp_global_settings.SIGNATURE_WINDOW_MAX_HEIGHT
   opts.focus_id = ctx.method
-  local param_higroup = opts.dotfiles_active_param_highlight_group or 'LspSignatureActiveParameter'
-  local param_priority = opts.dotfiles_active_param_highlight_priority or 99
   if params and params.signatures and not vim.tbl_isempty(params.signatures) then
     local filetype = utils.npcall(vim.api.nvim_buf_get_option, ctx.bufnr, 'filetype')
     local client = lsp.get_client_by_id(ctx.client_id)
     local trigger_chars = client and client.resolved_capabilities.signature_help_trigger_characters
-    local renderer, active_param_range = M.convert_signature_help_to_docblocks(
-      params,
-      filetype,
-      trigger_chars
-    )
+    local renderer = M.render_markup(params, filetype, trigger_chars)
     if not renderer:are_all_lines_empty() then
-      local _, float_winid = renderer:open_in_floating_window(opts)
-      if active_param_range then
-        highlight_match.add_ranges(
-          float_winid,
-          { active_param_range },
-          param_higroup,
-          param_priority
-        )
-      end
+      renderer:open_in_floating_window(opts)
       return
     end
   end
@@ -69,11 +55,13 @@ function M.handler(err, params, ctx, opts)
 end
 lsp.handlers['textDocument/signatureHelp'] = lsp_utils.wrap_handler_compat(M.handler)
 
+M.CURRENT_PARAM_HIGHLIGHT_GROUP = 'LspSignatureActiveParameter'
+
 -- Copied from <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L844-L910>,
 -- with <https://github.com/neovim/neovim/pull/15018> backported on top. See
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#signatureHelp>.
 ---@param renderer dotfiles.MarkupRenderer
-function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_chars, renderer)
+function M.render_markup(signature_help, syntax, trigger_chars, renderer)
   if trigger_chars == nil then
     trigger_chars = {}
   end
@@ -101,11 +89,9 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
     if idx == active_signature_idx + 1 then
       active_sig_linenr = renderer.linenr
     end
-    renderer:parse_plaintext_block(signature.label, syntax)
-    renderer:set_syntax_region_break()
+    renderer:parse_plaintext_section(signature.label, syntax)
   end
 
-  local active_param_range = nil
   if active_sig and active_sig.parameters and not vim.tbl_isempty(active_sig.parameters) then
     local active_param_idx = active_sig.activeParameter or signature_help.activeParameter or 0
     if not (0 <= active_param_idx and active_param_idx < #active_sig.parameters) then
@@ -151,32 +137,39 @@ function M.convert_signature_help_to_docblocks(signature_help, syntax, trigger_c
         end_idx,
         active_sig.label
       )
-      active_param_range = {
-        start_line + active_sig_linenr,
-        start_col,
-        end_line + active_sig_linenr,
-        end_col,
-      }
+      renderer:add_hlgroup({
+        group = M.CURRENT_PARAM_HIGHLIGHT_GROUP,
+        start_linenr = start_line + active_sig_linenr + 1,
+        start_colnr = start_col + 1,
+        end_linenr = end_line + active_sig_linenr + 1,
+        end_colnr = end_col + 1,
+      })
     elseif #signature_help.signatures > 1 then
       local end_line, end_col = lsp_utils.byte_offset_to_linenr_colnr_in_str(
         #active_sig.label,
         active_sig.label
       )
-      active_param_range = { active_sig_linenr, 0, end_line + active_sig_linenr, end_col }
+      renderer:add_hlgroup({
+        group = M.CURRENT_PARAM_HIGHLIGHT_GROUP,
+        start_linenr = active_sig_linenr + 1,
+        start_colnr = 1,
+        end_linenr = end_line + active_sig_linenr + 1,
+        end_colnr = end_col + 1,
+      })
     end
 
     if active_param and active_param.documentation then
       renderer:push_separator()
-      renderer:parse_documentation_blocks(active_param.documentation)
+      renderer:parse_documentation_sections(active_param.documentation)
     end
   end
 
   if active_sig and active_sig.documentation then
     renderer:push_separator()
-    renderer:parse_documentation_blocks(active_sig.documentation)
+    renderer:parse_documentation_sections(active_sig.documentation)
   end
 
-  return renderer, active_param_range
+  return renderer
 end
 
 return M

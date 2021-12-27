@@ -18,34 +18,21 @@ local CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS = utils_vim.has('nvim-0.5.0')
 -- <https://github.com/vim/vim/blob/53ba05b09075f14227f9be831a22ed16f7cc26b2/src/structs.h#L3298-L3299>
 local MAX_MATCHADDPOS_BATCH_SIZE = 8
 
--- Re-implementation of `coc#highlight#match_ranges`.
-function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
+function M.compute_slices(ranges, bufnr, offset_encoding)
   vim.validate({
-    winid = { winid, 'number' },
     ranges = { ranges, 'table' },
-    hlgroup = { hlgroup, 'string' },
-    priority = { priority, 'number' },
-    use_char_offsets = { use_lsp_char_offsets, 'boolean', true },
+    bufnr = { bufnr, 'number' },
+    offset_encoding = { offset_encoding, 'string', true },
   })
-
-  if winid == 0 then
-    winid = vim.api.nvim_get_current_win()
-  end
-  local bufnr = vim.api.nvim_win_get_buf(winid)
+  offset_encoding = offset_encoding or 'utf-8'
 
   local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
   assert(buf_line_count > 0, "buffer isn't loaded")
 
-  local char_offset_to_byte_offset = lsp_utils.char_offset_to_byte_offset
-  if not use_lsp_char_offsets then
-    char_offset_to_byte_offset = function(char_idx, line_text)
-      return utils.clamp(char_idx, 0, #line_text)
-    end
-  end
-
   local slices = {}
+
   for _, range in ipairs(ranges) do
-    local start_line, start_char, end_line, end_char = utils.unpack4(range)
+    local start_line, start_char, end_line, end_char, user_data = utils.unpack5(range)
     assert(
       start_line >= 0 and start_char >= 0 and end_line >= 0 and end_char >= 0,
       'invalid range'
@@ -65,16 +52,31 @@ function M.add_ranges(winid, ranges, hlgroup, priority, use_lsp_char_offsets)
       -- (i.e. me) has `listchars` enabled for newlines (i.e. always).
       local slice_start, slice_end = 0, #line + 1
       if linenr == start_line then
-        slice_start = char_offset_to_byte_offset(start_char, line)
+        slice_start = lsp_utils.char_offset_to_byte_offset(start_char, line, offset_encoding)
       end
       if linenr == end_line then
-        slice_end = char_offset_to_byte_offset(end_char, line)
+        slice_end = lsp_utils.char_offset_to_byte_offset(end_char, line, offset_encoding)
       end
       if slice_end > slice_start then
-        table.insert(slices, { linenr + 1, slice_start + 1, slice_end - slice_start })
+        table.insert(slices, { linenr + 1, slice_start + 1, slice_end - slice_start, user_data })
       end
     end
   end
+
+  return slices
+end
+
+-- Re-implementation of `coc#highlight#match_ranges`.
+function M.add_ranges(winid, ranges, hlgroup, priority, offset_encoding)
+  vim.validate({
+    winid = { winid, 'number' },
+    ranges = { ranges, 'table' },
+    hlgroup = { hlgroup, 'string' },
+    priority = { priority, 'number' },
+  })
+
+  winid = utils_vim.normalize_winid(winid)
+  local slices = M.compute_slices(ranges, vim.api.nvim_win_get_buf(winid), offset_encoding)
 
   local slices_len = #slices
   local match_ids = {}

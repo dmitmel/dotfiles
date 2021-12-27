@@ -9,6 +9,7 @@ local lsp_ignition = require('dotfiles.lsp.ignition')
 local lspconfig_utils = require('lspconfig.util')
 local lsp = require('vim.lsp')
 local lsp_utils = require('dotfiles.lsp.utils')
+local utils = require('dotfiles.utils')
 
 local js_and_ts_filetypes = {
   'javascript',
@@ -81,7 +82,7 @@ lsp_ignition.setup_config('eslint', {
 
   handlers = vim.tbl_deep_extend('force', lspconfig_eslint.handlers, {
     ['eslint/openDoc'] = lsp_utils.wrap_handler_errors(function(result, ctx, config)
-      assert(type(result.url) == 'string')
+      utils.check_type('result.url', result.url, 'string')
       vim.call('dotfiles#utils#open_url', result.url)
       return vim.NIL
     end),

@@ -42,13 +42,13 @@ function M.handler(err, params, ctx, opts)
   if params and params.contents then
     M.highlight_handler(err, params, ctx, opts)
     local renderer = lsp_markup.Renderer:new()
-    renderer:parse_documentation_blocks(params.contents)
+    renderer:parse_documentation_sections(params.contents)
     if not renderer:are_all_lines_empty() then
       renderer:open_in_floating_window(opts)
     end
-    -- Note that the error message shouldn't be displayed even when we received
-    -- no documentation blocks because the `highlight_handler` can be fired in
-    -- any case.
+    -- Note that no error message shouldn't be displayed even when we received
+    -- no documentation sections because the `highlight_handler` can be fired
+    -- in any case.
     return
   end
   lsp_utils.client_notify(ctx.client_id, 'hover not available', vim.log.levels.WARN)
@@ -90,19 +90,14 @@ function M.highlight_handler(err, params, ctx, opts)
     )
   else
     for _, winid in ipairs(buf_winids) do
-      local range = {
-        params.range['start']['line'],
-        params.range['start']['character'],
-        params.range['end']['line'],
-        params.range['end']['character'],
-      }
-      M.highlight_match_ids[winid] = highlight_match.add_ranges(
-        winid,
-        { range },
-        higroup,
-        priority,
-        true
-      )
+      M.highlight_match_ids[winid] = highlight_match.add_ranges(winid, {
+        {
+          params.range['start']['line'],
+          params.range['start']['character'],
+          params.range['end']['line'],
+          params.range['end']['character'],
+        },
+      }, higroup, priority, 'utf-16')
     end
   end
 

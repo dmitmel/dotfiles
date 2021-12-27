@@ -72,15 +72,16 @@
 
 " General syntax highlighting {{{
 
-  call s:hi('Normal',     { 'fg': 0x5, 'bg': 0x0 })
-  call s:hi('Italic',     { 'fg': 0xE, 'italic':    1 })
-  call s:hi('Bold',       { 'fg': 0xA, 'bold':      1 })
-  call s:hi('Underlined', { 'fg': 0x8, 'underline': 1 })
-  call s:hi('Title',      { 'fg': 0xD })
+  call s:hi('Normal',        { 'fg': 0x5, 'bg': 0x0      })
+  call s:hi('Italic',        { 'fg': 0xE, 'italic': 1    })
+  call s:hi('Bold',          { 'fg': 0xA, 'bold': 1      })
+  call s:hi('Underlined',    { 'fg': 0x8, 'underline': 1 })
+  call s:hi('Strikethrough', { 'strikethrough': 1        })
+  call s:hi('Title',         { 'fg': 0xD })
   hi! link Directory Title
-  call s:hi('Conceal',    { 'fg': 0xC })
+  call s:hi('Conceal',       { 'fg': 0xC })
   hi! link SpecialKey Special
-  call s:hi('MatchParen', { 'fg': 'fg', 'bg': 0x3 })
+  call s:hi('MatchParen',    { 'fg': 'fg', 'bg': 0x3 })
 
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
@@ -534,6 +535,20 @@
   hi! link mkdLinkDef              TypeDef
   hi! link mkdID                   Type
   hi! link mkdRule                 PreProc
+" }}}
+
+" Rendered Markdown (dotfiles.lsp.markup) {{{
+  hi! link   cmarkNodeCode              String
+  hi! link   cmarkNodeStrong            Bold
+  hi! link   cmarkNodeEmph              Italic
+  hi! link   cmarkNodeStrikethrough     Strikethrough
+  hi! link   cmarkNodeHeading           Title
+  hi! link   cmarkNodeBlockquote        Comment
+  hi! link   cmarkNodeThematicBreak     PreProc
+  hi! link   cmarkNodeLinkUrl           String
+  hi! link   cmarkNodeLinkText          Underlined
+  hi! link   cmarkNodeLinkTitle         cmarkNodeLinkUrl
+  hi! link   cmarkNodeItem              Identifier
 " }}}
 
 " Mail {{{

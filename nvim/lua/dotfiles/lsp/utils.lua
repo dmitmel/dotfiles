@@ -115,12 +115,8 @@ end
 -- <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/util.lua#L237-L263>
 -- <https://github.com/neovim/neovim/pull/16218>
 function M.char_offset_to_byte_offset(char_idx, line_text, offset_encoding)
-  if type(char_idx) ~= 'number' then
-    error(string.format('char_idx: expected number, got %s', type(char_idx)))
-  end
-  if type(line_text) ~= 'string' then
-    error(string.format('line_text: expected string, got %s', type(line_text)))
-  end
+  utils.check_type('char_idx', char_idx, 'number')
+  utils.check_type('line_text', line_text, 'string')
   if char_idx <= 0 then
     -- We are on the first character, thus there is no difference between byte
     -- or character position. Accordingly, return the first column.
@@ -164,12 +160,8 @@ end
 
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1858-L1872>.
 function M.byte_offset_to_char_offset(byte_idx, line_text, offset_encoding)
-  if type(byte_idx) ~= 'number' then
-    error(string.format('byte_idx: expected number, got %s', type(byte_idx)))
-  end
-  if type(line_text) ~= 'string' then
-    error(string.format('line_text: expected string, got %s', type(line_text)))
-  end
+  utils.check_type('byte_idx', byte_idx, 'number')
+  utils.check_type('line_text', line_text, 'string')
   if byte_idx <= 0 then
     -- First column, see a comment above.
     return 0
@@ -209,13 +201,9 @@ end
 --- Rerwite of <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/util.lua#L150-L221>
 --- and <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1489-L1558>.
 function M.get_buf_lines_batch(bufnr, out_lines)
-  if bufnr ~= nil and type(bufnr) ~= 'number' then
-    error(string.format('bufnr: expected number, got %s', type(bufnr)))
-  end
+  utils.check_type('bufnr', bufnr, 'number', true)
   for linenr, _ in pairs(out_lines) do
-    if type(linenr) ~= 'number' then
-      error(string.format('linenr: expected number, got %s', type(linenr)))
-    end
+    utils.check_type('linenr', linenr, 'number')
   end
 
   local function buf_lines()
@@ -336,9 +324,7 @@ end
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#position>
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>.
 function M.position_to_linenr_colnr(bufnr, position, offset_encoding)
-  if type(position) ~= 'table' then
-    error(string.format('position: expected table, got %s', type(position)))
-  end
+  utils.check_type('position', position, 'table')
   local linenr = position.line
   local line_text = M.get_buf_line(bufnr, linenr)
   local colnr = M.char_offset_to_byte_offset(position.character, line_text, offset_encoding)
@@ -347,12 +333,8 @@ end
 
 -- See also: <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1736-L1746>.
 function M.linenr_colnr_to_position(bufnr, linenr, colnr, offset_encoding)
-  if type(linenr) ~= 'number' then
-    error(string.format('linenr: expected number, got %s', type(linenr)))
-  end
-  if type(colnr) ~= 'number' then
-    error(string.format('colnr: expected number, got %s', type(colnr)))
-  end
+  utils.check_type('linenr', linenr, 'number')
+  utils.check_type('colnr', colnr, 'number')
   local line_text = M.get_buf_line(bufnr, linenr)
   local charnr = M.byte_offset_to_char_offset(colnr, line_text, offset_encoding)
   return { line = linenr, character = charnr }
