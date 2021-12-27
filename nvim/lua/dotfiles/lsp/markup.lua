@@ -852,6 +852,7 @@ function M.Renderer:render_documentation_into_buf(bufnr, winid, opts)
   vim.api.nvim_buf_call(bufnr, function()
     vim.cmd('syntax clear') -- Also clears b:current_syntax
     local loaded_syntaxes = {}
+    vim.cmd('syntax match cmarkTodo ' .. vim.call('dotfiles#todo_comments#get_pattern'))
 
     local region_id = 1
     for _, range in ipairs(self.syntaxes_ranges) do

@@ -549,6 +549,7 @@
   hi! link   cmarkNodeLinkText          Underlined
   hi! link   cmarkNodeLinkTitle         cmarkNodeLinkUrl
   hi! link   cmarkNodeItem              Identifier
+  hi! link   cmarkTodo                  Todo
 " }}}
 
 " Mail {{{
