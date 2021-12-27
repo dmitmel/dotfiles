@@ -127,6 +127,16 @@ function! dotfiles#utils#push_qf_list(opts) abort
   endif
 endfunction
 
+" Essentially a part of <https://github.com/romainl/vim-qf/blob/65f115c350934517382ae45198a74232a9069c2a/autoload/qf.vim#L86-L108>.
+function! dotfiles#utils#readjust_qf_list_height() abort
+  let max_height = get(g:, 'qf_max_height', 10) < 1 ? 10 : get(g:, 'qf_max_height', 10)
+  if get(b:, 'qf_isLoc', 0)
+    execute 'lclose|' . (get(g:, 'qf_auto_resize', 1) ? min([max_height, len(getloclist(0))]) : '') . 'lwindow'
+  else
+    execute 'cclose|' . (get(g:, 'qf_auto_resize', 1) ? min([max_height, len(getqflist())]) : '') . 'cwindow'
+  endif
+endfunction
+
 if has('*nvim_list_runtime_paths')
   function! dotfiles#utils#list_runtime_paths() abort
     return nvim_list_runtime_paths()
