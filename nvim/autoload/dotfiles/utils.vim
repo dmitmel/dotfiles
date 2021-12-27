@@ -157,3 +157,12 @@ function! dotfiles#utils#escape_and_wrap_regex(pat) abort
   let pat .= pat[-1] ==# '\' ? '\' : ''
   return '/'.pat.'/'
 endfunction
+
+function! dotfiles#utils#keepwinview(cmd) abort
+  let view = winsaveview()
+  try
+    execute a:cmd
+  finally
+    call winrestview(view)
+  endtry
+endfunction

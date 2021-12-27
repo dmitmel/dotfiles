@@ -123,7 +123,11 @@ let &history = max([&history, 10000])
   nnoremap <silent> <A-BS> <Cmd>quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
-  nnoremap <leader>v <Cmd>vsplit<CR><C-O>
+  nnoremap <leader>v <Cmd>call dotfiles#utils#keepwinview('vsplit<bar>normal!<C-o>')<CR>
+
+  " Open just the current buffer in a new tab.
+  nnoremap <leader>t <Cmd>call dotfiles#utils#keepwinview('tabedit %')<CR>
+  nnoremap <leader>T <Cmd>tabclose<CR>
 
 " }}}
 
