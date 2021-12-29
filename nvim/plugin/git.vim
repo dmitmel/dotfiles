@@ -21,12 +21,12 @@ let g:signify_sign_delete_first_line = g:gitgutter_sign_removed_first_line
 let g:signify_sign_change            = g:gitgutter_sign_modified
 let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
 
-lua <<EOF
+
+if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
+  lua <<EOF
   local ok, gitsigns = pcall(require, 'gitsigns')
-  vim.g.gitsigns_nvim_available = ok
-  if not ok then
-    return
-  end
+  if not ok then return end
+  vim.g.gitsigns_nvim_available = 1
   gitsigns.setup({
     signs = {
       add          = { text = vim.g.gitgutter_sign_added              },
@@ -46,6 +46,8 @@ lua <<EOF
     keymaps = {},
   })
 EOF
+endif  " }}}
+
 
 " mappings {{{
 
@@ -68,7 +70,7 @@ EOF
 
   let g:gitgutter_map_keys = 0
 
-  if g:gitsigns_nvim_available
+  if exists('g:gitsigns_nvim_available')
     nnoremap <silent><expr> [c &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"
     nnoremap <silent><expr> ]c &diff ? ']c' : "\<Cmd>Gitsigns next_hunk\<CR>"
     onoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>

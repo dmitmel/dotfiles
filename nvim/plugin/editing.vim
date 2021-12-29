@@ -48,7 +48,7 @@ endif
 
   let g:sleuth_automatic = 0
   function! DotfilesSleuth() abort
-    if get(b:, 'sleuth_automatic', 1)
+    if exists(':Sleuth') && get(b:, 'sleuth_automatic', 1)
       silent Sleuth
     endif
     " Sync shiftwidth, tabstop and softtabstop with each other.
