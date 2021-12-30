@@ -18,7 +18,10 @@ if dotfiles#plugman#is_registered('nvim-snippy')  " {{{
   lua <<EOF
   local snippy = require('snippy')
   snippy.setup({
-    -- shrug
+    scopes = {
+      cpp = { '_', 'c', 'cpp' },
+      typescript = { '_', 'javascript', 'typescript' },
+    },
   })
 EOF
 
