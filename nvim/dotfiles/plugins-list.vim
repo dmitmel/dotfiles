@@ -15,22 +15,18 @@ let s:plug = function('dotfiles#plugman#register')
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   call s:plug('https://github.com/tpope/vim-eunuch')
-  if g:vim_ide
-    " Superficial integration between Vim and the Ranger file manager[1], I
-    " only use it for exploring the project (this idea was taken from the
-    " classic "oil and vinegar" article[2]). Pressing `<leader>o` pops up the
-    " explorer in the parent directory of the current buffer.
-    " [1]: <https://ranger.github.io/>
-    " [2}: <http://vimcasts.org/blog/2013/01/oil-and-vinegar-split-windows-and-project-drawer/>
-    call s:plug('https://github.com/francoiscabrol/ranger.vim')
-  endif
+  " Superficial integration between Vim and the Ranger file manager[1], I only
+  " use it for exploring the project (this idea was taken from the classic "oil
+  " and vinegar" article[2]). Pressing `<leader>o` pops up the explorer in the
+  " parent directory of the current buffer.
+  " [1]: <https://ranger.github.io/>
+  " [2}: <http://vimcasts.org/blog/2013/01/oil-and-vinegar-split-windows-and-project-drawer/>
+  call s:plug('https://github.com/francoiscabrol/ranger.vim')
 " }}}
 
 " Editing {{{
-  if g:vim_ide
-    " Automatic tabular alignment of text. A pretty complicated plugin to use.
-    call s:plug('https://github.com/junegunn/vim-easy-align')
-  endif
+  " Automatic tabular alignment of text. A pretty complicated plugin to use.
+  call s:plug('https://github.com/junegunn/vim-easy-align')
   " Inserts closing quotes/parens/brackets/braces when typing an opening one.
   " Also handles <Space> or <Enter> being pressed within a pair of those
   " delimiters.
