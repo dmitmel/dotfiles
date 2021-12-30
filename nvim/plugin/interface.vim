@@ -24,7 +24,7 @@ set belloff=
 
 set title
 let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\.local$', '', '')
-function! DotfilesTitlestring() abort
+function! s:titlestring() abort
   if &filetype ==# 'fzf' && exists('b:fzf')
     let str = "FZF %{get(b:fzf,'name','')}"
   else
@@ -32,7 +32,15 @@ function! DotfilesTitlestring() abort
   endif
   return '%{g:dotfiles_titlestring_user_host}: ' . str . ' (%{v:progname})'
 endfunction
-let &titlestring = '%{%DotfilesTitlestring()%}'
+if has('patch-8.2.2854') || has('nvim-0.5.0')
+  let &titlestring = '%{%'.expand('<SID>').'titlestring()%}'
+else
+  let &titlestring = s:titlestring()
+  augroup dotfiles_titlestring
+    autocmd!
+    autocmd BufEnter * let &titlestring = s:titlestring()
+  augroup END
+endif
 
 " Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
 set mouse=a
