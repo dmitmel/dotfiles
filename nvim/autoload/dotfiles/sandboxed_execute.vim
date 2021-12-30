@@ -3,3 +3,7 @@
 function! dotfiles#sandboxed_execute#(cmd) abort
   execute a:cmd
 endfunction
+
+function! dotfiles#sandboxed_execute#capture(cmd) abort
+  return execute(a:cmd)
+endfunction

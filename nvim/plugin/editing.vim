@@ -508,7 +508,7 @@ endif
 
   function! PutOutput(cmd) abort
     let output = ''
-    silent! let output = dotfiles#sandboxed_execute#(a:cmd)
+    silent! let output = dotfiles#sandboxed_execute#capture(a:cmd)
     call dotfiles#utils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
   endfunction
   command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
