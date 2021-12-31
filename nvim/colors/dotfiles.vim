@@ -122,7 +122,7 @@
   hi! link StringDelimiter String
   call s:hi('Comment',     { 'fg': 0x3 })
   hi! link SpecialComment  Comment
-  call s:hi('Todo',        { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  call s:hi('Todo',        { 'fg': 0xA, 'bg': 'bg', 'reverse': 1, 'bold': 1 })
   call s:hi('Function',    { 'fg': 0xD })
   call s:hi('Identifier',  { 'fg': 0x8 })
   hi! link Variable        Identifier
@@ -141,7 +141,7 @@
 
 " User interface {{{
 
-  call s:hi('Error',      { 'fg': 'bg', 'bg': 0x8 })
+  call s:hi('Error',      { 'fg': 0x8, 'bg': 'bg', 'reverse': 1 })
   call s:hi('ErrorMsg',   { 'fg': 0x8 })
   call s:hi('WarningMsg', { 'fg': 0x9 })
   call s:hi('TooLong',    { 'fg': 0x8 })
