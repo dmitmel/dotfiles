@@ -59,10 +59,11 @@ let s:plug = function('dotfiles#plugman#register')
     " [2]: <https://github.com/lukas-reineke/indent-blankline.nvim/pull/155>
     call s:plug('https://github.com/lukas-reineke/indent-blankline.nvim')
   endif
-  " Prints the number of search results when using the `/` command or the `n`
-  " and `N` motions and similar. This plugin is in a dire need of modernization
-  " (also it's noticeably slow).
-  call s:plug('https://github.com/henrik/vim-indexed-search')
+  if !exists('*searchcount')
+    " Prints the number of search results when using the `/` command or the `n`
+    " and `N` motions and similar.
+    call s:plug('https://github.com/henrik/vim-indexed-search')
+  endif
   " Extension of the built-in matchit plugin (highlights matching braces,
   " typically for blocks in syntaxes of C-like languages) and the `%` family of
   " motions (jump between those block delimiters), which adds support for

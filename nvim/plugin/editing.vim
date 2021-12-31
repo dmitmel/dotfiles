@@ -1,3 +1,7 @@
+" <https://github.com/neovim/neovim/commit/6a7c904648827ec145fe02b314768453e2bbf4fe>
+" <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
+let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
+
 " allow moving cursor just after the last chraracter of the line
 set virtualedit=onemore
 
@@ -299,12 +303,67 @@ endif
   xnoremap \ <Cmd>nohlsearch<CR>
 
   let g:indexed_search_center = 1
-  " If vim-indexed-search is installed, disable the built-in thing to show the
-  " number of search results, otherwise enable it.
+
+  let s:searchcount_plugin_available = 1
+  noremap <Plug>dotfiles_search_show_count <nop>
   if dotfiles#plugman#is_registered('vim-indexed-search')
-    set shortmess+=S
+    let g:indexed_search_mappings = 0
+    nnoremap <Plug>dotfiles_search_show_count :ShowSearchIndex<CR>
+    xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
+  elseif exists('*searchcount')
+    " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
+    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count_nowait(<bang>0)
+    if s:has_cmd_mappings
+      noremap <Plug>dotfiles_search_show_count <Cmd>call dotfiles#search#show_count(0)<CR>
+    else
+      nnoremap <Plug>dotfiles_search_show_count :call dotfiles#search#show_count(0)<CR>
+      xnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count(0)<CR>gv
+    endif
   else
-    set shortmess-=S
+    let s:searchcount_plugin_available = 0
+  endif
+
+  " The following section is based on
+  " <https://github.com/henrik/vim-indexed-search/blob/5af020bba084b699d0453f242d7d76711d64b1e3/plugin/indexed-search.vim#L94-L152>.
+  function! s:search_mapping_after()
+    let fdo = has('folding') ? split(&foldopen, ',') : []
+    return
+    \ (index(fdo, 'all') >= 0 || index(fdo, 'search') >= 0 ? 'zv' : '') .
+    \ (get(g:, 'indexed_search_center', 0) ? 'zz' : '') .
+    \ "\<Plug>dotfiles_search_show_count"
+  endfunction
+
+  map  <expr> <Plug>dotfiles_search_after <SID>search_mapping_after()
+  imap        <Plug>dotfiles_search-after <nop>
+
+  cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? "\<Plug>dotfiles_search_after" : '')
+  " map  <expr> gd   "gd" . "\<Plug>dotfiles_search_after"
+  " map  <expr> gD   "gD" . "\<Plug>dotfiles_search_after"
+  map  <expr> *    "*"  . "\<Plug>dotfiles_search_after"
+  map  <expr> #    "#"  . "\<Plug>dotfiles_search_after"
+  map  <expr> g*   "g*" . "\<Plug>dotfiles_search_after"
+  map  <expr> g#   "g#" . "\<Plug>dotfiles_search_after"
+  map  <expr> n    "n"  . "\<Plug>dotfiles_search_after"
+  map  <expr> N    "N"  . "\<Plug>dotfiles_search_after"
+  " Remove those from the select mode.
+  " sunmap gd
+  " sunmap gD
+  sunmap *
+  sunmap #
+  sunmap g*
+  sunmap g#
+  sunmap n
+  sunmap N
+
+  " The built-in message that shows the number of search results should be
+  " enabled only if a search counting plugin is not available at the moment.
+  if has('patch-8.1.1270') || has('nvim-0.4.0')
+    " <https://github.com/neovim/neovim/commit/777c2a25ce00f12b2d0dc26d594b1ba7ba10dcc6>
+    if s:searchcount_plugin_available
+      set shortmess+=S
+    else
+      set shortmess-=S
+    endif
   endif
 
   " search inside a visual selection
@@ -318,13 +377,10 @@ endif
     let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')
     let @" = tmp
   endfunction
-  " HACK: See `nvim/after/plugin/dotfiles/fixup.vim`
-  xmap <Plug>dotfiles_VisualStarSearch_* <Cmd>call <SID>VisualStarSearch('/')<CR>n
-  xmap <Plug>dotfiles_VisualStarSearch_# <Cmd>call <SID>VisualStarSearch('?')<CR>n
-  xmap * <Plug>dotfiles_VisualStarSearch_*
-  xmap # <Plug>dotfiles_VisualStarSearch_#
-  xmap g* <Plug>dotfiles_VisualStarSearch_*
-  xmap g# <Plug>dotfiles_VisualStarSearch_#
+  xmap * <Cmd>call <SID>VisualStarSearch('/')<CR>/<CR>
+  xmap # <Cmd>call <SID>VisualStarSearch('?')<CR>?<CR>
+  xmap g* *
+  xmap g# #
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
   command! -nargs=+ Search let @/ = escape(<q-args>, '/') | normal! /<C-r>/<CR>
@@ -517,5 +573,7 @@ endif
   " pollute the global scope. Intended for interactive-mode debugging of
   " Vimscript.
   command! -nargs=+ -complete=command Execute try | call dotfiles#sandboxed_execute#(<q-args>) | catch | echoerr v:exception | endtry
+
+  command! -nargs=+ -complete=command Timeit try | echo reltimefloat(dotfiles#sandboxed_execute#timeit(<q-args>)) | catch | echoerr v:exception | endtry
 
 " }}}
