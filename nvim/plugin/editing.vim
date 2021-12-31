@@ -312,12 +312,12 @@ endif
     xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
   elseif exists('*searchcount')
     " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
-    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count_nowait(<bang>0)
+    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count_nowait({'no_limits': <bang>0})
     if s:has_cmd_mappings
-      noremap <Plug>dotfiles_search_show_count <Cmd>call dotfiles#search#show_count(0)<CR>
+      noremap <Plug>dotfiles_search_show_count <Cmd>call dotfiles#search#show_count({})<CR>
     else
-      nnoremap <Plug>dotfiles_search_show_count :call dotfiles#search#show_count(0)<CR>
-      xnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count(0)<CR>gv
+      nnoremap <Plug>dotfiles_search_show_count :call dotfiles#search#show_count({})<CR>
+      xnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count({})<CR>gv
     endif
   else
     let s:searchcount_plugin_available = 0
