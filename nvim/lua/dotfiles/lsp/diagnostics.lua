@@ -10,6 +10,7 @@ local utils = require('dotfiles.utils')
 local lsp = require('vim.lsp')
 local utils_vim = require('dotfiles.utils.vim')
 local lsp_global_settings = require('dotfiles.lsp.global_settings')
+local lsp_utils = require('dotfiles.lsp.utils')
 
 M.ALL_SEVERITIES = { Severity.ERROR, Severity.WARN, Severity.INFO, Severity.HINT }
 
@@ -275,12 +276,64 @@ function lsp.diagnostic.save(diagnostics, bufnr, client_id, ...)
   return orig_lsp_diagnostic_save(diagnostics, bufnr, client_id, ...)
 end
 
-local orig_lsp_diagnostic_on_publish_diagnostics = lsp.diagnostic.on_publish_diagnostics
+-- This function must be completely replaced to use my `get_buf_lines_batch`.
+-- The default implementation uses a local function for some reason with much
+-- simpler logic even in comparison to `lsp.util.get_lines` through
+-- `diagnostic_lsp_to_vim`. There are other functions which use that converter
+-- function, but they are all deprecated, so I don't bother patching them. The
+-- code was copied from <https://github.com/neovim/neovim/blob/v0.6.1/runtime/lua/vim/lsp/diagnostic.lua#L156-L210>.
 function lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config, ...)
   if not err and result and result.diagnostics and ctx.client_id then
     M.patch_lsp_diagnostics(result.diagnostics, ctx.client_id)
   end
-  return orig_lsp_diagnostic_on_publish_diagnostics(err, result, ctx, config, ...)
+  if config ~= nil then
+    error('TODO: configuration of on_publish_diagnostics is disabled')
+  end
+  local bufnr = vim.uri_to_bufnr(result.uri)
+  local client_id = utils.if_nil(ctx.client_id, -1)
+  local namespace = lsp.diagnostic.get_namespace(client_id)
+  vim_diagnostic.set(namespace, bufnr, M.convert_lsp_to_vim(result.diagnostics, bufnr, client_id))
+end
+
+-- Copied from <https://github.com/neovim/neovim/blob/v0.6.1/runtime/lua/vim/lsp/diagnostic.lua#L91-L118>.
+function M.convert_lsp_to_vim(lsp_diagnostics, bufnr, client_id)
+  local client = lsp.get_client_by_id(client_id)
+  local enc = client and client.offset_encoding
+
+  local lines_request = {}
+  for _, diag in ipairs(lsp_diagnostics) do
+    lines_request[diag.range.start.line] = true
+    lines_request[diag.range['end'].line] = true
+  end
+  lsp_utils.get_buf_lines_batch(bufnr, lines_request)
+
+  local vim_diagnostics = {}
+  for i, diag in ipairs(lsp_diagnostics) do
+    local start_pos, end_pos = diag.range.start, diag.range['end']
+    local start_text, end_text = lines_request[start_pos.line], lines_request[end_pos.line]
+    local start_col = lsp_utils.char_offset_to_byte_offset(start_pos.character, start_text, enc)
+    local end_col = lsp_utils.char_offset_to_byte_offset(end_pos.character, end_text, enc)
+    vim_diagnostics[i] = {
+      lnum = start_pos.line,
+      col = start_col,
+      end_lnum = end_pos.line,
+      end_col = end_col,
+      message = diag.message,
+      severity = diag.severity,
+      source = diag.source,
+      user_data = {
+        lsp = {
+          code = diag.code,
+          codeDescription = diag.codeDescription,
+          tags = diag.tags,
+          relatedInformation = diag.relatedInformation,
+          data = diag.data,
+        },
+      },
+    }
+  end
+
+  return vim_diagnostics
 end
 
 -- NOTE: <https://github.com/neovim/neovim/pull/16520>
