@@ -8,78 +8,60 @@ local lsp_global_settings = require('dotfiles.lsp.global_settings')
 local utils_vim = require('dotfiles.utils.vim')
 local utils = require('dotfiles.utils')
 
--- We patch this function instead of `open_floating_preview` for customizing
--- the preview window. Why? Because `open_floating_preview` may reuse an
--- already open window, these cases must be ignored, but there is no way to
--- tell from its return values if a window has been reused. However,
--- `close_preview_autocmd` is always called only during setup of the window
--- (<https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1432>),
--- which is an ideal injection point for me.
--- TODO: <https://github.com/neovim/neovim/pull/16557>
-function lsp.util.close_preview_autocmd(close_events, floating_winid)
-  local floating_bufnr = vim.api.nvim_win_get_buf(floating_winid)
-  local orig_bufnr = vim.api.nvim_get_current_buf()
+-- Backport of <https://github.com/neovim/neovim/pull/16557>.
+if not utils_vim.has('nvim-0.6.1') then
+  function lsp.util.close_preview_autocmd(close_events, float_winid)
+    local float_bufnr = vim.api.nvim_win_get_buf(float_winid)
+    local orig_bufnr = vim.api.nvim_get_current_buf()
 
-  -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1431>
-  vim.api.nvim_buf_set_keymap(
-    floating_bufnr,
-    'n',
-    '<Esc>',
-    '<Cmd>bdelete<CR>',
-    { silent = true, noremap = true }
-  )
-  -- <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/autoload/coc/float.vim#L166>
-  vim.api.nvim_win_set_option(
-    floating_winid,
-    'linebreak',
-    vim.api.nvim_win_get_option(floating_winid, 'wrap')
-  )
-
-  -- The following is a backport of <https://github.com/neovim/neovim/pull/16557>.
-  local augroup = 'preview_window_' .. floating_winid
-  vim.cmd('augroup ' .. augroup)
-  vim.cmd('autocmd!')
-  vim.cmd(
-    string.format(
-      'autocmd BufEnter * lua vim.lsp.util._close_preview_window(%d, {%d, %d})',
-      floating_winid,
-      floating_bufnr,
-      orig_bufnr
-    )
-  )
-  if #close_events > 0 then
+    local augroup = 'preview_window_' .. float_winid
+    vim.cmd('augroup ' .. augroup)
+    vim.cmd('autocmd!')
     vim.cmd(
       string.format(
-        'autocmd %s <buffer> lua vim.lsp.util._close_preview_window(%d, {})',
-        table.concat(close_events, ','),
-        floating_winid
+        'autocmd BufEnter * lua vim.lsp.util._close_preview_window(%d, {%d, %d})',
+        float_winid,
+        float_bufnr,
+        orig_bufnr
       )
     )
+    if #close_events > 0 then
+      vim.cmd(
+        string.format(
+          'autocmd %s <buffer> lua vim.lsp.util._close_preview_window(%d, {})',
+          table.concat(close_events, ','),
+          float_winid
+        )
+      )
+    end
+    vim.cmd('augroup END')
   end
-  vim.cmd('augroup END')
-end
 
--- Backport of <https://github.com/neovim/neovim/pull/16557>.
-function lsp.util._close_preview_window(floating_winid, bufnrs)
-  vim.schedule(function()
-    if vim.tbl_contains(bufnrs, vim.api.nvim_get_current_buf()) then
-      return
-    end
-    if vim.api.nvim_win_is_valid(floating_winid) then
-      local augroup = 'preview_window_' .. floating_winid
-      vim.cmd('autocmd! ' .. augroup)
-      vim.cmd('augroup! ' .. augroup)
-      vim.api.nvim_win_close(floating_winid, true)
-    end
-  end)
+  function lsp.util._close_preview_window(float_winid, bufnrs)
+    vim.schedule(function()
+      if vim.tbl_contains(bufnrs or {}, vim.api.nvim_get_current_buf()) then
+        return
+      end
+      if vim.api.nvim_win_is_valid(float_winid) then
+        local augroup = 'preview_window_' .. float_winid
+        vim.cmd('autocmd! ' .. augroup)
+        vim.cmd('augroup! ' .. augroup)
+        vim.api.nvim_win_close(float_winid, true)
+      end
+    end)
+  end
 end
 
 -- <https://github.com/neovim/neovim/pull/16465>
 local HAS_OPEN_FLOAT_OPTION_FOCUS = utils_vim.has('nvim-0.6.0')
 
+--- These variables (Plural because there are two: buf-local and win-local,
+--- with the same name. I am very original, I know.) are used to check if the
+--- floating window returned by `open_floating_preview` was just created or
+--- that function decided to reuse an existing one.
+M.BUF_AND_WIN_INIT_CHECK_VAR = 'dotfiles_lsp_float_initialized'
+
 local orig_util_open_floating_preview = lsp.util.open_floating_preview
--- ...Although patching the `open_floating_preview` function is still useful,
--- for instance, to set global default options.
 -- TODO: Re-implement to fix flicker on repeated opens. It is most likely
 -- caused by syntax loading between closing of the previous window and opening
 -- a new one.
@@ -91,7 +73,6 @@ function lsp.util.open_floating_preview(contents, syntax, opts, ...)
       'CursorMoved',
       'CursorMovedI',
       'InsertCharPre',
-      -- 'BufLeave',
       -- 'WinScrolled'
     }
   if HAS_OPEN_FLOAT_OPTION_FOCUS then
@@ -99,7 +80,25 @@ function lsp.util.open_floating_preview(contents, syntax, opts, ...)
   else
     opts.focus_id = nil
   end
-  return orig_util_open_floating_preview(contents, syntax, opts, ...)
+  local float_bufnr, float_winid = orig_util_open_floating_preview(contents, syntax, opts, ...)
+
+  if not utils.npcall(vim.api.nvim_buf_get_var, float_bufnr, M.BUF_AND_WIN_INIT_CHECK_VAR) then
+    vim.api.nvim_buf_set_var(float_bufnr, M.BUF_AND_WIN_INIT_CHECK_VAR, true)
+    -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1431>
+    vim.api.nvim_buf_set_keymap(float_bufnr, 'n', '<Esc>', '<Cmd>bdelete<CR>', {
+      silent = true,
+      noremap = true,
+    })
+  end
+
+  if not utils.npcall(vim.api.nvim_win_get_var, float_winid, M.BUF_AND_WIN_INIT_CHECK_VAR) then
+    vim.api.nvim_win_set_var(float_winid, M.BUF_AND_WIN_INIT_CHECK_VAR, true)
+    -- <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/autoload/coc/float.vim#L166>
+    local opt_wrap = vim.api.nvim_win_get_option(float_winid, 'wrap')
+    vim.api.nvim_win_set_option(float_winid, 'linebreak', opt_wrap)
+  end
+
+  return float_bufnr, float_winid
 end
 
 local orig_util_make_floating_popup_options = lsp.util.make_floating_popup_options
