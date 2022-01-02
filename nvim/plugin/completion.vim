@@ -15,12 +15,17 @@ set completeopt=menuone,noselect
 
 if dotfiles#plugman#is_registered('nvim-snippy')  " {{{
 
+  function! s:get_snippet_scopes(scopes) abort
+    call extend(a:scopes, get(b:, 'dotfiles_snippets_extra_scopes', []))
+    return a:scopes
+  endfunction
+
   lua <<EOF
   local snippy = require('snippy')
+  local sid = vim.fn.expand('<SID>')
   snippy.setup({
     scopes = {
-      cpp = { '_', 'c', 'cpp' },
-      typescript = { '_', 'javascript', 'typescript' },
+      _ = vim.funcref(sid .. 'get_snippet_scopes'),
     },
   })
 EOF
