@@ -105,16 +105,6 @@ set nofixendofline
 " }}}
 
 
-" Netrw {{{
-  " disable most of the Netrw functionality (because I use Ranger) except its
-  " helper functions (which I use in my dotfiles)
-  let g:loaded_netrwPlugin = 1
-  " re-add Netrw's gx mappings since we've disabled them
-  nnoremap <silent> gx :call netrw#BrowseX(netrw#GX(),netrw#CheckIfRemote(netrw#GX()))<CR>
-  xnoremap <silent> gx :<C-u>call netrw#BrowseXVis()<CR>
-" }}}
-
-
 " Ranger {{{
   let g:ranger_replace_netrw = 1
   let g:ranger_map_keys = 0
