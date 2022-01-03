@@ -209,15 +209,6 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   " coc mappings are enabled
   let g:dotfiles_coc_filetypes = {}
 
-  command! -nargs=* CocKeywordprg call CocAction('doHover')
-  augroup dotfiles_coc
-    autocmd!
-    autocmd FileType * if has_key(g:dotfiles_coc_filetypes, &filetype)
-      \|let &l:keywordprg = ":CocKeywordprg"
-      \|endif
-    autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-  augroup end
-
   " mappings {{{
     let g:coc_snippet_next = '<Tab>'
     let g:coc_snippet_prev = '<S-Tab>'
@@ -227,37 +218,47 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
     imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
     inoremap <silent><expr> <C-Space> coc#refresh()
-    inoremap <silent> <A-s> <Cmd>call CocActionAsync('showSignatureHelp')<CR>
-    imap <F1> <A-s>
 
-    nmap <silent> [d <Plug>(coc-diagnostic-prev)
-    nmap <silent> ]d <Plug>(coc-diagnostic-next)
+    nmap <silent> [g <Plug>(coc-diagnostic-prev)
+    nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
     nmap <silent> <space>gd <Plug>(coc-definition)
+    nmap <silent> <space>gD <Plug>(coc-declaration)
     nmap <silent> <space>gt <Plug>(coc-type-definition)
     nmap <silent> <space>gi <Plug>(coc-implementation)
     nmap <silent> <space>gr <Plug>(coc-references)
     nmap <silent> <F2>      <Plug>(coc-rename)
     nmap <silent> <A-CR>    <Plug>(coc-codeaction-line)
     xmap <silent> <A-CR>    <Plug>(coc-codeaction-selected)
-    " nmap <silent> <leader>qf  <Plug>(coc-fix-current)
+    nmap <silent> <A-d>     <Plug>(coc-diagnostic-info)
+
+    nnoremap <silent> <space>K <Cmd>call CocActionAsync('doHover')<CR>
+    nnoremap <silent> <space>s <Cmd>call CocActionAsync('showSignatureHelp')<CR>
+    inoremap <silent> <F1>     <Cmd>call CocActionAsync('showSignatureHelp')<CR>
 
     nnoremap <silent> <space>l <Cmd>CocList<CR>
     nnoremap <silent> <space>d <Cmd>CocList --auto-preview diagnostics<CR>
     nnoremap <silent> <space>c <Cmd>CocList commands<CR>
     nnoremap <silent> <space>o <Cmd>CocList --auto-preview outline<CR>
-    nnoremap <silent> <space>s <Cmd>CocList --interactive symbols<CR>
+    nnoremap <silent> <space>w <Cmd>CocList --interactive symbols<CR>
     nnoremap <silent> <space>e <Cmd>CocList extensions<CR>
     nnoremap <silent> <space>h <Cmd>CocPrev<CR>
     nnoremap <silent> <space>k <Cmd>CocPrev<CR>
     nnoremap <silent> <space>l <Cmd>CocNext<CR>
     nnoremap <silent> <space>j <Cmd>CocNext<CR>
     nnoremap <silent> <space>p <Cmd>CocListResume<CR>
+
+    nmap <silent><expr> K  has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>K"  : "K"
+    nmap <silent><expr> gd has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gd" : "gd"
+    nmap <silent><expr> gD has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gD" : "gD"
+    nmap <silent><expr> gr has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gr" : "gr"
   " }}}
 
   " CocFormat {{{
     function! s:CocFormat(range, line1, line2) abort
-      if !has_key(g:dotfiles_coc_filetypes, &filetype) | return | endif
+      if !has_key(g:dotfiles_coc_filetypes, &filetype) || !CocAction('ensureDocument')
+        return
+      endif
       if a:range == 0
         call CocAction('format')
       else
