@@ -5,6 +5,10 @@
 -- TODO: custom server for prettier
 -- TODO TODO TODO: <https://github.com/fsouza/prettierd/blob/main/src/service.ts>
 
+-- TODO: links in case I continue work on this:
+-- <https://github.com/jose-elias-alvarez/nvim-lsp-ts-utils/tree/fd608d99e2a5727591a0d4a8e3e5b61c5372abbc>
+-- <https://github.com/jose-elias-alvarez/nvim-lsp-ts-utils/blob/6814f3b7b4661213a837746bb461bad80c2fe526/lua/nvim-lsp-ts-utils/null-ls.lua>
+
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local lspconfig_utils = require('lspconfig.util')
 local lsp = require('vim.lsp')

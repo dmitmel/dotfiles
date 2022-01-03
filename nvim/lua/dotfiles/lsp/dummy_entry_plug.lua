@@ -19,6 +19,15 @@
 --- failsafes in place which can notify about that.
 local M = require('dotfiles.autoload')('dotfiles.lsp.dummy_entry_plug')
 
+-- TODO: links in case I continue work on this:
+-- <https://github.com/fannheyward/coc-pyright/blob/f3ab9923fcbf924b874284b4c7e56ceea6d723ce/src/formatters/yapf.ts#L18-L20>
+-- <https://github.com/fannheyward/coc-pyright/blob/a0da59feef3cfa9f0e5bff0d4e6e705fea256bb9/src/formatters/baseFormatter.ts#L65-L76>
+-- <https://github.com/neoclide/coc-prettier/blob/7fda02901de563f5ecc2baf98b307f8ffc4ac2f5/src/index.ts#L143>
+-- <https://github.com/fannheyward/coc-pyright/blob/a0da59feef3cfa9f0e5bff0d4e6e705fea256bb9/src/formatters/baseFormatter.ts#L41-L59>
+-- <https://github.com/jose-elias-alvarez/null-ls.nvim/blob/5d37e35938862f1642ef94206bec9a6f184ec798/lua/null-ls/formatting.lua>
+-- <https://github.com/mfussenegger/nvim-lint/blob/71b3a9254cff246d057e91ea7ba66f76042de6a9/lua/lint.lua>
+-- <https://github.com/jose-elias-alvarez/null-ls.nvim/blob/5d37e35938862f1642ef94206bec9a6f184ec798/lua/null-ls/loop.lua>
+
 -- TODO: Better request cancellation? Copy VSCode's CancellationToken abstraction. <https://github.com/microsoft/vscode/blob/1.59.1/src/vs/base/common/cancellation.ts>
 
 -- TODO: integrate vint for vimscript

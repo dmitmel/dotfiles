@@ -23,6 +23,11 @@
 --- msgpack structures instead of, again, a middle layer (i.e. Vimscript).
 local M = require('dotfiles.autoload')('dotfiles.rplugin_bridge')
 
+-- TODO: links in case I continue work on this:
+-- https://github.com/neoclide/neovim/blob/f34a0d5ad5e890bd4a66d90c8c790dcd291ef74b/src/api/client.ts#L141
+-- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/autoload/coc/client.vim#L217>
+-- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/autoload/coc/client.vim#L230>
+
 -- TODO comment about format of RPC methods unlikely to change
 
 local utils = require('dotfiles.utils')

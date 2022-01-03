@@ -109,6 +109,7 @@ end
 -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#textDocuments>
 
 -- TODO: <https://github.com/neovim/neovim/pull/16382>
+-- TODO: <https://github.com/neovim/neovim/pull/16731>
 
 -- See also:
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L155-L181>

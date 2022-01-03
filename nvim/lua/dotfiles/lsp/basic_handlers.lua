@@ -2,6 +2,11 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.basic_handlers')
 
 -- TODO: callHierarchy/incomingCalls and callHierarchy/outgoingCalls
 
+-- TODO: links in case I continue work on this:
+-- <https://github.com/ray-x/navigator.lua/tree/c3f6b142330303d5db7ec34b9362afe604369b7b>
+-- <https://github.com/RishabhRD/popfix/tree/f3571e676739208871bd38f9fa0fddf554b6a7a8>
+-- <https://github.com/RishabhRD/nvim-lsputils/tree/aaaf8c12771e905e5abf68470d8bda3e80536a0d>
+
 local lsp = require('vim.lsp')
 local lsp_utils = require('dotfiles.lsp.utils')
 local utils = require('dotfiles.utils')
