@@ -129,6 +129,10 @@ else
   M.unpack = table.unpack
 end
 
+function M.unpack_packed(list)
+  return M.unpack(list, 1, list.n)
+end
+
 -- FAST FIXED-SIZE UNPACK <https://gitspartv.github.io/LuaJIT-Benchmarks/#test4> {{{
 -- stylua: ignore start
 function M.unpack1(t)  return t[1] end

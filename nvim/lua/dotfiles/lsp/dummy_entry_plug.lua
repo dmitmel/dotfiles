@@ -431,4 +431,23 @@ function M.VirtualServer:force_stop()
   self.client_dispatchers.on_exit(0, 0) -- code, signal
 end
 
+-- function M.setup_formatter(config_name, config)
+--   utils.check_type('config_name', config_name, 'string')
+--   utils.check_type('config', config, 'table')
+--
+--   utils.check_type('config.filetypes', config.filetypes, 'table', true)
+--   utils.check_type('config.root_dir', config.root_dir, 'function', true)
+--
+--   lsp_ignition.setup_config(config_name, {
+--     filetypes = config.filetypes,
+--     root_dir = config.root_dir,
+--     single_file_support = true,
+--
+--     virtual_server = {
+--       documentFormattingProvider = true,
+--       documentRangeFormattingProvider = true, -- TODO
+--     },
+--   })
+-- end
+
 return M

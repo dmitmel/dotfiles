@@ -106,7 +106,8 @@ class DotfilesHelperPlugin:
 
     except YapfError as err:
       # <https://github.com/google/yapf/blob/5fda04e1cdf50f548e121173337e07cc5304b752/yapf/__init__.py#L363-L365>
-      raise pynvim.ErrorResponse('yapf: {}'.format(err))
+      # raise pynvim.ErrorResponse('yapf: {}'.format(err))
+      return None
 
   @pynvim.function('_dotfiles_rplugin_lsp_linter_vint', sync=True)
   def rpc_lsp_formatter_vint(self, args: List[Any]) -> Any:

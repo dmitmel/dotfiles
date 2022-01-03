@@ -208,7 +208,7 @@ let &history = max([&history, 10000])
   if dotfiles#plugman#is_registered('vim-obsession')
     let g:airline_extensions += ['obsession']
   endif
-  if dotfiles#plugman#is_registered('nvim-lspconfig')
+  if get(g:, 'dotfiles_use_nvimlsp', 0)
     let g:airline_extensions += ['dotfiles_nvimlsp']
   endif
 

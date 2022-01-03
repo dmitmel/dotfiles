@@ -40,7 +40,7 @@ EOF
     if has('nvim-0.6.0')
       " With the new `vim.diagnostic` system a handler is used to populate the
       " stats variable.
-      autocmd DiagnosticChanged * redrawstatus
+      " autocmd DiagnosticChanged * redrawstatus
     else
       autocmd User LspDiagnosticsChanged call v:lua.dotfiles._airline_extension_on_diagnostics_changed()
       autocmd User LspDiagnosticsChanged redrawstatus

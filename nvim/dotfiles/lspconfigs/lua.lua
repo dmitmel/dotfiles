@@ -2,6 +2,7 @@
 -- <https://github.com/sumneko/vscode-lua/blob/master/setting/schema.json>
 
 local lsp_ignition = require('dotfiles.lsp.ignition')
+local lsp_dummy_entry_plug = require('dotfiles.lsp.dummy_entry_plug')
 local utils = require('dotfiles.utils')
 local utils_vim = require('dotfiles.utils.vim')
 local vim_uri = require('vim.uri')
@@ -96,6 +97,11 @@ local lua_config = lsp_ignition.setup_config('sumneko_lua', {
     final_config.settings.Lua.workspace.library = cfg_libraries
   end,
 })
+
+-- lsp_dummy_entry_plug.setup_formatter('stylua', {
+--   filetypes = lua_config.filetypes,
+--   root_dir = lua_config.root_dir,
+-- })
 
 lsp_ignition.setup_config('stylua', {
   filetypes = lua_config.filetypes,

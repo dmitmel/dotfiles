@@ -87,6 +87,8 @@ alias edit="$EDITOR"
 alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
+  alias ec="e --cmd 'let dotfiles_use_nvimlsp = 1'"
+  alias ecs="e --cmd 'let dotfiles_use_nvimlsp = 1' -S"
 fi
 
 alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'

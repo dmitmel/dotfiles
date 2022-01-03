@@ -50,7 +50,7 @@ endif  " }}}
 let s:diagnostic_sign_texts = { 'Error': 'XX', 'Warn': '!!', 'Info': '>>', 'Hint': '>>' }
 
 
-if dotfiles#plugman#is_registered('nvim-lspconfig')  " {{{
+if get(g:, 'dotfiles_use_nvimlsp', 0)  " {{{
 
   lua <<EOF
   local log = require('vim.lsp.log')
