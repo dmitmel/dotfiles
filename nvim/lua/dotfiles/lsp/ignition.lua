@@ -117,15 +117,11 @@ end
 -- easily emulated with my functions.
 do
   function lsp.buf.add_workspace_folder(workspace_folder)
-    vim.validate({
-      workspace_folder = { workspace_folder, 'string' },
-    })
+    utils.check_type('workspace_folder', workspace_folder, 'string')
     M.broadcast_workspace_root_dirs_change({ [workspace_folder] = true })
   end
   function lsp.buf.remove_workspace_folder(workspace_folder)
-    vim.validate({
-      workspace_folder = { workspace_folder, 'string' },
-    })
+    utils.check_type('workspace_folder', workspace_folder, 'string')
     M.broadcast_workspace_root_dirs_change({ [workspace_folder] = false })
   end
   function lsp.buf.list_workspace_folders()
@@ -215,13 +211,11 @@ function M.get_config_preset(config_name)
 end
 
 function M.setup_config_preset(config_name, config_def)
-  vim.validate({
-    config_name = { config_name, 'string' },
-    config_def = { config_def, 'table' },
-    default_config = { config_def.default_config, 'table' },
-    on_new_config = { config_def.on_new_config, 'function', true },
-    commands = { config_def.commands, 'table', true },
-  })
+  utils.check_type('config_name', config_name, 'string')
+  utils.check_type('config_def', config_def, 'table')
+  utils.check_type('config_def.default_config', config_def.default_config, 'table')
+  utils.check_type('config_def.on_new_config', config_def.on_new_config, 'function', true)
+  utils.check_type('config_def.commands', config_def.commands, 'table', true)
   M._validate_config_name(config_name)
   error(
     string.format(
@@ -250,9 +244,7 @@ function M.setup_config_preset(config_name, config_def)
 end
 
 function M.delete_config_preset(config_name)
-  vim.validate({
-    config_name = { config_name, 'string' },
-  })
+  utils.check_type('config_name', config_name, 'string')
   -- Deleting config presets actually has much less consequences than deleting
   -- configs themselves, but still be careful.
 
@@ -301,11 +293,9 @@ function M.get_config(config_name)
 end
 
 function M.setup_config(config_name, config_def)
-  vim.validate({
-    config_name = { config_name, 'string' },
-    config_def = { config_def, 'table' },
-    -- TODO: more typechecks
-  })
+  utils.check_type('config_name', config_name, 'string')
+  utils.check_type('config_def', config_def, 'table')
+  -- TODO: more typechecks
   M._validate_config_name(config_name)
 
   local prev_config = M.configs_registry[config_name]
@@ -427,9 +417,7 @@ function M.setup_config(config_name, config_def)
 end
 
 function M.delete_config(config_name)
-  vim.validate({
-    config_name = { config_name, 'string' },
-  })
+  utils.check_type('config_name', config_name, 'string')
   -- Config uninstallation is a responsible task, be vigilant.
 
   local config = M.configs_registry[config_name]
@@ -632,9 +620,7 @@ function M.ensure_client_started_for_config(config, root_dir, responsible_bufnr)
 end
 
 function M.broadcast_workspace_root_dirs_change(changes)
-  vim.validate({
-    changes = { changes, 'table' },
-  })
+  utils.check_type('changes', changes, 'table')
 
   local req_params = { event = { added = {}, removed = {} } }
   local i = 0

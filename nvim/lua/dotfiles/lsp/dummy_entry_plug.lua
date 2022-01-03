@@ -122,12 +122,10 @@ M.virtual_server_errors = vim.tbl_add_reverse_lookup({
 })
 
 function M.fake_rpc_start(cmd, cmd_args, dispatchers, extra_spawn_params)
-  vim.validate({
-    cmd = { cmd, 'string' },
-    cmd_args = { cmd_args, 'table' },
-    dispatchers = { dispatchers, 'table' },
-    extra_spawn_params = { extra_spawn_params, 'table' },
-  })
+  utils.check_type('cmd', cmd, 'string')
+  utils.check_type('cmd_args', cmd_args, 'table')
+  utils.check_type('dispatchers', dispatchers, 'table')
+  utils.check_type('extra_spawn_params', extra_spawn_params, 'table')
 
   local fake_cake = extra_spawn_params.env[M._RPC_FAKE_ENV_COOKIE]
   local vserver = M.VirtualServer.new(fake_cake.name, fake_cake.config, nil, dispatchers)
@@ -178,19 +176,16 @@ M.VirtualServer = {}
 M.VirtualServer.__index = M.VirtualServer
 
 function M.VirtualServer.new(name, config, client_id, client_dispatchers)
-  vim.validate({
-    name = { name, 'string' },
-    config = { config, 'table' },
-    client_id = { client_id, 'number', true },
-    client_dispatchers = { client_dispatchers, 'table' },
-  })
-  vim.validate({
-    capabilities = { config.capabilities, 'table', true },
-    handlers = { config.handlers, 'table', true },
-    on_init = { config.on_init, 'function', true },
-    on_error = { config.on_error, 'function', true },
-    on_exit = { config.on_exit, 'function', true },
-  })
+  utils.check_type('name', name, 'string')
+  utils.check_type('config', config, 'table')
+  utils.check_type('client_id', client_id, 'number', true)
+  utils.check_type('client_dispatchers', client_dispatchers, 'table')
+
+  utils.check_type('config.capabilities', config.capabilities, 'table', true)
+  utils.check_type('config.handlers', config.handlers, 'table', true)
+  utils.check_type('config.on_init', config.on_init, 'function', true)
+  utils.check_type('config.on_error', config.on_error, 'function', true)
+  utils.check_type('config.on_exit', config.on_exit, 'function', true)
 
   local self = setmetatable({}, M.VirtualServer)
 
@@ -237,10 +232,8 @@ end
 ---@return boolean sucesss
 ---@return number request_id
 function M.VirtualServer:recv_message(method, params, callback)
-  vim.validate({
-    method = { method, 'string' },
-    callback = { callback, 'function', true },
-  })
+  utils.check_type('method', method, 'string')
+  utils.check_type('callback', callback, 'function', true)
   local request_id = nil
   if callback then
     -- Yeah, the logic of message ID allocation is weird: it is only done for
@@ -410,10 +403,8 @@ end
 ---@param params any
 ---@param callback any - TODO
 function M.VirtualServer:send_message(method, params, callback)
-  vim.validate({
-    method = { method, 'string' },
-    callback = { callback, 'function', true },
-  })
+  utils.check_type('method', method, 'string')
+  utils.check_type('callback', callback, 'function', true)
   if callback then
     error('server requests are not implemented currently')
   else

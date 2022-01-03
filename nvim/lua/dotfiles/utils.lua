@@ -185,11 +185,9 @@ function M.tbl_find(t, func)
 end
 
 function M.str_to_bytes(str, start, finish)
-  vim.validate({
-    str = { str, 'string' },
-    start = { start, 'number', true },
-    finish = { finish, 'number', true },
-  })
+  M.check_type('str', str, 'string')
+  M.check_type('start', start, 'number', true)
+  M.check_type('finish', finish, 'number', true)
   local result = {}
   for i = start or 1, finish or #str do
     result[i] = string.byte(str, i)
@@ -198,11 +196,9 @@ function M.str_to_bytes(str, start, finish)
 end
 
 function M.str_from_bytes(bytes, start, finish)
-  vim.validate({
-    str = { bytes, 'table' },
-    start = { start, 'number', true },
-    finish = { finish, 'number', true },
-  })
+  M.check_type('bytes', bytes, 'table', true)
+  M.check_type('start', start, 'number', true)
+  M.check_type('finish', finish, 'number', true)
   local result = {}
   for i = start or 1, finish or #bytes do
     result[i] = string.char(bytes[i])
@@ -212,10 +208,8 @@ end
 
 -- <https://github.com/neovim/neovim/issues/14542#issuecomment-887732686>
 function M.str_to_chars(str, utf16)
-  vim.validate({
-    str = { str, 'string' },
-    utf16 = { utf16, 'boolean', true },
-  })
+  M.check_type('str', str, 'string')
+  M.check_type('utf16', utf16, 'boolean', true)
   local chars = {}
   local char_idx = 1
   while true do
@@ -235,10 +229,8 @@ function M.str_to_chars(str, utf16)
 end
 
 function M.str_to_chars_iter(str, utf16)
-  vim.validate({
-    str = { str, 'string' },
-    utf16 = { utf16, 'boolean', true },
-  })
+  M.check_type('str', str, 'string')
+  M.check_type('utf16', utf16, 'boolean', true)
   local char_idx = 1
   local byte_idx = 1
   return function()
@@ -360,10 +352,8 @@ function M.uri_maybe_to_fname(uri)
 end
 
 function M.set_timeout(delay, fn)
-  vim.validate({
-    delay = { delay, 'number' },
-    fn = { fn, 'callable' },
-  })
+  M.check_type('delay', delay, 'number')
+  M.check_type('fn', fn, 'function')
   local timer = uv.new_timer()
   local function stop()
     if not timer:is_closing() then
@@ -379,11 +369,9 @@ function M.set_timeout(delay, fn)
 end
 
 function M.set_interval(start_delay, repeat_delay, fn)
-  vim.validate({
-    start_delay = { start_delay, 'number' },
-    repeat_delay = { repeat_delay, 'number' },
-    fn = { fn, 'callable' },
-  })
+  M.check_type('start_delay', start_delay, 'number')
+  M.check_type('repeat_delay', repeat_delay, 'number')
+  M.check_type('fn', fn, 'function')
   local timer = uv.new_timer()
   local function stop()
     if not timer:is_closing() then

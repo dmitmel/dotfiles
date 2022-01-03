@@ -104,12 +104,10 @@ local orig_underline_handler_show = vim_diagnostic.handlers.underline.show
 -- Replacement for <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L859-L897>.
 -- Handles LSP DiagnosticTags, see <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#diagnosticTag>.
 function vim_diagnostic.handlers.underline.show(namespace, bufnr, diagnostics, opts, ...)
-  vim.validate({
-    namespace = { namespace, 'number' },
-    bufnr = { bufnr, 'number' },
-    diagnostics = { diagnostics, 'table' },
-    opts = { opts, 'table', true },
-  })
+  utils.check_type('namespace', namespace, 'number')
+  utils.check_type('bufnr', bufnr, 'number')
+  utils.check_type('diagnostics', diagnostics, 'table')
+  utils.check_type('opts', opts, 'table', true)
 
   bufnr = utils_vim.normalize_bufnr(bufnr)
 
@@ -201,9 +199,7 @@ M.LOCLIST_TYPE_MAP = {
 -- Copy of <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/diagnostic.lua#L1491-L1520>,
 -- plus some formatting. See also <https://github.com/neoclide/coc.nvim/blob/0ad03ca857ae9ea30e51d7d8317096e1d378aa41/src/list/source/diagnostics.ts#L26-L30>.
 function vim_diagnostic.toqflist(diagnostics)
-  vim.validate({
-    diagnostics = { diagnostics, 'table' },
-  })
+  utils.check_type('diagnostics', diagnostics, 'table')
   local items = {}
   for i, v in pairs(diagnostics) do
     items[i] = {
@@ -244,9 +240,7 @@ function M.format_diagnostic_for_list(diag)
 end
 
 function vim_diagnostic.fromqflist(list)
-  vim.validate({
-    list = { list, 'table' },
-  })
+  utils.check_type('list', list, 'table')
   -- TODO: Because I apply some formatting to the diagnostic messages in
   -- toqflist, this will have to handle that and parse the original message.
   error('not yet implemented')

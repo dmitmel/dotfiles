@@ -278,9 +278,7 @@ function M.Renderer:parse_documentation_sections(sections)
 end
 
 function M.Renderer:parse_markdown_section(section_text)
-  vim.validate({
-    section_text = { section_text, 'string' },
-  })
+  utils.check_type('section_text', section_text, 'string')
 
   self:reset_section_state()
 
@@ -715,10 +713,8 @@ function M.Renderer:parse_markdown_section(section_text)
 end
 
 function M.Renderer:parse_plaintext_section(section_text, section_syntax)
-  vim.validate({
-    section_text = { section_text, 'string' },
-    section_syntax = { section_syntax, 'string' },
-  })
+  utils.check_type('section_text', section_text, 'string')
+  utils.check_type('section_syntax', section_syntax, 'string')
 
   self:reset_section_state()
 
@@ -757,11 +753,9 @@ M.HORIZONTAL_SEPARATOR_CHAR = '—'
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1074-L1246>
 -- <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/autoload/coc/highlight.vim#L252-L319>
 function M.Renderer:render_documentation_into_buf(bufnr, winid, opts)
-  vim.validate({
-    bufnr = { bufnr, 'number', true },
-    winid = { winid, 'number', true },
-    opts = { opts, 'table', true },
-  })
+  utils.check_type('bufnr', bufnr, 'number', true)
+  utils.check_type('winid', winid, 'number', true)
+  utils.check_type('opts', opts, 'table', true)
   opts = opts or {}
 
   -- Thus far this closely resembles Nvim's implementation...

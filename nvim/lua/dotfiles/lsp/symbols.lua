@@ -30,9 +30,7 @@ end
 lsp.buf.document_symbol = M.request_document_symbols
 
 function M.request_workspace_symbols(query)
-  vim.validate({
-    query = { query, 'string' },
-  })
+  utils.check_type('query', query, 'string')
   local req_params = {
     query = query,
     workDoneToken = lsp_progress.random_token(),

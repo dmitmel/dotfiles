@@ -19,11 +19,9 @@ local CAN_DELETE_MATCHES_FROM_OTHER_WINDOWS = utils_vim.has('nvim-0.5.0')
 local MAX_MATCHADDPOS_BATCH_SIZE = 8
 
 function M.compute_slices(ranges, bufnr, offset_encoding)
-  vim.validate({
-    ranges = { ranges, 'table' },
-    bufnr = { bufnr, 'number' },
-    offset_encoding = { offset_encoding, 'string', true },
-  })
+  utils.check_type('ranges', ranges, 'table')
+  utils.check_type('bufnr', bufnr, 'number')
+  utils.check_type('offset_encoding', offset_encoding, 'string', true)
   offset_encoding = offset_encoding or 'utf-8'
 
   local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
@@ -68,12 +66,10 @@ end
 
 -- Re-implementation of `coc#highlight#match_ranges`.
 function M.add_ranges(winid, ranges, hlgroup, priority, offset_encoding)
-  vim.validate({
-    winid = { winid, 'number' },
-    ranges = { ranges, 'table' },
-    hlgroup = { hlgroup, 'string' },
-    priority = { priority, 'number' },
-  })
+  utils.check_type('winid', winid, 'number')
+  utils.check_type('ranges', ranges, 'table')
+  utils.check_type('hlgroup', hlgroup, 'string')
+  utils.check_type('priority', priority, 'number')
 
   winid = utils_vim.normalize_winid(winid)
   local slices = M.compute_slices(ranges, vim.api.nvim_win_get_buf(winid), offset_encoding)
@@ -109,10 +105,8 @@ end
 
 -- Re-implementation of `coc#highlight#clear_match_group`.
 function M.clear_by_predicate(winid, predicate)
-  vim.validate({
-    winid = { winid, 'number' },
-    predicate = { predicate, 'callable' },
-  })
+  utils.check_type('winid', winid, 'number')
+  utils.check_type('predicate', predicate, 'function')
 
   if winid == 0 then
     winid = vim.api.nvim_get_current_win()
@@ -138,10 +132,8 @@ end
 
 -- Re-implementation of `coc#highlight#clear_matches`.
 function M.clear_by_ids(winid, match_ids)
-  vim.validate({
-    winid = { winid, 'number' },
-    ids = { match_ids, 'table' },
-  })
+  utils.check_type('winid', winid, 'number')
+  utils.check_type('match_ids', match_ids, 'table')
 
   if winid == 0 then
     winid = vim.api.nvim_get_current_win()

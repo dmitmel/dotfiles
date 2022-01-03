@@ -18,11 +18,9 @@ local lsp_ignition = require('dotfiles.lsp.ignition')
 -- <https://github.com/neoclide/coc.nvim/blob/c49acf35d8c32c16e1f14ab056a15308e0751688/src/configuration/util.ts#L38-L69>
 -- <https://github.com/tamago324/nlsp-settings.nvim/blob/4e2523aa56d2814fd78f60fb41d7a5ccfa429207/lua/nlspsettings.lua#L31-L62>
 function M.normalize(settings, vscode_style, output)
-  vim.validate({
-    settings = { settings, 'table' },
-    vscode_style = { vscode_style, 'boolean', true },
-    output = { output, 'table', true },
-  })
+  utils.check_type('settings', settings, 'table')
+  utils.check_type('vscode_style', vscode_style, 'boolean', true)
+  utils.check_type('output', output, 'table', true)
   if vscode_style == nil then
     vscode_style = true
   end

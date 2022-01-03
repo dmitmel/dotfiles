@@ -408,10 +408,8 @@ end
 
 -- `byte_idx` is 0-based, returned `linenr` and `colnr` are 0-based as well.
 function M.byte_offset_to_linenr_colnr_in_str(byte_idx, text)
-  vim.validate({
-    byte_idx = { byte_idx, 'number' },
-    text = { text, 'string' },
-  })
+  utils.check_type('byte_idx', byte_idx, 'number')
+  utils.check_type('text', text, 'string')
   -- We are really only interested in the text preceding the `byte_idx`. Also,
   -- note that we are operating here (and in the remaining part of this
   -- function) in terms of Lua's 1-based indexes, but since `byte_idx` is
@@ -583,12 +581,11 @@ end
 -- The reference implementation of my Simple Line Diffing algorithm. One of its
 -- major uses is described in the `dotfiles.rplugin_bridge` module.
 function M.simple_line_diff(old_lines, new_lines, search_from_start_offset, search_from_end_offset)
-  vim.validate({
-    old_lines = { old_lines, 'table' },
-    new_lines = { new_lines, 'table' },
-    search_from_start_offset = { search_from_start_offset, 'number', true },
-    search_from_end_offset = { search_from_end_offset, 'number', true },
-  })
+  utils.check_type('old_lines', old_lines, 'table')
+  utils.check_type('new_lines', new_lines, 'table')
+  utils.check_type('search_from_start_offset', search_from_start_offset, 'number', true)
+  utils.check_type('search_from_end_offset', search_from_end_offset, 'number', true)
+
   local old_lines_len, new_lines_len = #old_lines, #new_lines
   local min_lines_len = math.min(old_lines_len, new_lines_len)
 

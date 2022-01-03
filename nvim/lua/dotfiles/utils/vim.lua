@@ -29,10 +29,8 @@ end
 M.COMMAND_HANDLERS = {}
 
 function M.define_command(cmd_name, def)
-  vim.validate({
-    command_name = { cmd_name, 'string' },
-    command_def = { def, 'table' },
-  })
+  utils.check_type('cmd_name', cmd_name, 'string')
+  utils.check_type('def', def, 'table')
   if not cmd_name:match(M.USER_COMMAND_PATTERN) then
     error(string.format('invalid command name %q', cmd_name))
   end
@@ -236,9 +234,7 @@ function M.define_command(cmd_name, def)
 end
 
 function M.delete_command(cmd_name)
-  vim.validate({
-    command_name = { cmd_name, 'string' },
-  })
+  utils.check_type('cmd_name', cmd_name, 'string')
   if not cmd_name:match(M.USER_COMMAND_PATTERN) then
     error(string.format('invalid command name %q', cmd_name))
   end
@@ -253,15 +249,11 @@ end
 M.next_function_id = 0
 
 function M.define_adhoc_function(opts, body)
-  vim.validate({
-    opts = { opts, 'table' },
-    body = { body, 'string' },
-  })
-  vim.validate({
-    ['opts.name_suffix'] = { opts.name_suffix, 'string', true },
-    ['opts.abort'] = { opts.abort, 'boolean', true },
-    ['opts.range'] = { opts.range, 'boolean', true },
-  })
+  utils.check_type('opts', opts, 'table')
+  utils.check_type('body', body, 'string')
+  utils.check_type('opts.name_suffix', opts.name_suffix, 'string', true)
+  utils.check_type('opts.abort', opts.abort, 'boolean', true)
+  utils.check_type('opts.range', opts.range, 'boolean', true)
 
   if opts.name_suffix ~= nil and not opts.name_suffix:match('^[A-Za-z0-9_]*$') then
     error(string.format('invalid function name suffix %q', opts.name_suffix))

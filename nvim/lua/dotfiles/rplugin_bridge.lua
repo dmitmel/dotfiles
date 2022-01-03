@@ -67,19 +67,15 @@ for rplugin_host, rplugin in pairs(M.rplugins) do
 end
 
 function M.ensure_running(host)
-  vim.validate({
-    host = { host, 'string' },
-  })
+  utils.check_type('host', host, 'string')
   local rplugin = assert(M.rplugins[host], 'unknown host')
   rplugin.channel = rplugin.channel or vim.call('remote#host#Require', host)
   return rplugin
 end
 
 function M.notify(host, method, ...)
-  vim.validate({
-    host = { host, 'string' },
-    method = { method, 'string' },
-  })
+  utils.check_type('host', host, 'string')
+  utils.check_type('method', method, 'string')
   local rplugin = M.ensure_running(host)
   return vim.rpcnotify(
     rplugin.channel,
@@ -89,10 +85,8 @@ function M.notify(host, method, ...)
 end
 
 function M.request(host, method, ...)
-  vim.validate({
-    host = { host, 'string' },
-    method = { method, 'string' },
-  })
+  utils.check_type('host', host, 'string')
+  utils.check_type('method', method, 'string')
   local rplugin = M.ensure_running(host)
   return vim.rpcrequest(
     rplugin.channel,
@@ -102,10 +96,8 @@ function M.request(host, method, ...)
 end
 
 function M.request_async(host, method, ...)
-  vim.validate({
-    host = { host, 'string' },
-    method = { method, 'string' },
-  })
+  utils.check_type('host', host, 'string')
+  utils.check_type('method', method, 'string')
   local rplugin = M.ensure_running(host)
   local async_call_ctx = {}
   return vim.rpcnotify(

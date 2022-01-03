@@ -109,9 +109,7 @@ M.references_handler, M.request_references = M._create_simple_location_list_hand
   not_found_message = 'references not found',
   list_title = 'references',
   tweak_request_params = function(req_params, opts)
-    vim.validate({
-      opts = { opts, 'table', true },
-    })
+    utils.check_type('opts', opts, 'table', true)
     req_params.context = {
       includeDeclaration = utils.if_nil(opts.includeDeclaration, true),
     }
@@ -143,9 +141,7 @@ if not utils_vim.has('nvim-0.5.2') then
   end
 
   function lsp.buf.code_action(context)
-    vim.validate({
-      context = { context, 't', true },
-    })
+    utils.check_type('context', context, 'table', true)
     context = context or { diagnostics = lsp.diagnostic.get_line_diagnostics() }
     local params = lsp.util.make_range_params()
     params.context = context
@@ -153,9 +149,7 @@ if not utils_vim.has('nvim-0.5.2') then
   end
 
   function lsp.buf.range_code_action(context, start_pos, end_pos)
-    vim.validate({
-      context = { context, 't', true },
-    })
+    utils.check_type('context', context, 'table', true)
     context = context or { diagnostics = lsp.diagnostic.get_line_diagnostics() }
     local params = lsp.util.make_given_range_params(start_pos, end_pos)
     params.context = context

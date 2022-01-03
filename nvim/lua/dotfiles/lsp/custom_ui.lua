@@ -12,11 +12,9 @@ local fzf_buf_marker_counter = 0
 --- behavior of the select list were made based on the assumption that most
 --- (if not all) it will be used for is LSP code actions.
 function vim_ui.select(items, opts, on_choice)
-  vim.validate({
-    items = { items, 'table' },
-    opts = { opts, 'table', true },
-    on_choice = { on_choice, 'function' },
-  })
+  utils.check_type('items', items, 'table')
+  utils.check_type('opts', opts, 'table', true)
+  utils.check_type('on_choice', on_choice, 'function')
   opts = opts or {}
 
   local prompt = opts.prompt or 'Select one of: '
