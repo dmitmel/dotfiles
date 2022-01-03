@@ -12,3 +12,9 @@ endif
 " be useful.
 silent! autocmd! FileExplorer *
 silent! augroup! FileExplorer
+
+augroup dotfiles_session
+  autocmd!
+  let g:dotfiles_saved_shortmess = &shortmess
+  autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
+augroup END
