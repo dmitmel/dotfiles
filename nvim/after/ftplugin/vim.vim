@@ -1,3 +1,3 @@
-nnoremap <buffer> <F5> <Cmd>source %<CR>
+let b:runfileprg = ':source %'
 
-call dotfiles#utils#undo_ftplugin_hook('exe "silent! nunmap <buffer> <F5>"')
+call dotfiles#utils#undo_ftplugin_hook('unlet! b:runfileprg')

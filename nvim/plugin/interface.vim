@@ -266,6 +266,9 @@ let &history = max([&history, 10000])
 
 nnoremap <silent> <F9> <Cmd>make!<CR>
 
+command! -bar -bang RunFile execute (b:runfileprg[0] ==# ':' ? b:runfileprg[1:] : '!' . b:runfileprg)
+nnoremap <silent> <F5> <Cmd>RunFile<CR>
+
 
 if exists('*api_info')
   command! -bar -bang NvimApiCheatSheet call dotfiles#nvim_api_cheat_sheet#print()

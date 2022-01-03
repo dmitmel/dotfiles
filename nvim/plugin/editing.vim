@@ -108,9 +108,9 @@ endif
 
   noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion(1)<CR>
   noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion(-1)<CR>
-  map ( <Plug>dotfiles_indent_motion_prev
+  map <expr> ( !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_prev" : "("
   sunmap (
-  map ) <Plug>dotfiles_indent_motion_next
+  map <expr> ) !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_next" : ")"
   sunmap )
 
 " }}}

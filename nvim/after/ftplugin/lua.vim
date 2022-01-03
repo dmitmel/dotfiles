@@ -2,7 +2,7 @@
 " is an overkill for us, plus we have LSP which provides real autocompletion
 " and documentation popups).
 
-nnoremap <buffer> <F5> <Cmd>luafile %<CR>
+let b:runfileprg = ':luafile %'
 
 setlocal comments=:---,:--
 
@@ -10,4 +10,4 @@ setlocal comments=:---,:--
 let &l:include = '\v<%(%(do|load)file|require)>[^''"]*[''"]\zs[^''"]+'
 let &l:includeexpr = 'dotfiles#ftplugin_helpers#lua#includeexpr(v:fname)'
 
-call dotfiles#utils#undo_ftplugin_hook('exe "silent! nunmap <buffer> <F5>" | setlocal comments< include< includeexpr<')
+call dotfiles#utils#undo_ftplugin_hook('unlet! b:runfileprg | setlocal comments< include< includeexpr<')
