@@ -40,7 +40,7 @@ if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
   set termguicolors
 endif
 
-if exists(':lua')
+if has('nvim-0.2.1') || has('lua')
   lua _G.dotfiles = _G.dotfiles or {}
   if has('nvim')
     lua dotfiles.is_nvim = true
