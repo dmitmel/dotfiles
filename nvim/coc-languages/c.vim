@@ -17,3 +17,5 @@ let g:coc_user_config['languageserver.ccls'] = {
 " \ 'command': 'clangd',
 " \ 'rootPatterns': ['compile_flags.txt', 'compile_commands.json', '.vim/', '.git/', '.hg/'],
 " \ }
+
+let g:coc_user_config['snippets.extends.cpp'] = ['c']

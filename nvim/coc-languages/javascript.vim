@@ -23,3 +23,7 @@ let g:coc_user_config['prettier'] = {
 \ 'proseWrap': 'preserve',
 \ 'disableSuccessMessage': v:true,
 \ }
+
+let g:coc_user_config['snippets.extends.typescript'] = ['javascript']
+let g:coc_user_config['snippets.extends.javascriptreact'] = ['javascript']
+let g:coc_user_config['snippets.extends.typescriptreact'] = ['typescript', 'javascriptreact']

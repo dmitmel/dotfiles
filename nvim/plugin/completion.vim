@@ -17,7 +17,15 @@ if dotfiles#plugman#is_registered('nvim-snippy')  " {{{
 
   function! s:get_snippet_scopes(scopes) abort
     call extend(a:scopes, get(b:, 'dotfiles_snippets_extra_scopes', []))
-    return a:scopes
+    let seen = {}
+    let deduped = []
+    for scope in a:scopes
+      if !has_key(seen, scope)
+        call add(deduped, scope)
+        let seen[scope] = 1
+      endif
+    endfor
+    return deduped
   endfunction
 
   lua <<EOF

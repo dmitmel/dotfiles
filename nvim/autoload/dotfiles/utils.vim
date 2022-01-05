@@ -21,6 +21,13 @@ function! dotfiles#utils#undo_ftplugin_hook(cmd) abort
   endif
 endfunction
 
+function! dotfiles#utils#add_snippets_extra_scopes(scopes) abort
+  if !exists('b:dotfiles_snippets_extra_scopes')
+    let b:dotfiles_snippets_extra_scopes = []
+  endif
+  call extend(b:dotfiles_snippets_extra_scopes, a:scopes)
+endfunction
+
 function! dotfiles#utils#set_default(dict, var, default) abort
   let a:dict[a:var] = get(a:dict, a:var, a:default)
 endfunction
