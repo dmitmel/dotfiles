@@ -290,6 +290,9 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   let g:coc_user_config['workspace.progressTarget'] = 'statusline'
   let g:coc_user_config['list.selectedSignText'] = '> '
   let g:coc_user_config['coc.preferences.maxFileSize'] = '1MB'
+  " On Neovim, the UltiSnips snippets loader has to spawn a subprocess for the
+  " Python rplugin provider, even if no snippets in its format are found.
+  let g:coc_user_config['snippets.ultisnips.enable'] = v:false
 
   runtime! coc-languages/*.vim
 

@@ -134,7 +134,7 @@ let &history = max([&history, 10000])
   nnoremap <leader>v <Cmd>vsplit<CR><C-O>
 
   " Open just the current buffer in a new tab.
-  nnoremap <leader>t <Cmd>call dotfiles#utils#keepwinview('tabedit %')<CR>
+  nnoremap <leader>t <Cmd>tab split<CR>
   nnoremap <leader>T <Cmd>tabclose<CR>
 
 " }}}
