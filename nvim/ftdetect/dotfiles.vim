@@ -16,4 +16,6 @@ autocmd BufReadPost */node_modules/typescript/lib/lib.*.d.ts ++nested
 autocmd BufReadPre */node_modules/typescript/lib/lib.*.d.ts
 \ unlet! b:dotfiles_fileformat_checked
 
+autocmd BufNewFile,BufRead *.snippets setf snippets
+
 augroup END
