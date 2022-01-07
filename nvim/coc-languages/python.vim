@@ -12,6 +12,9 @@ let g:coc_user_config['python'] = {
 \   'flake8Args': ['--config=' . g:dotfiles_dir.'/misc/flake8.ini'],
 \   },
 \ 'analysis': {
-\   'typeCheckingMode': 'strict',
+\   'autoSearchPaths': v:true,
+\   'useLibraryCodeForTypes': v:true,
+\   'diagnosticMode': 'workspace',
+"\   'typeCheckingMode': 'strict',
 \   },
 \ }
