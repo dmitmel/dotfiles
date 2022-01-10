@@ -18,7 +18,7 @@ let g:coc_user_config['prettier'] = {
 \ 'jsxSingleQuote': v:false,
 \ 'trailingComma': 'all',
 \ 'bracketSpacing': v:true,
-\ 'jsxBracketSameLine': v:true,
+\ 'bracketSameLine': v:true,
 \ 'arrowParens': 'always',
 \ 'proseWrap': 'preserve',
 \ 'disableSuccessMessage': v:true,
