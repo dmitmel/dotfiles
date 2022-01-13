@@ -194,7 +194,6 @@ set nofixendofline
     command -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
-
 " }}}
 
 

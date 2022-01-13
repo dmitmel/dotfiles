@@ -18,3 +18,14 @@ augroup dotfiles_session
   let g:dotfiles_saved_shortmess = &shortmess
   autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
 augroup END
+
+
+" Overrides <https://github.com/tpope/vim-eunuch/blob/7fb5aef524808d6ba67d6d986d15a2e291194edf/plugin/eunuch.vim#L74-L80>.
+command! -bar -bang Delete
+\ let s:l_file = expand('%:p') |
+\ execute 'ConfirmBdelete<bang>' |
+\ if !bufloaded(s:l_file) && dotfiles#utils#eunuch_fcall('delete', s:l_file) |
+\   echoerr 'Failed to delete "'.s:l_file.'"' |
+\ endif |
+\ unlet! s:l_file
+command! -bar -bang Del Delete<bang>

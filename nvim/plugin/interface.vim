@@ -71,37 +71,23 @@ let &history = max([&history, 10000])
   " ask for confirmation when closing unsaved buffers
   set confirm
 
-  " Bbye with confirmation, or fancy buffer closer {{{
-    function! s:CloseBuffer(cmd) abort
-      let cmd = a:cmd
-      if &confirm && &modified
-        let fname = expand('%')
-        if empty(fname)
-          " <https://github.com/neovim/neovim/blob/47f99d66440ae8be26b34531989ac61edc1ad9fe/src/nvim/ex_docmd.c#L9327-L9337>
-          let fname = 'Untitled'
-        endif
-        " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
-        let answer = confirm("Save changes to \"".fname."\"?", "&Yes\n&No\n&Cancel")
-        if answer ==# 1      " Yes
-          write
-        elseif answer ==# 2  " No
-          let cmd .= '!'
-        else                 " Cancel/Other
-          return
-        endif
-      endif
-      execute cmd
-    endfunction
-  " }}}
+  function! s:ConfirmBbye(bang, cmd) abort
+    let result = a:bang ? 2 : dotfiles#utils#do_confirm()
+    if result
+      return a:cmd . (result == 2 ? '!' : '')
+    else
+      return ''
+    endif
+  endfunction
+  command! -bar -bang ConfirmBdelete exec s:ConfirmBbye(<bang>0, 'Bdelete')
+  command! -bar -bang ConfirmBwipeout exec s:ConfirmBbye(<bang>0, 'Bwipeout')
 
-  " closing buffers {{{
-    " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist
-    " switching because when these lists are loaded, they also create (but not
-    " load) buffers for all of the mentioned files, and should a buffer be
-    " deleted entirely, switching to that buffer starts to fail with E92.
-    nnoremap <silent> <BS>  <Cmd>call <SID>CloseBuffer('Bdelete')<CR>
-    nnoremap <silent> <Del> <Cmd>call <SID>CloseBuffer('Bdelete')<bar>quit<CR>
-  " }}}
+  " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist
+  " switching because when these lists are loaded, they also create (but not
+  " load) buffers for all of the mentioned files, and should a buffer be
+  " deleted entirely, switching to that buffer starts to fail with E92.
+  nnoremap <silent> <BS>  <Cmd>ConfirmBdelete<CR>
+  nnoremap <silent> <Del> <Cmd>ConfirmBdelete<bar>quit<CR>
 
 " }}}
 

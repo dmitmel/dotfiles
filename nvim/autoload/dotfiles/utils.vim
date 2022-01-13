@@ -173,3 +173,35 @@ function! dotfiles#utils#keepwinview(cmd) abort
     call winrestview(view)
   endtry
 endfunction
+
+" non-0 = can proceed
+" 0     = action cancelled
+" 1     = file written, safe to proceed
+" 2     = ignore unsaved changes, proceed forcibly
+function! dotfiles#utils#do_confirm() abort
+  if &confirm && &modified
+    let fname = expand('%')
+    if empty(fname)
+      " <https://github.com/neovim/neovim/blob/47f99d66440ae8be26b34531989ac61edc1ad9fe/src/nvim/ex_docmd.c#L9327-L9337>
+      let fname = 'Untitled'
+    endif
+    " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
+    let answer = confirm("Save changes to \"".fname."\"?", "&Yes\n&No\n&Cancel")
+    if answer ==# 1      " Yes
+      write
+      return 1
+    elseif answer ==# 2  " No
+      return 2
+    else                 " Cancel/Other
+      return 0
+    endif
+  else
+    return 1
+  endif
+endfunction
+
+" Copied from <https://github.com/tpope/vim-eunuch/blob/7fb5aef524808d6ba67d6d986d15a2e291194edf/plugin/eunuch.vim#L26-L32>.
+function! dotfiles#utils#eunuch_fcall(fn, path, ...) abort
+  let fn = get(get(g:, 'io_' . matchstr(a:path, '^\a\a\+\ze:'), {}), a:fn, a:fn)
+  return call(fn, [a:path] + a:000)
+endfunction
