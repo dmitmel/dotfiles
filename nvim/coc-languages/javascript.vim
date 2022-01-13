@@ -2,6 +2,10 @@ call extend(g:dotfiles_coc_extensions, {'coc-tsserver': 1, 'coc-eslint': 1, 'coc
 let s:filetypes = {'javascript': 1, 'javascriptreact': 1, 'typescript': 1, 'typescriptreact': 1}
 call extend(g:dotfiles_coc_filetypes, s:filetypes)
 
+let g:coc_user_config['tsserver'] = {
+\ 'disableAutomaticTypeAcquisition': v:true,
+\ }
+
 let g:coc_user_config['eslint'] = {
 \ 'filetypes': keys(s:filetypes),
 \ 'autoFixOnSave': v:true,
