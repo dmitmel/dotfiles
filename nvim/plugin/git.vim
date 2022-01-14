@@ -44,6 +44,12 @@ if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
       -- Disable the default mappings, we will define our own, and via the
       -- intended way.
     keymaps = {},
+    on_attach = function(bufnr)
+      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      if bufname:match('^fugitive:') then
+        return false
+      end
+    end,
   })
 EOF
 endif  " }}}
