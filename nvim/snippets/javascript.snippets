@@ -1,10 +1,10 @@
 snippet assert Assertion
 	if (!($1)) {
-		throw new Error("Assertion failed: $1")
+		throw new Error("Assertion failed: $1");
 	}
 snippet foriarr fast for-loop over an array
 	for (let ${2:i} = 0, len = ${1:array}.length; ${2:i} < len; ${2:i}++) {
-		let ${3:element} = ${1:array}[${2:i}]
+		let ${3:element} = ${1:array}[${2:i}];
 		$0
 	}
 snippet iife Immediately-invoked function expression (IIFE)
@@ -35,3 +35,10 @@ snippet igmodule Impact.js module
 		.defines(() => {
 			$0
 		});
+snippet timeit measure execution time of a section of code
+	let startTime${1:Test} = performance.now();
+	$0
+	let elapsedTime${1:Test} = performance.now() - startTime${1:Test};
+	console.log(elapsedTime${1:Test});
+snippet unreachable
+	throw new Error('unreachable')A;

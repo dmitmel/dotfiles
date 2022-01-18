@@ -36,4 +36,4 @@ snippet timeit measure time of a section of code
 	local start_time${1:_test} = vim.loop.hrtime()
 	$0
 	local elapsed_time${1:_test} = vim.loop.hrtime() - start_time${1:_test}
-	print(elapsed_time${1:_test} / 1e9)
+	print(elapsed_time${1:_test} / 1e6)
