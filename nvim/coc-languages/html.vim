@@ -4,3 +4,4 @@ call extend(g:dotfiles_coc_filetypes, {'html': 1})
 call extend(g:dotfiles_coc_filetypes, map(copy(s:emmet_filetype_mapping), {k, v -> 1}))
 
 let g:coc_user_config['emmet.includeLanguages'] = s:emmet_filetype_mapping
+let g:coc_user_config['emmet.excludeLanguages'] = ['javascriptreact', 'typescriptreact']
