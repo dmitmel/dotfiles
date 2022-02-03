@@ -209,8 +209,13 @@ endif
   nnoremap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
 
   " ,c is easier to type than "+ because it doesn't require pressing Shift
+  " c stands for clipboard
   nnoremap <leader>c "+
   xnoremap <leader>c "+
+  " these are for pasting the previous yanked text (the deletion commands don't
+  " clobber the 0th register)
+  nnoremap <leader>p "0
+  xnoremap <leader>p "0
 
   " make the default Vim mappings more consistent
   " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
