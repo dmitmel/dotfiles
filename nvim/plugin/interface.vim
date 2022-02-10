@@ -152,6 +152,12 @@ let &history = max([&history, 10000])
     \ 'branch': '',
     \ 'notexists': ' [?]',
     \ }
+  let g:airline_mode_map = {
+  \ 'ic': 'INSERT COMPL',
+  \ 'ix': 'INSERT COMPL',
+  \ 'Rc': 'REPLACE COMP',
+  \ 'Rx': 'REPLACE COMP',
+  \ }
 
   " <https://github.com/vim-airline/vim-airline/issues/1779>
   let g:airline_highlighting_cache = 1
