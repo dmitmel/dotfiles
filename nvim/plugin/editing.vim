@@ -19,12 +19,6 @@ endif
 " Makes the CTRL-A and CTRL-X commands compatible with Neovim in regular Vim.
 set nrformats-=octal
 
-" The Nvim docs say that this makes the jumpstack behave like the tagstack or
-" like navigation history of a single tab in browsers.
-if exists('+jumpoptions')
-  set jumpoptions=stack
-endif
-
 
 " Indentination {{{
 " <https://vim.fandom.com/wiki/Indenting_source_code>
