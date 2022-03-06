@@ -75,48 +75,32 @@ fi; unset rustup_bin
 
 # }}}
 
-# fasd {{{
+# directory jumping {{{
+  # <https://github.com/clvv/fasd>
+  # <https://github.com/agkozak/zsh-z>
+  # <https://github.com/skywind3000/z.lua>
+  # <https://github.com/rupa/z>
+  # <https://github.com/wting/autojump>
+  # <https://github.com/ajeetdsouza/zoxide>
 
-  if ! command_exists fasd; then
-    _plugin fasd 'clvv/fasd' \
-      build='mkdir -pv man1 && cp -v ./fasd.1 man1/'
-      after_load='plugin-cfg-path path prepend ""' \
-      after_load='plugin-cfg-path manpath prepend ""'
-  fi
+  # export _FASD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/fasd_db.txt"
 
-  if command_exists fasd; then
-    export _FASD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/fasd_db.csv"
+  ZSHZ_CASE=smart
+  ZSHZ_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/zshz_db.txt"
+  ZSHZ_UNCOMMON=1
 
-    _perf_timer_start "fasd init"
-    # Initialization taken from <https://github.com/ohmyzsh/ohmyzsh/blob/6fbad5bf72fad4ecf30ba4d4ffee62bac582f0ed/plugins/fasd/fasd.plugin.zsh>
-    fasd_cache="${ZSH_CACHE_DIR}/fasd-init-cache"
-    if [[ "${commands[fasd]}" -nt "$fasd_cache" || ! -s "$fasd_cache" ]]; then
-      fasd --init posix-alias zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install >| "$fasd_cache"
+  _plugin zsh-z 'agkozak/zsh-z' \
+    after_load='plugin-cfg-path fpath prepend ""'
+
+  j() {
+    local _dir
+    if _dir="$(
+      z -l | sed 's/^[0-9]* *//g' |
+      fzf --tac --tiebreak=index --layout=reverse --height=40% --query="$*"
+    )"; then
+      cd -- "$_dir"
     fi
-    source "$fasd_cache"
-    unset fasd_cache
-    _perf_timer_stop "fasd init"
-
-    alias v='f -e "$EDITOR"'
-    alias o='a -e xdg-open'
-
-    # alias j='zz'
-    j() {
-      local _fasd_ret
-      _fasd_ret="$(
-        # -l: list all paths in the database (without scores)
-        # -d: list only directories
-        # -R: in the reverse order
-        fasd -l -d -R |
-          fzf --height=40% --layout=reverse --tiebreak=index --query="$*"
-      )"
-      if [[ -d "$_fasd_ret" ]]; then
-        cd -- "$_fasd_ret"
-      elif [[ -n "$_fasd_ret" ]]; then
-        print -r -- "$_fasd_ret"
-      fi
-    }
-  fi
+  }
 
 # }}}
 
