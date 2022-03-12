@@ -303,6 +303,15 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   let g:coc_user_config['snippets.ultisnips.enable'] = v:false
   let g:coc_user_config['signature.target'] = 'echo'
 
+  augroup dotfiles_coc
+    autocmd!
+    " <https://github.com/neoclide/coc.nvim/blob/47c4dee35d5d631596153f71e42bcfc12151a5be/autoload/coc/float.vim#L618-L620>
+    " Bring back the <Esc> key for doing normal-mode edits.
+    autocmd User CocOpenFloatPrompt iunmap <buffer> <Esc>
+    autocmd User CocOpenFloatPrompt imap <buffer><silent> <C-c> <Esc><Esc>
+    autocmd User CocOpenFloatPrompt nmap <buffer><silent> <C-c> <Esc>
+  augroup END
+
   runtime! coc-languages/*.vim
 
   if !g:dotfiles_build_coc_from_source
