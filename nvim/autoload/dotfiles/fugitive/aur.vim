@@ -47,7 +47,7 @@ function! dotfiles#fugitive#aur#handler(opts) abort
   elseif expand('%') =~? '^fugitive:'
     let commit = opts.commit
   else
-    let commit = a:opts.repo.rev_parse('HEAD')
+    let commit = fugitive#RevParse('HEAD', opts.repo.git_dir)
   endif
 
   let line = min([opts.line1, opts.line2])
