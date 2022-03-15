@@ -534,6 +534,11 @@ set nrformats-=octal
   " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
   nmap <silent> <leader>hlt <Plug>HiLinkTrace
 
+  let g:closetag_filetypes = 'html,xhtml,phtml,xslt'
+  let g:closetag_xhtml_filetypes = 'xhtml,xslt'
+  let g:closetag_filenames = ''
+  let g:closetag_xhtml_filenames = ''
+
 " }}}
 
 

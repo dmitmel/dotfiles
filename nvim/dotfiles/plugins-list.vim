@@ -96,6 +96,8 @@ let s:plug = function('dotfiles#plugman#register')
   " Discovered this one thanks to TJ[1].
   " [1]: <https://github.com/tjdevries/config_manager/blob/1b7d2f60ed6685022e29c1bdef2625bb7856e1eb/xdg_config/nvim/lua/tj/plugins.lua#L604>
   call s:plug('https://github.com/AndrewRadev/linediff.vim')
+  " Automatically close XML/HTML/JSX tags.
+  call s:plug('https://github.com/alvan/vim-closetag')
 " }}}
 
 " Text objects {{{
