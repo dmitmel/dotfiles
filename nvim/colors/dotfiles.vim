@@ -347,12 +347,14 @@
 " }}}
 
 " XML {{{
-  call s:hi('xmlTagName', { 'fg': 0x8 })
-  call s:hi('xmlAttrib',  { 'fg': 0x9 })
-  hi! link xmlTag             Delimiter
-  hi! link xmlEndTag          Delimiter
+  hi! link xmlTagName         Function
+  hi! link xmlAttrib          Variable
+  hi! link xmlTag             Comment
+  hi! link xmlEndTag          Comment
   hi! link xmlAttribPunct     Delimiter
-  hi! link xmlProcessingDelim Delimiter
+  hi! link xmlProcessingDelim Special
+  hi! link xslElement         xmlTagName
+  hi! link xmlNamespace       Label
 " }}}
 
 " Git {{{
@@ -475,6 +477,9 @@
   hi! link jsImport            Include
   hi! link jsExport            Include
   hi! link jsTemplateBraces    PreProc
+  hi! link jsxComponentName    Type
+  hi! link jsxTagName          xmlTagName
+  hi! link jsxAttrib           xmlAttrib
 " }}}
 
 " JSON {{{
