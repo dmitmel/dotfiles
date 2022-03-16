@@ -21,6 +21,13 @@ function! dotfiles#utils#undo_ftplugin_hook(cmd) abort
   endif
 endfunction
 
+function! dotfiles#utils#add_matchup_prefs(prefs) abort
+  if !has_key(g:matchup_matchpref, &filetype)
+    let g:matchup_matchpref[&filetype] = {}
+  endif
+  call extend(g:matchup_matchpref[&filetype], a:prefs)
+endfunction
+
 function! dotfiles#utils#add_snippets_extra_scopes(scopes) abort
   if !exists('b:dotfiles_snippets_extra_scopes')
     let b:dotfiles_snippets_extra_scopes = []
@@ -28,8 +35,11 @@ function! dotfiles#utils#add_snippets_extra_scopes(scopes) abort
   call extend(b:dotfiles_snippets_extra_scopes, a:scopes)
 endfunction
 
-function! dotfiles#utils#set_default(dict, var, default) abort
-  let a:dict[a:var] = get(a:dict, a:var, a:default)
+function! dotfiles#utils#set_default(dict, key, default) abort
+  if !has_key(a:dict, a:key)
+    let a:dict[a:key] = a:default
+  endif
+  return a:dict[a:key]
 endfunction
 
 " Essentially, implements
