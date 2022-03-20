@@ -257,7 +257,7 @@ let s:plug = function('dotfiles#plugman#register')
     if has('nvim-0.4.0')
       " Highlights colors written in different notations (`#rrggbb`, `rgb(r,g,b)`
       " etc, the typical CSS stuff) for quick preview.
-      call s:plug('https://github.com/norcalli/nvim-colorizer.lua')
+      call s:plug('https://github.com/chrisbra/Colorizer')
     endif
   endif
 " }}}
