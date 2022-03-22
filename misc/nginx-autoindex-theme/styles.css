@@ -1,0 +1,129 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 8px;
+  font-family: monospace;
+  background-color: #383838;
+  color: #dadada;
+}
+
+a {
+  text-decoration: none;
+  color: #7eafe9;
+}
+
+a:hover,
+a:focus,
+a:active {
+  text-decoration: underline;
+  color: #d1c5e9;
+}
+
+a:active {
+  color: #e6bdbc;
+}
+
+svg.icon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  vertical-align: -0.125em;
+}
+
+.nav,
+.main {
+  max-width: 900px;
+  margin: 8px auto;
+  border: 1px solid #292929;
+  overflow: auto;
+}
+
+.nav {
+  padding: 6px 12px;
+  background: #404040;
+}
+
+.nav > * {
+  display: inline-block;
+  margin-right: 3px;
+}
+
+table {
+  width: 100%;
+  border-spacing: 0;
+}
+
+tr > * {
+  background: #404040;
+  border: 1px #292929;
+  border-bottom-style: solid;
+}
+
+table > :last-child > tr:last-child > * {
+  border-bottom-style: none;
+}
+
+thead > tr > * {
+  background: #353535;
+  border-right-style: solid;
+}
+
+table > * > tr > :last-child {
+  border-right-style: none;
+}
+
+tfoot > tr > * {
+  background: #383838;
+}
+
+tbody > tr:hover > * {
+  background: #4c4c4c;
+}
+
+tr > * {
+  padding: 4px 12px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+th {
+  font-weight: bold;
+}
+
+th.sort {
+  cursor: pointer;
+}
+
+th.sort:hover,
+th.sort:active {
+  background: #3d3d3d;
+}
+
+th > svg.icon {
+  width: 0.75em;
+  height: 0.75em;
+}
+
+tr > [data-col='icon'] {
+  width: 1em;
+  padding-right: 0;
+}
+
+tr > [data-col='icon'] + * {
+  padding-left: 6px;
+}
+
+tr > [data-col='name'] {
+  width: 100%;
+}
+
+td[data-col='name'],
+.nav {
+  white-space: pre;
+}
+
+td[data-col='size'] {
+  text-align: right;
+}

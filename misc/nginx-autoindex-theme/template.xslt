@@ -161,107 +161,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
         <meta property="theme-color" content="#2b2b2b" />
 
-<style type="text/css"><![CDATA[
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 8px;
-  font-family: monospace;
-  background-color: #383838;
-  color: #dadada;
-}
-a {
-  text-decoration: none;
-  color: #7eafe9;
-}
-a:hover, a:focus, a:active {
-  text-decoration: underline;
-  color: #d1c5e9;
-}
-a:active {
-  color: #e6bdbc;
-}
-svg.icon {
-  width: 1em;
-  height: 1em;
-  fill: currentColor;
-  vertical-align: -0.125em;
-}
-.nav, .main {
-  max-width: 900px;
-  margin: 8px auto;
-  border: 1px solid #292929;
-  overflow: auto;
-}
-.nav {
-  padding: 6px 12px;
-  background: #404040;
-}
-.nav > * {
-  display: inline-block;
-  margin-right: 3px;
-}
-table {
-  width: 100%;
-  border-spacing: 0;
-}
-tr > * {
-  background: #404040;
-  border: 1px #292929;
-  border-bottom-style: solid;
-}
-table > :last-child > tr:last-child > * {
-  border-bottom-style: none;
-}
-thead > tr > * {
-  background: #353535;
-  border-right-style: solid;
-}
-table > * > tr > :last-child {
-  border-right-style: none;
-}
-tfoot > tr > * {
-  background: #383838;
-}
-tbody > tr:hover > * {
-  background: #4c4c4c;
-}
-tr > * {
-  padding: 4px 12px;
-  white-space: nowrap;
-  text-align: left;
-}
-th {
-  font-weight: bold;
-}
-th.sort {
-  cursor: pointer;
-}
-th.sort:hover, th.sort:active {
-  background: #3d3d3d;
-}
-th > svg.icon {
-  width: 0.75em;
-  height: 0.75em;
-}
-tr > [data-col="icon"] {
-  width: 1em;
-  padding-right: 0;
-}
-tr > [data-col="icon"] + * {
-  padding-left: 6px;
-}
-tr > [data-col="name"] {
-  width: 100%;
-}
-td[data-col="name"], .nav {
-  white-space: pre;
-}
-td[data-col="size"] {
-  text-align: right;
-}
-]]></style>
+<style type="text/css"><!-- include styles.css start -->
+  <xsl:text>*{box-sizing:border-box}body{background-color:#383838;color:#dadada;font-family:monospace;margin:8px}a{color:#7eafe9;text-decoration:none}a:active,a:focus,a:hover{color:#d1c5e9;text-decoration:</xsl:text>
+  <xsl:text>underline}a:active{color:#e6bdbc}svg.icon{fill:currentColor;height:1em;vertical-align:-.125em;width:1em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:auto}.nav{</xsl:text>
+  <xsl:text>background:#404040;padding:6px 12px}.nav&gt;*{display:inline-block;margin-right:3px}table{border-spacing:0;width:100%}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}table&gt;:</xsl:text>
+  <xsl:text>last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:hover&gt;*</xsl:text>
+  <xsl:text>{background:#4c4c4c}tr&gt;*{padding:4px 12px;text-align:left;white-space:nowrap}th{font-weight:700}th.sort{cursor:pointer}th.sort:active,th.sort:hover{background:#3d3d3d}th&gt;svg.icon{height:.75em;width:.</xsl:text>
+  <xsl:text>75em}tr&gt;[data-col=icon]{padding-right:0;width:1em}tr&gt;[data-col=icon]+*{padding-left:6px}tr&gt;[data-col=name]{width:100%}.nav,td[data-col=name]{white-space:pre}td[data-col=size]{text-align:right}</xsl:text>
+<!-- include styles.css end --></style>
 
       </head>
       <body>
@@ -354,90 +261,16 @@ td[data-col="size"] {
           </defs>
         </svg>
 
-<script type="text/javascript"><![CDATA[
-(() => {
-"use strict";
-for (let table of document.getElementsByTagName("table")) {
-  for (let td of table.getElementsByTagName("td")) {
-    if (td.dataset.col === "mtime") {
-      let date = new Date(td.textContent);
-      if (!isNaN(date)) {
-        td.innerText = date.toLocaleString([], { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      }
-    }
-  }
-  for (let th of table.tHead.getElementsByTagName("th")) {
-    th.classList.add("sort");
-    th.addEventListener("click", (event) => {
-      event.preventDefault();
-      let sortDir = 1;
-      if (th.dataset.sortDir === "1") {
-        sortDir = -1;
-      }
-      for (let th2 of table.tHead.getElementsByTagName("th")) {
-        th2.dataset.sortDir = th === th2 ? sortDir : "0";
-        for (let svgUse of th2.querySelectorAll("svg.icon > use")) {
-          let icon = "none";
-          if (th2 === th && sortDir > 0) {
-            icon = "sort-asc";
-          } else if (th2 === th && sortDir < 0) {
-            icon = "sort-dsc";
-          }
-          svgUse.setAttribute("href", "#icon-" + icon);
-        }
-      }
-      let rows = [];
-      let tbody = table.tBodies[0];
-      for (let tr of tbody.rows) {
-        if (!tr.classList.contains("parent")) {
-          rows.push(tr);
-        }
-      }
-      let findCol = (tr) => {
-        for (let td of tr.getElementsByTagName("td")) {
-          if (td.dataset.col === th.dataset.col) {
-            return td;
-          }
-        }
-        return null;
-      };
-      let getValue = (td) => {
-        return null;
-      };
-      let compare = (a, b) => {
-        if (a > b) return 1;
-        if (a < b) return -1;
-        return 0;
-      };
-      if (th.dataset.col === "name") {
-        getValue = (td) => {
-          return td.innerText;
-        };
-        compare = (a, b) => {
-          return a.localeCompare(b);
-        };
-      } else if (th.dataset.col === "size") {
-        getValue = (td) => {
-          let val = parseInt(td.dataset.val, 10);
-          return !isNaN(val) ? val : null;
-        };
-      } else if (th.dataset.col === "mtime") {
-        getValue = (td) => {
-          let val = new Date(td.dataset.val);
-          return !isNaN(val) ? val : null;
-        };
-      }
-      rows.sort((a, b) => {
-        return compare(getValue(findCol(a)), getValue(findCol(b))) * sortDir;
-      });
-      for (let tr of rows) {
-        tbody.appendChild(tr);
-      }
-    });
-  }
-}
-})();
-]]></script>
+<script type="text/javascript"><!-- include script.js start -->
+  <xsl:text>(()=&gt;{"use strict";for(let table of document.getElementsByTagName("table")){for(let td of table.getElementsByTagName("td"))if("mtime"===td.dataset.col){let date=new Date(td.textContent);isNaN(date)||(</xsl:text>
+  <xsl:text>td.innerText=date.toLocaleString([],{year:"2-digit",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}))}for(let th of table.tHead.getElementsByTagName("th"))th.classList.</xsl:text>
+  <xsl:text>add("sort"),th.addEventListener("click",(event=&gt;{event.preventDefault();let sortDir=1;"1"===th.dataset.sortDir&amp;&amp;(sortDir=-1);for(let th2 of table.tHead.getElementsByTagName("th")){th2.dataset.sortDir=</xsl:text>
+  <xsl:text>th===th2?sortDir:"0";for(let svgUse of th2.querySelectorAll("svg.icon &gt; use")){let icon="none";th2===th&amp;&amp;sortDir&gt;0?icon="sort-asc":th2===th&amp;&amp;sortDir&lt;0&amp;&amp;(icon="sort-dsc"),svgUse.setAttribute("href","#</xsl:text>
+  <xsl:text>icon-"+icon)}}let rows=[],tbody=table.tBodies[0];for(let tr of tbody.rows)tr.classList.contains("parent")||rows.push(tr);let findCol=tr=&gt;{for(let td of tr.getElementsByTagName("td"))if(td.dataset.col=</xsl:text>
+  <xsl:text>==th.dataset.col)return td;return null},getValue=td=&gt;null,compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0;"name"===th.dataset.col?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===th.dataset.col?</xsl:text>
+  <xsl:text>getValue=td=&gt;{let val=parseInt(td.dataset.val,10);return isNaN(val)?null:val}:"mtime"===th.dataset.col&amp;&amp;(getValue=td=&gt;{let val=new Date(td.dataset.val);return isNaN(val)?null:val}),rows.sort(((a,b)=&gt;</xsl:text>
+  <xsl:text>compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir));for(let tr of rows)tbody.appendChild(tr)}))}})();</xsl:text>
+<!-- include script.js end --></script>
 
       </body>
     </html>
