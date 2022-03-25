@@ -1,3 +1,5 @@
+syntax sync minlines=500
+
 " The VIMRUNTIME syntax file sources the syntax files for SASS (from
 " runtimepath, so it will load my todo-comment patch with it) and makes a few
 " minor modifications to the rules to accomodate for SCSS, vim-polyglot defines
