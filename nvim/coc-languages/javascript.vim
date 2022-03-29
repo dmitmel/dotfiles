@@ -7,7 +7,7 @@ let g:coc_user_config['tsserver'] = {
 \ }
 
 let g:coc_user_config['eslint'] = {
-\ 'filetypes': keys(s:filetypes),
+\ 'probe': keys(s:filetypes),
 \ 'autoFixOnSave': v:true,
 \ }
 
