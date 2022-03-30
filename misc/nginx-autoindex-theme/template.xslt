@@ -209,7 +209,9 @@ POSSIBILITY OF SUCH DAMAGE.
                   <td data-col="mtime">-</td>
                 </tr>
               </xsl:if>
+            </tbody>
 
+            <tbody>
               <xsl:for-each select="list/*">
                 <xsl:call-template name="file" />
               </xsl:for-each>
@@ -264,15 +266,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 <script type="text/javascript"><!-- include script.js start -->
   <xsl:text>(()=&gt;{"use strict";for(let table of document.getElementsByTagName("table")){for(let td of table.getElementsByTagName("td"))if("mtime"===td.dataset.col){let date=new Date(td.textContent);if(!isNaN(date</xsl:text>
-  <xsl:text>)){let x="2-digit";td.innerText=date.toLocaleString([],{year:x,month:x,day:x,hour:x,minute:x,second:x})}}let tBody=table.tBodies[0],tRows=Array.from(tBody.rows).filter((tr=&gt;!tr.classList.contains("</xsl:text>
-  <xsl:text>parent"))),tHeaders=table.tHead.getElementsByTagName("th"),createSorterFn=(sortCol,sortDir)=&gt;{let findCol=tr=&gt;{for(let td of tr.getElementsByTagName("td"))if(td.dataset.col===sortCol)return td;return </xsl:text>
-  <xsl:text>null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0,getValue=td=&gt;null,nan2null=x=&gt;isNaN(x)?null:x;return"name"===sortCol?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===sortCol?getValue=td=&gt;</xsl:text>
-  <xsl:text>nan2null(parseInt(td.dataset.val,10)):"mtime"===sortCol&amp;&amp;(getValue=td=&gt;nan2null(new Date(td.dataset.val))),(a,b)=&gt;compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir},updateSortIcons=(clickedTh</xsl:text>
-  <xsl:text>,sortDir)=&gt;{for(let th of tHeaders){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"none",icon="sort-"+sortDirStr),th.dataset.sortDir=sortDirStr;for(let </xsl:text>
-  <xsl:text>svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of tHeaders){th.classList.add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(</xsl:text>
-  <xsl:text>let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.</xsl:text>
-  <xsl:text>sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.</xsl:text>
-  <xsl:text>appendChild(tr)}))}}})();</xsl:text>
+  <xsl:text>)){let x="2-digit";td.innerText=date.toLocaleString([],{year:x,month:x,day:x,hour:x,minute:x,second:x})}}let tBody=table.tBodies[1],tRows=Array.from(tBody.rows),tHeaders=table.tHead.</xsl:text>
+  <xsl:text>getElementsByTagName("th"),createSorterFn=(sortCol,sortDir)=&gt;{let findCol=tr=&gt;{for(let td of tr.getElementsByTagName("td"))if(td.dataset.col===sortCol)return td;return null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-</xsl:text>
+  <xsl:text>1:0,getValue=td=&gt;null,nan2null=x=&gt;isNaN(x)?null:x;return"name"===sortCol?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===sortCol?getValue=td=&gt;nan2null(parseInt(td.dataset.val,10</xsl:text>
+  <xsl:text>)):"mtime"===sortCol&amp;&amp;(getValue=td=&gt;nan2null(new Date(td.dataset.val))),(a,b)=&gt;compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir},updateSortIcons=(clickedTh,sortDir)=&gt;{for(let th of tHeaders)</xsl:text>
+  <xsl:text>{let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"none",icon="sort-"+sortDirStr),th.dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.</xsl:text>
+  <xsl:text>icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of tHeaders){th.classList.add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes</xsl:text>
+  <xsl:text>))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,</xsl:text>
+  <xsl:text>updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)}))}}})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>

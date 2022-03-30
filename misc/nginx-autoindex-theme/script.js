@@ -19,8 +19,8 @@
       }
     }
 
-    let tBody = table.tBodies[0];
-    let tRows = Array.from(tBody.rows).filter((tr) => !tr.classList.contains('parent'));
+    let tBody = table.tBodies[1];
+    let tRows = Array.from(tBody.rows);
     let tHeaders = table.tHead.getElementsByTagName('th');
 
     let createSorterFn = (sortCol, sortDir) => {
