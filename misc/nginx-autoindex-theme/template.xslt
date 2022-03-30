@@ -165,9 +165,10 @@ POSSIBILITY OF SUCH DAMAGE.
   <xsl:text>*{box-sizing:border-box}body{background-color:#383838;color:#dadada;font-family:monospace;margin:8px}a{color:#7eafe9;text-decoration:none}a:active,a:focus,a:hover{color:#d1c5e9;text-decoration:</xsl:text>
   <xsl:text>underline}a:active{color:#e6bdbc}svg.icon{fill:currentColor;height:1em;vertical-align:-.125em;width:1em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:auto}.nav{</xsl:text>
   <xsl:text>background:#404040;padding:6px 12px}.nav&gt;*{display:inline-block;margin-right:3px}table{border-spacing:0;width:100%}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}table&gt;:</xsl:text>
-  <xsl:text>last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:hover&gt;*</xsl:text>
-  <xsl:text>{background:#4c4c4c}tr&gt;*{padding:4px 12px;text-align:left;white-space:nowrap}th{font-weight:700}th.sort{cursor:pointer}th.sort:active,th.sort:hover{background:#3d3d3d}th&gt;svg.icon{height:.75em;width:.</xsl:text>
-  <xsl:text>75em}tr&gt;[data-col=icon]{padding-right:0;width:1em}tr&gt;[data-col=icon]+*{padding-left:6px}tr&gt;[data-col=name]{width:100%}.nav,td[data-col=name]{white-space:pre}td[data-col=size]{text-align:right}</xsl:text>
+  <xsl:text>last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:</xsl:text>
+  <xsl:text>focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#4c4c4c}tr&gt;*{text-align:left;white-space:nowrap}th{font-weight:700}th.sort&gt;a,tr&gt;*{padding:4px 12px}th.sort{padding:0}th.sort&gt;a{color:unset;cursor:pointer;</xsl:text>
+  <xsl:text>display:block;text-decoration:unset}th.sort&gt;a:active,th.sort&gt;a:focus,th.sort&gt;a:hover{background:#3d3d3d}th&gt;svg.icon{height:.75em;width:.75em}tr&gt;[data-col=icon]{padding-right:0;width:1em}tr&gt;[data-col=</xsl:text>
+  <xsl:text>icon]+*{padding-left:6px}tr&gt;[data-col=name]{width:100%}.nav,td[data-col=name]{white-space:pre}td[data-col=size]{text-align:right}</xsl:text>
 <!-- include styles.css end --></style>
 
       </head>
@@ -269,9 +270,10 @@ POSSIBILITY OF SUCH DAMAGE.
   <xsl:text>compare(getValue(a),getValue(b))):("name"===sortCol?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===sortCol?getValue=td=&gt;{let val=parseInt(td.dataset.val,10);return isNaN(val)?</xsl:text>
   <xsl:text>null:val}:"mtime"===sortCol&amp;&amp;(getValue=td=&gt;{let val=new Date(td.dataset.val);return isNaN(val)?null:val}),(a,b)=&gt;compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir)},updateSortIcons=(clickedTh</xsl:text>
   <xsl:text>,sortDir)=&gt;{for(let th of table.tHead.getElementsByTagName("th")){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"none",icon="sort-"+sortDirStr),th.</xsl:text>
-  <xsl:text>dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of table.tHead.getElementsByTagName("th"))th.classList.add("</xsl:text>
-  <xsl:text>sort"),th.addEventListener("click",(event=&gt;{let newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let rows=</xsl:text>
-  <xsl:text>getTableRows();rows.sort(createSorterFn(th.dataset.col,newSortDir));for(let tr of rows)tbody.appendChild(tr)}))}})();</xsl:text>
+  <xsl:text>dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of table.tHead.getElementsByTagName("th")){th.classList.add("</xsl:text>
+  <xsl:text>sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let </xsl:text>
+  <xsl:text>newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let rows=getTableRows();rows.sort(createSorterFn(th.dataset.col</xsl:text>
+  <xsl:text>,newSortDir));for(let tr of rows)tbody.appendChild(tr)}))}}})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>

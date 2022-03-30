@@ -78,12 +78,12 @@ tfoot > tr > * {
   background: #383838;
 }
 
-tbody > tr:hover > * {
+tbody > tr:hover > *,
+tbody > tr:focus-within > * {
   background: #4c4c4c;
 }
 
 tr > * {
-  padding: 4px 12px;
   white-space: nowrap;
   text-align: left;
 }
@@ -92,12 +92,25 @@ th {
   font-weight: bold;
 }
 
-th.sort {
-  cursor: pointer;
+tr > *,
+th.sort > a {
+  padding: 4px 12px;
 }
 
-th.sort:hover,
-th.sort:active {
+th.sort {
+  padding: 0;
+}
+
+th.sort > a {
+  display: block;
+  cursor: pointer;
+  text-decoration: unset;
+  color: unset;
+}
+
+th.sort > a:hover,
+th.sort > a:focus,
+th.sort > a:active {
   background: #3d3d3d;
 }
 

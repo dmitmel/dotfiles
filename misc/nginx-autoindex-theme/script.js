@@ -90,7 +90,14 @@
     for (let th of table.tHead.getElementsByTagName('th')) {
       th.classList.add('sort');
 
-      th.addEventListener('click', (event) => {
+      let thBtn = document.createElement('a');
+      thBtn.href = '#';
+      for (let child of Array.from(th.childNodes)) {
+        thBtn.appendChild(child);
+      }
+      th.appendChild(thBtn);
+
+      thBtn.addEventListener('click', (event) => {
         event.preventDefault();
 
         let newSortDir;
