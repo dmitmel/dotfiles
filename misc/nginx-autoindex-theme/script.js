@@ -6,32 +6,22 @@
       if (td.dataset.col === 'mtime') {
         let date = new Date(td.textContent);
         if (!isNaN(date)) {
+          let x = '2-digit';
           td.innerText = date.toLocaleString([], {
-            year: '2-digit',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
+            year: x,
+            month: x,
+            day: x,
+            hour: x,
+            minute: x,
+            second: x,
           });
         }
       }
     }
 
-    let tbody = table.tBodies[0];
-    let getTableRows = () => {
-      let rows = [];
-      for (let tr of tbody.rows) {
-        if (!tr.classList.contains('parent')) {
-          rows.push(tr);
-        }
-      }
-      return rows;
-    };
-
-    getTableRows().forEach((tr, i) => {
-      tr.dataset.idx = i;
-    });
+    let tBody = table.tBodies[0];
+    let tRows = Array.from(tBody.rows).filter((tr) => !tr.classList.contains('parent'));
+    let tHeaders = table.tHead.getElementsByTagName('th');
 
     let createSorterFn = (sortCol, sortDir) => {
       let findCol = (tr) => {
@@ -48,32 +38,22 @@
         return 0;
       };
       let getValue = (td) => null;
-
-      if (sortDir === 0) {
-        getValue = (th) => parseInt(th.dataset.idx, 10);
-        return (a, b) => compare(getValue(a), getValue(b));
-      }
+      let nan2null = (x) => (!isNaN(x) ? x : null);
 
       if (sortCol === 'name') {
         getValue = (td) => td.innerText;
         compare = (a, b) => a.localeCompare(b);
       } else if (sortCol === 'size') {
-        getValue = (td) => {
-          let val = parseInt(td.dataset.val, 10);
-          return !isNaN(val) ? val : null;
-        };
+        getValue = (td) => nan2null(parseInt(td.dataset.val, 10));
       } else if (sortCol === 'mtime') {
-        getValue = (td) => {
-          let val = new Date(td.dataset.val);
-          return !isNaN(val) ? val : null;
-        };
+        getValue = (td) => nan2null(new Date(td.dataset.val));
       }
 
       return (a, b) => compare(getValue(findCol(a)), getValue(findCol(b))) * sortDir;
     };
 
     let updateSortIcons = (clickedTh, sortDir) => {
-      for (let th of table.tHead.getElementsByTagName('th')) {
+      for (let th of tHeaders) {
         let sortDirStr = 'none';
         let icon = 'none';
         if (th === clickedTh) {
@@ -87,7 +67,7 @@
       }
     };
 
-    for (let th of table.tHead.getElementsByTagName('th')) {
+    for (let th of tHeaders) {
       th.classList.add('sort');
 
       let thBtn = document.createElement('a');
@@ -110,10 +90,12 @@
         }
         updateSortIcons(th, newSortDir);
 
-        let rows = getTableRows();
-        rows.sort(createSorterFn(th.dataset.col, newSortDir));
-        for (let tr of rows) {
-          tbody.appendChild(tr);
+        let newRows = tRows.slice();
+        if (newSortDir !== 0) {
+          newRows.sort(createSorterFn(th.dataset.col, newSortDir));
+        }
+        for (let tr of newRows) {
+          tBody.appendChild(tr);
         }
       });
     }

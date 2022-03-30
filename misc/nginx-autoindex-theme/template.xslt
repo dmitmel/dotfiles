@@ -263,17 +263,16 @@ POSSIBILITY OF SUCH DAMAGE.
         </svg>
 
 <script type="text/javascript"><!-- include script.js start -->
-  <xsl:text>(()=&gt;{"use strict";for(let table of document.getElementsByTagName("table")){for(let td of table.getElementsByTagName("td"))if("mtime"===td.dataset.col){let date=new Date(td.textContent);isNaN(date)||(</xsl:text>
-  <xsl:text>td.innerText=date.toLocaleString([],{year:"2-digit",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}))}let tbody=table.tBodies[0],getTableRows=()=&gt;{let rows=[];for(let </xsl:text>
-  <xsl:text>tr of tbody.rows)tr.classList.contains("parent")||rows.push(tr);return rows};getTableRows().forEach(((tr,i)=&gt;{tr.dataset.idx=i}));let createSorterFn=(sortCol,sortDir)=&gt;{let findCol=tr=&gt;{for(let td of </xsl:text>
-  <xsl:text>tr.getElementsByTagName("td"))if(td.dataset.col===sortCol)return td;return null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0,getValue=td=&gt;null;return 0===sortDir?(getValue=th=&gt;parseInt(th.dataset.idx,10),(a,b)=&gt;</xsl:text>
-  <xsl:text>compare(getValue(a),getValue(b))):("name"===sortCol?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===sortCol?getValue=td=&gt;{let val=parseInt(td.dataset.val,10);return isNaN(val)?</xsl:text>
-  <xsl:text>null:val}:"mtime"===sortCol&amp;&amp;(getValue=td=&gt;{let val=new Date(td.dataset.val);return isNaN(val)?null:val}),(a,b)=&gt;compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir)},updateSortIcons=(clickedTh</xsl:text>
-  <xsl:text>,sortDir)=&gt;{for(let th of table.tHead.getElementsByTagName("th")){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"none",icon="sort-"+sortDirStr),th.</xsl:text>
-  <xsl:text>dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of table.tHead.getElementsByTagName("th")){th.classList.add("</xsl:text>
-  <xsl:text>sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let </xsl:text>
-  <xsl:text>newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let rows=getTableRows();rows.sort(createSorterFn(th.dataset.col</xsl:text>
-  <xsl:text>,newSortDir));for(let tr of rows)tbody.appendChild(tr)}))}}})();</xsl:text>
+  <xsl:text>(()=&gt;{"use strict";for(let table of document.getElementsByTagName("table")){for(let td of table.getElementsByTagName("td"))if("mtime"===td.dataset.col){let date=new Date(td.textContent);if(!isNaN(date</xsl:text>
+  <xsl:text>)){let x="2-digit";td.innerText=date.toLocaleString([],{year:x,month:x,day:x,hour:x,minute:x,second:x})}}let tBody=table.tBodies[0],tRows=Array.from(tBody.rows).filter((tr=&gt;!tr.classList.contains("</xsl:text>
+  <xsl:text>parent"))),tHeaders=table.tHead.getElementsByTagName("th"),createSorterFn=(sortCol,sortDir)=&gt;{let findCol=tr=&gt;{for(let td of tr.getElementsByTagName("td"))if(td.dataset.col===sortCol)return td;return </xsl:text>
+  <xsl:text>null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0,getValue=td=&gt;null,nan2null=x=&gt;isNaN(x)?null:x;return"name"===sortCol?(getValue=td=&gt;td.innerText,compare=(a,b)=&gt;a.localeCompare(b)):"size"===sortCol?getValue=td=&gt;</xsl:text>
+  <xsl:text>nan2null(parseInt(td.dataset.val,10)):"mtime"===sortCol&amp;&amp;(getValue=td=&gt;nan2null(new Date(td.dataset.val))),(a,b)=&gt;compare(getValue(findCol(a)),getValue(findCol(b)))*sortDir},updateSortIcons=(clickedTh</xsl:text>
+  <xsl:text>,sortDir)=&gt;{for(let th of tHeaders){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"none",icon="sort-"+sortDirStr),th.dataset.sortDir=sortDirStr;for(let </xsl:text>
+  <xsl:text>svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of tHeaders){th.classList.add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(</xsl:text>
+  <xsl:text>let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.</xsl:text>
+  <xsl:text>sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.</xsl:text>
+  <xsl:text>appendChild(tr)}))}}})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>
