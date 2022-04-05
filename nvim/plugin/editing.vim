@@ -480,6 +480,8 @@ set nrformats-=octal
 
   let g:delimitMate_expand_space = 1
   let g:delimitMate_expand_cr = 1
+  " This conflicts with my <CR> mapping: <https://github.com/tpope/vim-eunuch/commit/c70b0ed50b5c0d806df012526104fc5342753749>
+  let g:eunuch_no_maps = 1
 
   let g:matchup_delim_noskips = 2
   let g:matchup_delim_nomids = 1
