@@ -49,6 +49,9 @@ if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
       if bufname:match('^fugitive:') then
         return false
       end
+      if vim.api.nvim_buf_get_option(bufnr, 'binary') then
+        return false
+      end
     end,
   })
 EOF
