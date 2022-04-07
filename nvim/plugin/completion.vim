@@ -217,6 +217,10 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   " coc mappings are enabled
   let g:dotfiles_coc_filetypes = {}
 
+  function! s:coc_buf_supports(provider) abort
+    return g:coc_service_initialized && CocAction('ensureDocument') && CocHasProvider(a:provider)
+  endfunction
+
   " mappings {{{
     let g:coc_snippet_next = '<Tab>'
     let g:coc_snippet_prev = '<S-Tab>'
@@ -256,20 +260,19 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     nnoremap <silent> <space>j <Cmd>CocNext<CR>
     nnoremap <silent> <space>p <Cmd>CocListResume<CR>
 
-    nmap <silent><expr> K  has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>K"  : "K"
-    nmap <silent><expr> gd has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gd" : "gd"
-    nmap <silent><expr> gD has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gD" : "gD"
-    nmap <silent><expr> gr has_key(g:dotfiles_coc_filetypes, &filetype) ? "<space>gr" : "gr"
+    nmap <silent><expr> K  <SID>coc_buf_supports('hover')       ? "<space>K"  : "K"
+    nmap <silent><expr> gd <SID>coc_buf_supports('definition')  ? "<space>gd" : "gd"
+    nmap <silent><expr> gD <SID>coc_buf_supports('declaration') ? "<space>gD" : "gD"
+    nmap <silent><expr> gr <SID>coc_buf_supports('reference')   ? "<space>gr" : "gr"
   " }}}
 
   " CocFormat {{{
     function! s:CocFormat(range, line1, line2) abort
-      if !has_key(g:dotfiles_coc_filetypes, &filetype) || !CocAction('ensureDocument')
-        return
-      endif
       if a:range == 0
+        if !s:coc_buf_supports('format') | return | endif
         call CocAction('format')
       else
+        if !s:coc_buf_supports('formatRange') | return | endif
         call cursor(a:line1, 1)
         normal! V
         call cursor(a:line2, 1)
