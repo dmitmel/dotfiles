@@ -290,6 +290,54 @@
 
 " }}}
 
+" LSP semantic tokens {{{
+  " <https://github.com/neoclide/coc.nvim/blob/514f1191ee659191757d8020b297fc81c86c9024/plugin/coc.vim#L464-L497>
+
+  hi! link CocSemKeyword Keyword
+  hi! link CocSemDocumentationKeyword Special
+  hi! link CocSemModifier StorageClass
+  hi! link CocSemDeprecated Strikethrough
+
+  " hi! link CocSemComment Comment  " Messes with TODOs in comments
+  hi! link CocSemOperator Operator
+  hi! link CocSemString String
+  hi! link CocSemBoolean Boolean
+  hi! link CocSemNumber Number
+  hi! link CocSemLifetime Special
+  hi! link CocSemRegexp Special
+
+  hi! link CocSemFunction Function
+  hi! link CocSemMethod Function
+  hi! link CocSemMacro Define
+  hi! link CocSemDeclarationMacro Function
+  hi! link CocSemDefinitionMacro Function
+  hi! link CocSemAttribute PreProc
+  hi! link CocSemBuiltinAttribute PreProc
+  hi! link CocSemEvent Function
+
+  hi! link CocSemType Type
+  hi! link CocSemClass Type
+  hi! link CocSemInterface Type
+  hi! link CocSemStruct Type
+  hi! link CocSemEnum Type
+  hi! link CocSemSelfTypeKeyword Type
+  hi! link CocSemBuiltinType Type
+  hi! link CocSemTypeAlias Type
+  hi! link CocSemTypeParameter Special
+  hi! link CocSemDecorator Special
+
+  hi! link CocSemDeclarationParameter Variable
+  hi! link CocSemDeclarationProperty Variable
+  hi! link CocSemDeclarationVariable Variable
+  hi! link CocSemDefinitionParameter Variable
+  hi! link CocSemDefinitionProperty Variable
+  hi! link CocSemDefinitionVariable Variable
+  hi! link CocSemSelfKeyword Identifier
+  hi! link CocSemNamespace Identifier
+  hi! link CocSemEnumMember Function
+
+" }}}
+
 " Integrated terminal {{{
   let s:ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
@@ -410,7 +458,7 @@
 " }}}
 
 " Rust {{{
-  hi! link rustEnumVariant   rustType
+  hi! link rustEnumVariant   Function
   hi! link rustSelf          Variable
   hi! link rustSigil         rustOperator
   hi! link rustMacroVariable Variable
@@ -473,6 +521,7 @@
   hi! link jsUndefined         Constant
   hi! link jsOperatorKeyword   Keyword
   hi! link jsObjectKey         Identifier
+  hi! link jsFunctionKey       jsFuncName
   hi! link jsEnvComment        Special
   hi! link jsImport            Include
   hi! link jsExport            Include
@@ -528,6 +577,7 @@
   hi! link typescriptAbstract            Keyword
   hi! link typescriptTemplateSB          PreProc
   hi! link typescriptDebugger            Keyword
+  hi! link typescriptRegexpString        Special
 " }}}
 
 " Markdown {{{

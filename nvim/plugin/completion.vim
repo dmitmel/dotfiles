@@ -315,6 +315,10 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     autocmd User CocOpenFloatPrompt nmap <buffer><silent> <C-c> <Esc>
   augroup END
 
+  let g:coc_user_config['colors.filetypes'] = ['*']
+  let g:coc_user_config['semanticTokens.filetypes'] = ['*']
+  let g:coc_default_semantic_highlight_groups = 0
+
   runtime! coc-languages/*.vim
 
   if !g:dotfiles_build_coc_from_source
