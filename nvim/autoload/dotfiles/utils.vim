@@ -164,6 +164,13 @@ else
   endfunction
 endif
 
+function! dotfiles#utils#literal_regex(pat) abort
+  let pat = escape(a:pat, '\')
+  let pat = substitute(pat, '\n', '\\n', 'g')
+  let pat = substitute(pat, '\r', '\\r', 'g')
+  return '\V' . pat
+endfunction
+
 " Escapes a regular expression and wraps it into slashes, for use in Ex
 " commands which take a `{pattern}`.
 function! dotfiles#utils#escape_and_wrap_regex(pat) abort

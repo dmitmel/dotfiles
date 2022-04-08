@@ -372,14 +372,14 @@ set nrformats-=octal
   xnoremap ? <Esc>?\%V
 
   " * and # in the Visual mode will search the selected text
-  function! s:VisualStarSearch(search_cmd) abort
+  function! s:VisualStarSearch() abort
     let tmp = @"
     normal! y
-    let @/ = '\V' . substitute(escape(@", a:search_cmd . '\'), '\n', '\\n', 'g')
+    let @/ = dotfiles#utils#literal_regex(@")
     let @" = tmp
   endfunction
-  xmap * <Cmd>call <SID>VisualStarSearch('/')<CR>/<CR>
-  xmap # <Cmd>call <SID>VisualStarSearch('?')<CR>?<CR>
+  xmap * <Cmd>call <SID>VisualStarSearch()<CR>/<CR>
+  xmap # <Cmd>call <SID>VisualStarSearch()<CR>?<CR>
   xmap g* *
   xmap g# #
 
