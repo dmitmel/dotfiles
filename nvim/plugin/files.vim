@@ -258,3 +258,21 @@ augroup dotfiles_zip
   " Packed Crosscode mods
   autocmd BufReadCmd *.ccmod call zip#Browse(expand('<amatch>'))
 augroup END
+
+
+" Revert <https://github.com/tpope/vim-eunuch/commit/cceba47c032fee0f5fb467b7ada573c80ec15e57> {{{
+function! s:SudoEditInit() abort
+  if $SUDO_COMMAND =~# '^sudoedit '
+    let files = split($SUDO_COMMAND, ' ')[1:-1]
+    if len(files) ==# argc()
+      for i in range(argc())
+        execute 'autocmd BufEnter' fnameescape(argv(i))
+        \ 'if empty(&filetype) || &filetype ==# "conf"'
+        \ '|doautocmd filetypedetect BufReadPost' fnameescape(files[i])
+        \ '|endif'
+      endfor
+    endif
+  endif
+endfunction
+call s:SudoEditInit()
+" }}}
