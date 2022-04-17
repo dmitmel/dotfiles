@@ -335,7 +335,7 @@ set nrformats-=octal
   endfunction
 
   map  <expr> <Plug>dotfiles_search_after <SID>search_mapping_after()
-  imap        <Plug>dotfiles_search-after <nop>
+  imap        <Plug>dotfiles_search_after <nop>
 
   cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? "\<Plug>dotfiles_search_after" : '')
   " map  <expr> gd   "gd" . "\<Plug>dotfiles_search_after"
