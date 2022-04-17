@@ -675,3 +675,7 @@
 " Haskell {{{
   hi! link haskellOperators Keyword
 " }}}
+
+" TOML {{{
+  hi! link tomlDotInKey NONE
+" }}}
