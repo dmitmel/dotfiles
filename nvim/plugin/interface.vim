@@ -111,8 +111,9 @@ let &history = max([&history, 10000])
   nnoremap <C-\> <C-w>p
   xnoremap <C-\> <C-w>p
 
-  " don't automatically make all windows the same size
-  set noequalalways
+  " Don't automatically make all windows the same size. Breaks the `:sbuffer`
+  " command used for the preview window in CocList. TODO: investigate.
+  " set noequalalways
 
   nnoremap <silent> <A-BS> <Cmd>quit<CR>
 
