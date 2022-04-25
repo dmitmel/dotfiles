@@ -4,14 +4,6 @@ let s:plug = function('dotfiles#plugman#register')
 " All plugin definitions are written as links to github.com (instead of the
 " typical `user/repo`) so that I can move the cursor over any and press `gx`.
 
-" General-purpose libraries {{{
-  if has('nvim-0.5.0')
-    " Required by:
-    " 1. gitsigns.nvim
-    call s:plug('https://github.com/nvim-lua/plenary.nvim')
-  endif
-" }}}
-
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   call s:plug('https://github.com/tpope/vim-eunuch')
