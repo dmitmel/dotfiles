@@ -2,7 +2,7 @@
 let g:fugitive_legacy_commands = 0
 
 " De-conflict with completion engines.
-let g:gitgutter_sign_priority = 9
+let g:gitgutter_sign_priority = 5
 let g:signify_priority = g:gitgutter_sign_priority
 
 " Copied from <https://github.com/airblade/vim-gitgutter/blob/42ed714fb9268329f652e053d1de996c77581694/plugin/gitgutter.vim#L48-L59>.

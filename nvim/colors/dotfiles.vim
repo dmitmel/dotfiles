@@ -288,6 +288,16 @@
   call s:hi('healthWarning', { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
   call s:hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
 
+  " Vimspector
+  call s:hi('vimspectorBP',         { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
+  call s:hi('vimspectorBPCond',     { 'fg': 'bg', 'bg': 0x9, 'bold': 1 })
+  call s:hi('vimspectorBPLog',      { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  call s:hi('vimspectorBPDisabled', { 'fg': 'bg', 'bg': 0xF, 'bold': 1 })
+  call s:hi('vimspectorPC',         { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
+  hi! link vimspectorPCBP          vimspectorPC
+  hi! link vimspectorCurrentThread vimspectorPC
+  hi! link vimspectorCurrentFrame  vimspectorPC
+
 " }}}
 
 " LSP semantic tokens {{{

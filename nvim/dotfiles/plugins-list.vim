@@ -251,5 +251,8 @@ let s:plug = function('dotfiles#plugman#register')
       " etc, the typical CSS stuff) for quick preview.
       call s:plug('https://github.com/chrisbra/Colorizer')
     endif
+    if has('nvim-0.4.3') || (v:version >=# 802 && has('python3'))
+      call s:plug('https://github.com/puremourning/vimspector')
+    endif
   endif
 " }}}
