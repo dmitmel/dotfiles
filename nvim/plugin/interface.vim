@@ -187,22 +187,22 @@ let &history = max([&history, 10000])
     \ 'dotfiles_filesize',
     \ ]
   if dotfiles#plugman#is_registered('vim-fugitive')
-    let g:airline_extensions += ['branch', 'fugitiveline']
+    call extend(g:airline_extensions, ['branch', 'fugitiveline'])
   endif
   if dotfiles#plugman#is_registered('vim-gitgutter') || dotfiles#plugman#is_registered('vim-signify')
-    let g:airline_extensions += ['hunks']
+    call extend(g:airline_extensions, ['hunks'])
   endif
   if dotfiles#plugman#is_registered('gitsigns.nvim')
-    let g:airline_extensions += ['dotfiles_gitsigns_nvim']
+    call extend(g:airline_extensions, ['dotfiles_gitsigns_nvim'])
   endif
   if dotfiles#plugman#is_registered('coc.nvim')
-    let g:airline_extensions += ['coc', 'dotfiles_coclist']
+    call extend(g:airline_extensions, ['coc', 'dotfiles_coclist'])
   endif
   if dotfiles#plugman#is_registered('vim-obsession')
-    let g:airline_extensions += ['obsession']
+    call extend(g:airline_extensions, ['obsession'])
   endif
   if get(g:, 'dotfiles_use_nvimlsp', 0)
-    let g:airline_extensions += ['dotfiles_nvimlsp']
+    call extend(g:airline_extensions, ['dotfiles_use_nvimlsp'])
   endif
 
   let g:airline_detect_iminsert = 1
