@@ -4,6 +4,12 @@
 [pull]
   rebase = true
 
+[merge]
+  autoStash = true
+
+[rebase]
+  autoStash = true
+
 [core]
   pager = diff-so-fancy | less --tabs=4 --RAW-CONTROL-CHARS
 
