@@ -3,9 +3,11 @@
 
   for (let table of document.getElementsByTagName('table')) {
     for (let td of table.getElementsByTagName('td')) {
-      if (td.dataset.col === 'mtime') {
-        let date = new Date(td.textContent);
+      let data = td.dataset;
+      if (data.col === 'mtime' && data.val != null) {
+        let date = new Date(data.val || td.innerText);
         if (!isNaN(date)) {
+          data.val = date.getTime();
           let x = '2-digit';
           td.innerText = date.toLocaleString([], {
             year: x,
@@ -15,6 +17,8 @@
             minute: x,
             second: x,
           });
+        } else {
+          delete data.val;
         }
       }
     }
@@ -46,7 +50,7 @@
       } else if (sortCol === 'size') {
         getValue = (td) => nan2null(parseInt(td.dataset.val, 10));
       } else if (sortCol === 'mtime') {
-        getValue = (td) => nan2null(new Date(td.dataset.val));
+        getValue = (td) => nan2null(parseInt(td.dataset.val, 10));
       }
 
       return (a, b) => compare(getValue(findCol(a)), getValue(findCol(b))) * sortDir;
