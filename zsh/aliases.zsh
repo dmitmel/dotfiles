@@ -118,8 +118,8 @@ fi
 alias bytefmt2="numfmt --to=iec-i --suffix=B"
 alias bytefmt10="numfmt --to=si --suffix=B"
 
-if command_exists dragon-drag-and-drop && ! command_exists dragon; then
-  alias dragon='dragon-drag-and-drop'
+if command_exists dragon-drop && ! command_exists dragon; then
+  alias dragon='dragon-drop'
 fi
 
 alias gtime="command time -v"
