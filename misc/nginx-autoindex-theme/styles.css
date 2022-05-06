@@ -5,7 +5,7 @@
 body {
   margin: 8px;
   font-family: monospace;
-  background-color: #383838;
+  background: #383838;
   color: #dadada;
 }
 
@@ -139,4 +139,55 @@ td[data-col='name'],
 
 td[data-col='size'] {
   text-align: right;
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background: #f5f5f5;
+    color: #303030;
+  }
+
+  a {
+    color: #5294e2;
+  }
+
+  a:hover,
+  a:focus,
+  a:active {
+    color: #8c6ec9;
+  }
+
+  a:active {
+    color: #c15b58;
+  }
+
+  .nav {
+    border-color: #bababa;
+  }
+
+  .main,
+  tr > * {
+    border-color: #c7c7c7;
+  }
+
+  .nav,
+  tr > * {
+    background: #ffffff;
+  }
+
+  thead > tr > *,
+  tfoot > tr > * {
+    background: #f5f5f5;
+  }
+
+  tbody > tr:hover > *,
+  tbody > tr:focus-within > * {
+    background: #f5f5f5;
+  }
+
+  th.sort > a:hover,
+  th.sort > a:focus,
+  th.sort > a:active {
+    background: #fafafa;
+  }
 }
