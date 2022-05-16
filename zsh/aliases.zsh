@@ -101,9 +101,13 @@ alias bin-disassemble='objdump -M intel-mnemonics -d'
 alias bin-list-symbols='nm'
 alias bin-list-dylib-symbols='nm -gD'
 
-# Duplicated as an alias to prevent autocorrection of the real "command" part.
-# See also scripts/prime-run
-alias prime-run='__NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia '
+if [[ -f /proc/driver/nvidia/version ]]; then
+  # Duplicated as an alias to prevent autocorrection of the real "command" part.
+  # See also scripts/prime-run
+  alias prime-run='__NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia '
+else
+  alias prime-run=''
+fi
 
 if ! command_exists update-grub; then
   # Doesn't exist on Arch by default. Probably implementing this command was
