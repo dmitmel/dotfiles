@@ -100,6 +100,9 @@ PROMPT+='}%m%f'
 # working directory
 PROMPT+=' in %F{cyan}%~%f'
 
+# current time
+PROMPT+=' [%F{red}%D %*%f]'
+
 # VCS info
 PROMPT+='$(prompt_vcs_info 2>/dev/null)'
 
