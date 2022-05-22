@@ -91,7 +91,15 @@ if [[ "$EDITOR" == *vim ]]; then
   alias ecs="e --cmd 'let dotfiles_use_nvimlsp = 1' -S"
 fi
 
-alias rsync-backup='rsync --archive --compress --verbose --human-readable --partial --progress'
+# -a = --archive
+# -A = --acls
+# -X = --xattrs
+# -H = --hard-links
+# -z = --compress
+# -P = --partial --progress
+# -v = --verbose
+# -h = --human-readable
+alias rsync-backup='rsync -aAXHzPvh --info=progress2'
 
 if command_exists ncdu; then
   alias ncdu='ncdu --confirm-quit'
