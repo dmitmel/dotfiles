@@ -307,7 +307,9 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   " Python rplugin provider, even if no snippets in its format are found.
   let g:coc_user_config['snippets.ultisnips.enable'] = v:false
   let g:coc_user_config['signature.target'] = 'echo'
-
+  let g:coc_user_config['dialog.rounded'] = v:false
+  let g:coc_user_config['dialog.floatHighlight'] = 'CocFloating'
+  let g:coc_user_config['dialog.floatBorderHighlight'] = 'CocFloating'
   let g:coc_user_config['list.selectedSignText'] = '> '
   let g:coc_disable_transparent_cursor = v:true
   " let g:coc_enable_locationlist = v:true
