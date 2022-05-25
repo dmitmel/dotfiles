@@ -6,6 +6,8 @@ export VISUAL="$EDITOR"
 
 export PAGER='less'
 export LESS='--RAW-CONTROL-CHARS'
+# Removed K and X from the default value. See the journalctl(1) manpage.
+export SYSTEMD_LESS='FRSM'
 
 export CLICOLOR=1
 
