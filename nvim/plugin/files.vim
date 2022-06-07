@@ -254,9 +254,11 @@ set nofixendofline
 augroup dotfiles_zip
   autocmd!
   " GeoGebra files
-  autocmd BufReadCmd *.ggb call zip#Browse(expand('<amatch>'))
+  autocmd BufReadCmd *.ggb    call zip#Browse(expand('<amatch>'))
   " Packed Crosscode mods
-  autocmd BufReadCmd *.ccmod call zip#Browse(expand('<amatch>'))
+  autocmd BufReadCmd *.ccmod  call zip#Browse(expand('<amatch>'))
+  " Firefox extensions
+  autocmd BufReadCmd *.xpi    call zip#Browse(expand('<amatch>'))
 augroup END
 
 
