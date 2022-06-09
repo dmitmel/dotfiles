@@ -8,6 +8,7 @@ alias '$'=''
 alias sudo='sudo '
 alias watch='watch '
 alias xargs='xargs '
+alias nice='nice '
 
 alias history='fc -i -l 1'
 
