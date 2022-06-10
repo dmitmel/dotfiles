@@ -11,6 +11,7 @@ import math
 import posixpath
 import sys
 import urllib.parse
+from typing import Callable, Optional, Tuple, TypeVar, Union
 
 import gi
 
@@ -42,266 +43,417 @@ PLAYER_PLAYBACK_STATUS_EMOJIS = {
 }
 
 
-def humanize_duration(duration: float) -> str:
-  minutes, seconds = divmod(math.floor(duration), 60)
-  hours, minutes = divmod(minutes, 60)
-  text = "{:02}:{:02}".format(minutes, seconds)
-  if hours > 0:
-    text = "{}:{}".format(hours, text)
-  return text
+class Application(Gtk.Application):
+
+  def __init__(self) -> None:
+    super().__init__(application_id="com.github.dmitmel.dotfiles.playerctl-simple-menu")
+
+    self.is_already_activated = False
+
+  def do_activate(self) -> None:
+    if self.is_already_activated:
+      # Ignore activations triggered by remote instances. See this:
+      # <https://stackoverflow.com/a/42044391/12005228>
+      return
+    self.is_already_activated = True
+
+    self.root_menu = Gtk.Menu()
+    self.player_items = []
+    self.empty_players_menu_item = Gtk.MenuItem(label="No players were detected!", sensitive=False)
+    self.root_menu.append(self.empty_players_menu_item)
+
+    self.player_manager = Playerctl.PlayerManager()
+    self.player_manager.connect("name_appeared", self.on_player_name_appeared)
+    self.player_manager.connect("player_appeared", self.on_player_appeared)
+    self.player_manager.connect("player_vanished", self.on_player_vanished)
+    for player_name in self.player_manager.props.player_names:
+      self.on_player_name_appeared(self.player_manager, player_name)
+
+    self.root_menu.connect("selection_done", lambda _: self.quit())
+    self.root_menu.connect("deactivate", lambda _: self.quit())
+    self.root_menu.connect("destroy", lambda _: self.quit())
+
+    self.root_menu.show_all()
+    self.root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
+
+    Gdk.notify_startup_complete()
+
+    # `hold` needs to be done last, so that if an exception occurs during the
+    # initialization the application doesn't hang.
+    self.hold()
+
+  def show_menu(self) -> None:
+    self.root_menu.show_all()
+    self.root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
+
+  def on_player_name_appeared(
+    self, _: Playerctl.PlayerManager, player_name: Playerctl.PlayerName
+  ) -> None:
+    player = Playerctl.Player.new_from_name(player_name)
+    self.player_manager.manage_player(player)
+
+  def on_player_appeared(self, _: Playerctl.PlayerManager, player: Playerctl.Player) -> None:
+    self.root_menu.remove(self.empty_players_menu_item)
+    item = self.create_player_menu(player)
+    player_and_item = (player, item)
+    self.player_items.append(player_and_item)
+    self.player_items.sort(key=self.players_items_sort_key)
+    self.root_menu.insert(item, self.player_items.index(player_and_item))
+    item.show_all()
+
+  @staticmethod
+  def players_items_sort_key(player_and_item: Tuple[Playerctl.Player, Gtk.MenuItem]) -> object:
+    player, _ = player_and_item
+    return (
+      player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
+      -PLAYER_NAME_PRIORITIES.get(player.props.player_name, 0),
+      player.props.player_instance,
+    )
+
+  def on_player_vanished(self, _: Playerctl.PlayerManager, player: Playerctl.Player) -> None:
+    for item_index, (player2, item) in enumerate(self.player_items):
+      if player2 is player:
+        del self.player_items[item_index]
+        item.destroy()
+        break
+    else:
+      raise ValueError("player not in list")
+    if len(self.player_items) == 0:
+      self.root_menu.append(self.empty_players_menu_item)
+      self.empty_players_menu_item.show_all()
+
+  def create_player_menu(self, player: Playerctl.Player) -> Gtk.MenuItem:
+    player_menu_item = Gtk.ImageMenuItem(
+      label="{} [{}]".format(
+        player.props.player_instance,
+        PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
+      )
+    )
+
+    player_name = player.props.player_name
+    player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name, player_name)
+    player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
+    player_menu_item.set_image(player_icon)
+
+    player_menu_item.set_submenu(PlayerMenu(player))
+    return player_menu_item
 
 
-def iter_metadata_entries_for_player(player):
-  metadata = player.props.metadata
+class PlayerMenu(Gtk.Menu):
 
-  title = metadata.lookup_value("xesam:title")
-  if title:
-    yield title.get_string()
+  def __init__(self, player: Playerctl.Player) -> None:
+    super().__init__()
+    self.connect("destroy", self.on_destroy)
 
-    album = metadata.lookup_value("xesam:album")
-    if album:
-      yield album.get_string()
+    self.player = player
 
-  else:
+    if not player.props.can_control:
+      self.uncontrollable_item = self.create_item(
+        label="This player can't be controlled!",
+        sensitive=False,
+      )
+      return
+
+    # The functional-declarative style once again proves its usefulness
+
+    self.title_item = self.create_item(
+      label=self.title_label_text,
+      is_track_info=True,
+      visible=lambda: bool(self.title_label_text()),
+    )
+    player.connect("metadata", self.title_item.on_player_update)
+
+    self.album_item = self.create_item(
+      label=self.album_label_text,
+      is_track_info=True,
+      visible=lambda: bool(self.album_label_text()),
+    )
+    player.connect("metadata", self.album_item.on_player_update)
+
+    self.position_item = self.create_item(label=self.position_label_text, is_track_info=True)
+    self.prev_checked_position = None
+    self.position_check_timer = TimerSource(
+      self.next_position_check_time(), self.position_timer_fn
+    )
+    player.connect("metadata", self.on_position_changed)
+    player.connect("playback_status", self.on_position_changed)
+    player.connect("seeked", self.on_position_changed)
+
+    self.volume_item = self.create_item(
+      label=lambda: f"Volume: {round(player.props.volume * 100)}%",
+      is_track_info=True,
+    )
+    player.connect("volume", self.volume_item.on_player_update)
+
+    self.append(Gtk.SeparatorMenuItem())
+
+    PlaybackStatus = Playerctl.PlaybackStatus  # noqa: N806
+    playback_item_labels = {
+      PlaybackStatus.PLAYING: "_Pause",
+      PlaybackStatus.PAUSED: "Resume (_P)",
+      PlaybackStatus.STOPPED: "_Play",
+    }
+    self.play_pause_item = self.create_item(
+      label=lambda: playback_item_labels[player.props.playback_status],
+      icon=(
+        lambda: "media-playback-start"
+        if player.props.playback_status != PlaybackStatus.PLAYING else "media-playback-pause"
+      ),
+      sensitive=(
+        lambda: player.props.can_play
+        if player.props.playback_status != PlaybackStatus.PLAYING else player.props.can_pause
+      ),
+      action=player.play_pause,
+    )
+    player.connect("playback_status", self.play_pause_item.on_player_update)
+    player.connect("metadata", self.play_pause_item.on_player_update)
+
+    self.stop_item = self.create_item(
+      label="_Stop",
+      icon="media-playback-stop",
+      sensitive=(
+        # <https://github.com/altdesktop/playerctl/blob/c83a12a97031f64b260ea7f1be03386c3886b2d4/playerctl/playerctl-cli.c#L231-L235>
+        lambda: player.props.can_play and player.props.playback_status != PlaybackStatus.STOPPED
+      ),
+      action=player.stop,
+    )
+    player.connect("playback_status", self.stop_item.on_player_update)
+
+    self.mute_item = self.create_item(
+      label=lambda: "_Mute" if player.props.volume != 0 else "Nor_mal volume",
+      icon=lambda: "audio-volume-muted" if player.props.volume != 0 else "audio-volume-high",
+      action=lambda: player.set_volume(0 if player.props.volume != 0 else 1)
+    )
+    player.connect("volume", self.mute_item.on_player_update)
+
+    self.volume_increase_item = self.create_item(
+      label="Volume _+10%",
+      icon="audio-volume-medium",
+      sensitive=lambda: player.props.volume < 1,
+      action=lambda: player.set_volume(min(player.props.volume + 0.1, 1)),
+    )
+    player.connect("volume", self.volume_increase_item.on_player_update)
+
+    self.volume_decrease_item = self.create_item(
+      label="Volume _-10%",
+      icon="audio-volume-low",
+      sensitive=lambda: player.props.volume > 0,
+      action=lambda: player.set_volume(min(player.props.volume - 0.1, 1)),
+    )
+    player.connect("volume", self.volume_decrease_item.on_player_update)
+
+    self.volume_full_item = self.create_item(
+      label="Volume _100%",
+      icon="audio-volume-high",
+      sensitive=lambda: player.props.volume != 1,
+      action=lambda: player.set_volume(1),
+    )
+    player.connect("volume", self.volume_full_item.on_player_update)
+
+    self.volume_half_item = self.create_item(
+      label="Volume _50%",
+      icon="audio-volume-high",
+      sensitive=lambda: player.props.volume != 0.5,
+      action=lambda: player.set_volume(0.5),
+    )
+    player.connect("volume", self.volume_half_item.on_player_update)
+
+    self.go_next_item = self.create_item(
+      label="_Next",
+      icon="media-skip-forward",
+      sensitive=lambda: player.props.can_go_next,
+      action=player.next,
+    )
+    player.connect("metadata", self.go_next_item.on_player_update)
+
+    self.go_prev_item = self.create_item(
+      label="Previous (_B)",
+      icon="media-skip-forward",
+      sensitive=lambda: player.props.can_go_previous,
+      action=player.previous,
+    )
+    player.connect("metadata", self.go_prev_item.on_player_update)
+
+    self.shuffle_item = self.create_item(
+      label=lambda: "Don't shuffle (_R)" if player.props.shuffle else "Shuffle (_R)",
+      icon="media-playlist-shuffle",
+      action=lambda: player.set_shuffle(not player.props.shuffle),
+    )
+    player.connect("shuffle", self.shuffle_item.on_player_update)
+
+    loop_item_labels = {
+      Playerctl.LoopStatus.NONE: "Don't _loop",
+      Playerctl.LoopStatus.TRACK: "Loop _one",
+      Playerctl.LoopStatus.PLAYLIST: "Loop _all",
+    }
+    self.loop_items = {}
+    for status, label in loop_item_labels.items():
+      self.loop_items[status] = (
+        lambda status=status: self.create_item(
+          label=label,
+          icon="media-playlist-repeat",
+          sensitive=lambda: player.props.loop_status != status,
+          action=lambda: player.set_loop_status(status),
+        )
+      )()
+      player.connect("loop_status", self.loop_items[status].on_player_update)
+
+    self.play_again_item = self.create_item(
+      label="Play a_gain",
+      icon="go-first",
+      sensitive=lambda: player.props.can_seek,
+      action=lambda: (player.set_position(0), player.play())
+    )
+    player.connect("metadata", self.play_again_item.on_player_update)
+
+  def on_destroy(self, _: None) -> None:
+    self.position_check_timer = None
+
+  def position_timer_fn(self) -> int:
+    self.position_item.on_player_update()
+    return self.next_position_check_time()
+
+  def next_position_check_time(self) -> int:
+    prev_pos = self.prev_checked_position
+    curr_pos = self.player.props.position
+    self.prev_checked_position = curr_pos
+    if prev_pos != curr_pos:
+      return max(1_000_000 - curr_pos % 1_000_000, 10_000)
+    else:
+      return 1_000_000
+
+  def on_position_changed(self, *_: object) -> None:
+    self.prev_checked_position = None
+    self.position_check_timer.schedule(self.position_timer_fn())
+
+  def title_label_text(self) -> str:
+    metadata = self.player.props.metadata
+    title = metadata.lookup_value("xesam:title")
+    if title:
+      return title.get_string()
     url = metadata.lookup_value("xesam:url")
     if url:
       url_parsed = urllib.parse.urlparse(url.get_string())
-      if url_parsed.scheme == "file":
-        filename = posixpath.basename(urllib.parse.unquote(url_parsed.path))
-        yield filename
+      return posixpath.basename(urllib.parse.unquote(url_parsed.path))
+    return ""
 
-  if player.props.can_seek:
-    position_secs = player.props.position / 1e6
-    duration = metadata.lookup_value("mpris:length")
-    if duration is not None and duration.is_of_type(GLib.VariantType.new("x")):
-      duration_secs = duration.get_int64() / 1e6
-      yield "Time: {} / {}".format(
-        humanize_duration(position_secs), humanize_duration(duration_secs)
-      )
+  def album_label_text(self) -> str:
+    metadata = self.player.props.metadata
+    album = metadata.lookup_value("xesam:album")
+    if album:
+      return album.get_string()
+    return ""
 
-  yield "Volume: {}%".format(round(player.props.volume * 100))
+  def position_label_text(self) -> str:
+    player = self.player
+    position_text = self.humanize_duration(player.props.position / 1e6)
+    duration = player.props.metadata.lookup_value("mpris:length")
+    if duration:
+      duration_text = self.humanize_duration(duration.get_int64() / 1e6)
+      return f"Time: {position_text} / {duration_text}"
+    else:
+      return f"Time: {position_text}"
 
+  def humanize_duration(self, duration: float) -> str:
+    minutes, seconds = divmod(math.floor(duration), 60)
+    hours, minutes = divmod(minutes, 60)
+    text = f"{minutes:02}:{seconds:02}"
+    if hours > 0:
+      text = f"{hours}:{text}"
+    return text
 
-def iter_actions_for_player(player):
-  if not player.props.can_control:
-    yield ("This player can't be controlled!", None, False, None)
-    return
+  _T = TypeVar("_T")
+  _Thunk = Union[_T, Callable[[], _T]]
 
-  playback_status = player.props.playback_status
-  if playback_status == Playerctl.PlaybackStatus.PLAYING:
-    yield (
-      "_Pause",
-      "media-playback-pause",
-      player.props.can_pause,
-      player.pause,
-    )
-  elif playback_status == Playerctl.PlaybackStatus.PAUSED:
-    yield (
-      "Resume (_P)",
-      "media-playback-start",
-      player.props.can_play,
-      player.play,
-    )
-  elif playback_status == Playerctl.PlaybackStatus.STOPPED:
-    yield (
-      "_Play",
-      "media-playback-start",
-      player.props.can_play,
-      player.play,
-    )
+  def create_item(
+    self,
+    *,
+    label: _Thunk[str] = None,
+    is_track_info: bool = False,
+    icon: _Thunk[Optional[str]] = None,
+    sensitive: _Thunk[bool] = None,
+    visible: _Thunk[bool] = None,
+    action: Optional[Callable[[], None]] = None,
+  ) -> Gtk.MenuItem:
+    item = Gtk.ImageMenuItem() if icon is not None else Gtk.MenuItem()
 
-  # See <https://github.com/altdesktop/playerctl/blob/c83a12a97031f64b260ea7f1be03386c3886b2d4/playerctl/playerctl-cli.c#L231-L235>
-  yield (
-    "_Stop",
-    "media-playback-stop",
-    player.props.can_play and playback_status != Playerctl.PlaybackStatus.STOPPED,
-    player.stop,
-  )
+    # This function will also implicitly create the label widget for us.
+    item.set_use_underline(not is_track_info)
+    if is_track_info:
+      item_label: Gtk.Label = item.get_child()
+      item_label.set_ellipsize(Pango.EllipsizeMode.END)
+      item_label.set_max_width_chars(20)
+      if sensitive is None and action is None:
+        sensitive = False
 
-  volume_percent = round(player.props.volume * 100.0)
-  yield (
-    "_Mute" if volume_percent != 0 else "Nor_mal volume",
-    "audio-volume-muted" if volume_percent != 0 else "audio-volume-high",
-    True,
-    lambda volume: player.set_volume(volume / 100.0),
-    0 if volume_percent != 0 else 100,
-  )
-  yield (
-    "Volume _+10%",
-    "audio-volume-medium",
-    volume_percent < 100,
-    lambda: player.set_volume(min(volume_percent + 10, 100) / 100.0),
-  )
-  yield (
-    "Volume _-10%",
-    "audio-volume-low",
-    volume_percent > 0,
-    lambda: player.set_volume(max(volume_percent - 10, 0) / 100.0),
-  )
-  yield (
-    "Volume _100%",
-    "audio-volume-high",
-    volume_percent < 100,
-    lambda: player.set_volume(1.0),
-  )
-  yield (
-    "Volume _50%",
-    "audio-volume-medium",
-    volume_percent != 50,
-    lambda: player.set_volume(0.5),
-  )
+    if callable(action):
+      item.connect("activate", lambda _: action())
 
-  yield (
-    "_Next",
-    "media-skip-forward",
-    player.props.can_go_next,
-    player.next,
-  )
-  yield (
-    "Previous (_B)",
-    "media-skip-backward",
-    player.props.can_go_previous,
-    player.previous,
-  )
+    if visible is not None:
+      item.set_no_show_all(True)
 
-  shuffle = player.props.shuffle
-  yield (
-    "Don't shuffle (_R)" if shuffle else "Shuffle (_R)",
-    "media-playlist-shuffle",
-    True,
-    lambda: player.set_shuffle(not shuffle),
-  )
+    def item_set_icon(name: Optional[str]) -> None:
+      item.set_image(Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU) if name else None)
 
-  loop_status = player.props.loop_status
-  for loop_action_name, loop_action_status in [
-    ("Don't _loop", Playerctl.LoopStatus.NONE),
-    ("Loop _one", Playerctl.LoopStatus.TRACK),
-    ("Loop _all", Playerctl.LoopStatus.PLAYLIST),
-  ]:
-    yield (
-      loop_action_name,
-      "media-playlist-repeat",
-      loop_action_status != loop_status,
-      lambda loop_action_status: player.set_loop_status(loop_action_status),
-      loop_action_status,
-    )
+    thunks = {
+      "label": label,
+      "icon": icon,
+      "sensitive": sensitive,
+      "visible": visible,
+    }
+    thunks_appliers = {
+      "label": item.set_label,
+      "icon": item_set_icon,
+      "sensitive": item.set_sensitive,
+      "visible": item.set_visible,
+    }
 
-  yield (
-    "Play a_gain",
-    "go-first",
-    player.props.can_seek,
-    lambda: player.set_position(0),
-  )
+    def update(*_: object) -> None:
+      for name, thunk in thunks.items():
+        if thunk is not None:
+          apply = thunks_appliers[name]
+          if callable(thunk):
+            apply(thunk())
+          else:
+            apply(thunk)
+            thunks[name] = None
+
+    update()
+    item.on_player_update = update
+
+    self.append(item)
+    return item
 
 
-is_already_activated = False
+class TimerSource(GLib.Source):
+
+  def __init__(self, timeout: int, callback: Callable, *user_data: object) -> None:
+    super().__init__()
+    self.schedule(timeout)
+    self.set_callback(callback, user_data)
+    self.attach()
+
+  def schedule(self, timeout: int) -> bool:
+    if timeout is not None and timeout >= 0:
+      self.set_ready_time(GLib.get_monotonic_time() + timeout)
+      return True
+    else:
+      return False
+
+  def prepare(self) -> None:
+    pass
+
+  def check(self) -> None:
+    pass
+
+  def dispatch(self, callback: Callable, user_data: Tuple[Tuple]) -> bool:
+    next_timeout = callback(*user_data[0])
+    return self.schedule(next_timeout)
+
+  def finalize(self) -> None:
+    pass
 
 
-def on_activate(application):
-  global is_already_activated
-  if is_already_activated:
-    # Ignore activations triggered by remote instances. See this:
-    # <https://stackoverflow.com/a/42044391/12005228>
-    return
-  is_already_activated = True
-
-  root_menu = Gtk.Menu()
-
-  player_names = Playerctl.list_players()
-
-  if len(player_names) > 0:
-    players = []
-    for player_name in player_names:
-      player = Playerctl.Player.new_from_name(player_name)
-      players.append({
-        "player":
-          player,
-        "player_name":
-          player_name,
-        "sorting_key": (
-          player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
-          -PLAYER_NAME_PRIORITIES.get(player_name.name, 0),
-          player_name.instance,
-        ),
-      })
-    players = sorted(players, key=lambda player_and_meta: player_and_meta["sorting_key"])
-
-    for player_and_meta in players:
-      player_name = player_and_meta["player_name"]
-      player = player_and_meta["player"]
-
-      player_menu_item = Gtk.ImageMenuItem.new_with_label(
-        "{} [{}]".format(
-          player_name.instance,
-          PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
-        )
-      )
-
-      player_icon_name = PLAYER_ICON_NAME_FIXES.get(player_name.name, player_name.name)
-      player_icon = Gtk.Image.new_from_icon_name(player_icon_name, Gtk.IconSize.MENU)
-      player_menu_item.set_image(player_icon)
-
-      actions_menu = Gtk.Menu()
-
-      any_metadata_was_added = False
-      for meta_entry_text in iter_metadata_entries_for_player(player):
-        meta_menu_item = Gtk.MenuItem.new_with_label(meta_entry_text)
-        meta_menu_item.set_sensitive(False)
-        meta_menu_item_label = meta_menu_item.get_child()
-        meta_menu_item_label.set_ellipsize(Pango.EllipsizeMode.END)
-        meta_menu_item_label.set_max_width_chars(20)
-
-        actions_menu.append(meta_menu_item)
-        any_metadata_was_added = True
-
-      if any_metadata_was_added:
-        actions_menu.append(Gtk.SeparatorMenuItem.new())
-
-      for (
-        action_name,
-        action_icon_name,
-        action_enabled,
-        action_fn,
-        *action_fn_args,
-      ) in iter_actions_for_player(player):
-        action_menu_item = Gtk.ImageMenuItem.new_with_mnemonic(action_name)
-
-        if action_icon_name is not None:
-          action_icon = Gtk.Image.new_from_icon_name(action_icon_name, Gtk.IconSize.MENU)
-          action_menu_item.set_image(action_icon)
-
-        action_menu_item.set_sensitive(action_enabled)
-        if action_fn is not None:
-          action_menu_item.connect(
-            "activate",
-            lambda _target, action_fn, action_fn_args: action_fn(*action_fn_args),
-            action_fn,
-            action_fn_args,
-          )
-
-        actions_menu.append(action_menu_item)
-
-      player_menu_item.set_submenu(actions_menu)
-      root_menu.append(player_menu_item)
-  else:
-    menu_item = Gtk.MenuItem.new_with_label("No players were detected!")
-    menu_item.set_sensitive(False)
-    root_menu.append(menu_item)
-
-  root_menu.connect("selection-done", lambda _target: application.quit())
-  root_menu.connect("deactivate", lambda _target: application.quit())
-  root_menu.connect("destroy", lambda _target: application.quit())
-
-  root_menu.show_all()
-  root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
-
-  Gdk.notify_startup_complete()
-
-  # `hold` needs to be done last, so that if an exception occurs during the
-  # initialization the application doesn't hang.
-  application.hold()
-
-
-application = Gtk.Application(application_id="com.github.dmitmel.dotfiles.playerctl-simple-menu")
-application.connect("activate", on_activate)
-sys.exit(application.run(sys.argv))
+if __name__ == "__main__":
+  application = Application()
+  sys.exit(application.run(sys.argv))
