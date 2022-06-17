@@ -193,6 +193,10 @@ let s:plug = function('dotfiles#plugman#register')
       " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
       call s:plug('https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' })
     endif
+    if has('nvim-0.5.0')
+      " An interactive Lua playground.
+      call s:plug('https://github.com/rafcamlet/nvim-luapad')
+    endif
     " The built-in LSP client has been introduced in nvim 0.5.0, see
     " <https://github.com/neovim/neovim/commit/a5ac2f45ff84a688a09479f357a9909d5b914294>.
     if has('nvim-0.5.0') && get(g:, 'dotfiles_use_nvimlsp', 0)
@@ -251,7 +255,7 @@ let s:plug = function('dotfiles#plugman#register')
       " etc, the typical CSS stuff) for quick preview.
       call s:plug('https://github.com/chrisbra/Colorizer')
     endif
-    if has('nvim-0.4.3') || (v:version >=# 802 && has('python3'))
+    if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
       call s:plug('https://github.com/puremourning/vimspector')
     endif
   endif
