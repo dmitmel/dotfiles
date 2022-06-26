@@ -30,7 +30,7 @@ async function main() {
         message = `${message}\n\n${code}\n`;
       }
       console.error(message);
-      return process.exit(1);
+      return 1;
     }
     throw error;
   }
@@ -50,7 +50,7 @@ async function main() {
         message = `${message}\n\n${code}\n`;
       }
       console.error(message);
-      return process.exit(1);
+      return 1;
     }
     throw error;
   }
@@ -88,7 +88,7 @@ async function main() {
   );
   await fs.writeFile(templatePath, templateCompiled);
 
-  process.exit(0);
+  return 0;
 }
 
 /**
@@ -150,7 +150,12 @@ function xmlEscape(s, quote = false) {
   return s;
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+main().then(
+  (code) => {
+    process.exitCode = code;
+  },
+  (error) => {
+    console.error(error);
+    process.exitCode = 1;
+  },
+);
