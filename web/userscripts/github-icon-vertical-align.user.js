@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     GitHub icon vertical alignment fix
-// @version  3
+// @version  4
 // @grant    none
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
@@ -12,12 +12,12 @@
 
   function addStylesheet() {
     let style = document.createElement('style');
-    style.append(
+    style.textContent = [
       //
       '.btn-sm .octicon {\n',
       '  vertical-align: middle;\n',
       '}\n',
-    );
+    ].join('');
     document.head.appendChild(style);
   }
 

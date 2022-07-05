@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     GitHub tab size 4
-// @version  3
+// @version  4
 // @grant    none
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
@@ -14,12 +14,12 @@
 
   function addStylesheet() {
     let style = document.createElement('style');
-    style.append(
+    style.textContent = [
       '* {\n',
       `  -moz-tab-size: ${TAB_SIZE} !important;\n`,
       `  tab-size: ${TAB_SIZE} !important;\n`,
       '}\n',
-    );
+    ].join('');
     document.head.appendChild(style);
   }
 

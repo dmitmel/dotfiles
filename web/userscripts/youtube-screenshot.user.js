@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     YouTube screenshotter
-// @version  3
+// @version  4
 // @grant    none
 // @match    https://www.youtube.com/*
 // @run-at   document-end
@@ -25,6 +25,6 @@
   }
 
   let script = document.createElement('script');
-  script.append(`(${main.toString()})();`);
+  script.textContent = `(${main.toString()})();`;
   (document.body || document.head || document.documentElement).appendChild(script);
 })();

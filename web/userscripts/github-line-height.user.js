@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     GitHub line-height
-// @version  3
+// @version  4
 // @grant    none
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
@@ -14,12 +14,12 @@
 
   function addStylesheet() {
     let style = document.createElement('style');
-    style.append(
+    style.textContent = [
       '.blob-num, .blob-code, .markdown-body .highlight pre, .markdown-body pre, \n',
       '.cm-s-github-light .CodeMirror-lines, textarea.file-editor-textarea {\n',
       `  line-height: ${LINE_HEIGHT};\n`,
       '}\n',
-    );
+    ].join('');
     document.head.appendChild(style);
   }
 
