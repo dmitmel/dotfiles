@@ -27,3 +27,5 @@ autocmd BufReadPre */node_modules/typescript/lib/lib.*.d.ts
 \ unlet! b:dotfiles_fileformat_checked
 
 autocmd BufNewFile,BufRead *.snippets setf snippets
+
+autocmd BufNewFile,BufRead */etc/fonts/*.conf,*/.config/fontconfig/*.conf setf xml
