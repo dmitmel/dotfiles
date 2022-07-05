@@ -4,5 +4,6 @@ if exists('g:did_load_polyglot')
   let s:has_polyglot = 1
 endif
 if exists('s:has_polyglot')
+  " This boosts the startup speed by avoiding sourcing filetype.vim.
   let g:did_load_filetypes = 1
 endif
