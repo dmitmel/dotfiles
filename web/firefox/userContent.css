@@ -1,9 +1,9 @@
 @-moz-document url-prefix(chrome://devtools/content/), url(about:devtools-toolbox)
 {
   :root {
-    --theme-body-font-size: 13px !important;
-    --theme-code-font-size: 13px !important;
-    --theme-code-line-height: calc(15 / 13) !important;
+    /* --theme-body-font-size: 13px !important; */
+    /* --theme-code-font-size: 13px !important; */
+    /* --theme-code-line-height: calc(15 / 13) !important; */
   }
 }
 

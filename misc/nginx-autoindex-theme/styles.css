@@ -5,6 +5,7 @@
 body {
   margin: 8px;
   font-family: monospace;
+  line-height: 1.2;
   background: #383838;
   color: #dadada;
 }
