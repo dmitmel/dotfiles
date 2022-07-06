@@ -286,6 +286,7 @@ set nrformats-=octal
   nnoremap <leader>kk <Cmd>set keymap&<CR>
   nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
   nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
+  imap     <A-k>      <C-o><leader>k
 
   nnoremap <C-o> <Cmd>DotfilesSwapKeymaps<CR>
   command! -nargs=0 DotfilesSwapKeymaps let [b:dotfiles_prev_keymap, &keymap] = [&keymap, get(b:, 'dotfiles_prev_keymap', '')]
