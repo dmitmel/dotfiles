@@ -40,9 +40,9 @@ setopt complete_in_word
 # strangely enough, Zsh doesn't save command history by default
 HISTFILE="${HISTFILE:-$HOME/.zsh_history}"
 # max number of entries stored in memory
-HISTSIZE=100000
+HISTSIZE=210000
 # max number of entries in the HISTFILE
-SAVEHIST=80000
+SAVEHIST=200000
 # record timestamps in the history
 setopt extended_history
 # delete duplicates first when HISTFILE size exceeds HISTSIZE
