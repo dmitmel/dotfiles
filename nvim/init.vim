@@ -54,6 +54,10 @@ if has('nvim-0.5.0')
   lua require('dotfiles.global_utils')
 endif
 
+" Disable the new Lua-based filetype detection system introduced in the newer
+" Nvim versions.
+let g:do_legacy_filetype = 1
+
 call dotfiles#plugman#auto_install()
 call dotfiles#plugman#begin()
 runtime! dotfiles/plugins-list.vim
