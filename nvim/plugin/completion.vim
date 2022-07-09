@@ -264,6 +264,20 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     nmap <silent><expr> gd <SID>coc_buf_supports('definition')  ? "<space>gd" : "gd"
     nmap <silent><expr> gD <SID>coc_buf_supports('declaration') ? "<space>gD" : "gD"
     nmap <silent><expr> gr <SID>coc_buf_supports('reference')   ? "<space>gr" : "gr"
+
+    function! s:jump_in_out_float_win() abort
+      if !has('nvim') | return | endif
+      let floats = coc#float#get_float_win_list()
+      if empty(floats) | return | endif
+      " This logic can be improved, but I think that in the most common case by
+      " a huge margin (jumping in and out of the hover window) it is enough.
+      if index(floats, win_getid()) >= 0
+        wincmd p
+      else
+        call win_gotoid(floats[0])
+      endif
+    endfunction
+    nnoremap <silent> <leader>j <Cmd>call <SID>jump_in_out_float_win()<CR>
   " }}}
 
   " CocFormat {{{
