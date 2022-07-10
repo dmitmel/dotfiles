@@ -73,27 +73,15 @@ set nrformats-=octal
 
   if g:dotfiles_sane_indentline_enable && has('nvim-0.5.0')
     lua require('dotfiles.sane_indentline')
-    command! -bar -bang IndentLinesEnable
-      \  if <bang>0
-      \|   let g:indentLine_enabled = 1
-      \| else
-      \|   let b:indentLine_enabled = 1
-      \| endif
-      \| redraw!
-    command! -bar -bang IndentLinesDisable
-      \  if <bang>0
-      \|   let g:indentLine_enabled = 0
-      \| else
-      \|   let b:indentLine_enabled = 0
-      \| endif
-      \| redraw!
-    command! -bar -bang IndentLinesToggle
-      \  if <bang>0
-      \|   let g:indentLine_enabled = !get(g:, 'indentLine_enabled', 1)
-      \| else
-      \|   let b:indentLine_enabled = !get(b:, 'indentLine_enabled', 1)
-      \| endif
-      \| redraw!
+    function! s:indent_lines_set(global, status) abort
+      let dict = a:global ? g: : b:
+      let status = a:status is# 'toggle' ? !get(dict, 'indentLine_enabled', 1) : a:status
+      let dict['indentLine_enabled'] = status
+      redraw!
+    endfunction
+    command! -bar -bang IndentLinesEnable  call s:indent_lines_set(<bang>0, 1)
+    command! -bar -bang IndentLinesDisable call s:indent_lines_set(<bang>0, 0)
+    command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
   endif
 
   command! -bar -bang -range -nargs=? Unindent call dotfiles#indentation#unindent(<line1>, <line2>, str2nr(<q-args>))
