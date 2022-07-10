@@ -46,9 +46,16 @@ function! s:get_server_settings() abort
 endfunction
 
 let s:data_path = dotfiles#paths#xdg_cache_home() . '/lua-language-server'
+let s:command = 'lua-language-server'
+for s:install_path in ['/usr/lib/lua-language-server', '/usr/local/opt/lua-language-server/libexec']
+  if isdirectory(s:install_path)
+    let s:command = s:install_path.'/bin/lua-language-server'
+    break
+  endif
+endfor
 let g:coc_user_config['languageserver.sumneko_lua'] = {
 \ 'filetypes': keys(s:filetypes),
-\ 'command': 'lua-language-server',
+\ 'command': s:command,
 \ 'args': ['--logpath='.s:data_path.'/log', '--metapath='.s:data_path.'/meta'],
 \ 'rootPatterns': ['.luarc.json', '.vim/', '.git/', '.hg/'],
 \ 'settings': { 'Lua': s:get_server_settings() },
