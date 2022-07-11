@@ -250,11 +250,6 @@ let s:plug = function('dotfiles#plugman#register')
     else
       call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'release' })
     endif
-    if has('nvim-0.4.0')
-      " Highlights colors written in different notations (`#rrggbb`, `rgb(r,g,b)`
-      " etc, the typical CSS stuff) for quick preview.
-      call s:plug('https://github.com/chrisbra/Colorizer')
-    endif
     if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
       " A client for the Debug Adapter Protocol.
       call s:plug('https://github.com/puremourning/vimspector')

@@ -261,7 +261,7 @@ set nrformats-=octal
   inoremap <C-u> <C-g>u<C-u>
   inoremap <C-w> <C-g>u<C-w>
 
-  nnoremap <leader>l <Cmd>set termguicolors<bar>ColorToggle<CR>
+  nnoremap <leader>l <Cmd>set termguicolors!<CR>
 
 " }}}
 
