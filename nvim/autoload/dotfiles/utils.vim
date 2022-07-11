@@ -222,3 +222,15 @@ function! dotfiles#utils#eunuch_fcall(fn, path, ...) abort
   let fn = get(get(g:, 'io_' . matchstr(a:path, '^\a\a\+\ze:'), {}), a:fn, a:fn)
   return call(fn, [a:path] + a:000)
 endfunction
+
+" Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
+function! dotfiles#utils#url_encode(str) abort
+  " iconv trick to convert utf-8 bytes to 8bits indiviual char.
+  return substitute(iconv(a:str, 'latin1', 'utf-8'), '[^A-Za-z0-9_.~-]', '\="%".printf("%02X",char2nr(submatch(0)))','g')
+endfunction
+
+" Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L464-L467>
+function! dotfiles#utils#url_decode(str) abort
+  let str = substitute(substitute(substitute(a:str, '%0[Aa]\n$', '%0A', ''), '%0[Aa]', '\n', 'g'), '+', ' ', 'g')
+  return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')
+endfunction
