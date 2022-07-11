@@ -35,19 +35,18 @@
     \ ['bold', 'underline', 'undercurl', 'strikethrough', 'reverse', 'italic', 'nocombine'],
     \ 'get(a:defs, v:val)')
     let attr = !empty(attr) ? join(attr, ',') : 'NONE'
-    exec 'hi' a:group
-      \ 'guifg='.get(fg, 'gui', 'NONE') 'ctermfg='.get(fg, 'cterm', 'NONE')
-      \ 'guibg='.get(bg, 'gui', 'NONE') 'ctermbg='.get(bg, 'cterm', 'NONE')
-      \ 'gui='.(attr) 'cterm='.(attr)
-      \ 'guisp='.get(sp, 'gui', 'NONE')
+    return 'hi ' . a:group
+    \ . ' guifg='.get(fg, 'gui', 'NONE') . ' ctermfg='.get(fg, 'cterm', 'NONE')
+    \ . ' guibg='.get(bg, 'gui', 'NONE') . ' ctermbg='.get(bg, 'cterm', 'NONE')
+    \ . ' gui='.attr . ' cterm='.attr . ' guisp='.get(sp, 'gui', 'NONE')
   endfunction
 
   function! s:hi_raw(group, defs) abort
-    exec 'hi' a:group
-      \ 'guifg='.get(a:defs, 'guifg', 'NONE') 'ctermfg='.get(a:defs, 'ctermfg', 'NONE')
-      \ 'guibg='.get(a:defs, 'guibg', 'NONE') 'ctermbg='.get(a:defs, 'ctermbg', 'NONE')
-      \ 'gui='.get(a:defs, 'gui', 'NONE') 'cterm='.get(a:defs, 'cterm', 'NONE')
-      \ 'guisp='.get(a:defs, 'guisp', 'NONE')
+    return 'hi ' . a:group
+    \ . ' guifg='.get(a:defs, 'guifg', 'NONE') . ' ctermfg='.get(a:defs, 'ctermfg', 'NONE')
+    \ . ' guibg='.get(a:defs, 'guibg', 'NONE') . ' ctermbg='.get(a:defs, 'ctermbg', 'NONE')
+    \ . ' gui='.get(a:defs, 'gui', 'NONE') . ' cterm='.get(a:defs, 'cterm', 'NONE')
+    \ . ' guisp='.get(a:defs, 'guisp', 'NONE')
   endfunction
 
   function! s:mix_colors(color1, color2, factor) abort
@@ -72,21 +71,21 @@
 
 " General syntax highlighting {{{
 
-  call s:hi('Normal',        { 'fg': 0x5, 'bg': 0x0      })
-  call s:hi('Italic',        { 'fg': 0xE, 'italic': 1    })
-  call s:hi('Bold',          { 'fg': 0xA, 'bold': 1      })
-  call s:hi('Underlined',    { 'fg': 0x8, 'underline': 1 })
-  call s:hi('Strikethrough', { 'strikethrough': 1        })
-  call s:hi('Title',         { 'fg': 0xD })
+  exec s:hi('Normal',        { 'fg': 0x5, 'bg': 0x0      })
+  exec s:hi('Italic',        { 'fg': 0xE, 'italic': 1    })
+  exec s:hi('Bold',          { 'fg': 0xA, 'bold': 1      })
+  exec s:hi('Underlined',    { 'fg': 0x8, 'underline': 1 })
+  exec s:hi('Strikethrough', { 'strikethrough': 1        })
+  exec s:hi('Title',         { 'fg': 0xD })
   hi! link Directory Title
-  call s:hi('Conceal',       { 'fg': 0xC })
+  exec s:hi('Conceal',       { 'fg': 0xC })
   hi! link SpecialKey Special
-  call s:hi('MatchParen',    { 'fg': 'fg', 'bg': 0x3 })
+  exec s:hi('MatchParen',    { 'fg': 'fg', 'bg': 0x3 })
 
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  call s:hi('NonText',    { 'fg': 0x3, 'nocombine': s:has_nocombine })
-  call s:hi('IndentLine', { 'fg': 0x2, 'nocombine': s:has_nocombine })
+  exec s:hi('NonText',    { 'fg': 0x3, 'nocombine': s:has_nocombine })
+  exec s:hi('IndentLine', { 'fg': 0x2, 'nocombine': s:has_nocombine })
   hi! link IndentBlanklineChar               IndentLine
   hi! link IndentBlanklineSpaceChar          Whitespace
   hi! link IndentBlanklineSpaceCharBlankline Whitespace
@@ -96,7 +95,7 @@
     let g:indent_blankline_char_highlight_list = []
     for s:color in range(7)
       call add(g:indent_blankline_char_highlight_list, 'IndentLineRainbow' . s:color)
-      call s:hi_raw('IndentLineRainbow' . s:color, {
+      exec s:hi_raw('IndentLineRainbow' . s:color, {
       \ 'ctermfg': s:colors[0x2].cterm,
       \ 'guifg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:colors[8 + s:color], g:dotfiles_rainbow_indent_opacity)),
       \ 'cterm': s:has_nocombine ? 'nocombine' : '',
@@ -105,68 +104,68 @@
     endfor
   endif
 
-  call s:hi('Keyword',     { 'fg': 0xE })
+  exec s:hi('Keyword',     { 'fg': 0xE })
   hi! link Statement       Keyword
   hi! link Repeat          Keyword
   hi! link StorageClass    Keyword
   hi! link Exception       Keyword
   hi! link Structure       Keyword
   hi! link Conditional     Keyword
-  call s:hi('Constant',    { 'fg': 0x9 })
+  exec s:hi('Constant',    { 'fg': 0x9 })
   hi! link Boolean         Constant
   hi! link Float           Constant
   hi! link Number          Constant
-  call s:hi('String',      { 'fg': 0xB })
+  exec s:hi('String',      { 'fg': 0xB })
   hi! link Character       String
   hi! link Quote           String
   hi! link StringDelimiter String
-  call s:hi('Comment',     { 'fg': 0x3 })
+  exec s:hi('Comment',     { 'fg': 0x3 })
   hi! link SpecialComment  Comment
-  call s:hi('Todo',        { 'fg': 0xA, 'bg': 'bg', 'reverse': 1, 'bold': 1 })
-  call s:hi('Function',    { 'fg': 0xD })
-  call s:hi('Identifier',  { 'fg': 0x8 })
+  exec s:hi('Todo',        { 'fg': 0xA, 'bg': 'bg', 'reverse': 1, 'bold': 1 })
+  exec s:hi('Function',    { 'fg': 0xD })
+  exec s:hi('Identifier',  { 'fg': 0x8 })
   hi! link Variable        Identifier
-  " call s:hi('Include',     { 'fg': 0xF })
+  " exec s:hi('Include',     { 'fg': 0xF })
   hi! link Include         Keyword
-  call s:hi('PreProc',     { 'fg': 0xA })
-  call s:hi('Label',       { 'fg': 0xA })
+  exec s:hi('PreProc',     { 'fg': 0xA })
+  exec s:hi('Label',       { 'fg': 0xA })
   hi! link Operator        NONE
   hi! link Delimiter       NONE
-  call s:hi('Special',     { 'fg': 0xC })
-  call s:hi('Tag',         { 'fg': 0xA })
-  call s:hi('Type',        { 'fg': 0xA })
+  exec s:hi('Special',     { 'fg': 0xC })
+  exec s:hi('Tag',         { 'fg': 0xA })
+  exec s:hi('Type',        { 'fg': 0xA })
   hi! link Typedef         Type
 
 " }}}
 
 " User interface {{{
 
-  call s:hi('Error',      { 'fg': 0x8, 'bg': 'bg', 'reverse': 1 })
-  call s:hi('ErrorMsg',   { 'fg': 0x8 })
-  call s:hi('WarningMsg', { 'fg': 0x9 })
-  call s:hi('TooLong',    { 'fg': 0x8 })
-  call s:hi('Debug',      { 'fg': 0x8 })
+  exec s:hi('Error',      { 'fg': 0x8, 'bg': 'bg', 'reverse': 1 })
+  exec s:hi('ErrorMsg',   { 'fg': 0x8 })
+  exec s:hi('WarningMsg', { 'fg': 0x9 })
+  exec s:hi('TooLong',    { 'fg': 0x8 })
+  exec s:hi('Debug',      { 'fg': 0x8 })
 
-  call s:hi('CocErrorSign',     { 'fg': 'bg', 'bg': 0x8 })
-  call s:hi('CocWarningSign',   { 'fg': 'bg', 'bg': 0xA })
-  call s:hi('CocInfoSign',      { 'fg': 'bg', 'bg': 0xD })
-  call s:hi('CocHintSign',      { 'fg': 'bg', 'bg': 0xD })
+  exec s:hi('CocErrorSign',     { 'fg': 'bg', 'bg': 0x8 })
+  exec s:hi('CocWarningSign',   { 'fg': 'bg', 'bg': 0xA })
+  exec s:hi('CocInfoSign',      { 'fg': 'bg', 'bg': 0xD })
+  exec s:hi('CocHintSign',      { 'fg': 'bg', 'bg': 0xD })
   " The float hlgroups are a fix for changes in
   " <https://github.com/neoclide/coc.nvim/commit/a34b3ecf6b45908fa5c86afa26874b20fb7851d3> and
   " <https://github.com/neoclide/coc.nvim/commit/a9a4b4c584a90784f95ba598d1cb6d37fb189e5a>.
-  call s:hi('CocErrorFloat',    { 'fg': 0x8 })
-  call s:hi('CocWarningFloat',  { 'fg': 0xA })
-  call s:hi('CocInfoFloat',     { 'fg': 0xD })
-  call s:hi('CocHintFloat',     { 'fg': 0xD })
+  exec s:hi('CocErrorFloat',    { 'fg': 0x8 })
+  exec s:hi('CocWarningFloat',  { 'fg': 0xA })
+  exec s:hi('CocInfoFloat',     { 'fg': 0xD })
+  exec s:hi('CocHintFloat',     { 'fg': 0xD })
   hi! link FgCocErrorFloatBgCocFloating   CocErrorSign
   hi! link FgCocWarningFloatBgCocFloating CocWarningSign
   hi! link FgCocInfoFloatBgCocFloating    CocInfoSign
   hi! link FgCocHintFloatBgCocFloating    CocHintSign
-  call s:hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'bold': 1 })
-  call s:hi('CocCodeLens',      { 'fg': 0x4 })
-  call s:hi('CocFadeOut',       { 'fg': 0x3 })
-  call s:hi('CocUnderline',     { 'underline':     1 })
-  call s:hi('CocStrikeThrough', { 'strikethrough': 1 })
+  exec s:hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'bold': 1 })
+  exec s:hi('CocCodeLens',      { 'fg': 0x4 })
+  exec s:hi('CocFadeOut',       { 'fg': 0x3 })
+  exec s:hi('CocUnderline',     { 'underline':     1 })
+  exec s:hi('CocStrikeThrough', { 'strikethrough': 1 })
   hi! link CocMarkdownLink      Underlined
   hi! link CocDiagnosticsFile   Directory
   hi! link CocOutlineName       NONE
@@ -191,17 +190,17 @@
         let s:default_hl_name = s:name_prefix.'Default'.s:severity_name
       endif
 
-      call s:hi(s:default_hl_name, { 'fg': 'bg', 'bg': s:severity_color })
-      call s:hi(s:name_prefix.'Underline'.s:severity_name, { 'underline': 1 })
+      exec s:hi(s:default_hl_name, { 'fg': 'bg', 'bg': s:severity_color })
+      exec s:hi(s:name_prefix.'Underline'.s:severity_name, { 'underline': 1 })
       exec 'hi! link '.s:name_prefix.'Floating'.s:severity_name.' '.s:default_hl_name
       exec 'hi! link '.s:name_prefix.'Sign'.s:severity_name.' '.s:default_hl_name
 
       if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
         let s:severity_color = s:colors[s:severity_color]
-        call s:hi_raw(s:name_prefix.'Line'.s:severity_name, {
+        exec s:hi_raw(s:name_prefix.'Line'.s:severity_name, {
         \ 'guibg': s:color_to_css_hex(s:mix_colors(s:colors[0x0], s:severity_color, 0.1)),
         \ })
-        call s:hi_raw(s:name_prefix.'VirtualText'.s:severity_name, {
+        exec s:hi_raw(s:name_prefix.'VirtualText'.s:severity_name, {
         \ 'ctermfg': 'bg', 'ctermbg': s:severity_color.cterm, 'guifg': s:severity_color.gui, 'gui': 'bold',
         \ })
       else
@@ -209,91 +208,91 @@
       endif
     endfor
 
-    call s:hi(s:name_prefix.'UnderlineUnnecessary', { 'fg': 0x3          })
-    call s:hi(s:name_prefix.'UnderlineDeprecated',  { 'strikethrough': 1 })
+    exec s:hi(s:name_prefix.'UnderlineUnnecessary', { 'fg': 0x3          })
+    exec s:hi(s:name_prefix.'UnderlineDeprecated',  { 'strikethrough': 1 })
 
     hi! link LspHover Search
     " <https://github.com/neovim/neovim/pull/15018>
-    call s:hi('LspSignatureActiveParameter', { 'underline': 1 })
+    exec s:hi('LspSignatureActiveParameter', { 'underline': 1 })
   endif
 
-  call s:hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })
-  call s:hi('Folded',     { 'fg': 0x3, 'bg': 0x1 })
+  exec s:hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })
+  exec s:hi('Folded',     { 'fg': 0x3, 'bg': 0x1 })
 
-  call s:hi('IncSearch', { 'fg': 0x1, 'bg': 0x9 })
-  call s:hi('Search',    { 'fg': 0x1, 'bg': 0xA })
+  exec s:hi('IncSearch', { 'fg': 0x1, 'bg': 0x9 })
+  exec s:hi('Search',    { 'fg': 0x1, 'bg': 0xA })
   hi! link Substitute    Search
 
-  call s:hi('ModeMsg',  { 'fg': 0xB, 'bold': 1 })
-  call s:hi('Question', { 'fg': 0xB })
+  exec s:hi('ModeMsg',  { 'fg': 0xB, 'bold': 1 })
+  exec s:hi('Question', { 'fg': 0xB })
   hi! link MoreMsg      Question
-  call s:hi('Visual',   { 'bg': 0x2 })
-  call s:hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
+  exec s:hi('Visual',   { 'bg': 0x2 })
+  exec s:hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
 
-  call s:hi('CursorLine',   {            'bg': 0x1 })
+  exec s:hi('CursorLine',   {            'bg': 0x1 })
   hi! link CursorColumn     CursorLine
-  call s:hi('ColorColumn',  {            'bg': 0x1 })
-  call s:hi('LineNr',       { 'fg': 0x3, 'bg': 0x1 })
-  call s:hi('CursorLineNr', { 'fg': 0x4, 'bg': 0x1 })
-  " call s:hi('QuickFixLine', {            'bg': 0x2            })
-  " call s:hi('qfError',      { 'fg': 0x8, 'bg': 0x1, 'bold': 1 })
-  " call s:hi('qfWarning',    { 'fg': 0xA, 'bg': 0x1, 'bold': 1 })
-  " call s:hi('qfInfo',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
-  " call s:hi('qfNote',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
+  exec s:hi('ColorColumn',  {            'bg': 0x1 })
+  exec s:hi('LineNr',       { 'fg': 0x3, 'bg': 0x1 })
+  exec s:hi('CursorLineNr', { 'fg': 0x4, 'bg': 0x1 })
+  " exec s:hi('QuickFixLine', {            'bg': 0x2            })
+  " exec s:hi('qfError',      { 'fg': 0x8, 'bg': 0x1, 'bold': 1 })
+  " exec s:hi('qfWarning',    { 'fg': 0xA, 'bg': 0x1, 'bold': 1 })
+  " exec s:hi('qfInfo',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
+  " exec s:hi('qfNote',       { 'fg': 0xD, 'bg': 0x1, 'bold': 1 })
   " The secondary quickfix list setup. Requires a bunch of weird tricks with
   " reverse video to look nice. This is needed because highlighting of the
   " current qflist item with the QuickFixLine hlgroup is handled as a special
   " case (see <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/screen.c#L2391-L2394>),
   " and, unfortunately, QuickFixLine overrides the background colors set by
   " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
-  call s:hi('QuickFixLine', { 'fg': 0xE, 'underline': 1, 'sp': 0xE })
-  call s:hi('qfError',      { 'fg': 0x8, 'reverse': 1, 'bold': 1   })
-  call s:hi('qfWarning',    { 'fg': 0xA, 'reverse': 1, 'bold': 1   })
-  call s:hi('qfInfo',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
-  call s:hi('qfNote',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
+  exec s:hi('QuickFixLine', { 'fg': 0xE, 'underline': 1, 'sp': 0xE })
+  exec s:hi('qfError',      { 'fg': 0x8, 'reverse': 1, 'bold': 1   })
+  exec s:hi('qfWarning',    { 'fg': 0xA, 'reverse': 1, 'bold': 1   })
+  exec s:hi('qfInfo',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
+  exec s:hi('qfNote',       { 'fg': 0xD, 'reverse': 1, 'bold': 1   })
 
-  call s:hi('SignColumn',   { 'fg': 0x3,  'bg': 0x1 })
-  call s:hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
-  call s:hi('StatusLineNC', { 'fg': 0x3,  'bg': 0x1 })
-  call s:hi('VertSplit',    { 'fg': 0x2,  'bg': 0x2 })
+  exec s:hi('SignColumn',   { 'fg': 0x3,  'bg': 0x1 })
+  exec s:hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
+  exec s:hi('StatusLineNC', { 'fg': 0x3,  'bg': 0x1 })
+  exec s:hi('VertSplit',    { 'fg': 0x2,  'bg': 0x2 })
   hi! link TabLine          StatusLine
   hi! link TabLineFill      StatusLine
-  call s:hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
-  call s:hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
+  exec s:hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
+  exec s:hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
   hi! link FloatBorder      NormalFloat
 
   hi! link PMenu NormalFloat
-  call s:hi('PMenuSel',              { 'fg': 'bg', 'bg': 0xD })
-  call s:hi('CmpItemAbbrDefault',    { 'fg': 0x5 })
-  call s:hi('CmpItemAbbrMatch',      { 'fg': 0xA })
-  call s:hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })
-  call s:hi('CmpItemKind',           { 'fg': 0xD })
-  call s:hi('CmpItemMenu',           { 'fg': 0x4 })
-  call s:hi('CmpItemAbbrDeprecated', { 'strikethrough': 1 })
+  exec s:hi('PMenuSel',              { 'fg': 'bg', 'bg': 0xD })
+  exec s:hi('CmpItemAbbrDefault',    { 'fg': 0x5 })
+  exec s:hi('CmpItemAbbrMatch',      { 'fg': 0xA })
+  exec s:hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })
+  exec s:hi('CmpItemKind',           { 'fg': 0xD })
+  exec s:hi('CmpItemMenu',           { 'fg': 0x4 })
+  exec s:hi('CmpItemAbbrDeprecated', { 'strikethrough': 1 })
 
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
 
-  call s:hi('SpellBad',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0x8, 'undercurl': s:is_kitty, 'sp': 0x8 })
-  call s:hi('SpellLocal', { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xC, 'undercurl': s:is_kitty, 'sp': 0xC })
-  call s:hi('SpellCap',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xD, 'undercurl': s:is_kitty, 'sp': 0xD })
-  call s:hi('SpellRare',  { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xE, 'undercurl': s:is_kitty, 'sp': 0xE })
+  exec s:hi('SpellBad',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0x8, 'undercurl': s:is_kitty, 'sp': 0x8 })
+  exec s:hi('SpellLocal', { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xC, 'undercurl': s:is_kitty, 'sp': 0xC })
+  exec s:hi('SpellCap',   { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xD, 'undercurl': s:is_kitty, 'sp': 0xD })
+  exec s:hi('SpellRare',  { 'fg': s:is_kitty ? '' : 'bg', 'bg': s:is_kitty ? '' : 0xE, 'undercurl': s:is_kitty, 'sp': 0xE })
 
-  call s:hi('Sneak',  { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
+  exec s:hi('Sneak',  { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
   hi! link SneakScope Visual
   hi! link SneakLabel Sneak
 
   " checkhealth UI
-  call s:hi('healthSuccess', { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
-  call s:hi('healthWarning', { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
-  call s:hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
+  exec s:hi('healthSuccess', { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
+  exec s:hi('healthWarning', { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  exec s:hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
 
   " Vimspector
-  call s:hi('vimspectorBP',         { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
-  call s:hi('vimspectorBPCond',     { 'fg': 'bg', 'bg': 0x9, 'bold': 1 })
-  call s:hi('vimspectorBPLog',      { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
-  call s:hi('vimspectorBPDisabled', { 'fg': 'bg', 'bg': 0xF, 'bold': 1 })
-  call s:hi('vimspectorPC',         { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
+  exec s:hi('vimspectorBP',         { 'fg': 'bg', 'bg': 0x8, 'bold': 1 })
+  exec s:hi('vimspectorBPCond',     { 'fg': 'bg', 'bg': 0x9, 'bold': 1 })
+  exec s:hi('vimspectorBPLog',      { 'fg': 'bg', 'bg': 0xA, 'bold': 1 })
+  exec s:hi('vimspectorBPDisabled', { 'fg': 'bg', 'bg': 0xF, 'bold': 1 })
+  exec s:hi('vimspectorPC',         { 'fg': 'bg', 'bg': 0xB, 'bold': 1 })
   hi! link vimspectorPCBP          vimspectorPC
   hi! link vimspectorCurrentThread vimspectorPC
   hi! link vimspectorCurrentFrame  vimspectorPC
@@ -352,16 +351,16 @@
   let s:ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
     if s:has_nocombine
-      call s:hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'nocombine': 1 })
+      exec s:hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'nocombine': 1 })
     else
-      call s:hi('TermCursor', { 'reverse': 1 })
+      exec s:hi('TermCursor', { 'reverse': 1 })
     endif
     hi! link TermCursorNC NONE
     for s:color in range(16)
       let g:terminal_color_{s:color} = s:colors[s:ansi_colors[s:color]].gui
     endfor
   elseif has('terminal') && (has('gui_running') || &termguicolors)
-    call s:hi('Terminal', { 'fg': 'fg', 'bg': 'bg' })
+    exec s:hi('Terminal', { 'fg': 'fg', 'bg': 'bg' })
     let g:terminal_ansi_colors = []
     for s:color in range(16)
       call add(g:terminal_ansi_colors, s:colors[s:ansi_colors[s:color]].gui)
@@ -389,14 +388,14 @@
 
 " Diff {{{
   " diff mode
-  call s:hi('DiffAdd',     { 'fg': 0xB, 'bg': 0x1 })
-  call s:hi('DiffDelete',  { 'fg': 0x8, 'bg': 0x1 })
-  call s:hi('DiffText',    { 'fg': 0xE, 'bg': 0x1 })
-  call s:hi('DiffChange',  { 'fg': 0x3, 'bg': 0x1 })
+  exec s:hi('DiffAdd',     { 'fg': 0xB, 'bg': 0x1 })
+  exec s:hi('DiffDelete',  { 'fg': 0x8, 'bg': 0x1 })
+  exec s:hi('DiffText',    { 'fg': 0xE, 'bg': 0x1 })
+  exec s:hi('DiffChange',  { 'fg': 0x3, 'bg': 0x1 })
   " diff file
-  call s:hi('diffAdded',   { 'fg': 0xB })
-  call s:hi('diffRemoved', { 'fg': 0x8 })
-  call s:hi('diffChanged', { 'fg': 0xE })
+  exec s:hi('diffAdded',   { 'fg': 0xB })
+  exec s:hi('diffRemoved', { 'fg': 0x8 })
+  exec s:hi('diffChanged', { 'fg': 0xE })
   hi! link diffNewFile     diffAdded
   hi! link diffFile        diffRemoved
   hi! link diffIndexLine   Bold
@@ -423,14 +422,14 @@
   hi! link gitcommitDiscarded Comment
   hi! link gitcommitSelected  Comment
   hi! link gitcommitHeader    Keyword
-  call s:hi('gitcommitSelectedType',  { 'fg': 0xD })
-  call s:hi('gitcommitUnmergedType',  { 'fg': 0xD })
-  call s:hi('gitcommitDiscardedType', { 'fg': 0xD })
+  exec s:hi('gitcommitSelectedType',  { 'fg': 0xD })
+  exec s:hi('gitcommitUnmergedType',  { 'fg': 0xD })
+  exec s:hi('gitcommitDiscardedType', { 'fg': 0xD })
   hi! link gitcommitBranch Function
-  call s:hi('gitcommitUntrackedFile', { 'fg': 0xA, 'bold': 1 })
-  call s:hi('gitcommitUnmergedFile',  { 'fg': 0x8, 'bold': 1 })
-  call s:hi('gitcommitDiscardedFile', { 'fg': 0x8, 'bold': 1 })
-  call s:hi('gitcommitSelectedFile',  { 'fg': 0xB, 'bold': 1 })
+  exec s:hi('gitcommitUntrackedFile', { 'fg': 0xA, 'bold': 1 })
+  exec s:hi('gitcommitUnmergedFile',  { 'fg': 0x8, 'bold': 1 })
+  exec s:hi('gitcommitDiscardedFile', { 'fg': 0x8, 'bold': 1 })
+  exec s:hi('gitcommitSelectedFile',  { 'fg': 0xB, 'bold': 1 })
 
   hi! link GitGutterAdd          DiffAdd
   hi! link GitGutterDelete       DiffDelete
@@ -619,7 +618,7 @@
 
 " Mail {{{
   for s:color in range(6)
-    call s:hi('mailQuoted' . (s:color + 1), { 'fg': 0x8 + s:color })
+    exec s:hi('mailQuoted' . (s:color + 1), { 'fg': 0x8 + s:color })
   endfor
   hi! link mailURL   Underlined
   hi! link mailEmail Underlined
