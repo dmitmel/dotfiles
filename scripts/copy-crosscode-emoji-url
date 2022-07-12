@@ -12,7 +12,7 @@ from typing import Any, Dict, Generator, List, Optional, Union
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
 import common_script_utils
 
-DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.crosscode.ru/~ccbot/emote-registry.json"
+DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.openkrosskod.org/~ccbot/emote-registry.json"
 
 if os.name == "posix":
   config_path: Path = (common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini")
