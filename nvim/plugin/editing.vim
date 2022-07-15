@@ -88,8 +88,8 @@ set nrformats-=octal
   nnoremap <leader>< :Unindent<CR>
   xnoremap <leader>< :Unindent<CR>
 
-  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion(1)<CR>
-  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion(-1)<CR>
+  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion_next()<CR>
+  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion_prev()<CR>
   map <expr> ( !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_prev" : "("
   sunmap (
   map <expr> ) !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_next" : ")"

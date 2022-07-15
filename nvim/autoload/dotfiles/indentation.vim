@@ -7,65 +7,52 @@ function! dotfiles#indentation#unindent(first_line, last_line, base_indent) abor
   endfor
 endfunction
 
+function! dotfiles#indentation#run_indent_motion_next() abort
+  let linenr = s:run_indent_motion(1)
+  execute 'normal! ' . linenr . 'G^'
+endfunction
+
+function! dotfiles#indentation#run_indent_motion_prev() abort
+  let linenr = s:run_indent_motion(-1)
+  execute 'normal! ' . linenr . 'G^'
+endfunction
+
 " Based on <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim>
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
-function! dotfiles#indentation#run_indent_motion(direction) abort
+function! s:run_indent_motion(direction) abort
+  let Nextnonblank = a:direction > 0 ? function('nextnonblank') : function('prevnonblank')
   let cursor_linenr = line('.')
   let max_linenr = line('$')
 
-  let retry = 0
-  while retry <# 2
-    let retry += 1
+  let base_linenr = Nextnonblank(cursor_linenr)
+  let base_indent = indent(base_linenr)
+  if base_linenr <= 0 || base_indent < 0 | return cursor_linenr | endif
 
-    let base_linenr = cursor_linenr
-    let base_indent = 0
-    while 1 <=# base_linenr && base_linenr <=# max_linenr
-      let base_indent = dotfiles#indentation#indent_level_of(base_linenr)
-      if base_indent >=# 0
-        break
-      endif
-      let base_linenr += a:direction
-    endwhile
+  let curr_linenr = Nextnonblank(base_linenr + a:direction)
+  let curr_indent = indent(curr_linenr)
+  if curr_linenr <= 0 || curr_indent < 0 | return base_linenr | endif
 
-    let target_linenr = base_linenr
+  if curr_indent < base_indent
+    let base_indent = curr_indent
+  endif
 
-    let curr_linenr = base_linenr + a:direction
-    let prev_indent = base_indent
-    while 1 <=# curr_linenr && curr_linenr <=# max_linenr
-      let indent = dotfiles#indentation#indent_level_of(curr_linenr)
+  while 1
+    let next_linenr = Nextnonblank(curr_linenr + a:direction)
+    let next_indent = indent(next_linenr)
+    if next_linenr <= 0 || next_indent < 0 | return curr_linenr | endif
 
-      if indent >=# 0
-        if indent <# base_indent
-          break
-        else
-          let target_linenr = curr_linenr
-        endif
-      elseif base_indent ==# 0 && prev_indent ==# 0
-        break
-      endif
-
-      let prev_indent = indent
-      let curr_linenr += a:direction
-    endwhile
-
-    if target_linenr ==# cursor_linenr
-      let cursor_linenr += a:direction
-      if 1 <=# cursor_linenr && cursor_linenr <=# max_linenr
-        continue
+    if next_indent < base_indent
+      return curr_linenr
+    elseif curr_linenr + a:direction != next_linenr
+      if curr_indent > 0 && next_indent == 0
+        return next_linenr
+      elseif base_indent == 0 && curr_indent == 0
+        return curr_linenr
       endif
     endif
 
-    break
+    let curr_linenr = next_linenr
+    let curr_indent = next_indent
   endwhile
-
-  execute 'normal! ' . target_linenr . 'G^'
-endfunction
-
-" <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim#L120-L127>
-function! dotfiles#indentation#indent_level_of(linenr) abort
-  if empty(getline(a:linenr))
-    return -1
-  endif
-  return indent(a:linenr)
 endfunction
