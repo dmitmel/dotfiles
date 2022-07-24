@@ -89,6 +89,13 @@ fi; unset rustup_bin
   ZSHZ_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/zshz_db.txt"
   ZSHZ_UNCOMMON=1
 
+  # The plugin sometimes leaves behind the temporary files it creates for
+  # atomically updating its database, so we find and delete them ourselves. The
+  # glob selects files which were modified older than a week ago.
+  for match in "${ZSHZ_DATA}".*(N.mw+1); do
+    rm -f "$match"
+  done; unset match
+
   _plugin zsh-z 'agkozak/zsh-z' \
     after_load='plugin-cfg-path fpath prepend ""'
 
