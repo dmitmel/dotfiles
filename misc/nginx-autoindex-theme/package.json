@@ -5,7 +5,7 @@
     "cssnano": "^5.1.5",
     "postcss": "^8.4.12",
     "postcss-reporter": "^7.0.5",
-    "terser": "^5.12.1"
+    "terser": "^5.14.2"
   },
   "devDependencies": {
     "@types/node": "^17.0.22"
