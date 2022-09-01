@@ -46,7 +46,11 @@
 
       if (sortCol === 'name') {
         getValue = (td) => td.innerText;
-        compare = (a, b) => a.localeCompare(b);
+        if (typeof Intl !== 'undefined') {
+          compare = new Intl.Collator(undefined, { numeric: true }).compare;
+        } else {
+          compare = (a, b) => a.localeCompare(b);
+        }
       } else if (sortCol === 'size') {
         getValue = (td) => nan2null(parseInt(td.dataset.val, 10));
       } else if (sortCol === 'mtime') {
