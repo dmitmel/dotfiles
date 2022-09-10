@@ -43,6 +43,3 @@ def coth(x: float) -> float:
 
 def acoth(x: float) -> float:
   return atanh(1 / x)
-
-
-print("loaded Python calculator")
