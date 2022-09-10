@@ -1,16 +1,10 @@
 #!/usr/bin/env node
 /// <reference types="node" />
 const fs = require('fs');
-const pathM = require('path');
+const Path = require('path');
 const argparse = require('argparse');
-const markdownIt = require('markdown-it');
-const markdownItTaskCheckbox = require('markdown-it-task-checkbox');
-const markdownItEmoji = require('markdown-it-emoji');
-const markdownItHeaderAnchors = require('./markdown-it-header-anchors');
-const Prism = require('prismjs/components/prism-core');
-const loadPrismLanguages = require('prismjs/components/');
 const PRISM_COMPONENTS = require('prismjs/components.js');
-// const shiki = require('shiki');
+const createRenderer = require('./renderer');
 
 // TODO: integrate <https://github.com/PrismJS/prism-themes>
 const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter((k) => k !== 'meta');
@@ -42,7 +36,6 @@ async function main() {
   });
   parser.add_argument('--syntax-theme', {
     choices: [...PRISM_THEMES, 'none', 'dotfiles'],
-    // choices: [...shiki.BUNDLED_THEMES, 'none', 'dotfiles'],
   });
 
   parser.add_argument('--stylesheet', {
@@ -54,31 +47,10 @@ async function main() {
 
   let args = parser.parse_args();
 
-  loadPrismLanguages(); // loads all languages
-  // let highlighter = await shiki.getHighlighter({ theme: args.syntax_theme });
-  // let highlighterLanguages = new Set(highlighter.getLoadedLanguages());
-  // let highlighterTheme = highlighter.getTheme();
-
-  let md = markdownIt({
-    html: true,
-    linkify: true,
-    highlight: (code, lang) => {
-      if (lang && Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
-        return Prism.highlight(code, Prism.languages[lang], lang);
-      }
-      return null;
-      // return highlighter.codeToHtml(code, {
-      //   lang: highlighterLanguages.has(lang) ? lang : 'text',
-      //   theme: highlighterTheme,
-      // });
-    },
-  });
-  md.use(markdownItTaskCheckbox);
-  md.use(markdownItEmoji, { shortcuts: {} });
-  md.use(markdownItHeaderAnchors);
+  let render = createRenderer();
 
   let markdownDocument = fs.readFileSync(args.INPUT_FILE || 0, args.input_encoding);
-  let renderedMarkdown = md.render(markdownDocument);
+  let renderedMarkdown = render(markdownDocument);
 
   let stylesheetsTexts = [];
   let scriptsTexts = [];
@@ -106,33 +78,6 @@ async function main() {
     );
   }
 
-  // let syntaxThemeColors = highlighterTheme.colors;
-  // stylesheetsTexts.push(
-  //   [
-  //     'pre.shiki{',
-  //     ...[
-  //       highlighterTheme.bg && `background-color:${highlighterTheme.bg}`,
-  //       highlighterTheme.fg && `color:${highlighterTheme.fg}`,
-  //     ]
-  //       .filter(Boolean)
-  //       .join(';'),
-  //     '}',
-  //     'pre.shiki::-moz-selection,',
-  //     'pre.shiki::selection,',
-  //     'pre.shiki ::-moz-selection,',
-  //     'pre.shiki ::selection{',
-  //     ...[
-  //       syntaxThemeColors['editor.selectionBackground'] &&
-  //         `background-color:${syntaxThemeColors['editor.selectionBackground']}`,
-  //       syntaxThemeColors['editor.selectionForeground'] &&
-  //         `color:${syntaxThemeColors['editor.selectionForeground']}`,
-  //     ]
-  //       .filter(Boolean)
-  //       .join(';'),
-  //     '}',
-  //   ].join(''),
-  // );
-
   for (let stylesheetPath of args.stylesheet || []) {
     stylesheetsTexts.push(fs.readFileSync(stylesheetPath));
   }
@@ -148,7 +93,7 @@ async function main() {
     '<meta charset="UTF-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     '<meta http-equiv="X-UA-Compatible" content="ie=edge">',
-    `<title>${pathM.basename(args.INPUT_FILE || '<stdin>')}</title>`,
+    `<title>${Path.basename(args.INPUT_FILE || '<stdin>')}</title>`,
     ...stylesheetsTexts.map((s) => {
       let st = s.trim();
       return !st.includes('\n') ? `<style>${st}</style>` : `<style>\n${s}\n</style>`;
