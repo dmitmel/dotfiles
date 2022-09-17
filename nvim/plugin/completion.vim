@@ -389,6 +389,7 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
   nmap <silent> <A-'> <Plug>VimspectorStepOver
   nmap <silent> <A-;> <Plug>VimspectorStepInto
   nmap <silent> <A-:> <Plug>VimspectorStepOut
+  nmap <silent> <A-S-;> <Plug>VimspectorStepOut
   nmap <silent> <A-.> <Plug>VimspectorDownFrame
   nmap <silent> <A-,> <Plug>VimspectorUpFrame
   nmap <silent> <A-b> <Plug>VimspectorToggleBreakpoint
