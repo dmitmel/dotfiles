@@ -79,7 +79,7 @@ alias free='free -h'
 if command_exists apt && command_exists apt-get; then
   apt_get_message="use 'apt' instead of 'apt-get'
 if you really want to use 'apt-get', type '\\apt-get'"
-  alias apt-get="print -r -- ${(qqq)apt_get_message} #"
+  alias apt-get="echo -E ${(qqq)apt_get_message} #"
   unset apt_get_message
 fi
 
