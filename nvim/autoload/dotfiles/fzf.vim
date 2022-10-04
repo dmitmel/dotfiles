@@ -167,10 +167,7 @@ function! s:manpage_search_sink(lines) abort
     let groups = matchlist(choice, '\v^\s*(\S+)\s*\((\w+)\)')
     if !empty(groups)
       let [name, section] = groups[1:2]
-      " <https://github.com/neovim/neovim/blob/master/runtime/plugin/man.vim#L8-L10>
-      " I would rather not deal with escaping the man page name, even though this
-      " requires calling a private function.
-      call man#open_page(-1, modifiers, name.'('.section.')')
+      execute modifiers 'Man' escape(name.'('.section.')', " \t\\")
     endif
   endfor
 endfunction
