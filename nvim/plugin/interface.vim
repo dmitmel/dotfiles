@@ -254,6 +254,7 @@ let &history = max([&history, 10000])
   let g:qf_mapping_ack_style = 1
   " Pick and jump using fzf
   nnoremap <leader>z <Cmd>CListFuzzy<CR>
+  let g:qf_bufname_or_text = 2
 " }}}
 
 
