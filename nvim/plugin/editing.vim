@@ -558,6 +558,8 @@ set nrformats-=octal
   " <https://github.com/sheerun/vim-polyglot/blob/83422e0a1fcfc88f3475104b0e0674e8dbe3130e/ftplugin/markdown.vim#L751-L760>
   let g:vim_markdown_no_default_key_mappings = 1
 
+  let g:java_highlight_all = 1
+
 " }}}
 
 

@@ -688,3 +688,14 @@
 " TOML {{{
   hi! link tomlDotInKey NONE
 " }}}
+
+" Java {{{
+  hi! link javaOperator       Keyword
+  hi! link javaC_             Type
+  hi! link javaDocParam       Label
+  hi! link javaDocSeeTagParam Label
+" }}}
+
+" C# {{{
+  hi! link csNewType Type
+" }}}
