@@ -18,3 +18,10 @@ let g:coc_user_config['python'] = {
 "\   'typeCheckingMode': 'strict',
 \   },
 \ }
+
+let g:coc_user_config['pyright'] = {
+\  'inlayHints': {
+\     'functionReturnTypes': v:false,
+\     'variableTypes': v:false,
+\   }
+\ }
