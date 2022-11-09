@@ -34,6 +34,7 @@ if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
       topdelete    = { text = vim.g.gitgutter_sign_removed_first_line },
       change       = { text = vim.g.gitgutter_sign_modified           },
       changedelete = { text = vim.g.gitgutter_sign_modified_removed   },
+      untracked    = { text = vim.g.gitgutter_sign_added              },
     },
     sign_priority = vim.g.gitgutter_sign_priority,
     preview_config = {
