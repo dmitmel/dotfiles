@@ -172,12 +172,6 @@ let s:plug = function('dotfiles#plugman#register')
   " Bundled vim-sleuth is disabled because the upstream has more features and
   " requires less hacks to work with my setup.
   call add(g:polyglot_disabled, 'autoindent')
-  " Highlighting of mediawiki markup. Installed while I was working on
-  " <https://wiki.c2dl.info/>.
-  call s:plug('https://github.com/chikamichi/mediawiki.vim')
-  " Highlighting of RISC-V assembly keywords. The only reason I have this
-  " installed is <https://github.com/dmitmel/riscv-playground>.
-  call s:plug('https://github.com/kylelaker/riscv.vim')
   if g:vim_ide
     " The Lua standard library has been introduced in nvim 0.4.0, see
     " <https://github.com/neovim/neovim/commit/e2cc5fe09d98ce1ccaaa666a835c896805ccc196>.
