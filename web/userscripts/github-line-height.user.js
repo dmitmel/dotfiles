@@ -16,7 +16,8 @@
     let style = document.createElement('style');
     style.textContent = [
       '.blob-num, .blob-code, .markdown-body .highlight pre, .markdown-body pre, \n',
-      '.cm-s-github-light .CodeMirror-lines, textarea.file-editor-textarea {\n',
+      '.cm-s-github-light .CodeMirror-lines, textarea.file-editor-textarea,\n',
+      '.react-code-cell, .react-code-cell > button {\n',
       `  line-height: ${LINE_HEIGHT};\n`,
       '}\n',
     ].join('');
