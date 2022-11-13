@@ -24,6 +24,11 @@ set autoread
 
 " Persistent undo history
 set undofile
+augroup dotfiles_undo_persistance
+  autocmd!
+  autocmd BufWritePre * if &l:undofile !=# &g:undofile | setlocal undofile< | endif
+  autocmd BufWritePre /tmp/*,/var/tmp/*,/private/tmp/* setlocal noundofile
+augroup END
 
 " Time to wait before CursorHold (and also before writing the swap file...)
 set updatetime=500
