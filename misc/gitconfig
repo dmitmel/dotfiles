@@ -28,6 +28,3 @@
 
 [alias]
   initial-commit = commit --message 'initial commit' --allow-empty
-
-[init]
-  defaultBranch = main
