@@ -29,3 +29,5 @@ autocmd BufReadPre */node_modules/typescript/lib/lib.*.d.ts
 autocmd BufNewFile,BufRead *.snippets setf snippets
 
 autocmd BufNewFile,BufRead */etc/fonts/*.conf,*/fontconfig/*.conf setf xml
+
+autocmd BufNewFile,BufRead */.clangd setf yaml

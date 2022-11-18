@@ -241,6 +241,8 @@ let s:plug = function('dotfiles#plugman#register')
       call s:plug('https://github.com/neoclide/coc-css', { 'do': 'yarn install --frozen-lockfile' })
       " Port of <https://github.com/microsoft/pyright/tree/main/packages/vscode-pyright>.
       call s:plug('https://github.com/fannheyward/coc-pyright', { 'do': 'yarn install --frozen-lockfile' })
+      " An adapter for <https://clangd.llvm.org/installation>.
+      call s:plug('https://github.com/clangd/coc-clangd', { 'do': 'yarn install --frozen-lockfile' })
     else
       call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'release' })
     endif

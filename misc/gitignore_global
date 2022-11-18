@@ -3,4 +3,5 @@ Session.vim
 .DS_Store
 .ropeproject/
 .ccls-cache/
+.cache/clangd/
 *~
