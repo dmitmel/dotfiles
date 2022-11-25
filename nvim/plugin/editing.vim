@@ -579,4 +579,16 @@ set nrformats-=octal
 
   command! -nargs=+ -complete=command Timeit try | echo reltimefloat(dotfiles#sandboxed_execute#timeit(<q-args>)) | catch | echoerr v:exception | endtry
 
+  function! Hex(n) abort
+    return printf("%x", a:n)
+  endfunction
+
+  function! Bin(n) abort
+    return printf("%b", a:n)
+  endfunction
+
+  function! Oct(n) abort
+    return printf("%o", a:n)
+  endfunction
+
 " }}}
