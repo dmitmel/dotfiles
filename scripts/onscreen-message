@@ -21,6 +21,31 @@ window.set_default_size(800, 100)
 scrolled_window = Gtk.ScrolledWindow()
 label = Gtk.Label(label=message)
 scrolled_window.add(label)
+
+
+# This code is based on <https://github.com/GNOME/gtk/blob/3.24.34/gtk/gtkwindow.c#L1583-L1643>
+# and <https://github.com/GNOME/gtk/blob/4.9.1/gtk/gtkwindowhandle.c#L416-L456>.
+def on_drag_gesture_update(gesture, offset_x, offset_y) -> None:
+  widget = gesture.props.widget
+  if not widget.drag_check_threshold(0, 0, offset_x, offset_y):
+    return
+  gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+  start_pos = gesture.get_start_point()
+  window = widget.get_toplevel().get_window()
+  root_pos = window.get_root_coords(start_pos.x, start_pos.y)
+  window.begin_move_drag_for_device(
+    gesture.get_device(),
+    gesture.get_current_button(),
+    root_pos.root_x,
+    root_pos.root_y,
+    Gtk.get_current_event_time(),
+  )
+  gesture.reset()
+
+
+drag_gesture = Gtk.GestureDrag(widget=scrolled_window)
+drag_gesture.connect("drag-update", on_drag_gesture_update)
+
 window.add(scrolled_window)
 
 
