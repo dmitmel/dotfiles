@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     GitHub line-height
-// @version  4
+// @version  5
 // @grant    none
 // @match    https://github.com/*
 // @match    https://gist.github.com/*
@@ -17,7 +17,8 @@
     style.textContent = [
       '.blob-num, .blob-code, .markdown-body .highlight pre, .markdown-body pre, \n',
       '.cm-s-github-light .CodeMirror-lines, textarea.file-editor-textarea,\n',
-      '.react-code-cell, .react-code-cell > button {\n',
+      '.react-code-cell, .react-code-cell > button, .react-code-blob-table \n',
+      '.react-code-cell, .react-code-blob-table .react-code-cell > button {\n',
       `  line-height: ${LINE_HEIGHT};\n`,
       '}\n',
     ].join('');
