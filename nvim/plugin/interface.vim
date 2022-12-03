@@ -42,11 +42,10 @@ else
   augroup END
 endif
 
-" Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers
+" Yes, I occasionally use mouse. Sometimes it is handy for switching windows/buffers.
 set mouse=a
-" <RightMouse> pops up a context menu
-" <S-LeftMouse> extends a visual selection
-set mousemodel=popup
+" This disables the (annoying) right-click popup menu in newer versions of Neovim.
+set mousemodel=extend
 
 " Crank up the command-line history size to the maximum!
 let &history = max([&history, 10000])
