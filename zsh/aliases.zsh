@@ -106,7 +106,7 @@ if command_exists ncdu; then
   alias ncdu='ncdu --confirm-quit'
 fi
 
-alias bin-disassemble='objdump -M intel-mnemonics -d'
+alias bin-disassemble='objdump -M intel-mnemonics -dS'
 alias bin-list-symbols='nm'
 alias bin-list-dylib-symbols='nm -gD'
 
