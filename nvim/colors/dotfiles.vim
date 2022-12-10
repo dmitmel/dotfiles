@@ -535,6 +535,7 @@
   hi! link jsImport            Include
   hi! link jsExport            Include
   hi! link jsTemplateBraces    PreProc
+  hi! link jsOf                Keyword
   hi! link jsxComponentName    Type
   hi! link jsxTagName          xmlTagName
   hi! link jsxAttrib           xmlAttrib
