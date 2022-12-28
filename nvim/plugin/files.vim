@@ -283,3 +283,6 @@ function! s:SudoEditInit() abort
 endfunction
 call s:SudoEditInit()
 " }}}
+
+
+nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
