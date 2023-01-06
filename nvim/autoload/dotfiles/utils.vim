@@ -234,3 +234,16 @@ function! dotfiles#utils#url_decode(str) abort
   let str = substitute(substitute(substitute(a:str, '%0[Aa]\n$', '%0A', ''), '%0[Aa]', '\n', 'g'), '+', ' ', 'g')
   return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')
 endfunction
+
+function! dotfiles#utils#file_size_fmt(bytes) abort
+  let next_factor = 1
+  for unit in ['B', 'K', 'M', 'G', 'T']
+    let factor = next_factor
+    let next_factor = factor * 1024
+    if abs(a:bytes) < next_factor | break | endif
+  endfor
+  let number_str = printf('%.2f', (a:bytes * 1.0) / factor)
+  " remove trailing zeros
+  let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
+  return number_str . unit
+endfunction

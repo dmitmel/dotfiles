@@ -25,20 +25,7 @@ function! airline#extensions#dotfiles_filesize#get() abort
     " MUCH faster than wordcount().bytes because it does a lot less work.
     let bytes = max([0, line2byte(line('$') + 1) - 1])
     let b:dotfiles_filesize = bytes
-
-    let factor = 1
-    for unit in ['B', 'K', 'M', 'G']
-      let next_factor = factor * 1024
-      if bytes <# next_factor
-        let number_str = printf('%.2f', (bytes * 1.0) / factor)
-        " remove trailing zeros
-        let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
-        let b:dotfiles_filesize_str = number_str . unit
-        break
-      endif
-      let factor = next_factor
-    endfor
-
+    let b:dotfiles_filesize_str = dotfiles#utils#file_size_fmt(bytes)
     let b:dotfiles_filesize_changedtick = b:changedtick
     let b:dotfiles_filesize_timer = reltimefloat(reltime())
   endif
