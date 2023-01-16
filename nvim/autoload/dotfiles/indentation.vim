@@ -21,26 +21,46 @@ endfunction
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
 function! s:run_indent_motion(direction) abort
-  let Nextnonblank = a:direction > 0 ? function('nextnonblank') : function('prevnonblank')
+  let Nextnonblank = a:direction < 0 ? function('prevnonblank') : function('nextnonblank')
   let cursor_linenr = line('.')
   let max_linenr = line('$')
+
+  let line_ignore_pat = ''
+  if index(['c', 'cpp', 'objc', 'objcpp', 'glsl'], &ft) >= 0
+    let line_ignore_pat = '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>'
+  endif
 
   let base_linenr = Nextnonblank(cursor_linenr)
   let base_indent = indent(base_linenr)
   if base_linenr <= 0 || base_indent < 0 | return cursor_linenr | endif
+  if getline(base_linenr) =~# line_ignore_pat
+    let line_ignore_pat = ''
+  endif
 
-  let curr_linenr = Nextnonblank(base_linenr + a:direction)
-  let curr_indent = indent(curr_linenr)
-  if curr_linenr <= 0 || curr_indent < 0 | return base_linenr | endif
+  let curr_linenr = base_linenr
+  while 1
+    let curr_linenr = Nextnonblank(curr_linenr + a:direction)
+    let curr_indent = indent(curr_linenr)
+    if curr_linenr <= 0 || curr_indent < 0 | return base_linenr | endif
+    if empty(line_ignore_pat) || getline(curr_linenr) !~# line_ignore_pat
+      break
+    endif
+  endwhile
 
   if curr_indent < base_indent
     let base_indent = curr_indent
   endif
 
   while 1
-    let next_linenr = Nextnonblank(curr_linenr + a:direction)
-    let next_indent = indent(next_linenr)
-    if next_linenr <= 0 || next_indent < 0 | return curr_linenr | endif
+    let next_linenr = curr_linenr
+    while 1
+      let next_linenr = Nextnonblank(next_linenr + a:direction)
+      let next_indent = indent(next_linenr)
+      if next_linenr <= 0 || next_indent < 0 | return curr_linenr | endif
+      if empty(line_ignore_pat) || getline(next_linenr) !~# line_ignore_pat
+        break
+      endif
+    endwhile
 
     if next_indent < base_indent
       return curr_linenr
