@@ -560,6 +560,9 @@ set nrformats-=octal
 
   let g:java_highlight_all = 1
 
+  let g:c_no_bracket_error = 1
+  let g:c_no_curly_error = 1
+
 " }}}
 
 
