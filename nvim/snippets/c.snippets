@@ -3,3 +3,8 @@ snippet main main function
 		$0
 		return 0;
 	}
+snippet timeit measure execution time of a section of code
+	clock_t start_time${1:_test} = clock();
+	$0
+	clock_t elapsed_time${1:_test} = clock() - start_time${1:_test};
+	printf("%f\n", (double)elapsed_time${1:_test} / CLOCKS_PER_SEC);
