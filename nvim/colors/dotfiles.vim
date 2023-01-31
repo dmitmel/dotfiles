@@ -440,9 +440,10 @@
   hi! link SignifySignDelete     DiffDelete
   hi! link GitSignsAdd           DiffAdd
   hi! link GitSignsDelete        DiffDelete
-  hi! link GitSignsTopDelete     GitSignsTopDelete
+  hi! link GitSignsTopDelete     GitSignsDelete
   hi! link GitSignsChange        DiffText
   hi! link GitSignsChangeDelete  GitSignsChange
+  hi! link GitSignsUntracked     GitSignsAdd
 " }}}
 
 " Vim scripts {{{
