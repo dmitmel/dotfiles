@@ -65,20 +65,6 @@ if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
   welcome
 fi
 
-should_really_sync=0
-if [[ -v DOTFILES_SYNC_LAST_WORKING_DIR ]]; then
-  # Variable is defined
-  if [[ -n "$DOTFILES_SYNC_LAST_WORKING_DIR" ]]; then
-    # Variable is non-empty
-    should_really_sync=1
-  fi
-else
-  # Variable is undefined
-  if [[ "$TERM_PROGRAM" != "vscode" ]]; then
-    should_really_sync=1
-  fi
-fi
-if (( should_really_sync )); then
+if [[ -n "$DOTFILES_SYNC_LAST_WORKING_DIR" ]]; then
   sync_working_dir_load
 fi
-unset should_really_sync
