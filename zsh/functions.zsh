@@ -152,3 +152,41 @@ print_lines() {
 print_null() {
   print -rNC1 -- "$@"
 }
+
+zmodload zsh/langinfo
+# Based on <https://gist.github.com/lucasad/6474224> and
+# <https://github.com/ohmyzsh/ohmyzsh/blob/aca048814b2462501ab82938ff2473661182fffb/lib/functions.zsh#L130-L209>.
+omz_urlencode() {
+  emulate -L zsh -o extendedglob
+
+  local -A opts
+  # -D: Remove all parsed options from the list of arguments, i.e. $@
+  # -E: Ignore unknown options, treating them as positional arguments
+  # -A: Put the parsed options into an associative array
+  zparseopts -D -E -A opts r m P
+  local str="$*"
+
+  local encoding="${langinfo[CODESET]}"
+  if [[ "$encoding" != (UTF-8|utf8|US-ASCII) ]]; then
+    if ! str="$(iconv -f "$encoding" -t UTF-8 <<< "$str")"; then
+      print >&2 -r -- "Error converting string from ${encoding} to UTF-8"
+      return 1
+    fi
+  fi
+
+  local unescaped="A-Za-z0-9"
+  if (( ! ${+opts[-P]} )); then unescaped+="+"; fi
+  if (( ! ${+opts[-r]} )); then unescaped+=";/?:@&=+$,"; fi
+  if (( ! ${+opts[-m]} )); then unescaped+="_.!~*'()-"; fi
+
+  # Replace spaces with plus signs if necessary.
+  if (( ! ${+opts[-P]} )); then str=${str:gs/ /+} fi
+  # Split the string into a list of characters.
+  local chars=( ${(s::)str} )
+  # The following cryptic oneliner essentially iterates over the `chars` list,
+  # and applies an expression to every character which replaces the characters
+  # not in the `unescaped` set with their (zero-padded) percent-encoding.
+  str=${(j::)chars/(#b)([^${~unescaped}])/%${(l:2::0:)$(([##16]#match))}}
+
+  print -r -- "${str}"
+}
