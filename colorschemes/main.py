@@ -4,7 +4,7 @@ import json
 import os
 from abc import abstractmethod
 from configparser import ConfigParser
-from typing import Dict, Iterator, List, Protocol, TextIO
+from typing import IO, Any, BinaryIO, Dict, Iterator, List, Protocol, TextIO, Tuple
 
 __dir__ = os.path.dirname(__file__)
 
@@ -35,6 +35,10 @@ class Color:
   @property
   def hex(self) -> str:
     return "{:02x}{:02x}{:02x}".format(self.r, self.g, self.b)
+
+  @property
+  def float_rgb(self) -> Tuple[float, float, float]:
+    return float(self.r) / 0xff, float(self.g) / 0xff, float(self.b) / 0xff
 
   def __getitem__(self, index: int) -> int:
     if index == 0:
@@ -140,8 +144,11 @@ class ThemeGenerator(Protocol):
   def file_name(self) -> str:
     raise NotImplementedError()
 
+  def is_binary(self) -> bool:
+    return False
+
   @abstractmethod
-  def generate(self, theme: Theme, output: TextIO) -> None:
+  def generate(self, theme: Theme, output: IO[Any]) -> None:
     raise NotImplementedError()
 
 
@@ -283,16 +290,7 @@ class ThemeGeneratorXfceTerminal(ThemeGenerator):
 
 class ThemeGeneratorVscode(ThemeGenerator):
 
-  ANSI_COLOR_NAMES = [
-    "Black",
-    "Red",
-    "Green",
-    "Yellow",
-    "Blue",
-    "Magenta",
-    "Cyan",
-    "White",
-  ]
+  ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"]
 
   def file_name(self) -> str:
     return "vscode-colorCustomizations.json"
@@ -321,27 +319,22 @@ class ThemeGeneratorIterm(ThemeGenerator):
   def file_name(self) -> str:
     return "iterm.itermcolors"
 
-  def generate(self, theme: Theme, output: TextIO) -> None:
-    output.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-    output.write(
-      '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n',
-    )
-    output.write('<plist version="1.0">\n')
-    output.write("<dict>\n")
+  def is_binary(self) -> bool:
+    return True
+
+  def generate(self, theme: Theme, output: BinaryIO) -> None:
+    import plistlib
+
+    colors = {}
 
     def write_color(key_name: str, color: Color) -> None:
-      r, g, b = (float(component) / 0xff for component in color)
-      output.write("    <key>{} Color</key>\n".format(key_name))
-      output.write("    <dict>\n")
-      output.write("        <key>Color Space</key>\n")
-      output.write("        <string>sRGB</string>\n")
-      output.write("        <key>Red Component</key>\n")
-      output.write("        <real>{}</real>\n".format(r))
-      output.write("        <key>Green Component</key>\n")
-      output.write("        <real>{}</real>\n".format(g))
-      output.write("        <key>Blue Component</key>\n")
-      output.write("        <real>{}</real>\n".format(b))
-      output.write("    </dict>\n")
+      r, g, b = color.float_rgb
+      colors[key_name + " Color"] = {
+        "Color Space": "sRGB",
+        "Red Component": r,
+        "Green Component": g,
+        "Blue Component": b,
+      }
 
     write_color("Background", theme.bg)
     write_color("Foreground", theme.fg)
@@ -354,8 +347,7 @@ class ThemeGeneratorIterm(ThemeGenerator):
       write_color("Ansi " + str(index), color)
     write_color("Link", theme.link_color)
 
-    output.write("</dict>\n")
-    output.write("</plist>\n")
+    plistlib.dump(colors, output, fmt=plistlib.FMT_XML, sort_keys=False)
 
 
 class ThemeGeneratorCssVariables(ThemeGenerator):
@@ -434,6 +426,67 @@ class ThemeGeneratorLua(ThemeGenerator):
     output.write("return theme\n")
 
 
+class ThemeGeneratorAppleTerminal(ThemeGenerator):
+
+  ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"]
+
+  def file_name(self) -> str:
+    return "apple-terminal.terminal"
+
+  def is_binary(self) -> bool:
+    return True
+
+  def generate(self, theme: Theme, output: BinaryIO) -> None:
+    import plistlib
+
+    profile = {
+      "ProfileCurrentVersion": 2.07,
+      "name": "dotfiles",
+      "type": "Window Settings",
+      "UseBrightBold": False,
+    }
+
+    def write_color(key_name: str, color: Color) -> None:
+      float_rgb_str = " ".join(
+        "{:.10f}".format(x).rstrip("0").rstrip(".") for x in color.float_rgb
+      )
+      color_archive = {
+        "$archiver":
+          "NSKeyedArchiver",
+        "$version":
+          100000,
+        "$top": {
+          "root": plistlib.UID(1)
+        },
+        "$objects": [
+          "$null",
+          {
+            "$class": plistlib.UID(2),
+            "NSColorSpace": 2,  # 1 is "Generic RGB", 2 is "Device RGB"
+            "NSRGB": float_rgb_str.encode("ascii") + b"\x00",
+          },
+          {
+            "$classes": ["NSColor", "NSObject"],
+            "$classname": "NSColor",
+          },
+        ],
+      }
+      profile[key_name] = plistlib.dumps(color_archive, fmt=plistlib.FMT_BINARY)
+
+    write_color("TextColor", theme.fg)
+    write_color("TextBoldColor", theme.fg)
+    write_color("BackgroundColor", theme.bg)
+    write_color("CursorColor", theme.cursor_bg)
+    write_color("SelectionColor", theme.selection_bg)
+
+    for is_bright in [False, True]:
+      for color_index, color_name in enumerate(self.ANSI_COLOR_NAMES):
+        color = theme.ansi_colors[color_index + int(is_bright) * len(self.ANSI_COLOR_NAMES)]
+        write_color("ANSI" + ("Bright" if is_bright else "") + color_name + "Color", color)
+
+    plistlib.dump(profile, output, fmt=plistlib.FMT_XML)
+
+
 def main() -> None:
   theme: Theme = IniTheme(os.path.join(__dir__, 'data.ini'))
   generators: List[ThemeGenerator] = [
@@ -449,13 +502,16 @@ def main() -> None:
     ThemeGeneratorScss(),
     ThemeGeneratorPrismJs(),
     ThemeGeneratorLua(),
+    ThemeGeneratorAppleTerminal(),
   ]
 
   out_dir = os.path.join(__dir__, "out")
   os.makedirs(out_dir, exist_ok=True)
 
   for generator in generators:
-    with open(os.path.join(out_dir, generator.file_name()), "w") as output_file:
+    with open(
+      os.path.join(out_dir, generator.file_name()), "wb" if generator.is_binary() else "w"
+    ) as output_file:
       generator.generate(theme, output_file)
 
 
