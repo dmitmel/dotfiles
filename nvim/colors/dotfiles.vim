@@ -161,12 +161,19 @@
   hi! link FgCocWarningFloatBgCocFloating CocWarningSign
   hi! link FgCocInfoFloatBgCocFloating    CocInfoSign
   hi! link FgCocHintFloatBgCocFloating    CocHintSign
+
   exec s:hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'bold': 1 })
-  exec s:hi('CocCodeLens',      { 'fg': 0x4 })
+  exec s:hi('CocSearch',        { 'fg': 0xD })
+  exec s:hi('CocVirtualText',   { 'fg': 0x4 })
+  hi! link CocCodeLens          CocVirtualText
+  hi! link CocInlayHint         CocVirtualText
   exec s:hi('CocFadeOut',       { 'fg': 0x3 })
+  hi! link CocDisabled          CocFadeOut
+  hi! link CocFloatDividingLine CocFadeOut
   exec s:hi('CocUnderline',     { 'underline':     1 })
   exec s:hi('CocStrikeThrough', { 'strikethrough': 1 })
   hi! link CocMarkdownLink      Underlined
+  hi! link CocLink              Underlined
   hi! link CocDiagnosticsFile   Directory
   hi! link CocOutlineName       NONE
   hi! link CocExtensionsLoaded  NONE
@@ -260,9 +267,14 @@
   exec s:hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
   exec s:hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
   hi! link FloatBorder      NormalFloat
+  hi! link CocFloating      NormalFloat
 
-  hi! link PMenu NormalFloat
+  hi! link PMenu                     NormalFloat
   exec s:hi('PMenuSel',              { 'fg': 'bg', 'bg': 0xD })
+  hi! link CocMenuSel PmenuSel
+  exec s:hi('CocPumSearch',          { 'fg': 0xA })
+  exec s:hi('CocPumDetail',          { 'fg': 0x4 })
+  hi! link CocPumShortcut            CocPumDetail
   exec s:hi('CmpItemAbbrDefault',    { 'fg': 0x5 })
   exec s:hi('CmpItemAbbrMatch',      { 'fg': 0xA })
   exec s:hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })

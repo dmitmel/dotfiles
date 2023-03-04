@@ -225,10 +225,10 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     let g:coc_snippet_next = '<Tab>'
     let g:coc_snippet_prev = '<S-Tab>'
 
-    imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
-    imap <silent><expr> <Esc>   pumvisible() ? "\<C-e>" : "\<Esc>"
-    imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-    imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+    imap <silent><expr> <CR>    coc#pum#visible() ? "\<C-y>" : "\<Plug>delimitMateCR"
+    imap <silent><expr> <Esc>   coc#pum#visible() ? "\<C-e>" : "\<Esc>"
+    imap <silent><expr> <Tab>   coc#pum#visible() ? "\<C-n>" : "\<Tab>"
+    imap <silent><expr> <S-Tab> coc#pum#visible() ? "\<C-p>" : "\<S-Tab>"
     inoremap <silent><expr> <C-Space> coc#refresh()
 
     nmap <silent> [g <Plug>(coc-diagnostic-prev)
@@ -278,6 +278,16 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
       endif
     endfunction
     nnoremap <silent> <leader>j <Cmd>call <SID>jump_in_out_float_win()<CR>
+
+    " Text objects!
+    xmap if <Plug>(coc-funcobj-i)
+    omap if <Plug>(coc-funcobj-i)
+    xmap af <Plug>(coc-funcobj-a)
+    omap af <Plug>(coc-funcobj-a)
+    xmap iC <Plug>(coc-classobj-i)
+    omap iC <Plug>(coc-classobj-i)
+    xmap aC <Plug>(coc-classobj-a)
+    omap aC <Plug>(coc-classobj-a)
   " }}}
 
   " CocFormat {{{
@@ -315,6 +325,9 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   " <https://github.com/neoclide/coc.nvim/blob/70f11e074f45bc1bed1c17e3b0c2cf687f5582b6/src/diagnostic/buffer.ts#L257>
   let g:coc_user_config['diagnostic.signPriority'] = 20
   let g:coc_user_config['suggest.floatEnable'] = v:false
+  let g:coc_user_config['suggest.enableFloat'] = v:false
+  let g:coc_user_config['suggest.noselect'] = v:true
+  let g:coc_user_config['inlayHint.enable'] = v:false
   let g:coc_user_config['workspace.progressTarget'] = 'statusline'
   let g:coc_user_config['coc.preferences.maxFileSize'] = '1MB'
   " On Neovim, the UltiSnips snippets loader has to spawn a subprocess for the
@@ -331,9 +344,9 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
 
   augroup dotfiles_coc
     autocmd!
-    " <https://github.com/neoclide/coc.nvim/blob/47c4dee35d5d631596153f71e42bcfc12151a5be/autoload/coc/float.vim#L618-L620>
     " Bring back the <Esc> key for doing normal-mode edits.
-    autocmd User CocOpenFloatPrompt iunmap <buffer> <Esc>
+    " <https://github.com/neoclide/coc.nvim/blob/bbaa1d5d1ff3cbd9d26bb37cfda1a990494c4043/autoload/coc/dialog.vim#L158-L160>
+    autocmd User CocOpenFloatPrompt imap <buffer><silent><nowait> <Esc> <Esc>
     autocmd User CocOpenFloatPrompt imap <buffer><silent> <C-c> <Esc><Esc>
     autocmd User CocOpenFloatPrompt nmap <buffer><silent> <C-c> <Esc>
   augroup END
