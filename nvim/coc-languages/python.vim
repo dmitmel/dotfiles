@@ -8,8 +8,10 @@ let g:coc_user_config['python'] = {
 \   },
 \ 'linting': {
 \   'pylintEnabled': v:false,
-\   'flake8Enabled': v:true,
+\   'flake8Enabled': v:false,
 \   'flake8Args': ['--config=' . g:dotfiles_dir.'/misc/flake8.ini'],
+\   'ruffEnabled': v:true,
+\   'ruffArgs': ['--config=' . g:dotfiles_dir.'/misc/ruff.toml'],
 \   },
 \ 'analysis': {
 \   'autoSearchPaths': v:true,
