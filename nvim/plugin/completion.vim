@@ -229,6 +229,8 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     imap <silent><expr> <Esc>   coc#pum#visible() ? "\<C-e>" : "\<Esc>"
     imap <silent><expr> <Tab>   coc#pum#visible() ? "\<C-n>" : "\<Tab>"
     imap <silent><expr> <S-Tab> coc#pum#visible() ? "\<C-p>" : "\<S-Tab>"
+    inoremap <silent><expr> <Down> coc#pum#visible() ? coc#pum#next(0) : exists("b:dotfiles_prose_mode") ? "\<C-o>g\<Down>" : "\<Down>"
+    inoremap <silent><expr> <Up>   coc#pum#visible() ? coc#pum#prev(0) : exists("b:dotfiles_prose_mode") ? "\<C-o>g\<Up>"   : "\<Up>"
     inoremap <silent><expr> <C-Space> coc#refresh()
 
     nmap <silent> [g <Plug>(coc-diagnostic-prev)
