@@ -4,4 +4,5 @@ Session.vim
 .ropeproject/
 .ccls-cache/
 .cache/clangd/
+.ruff_cache/
 *~
