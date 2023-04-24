@@ -85,6 +85,7 @@
 .token.builtin,
 .token.variable.dom,
 .token.macro,
+.token.directive.keyword,
 .token.interpolation-punctuation,
 .language-json .token.property {
   color: var(--dotfiles-colorscheme-base-0A);
