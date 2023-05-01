@@ -399,7 +399,7 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
     autocmd User VimspectorDebugEnded let g:dotfiles_vimspector_active = 0
   augroup END
 
-  " <https://github.com/puremourning/vimspector/blob/master/README.md#mappings>
+  " <https://github.com/puremourning/vimspector/#mappings>
   " <https://developer.chrome.com/docs/devtools/shortcuts/#sources>
   nmap <silent> <A-'> <Plug>VimspectorStepOver
   nmap <silent> <A-;> <Plug>VimspectorStepInto
@@ -425,5 +425,23 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakLog  call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'logMessage': <q-args>})
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgEval      call vimspector#Evaluate(<q-args>)
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgWatch     call vimspector#AddWatch(<q-args>)
+
+  let g:vimspector_configurations = {}
+  let g:vimspector_adapters = {}
+
+  let g:vimspector_adapters['multi-session'] = {
+  \ 'host': '${host:localhost}',
+  \ 'port': '${port}',
+  \}
+
+  let g:vimspector_configurations['Remote Attach'] = {
+\   'autoselect': v:false,
+  \ 'adapter': 'multi-session',
+  \ 'configuration': {
+  \   'request': 'attach',
+  \ },
+  \}
+
+  runtime! dotfiles/vimspector/*.vim
 
 endif  " }}}
