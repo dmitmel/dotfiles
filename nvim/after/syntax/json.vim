@@ -1,4 +1,6 @@
-syntax match Comment +\/\/.\+$+
+if get(g:, 'main_syntax', '') !=# 'jsonc'
+  syntax match Comment +\/\/.\+$+
+endif
 
 if hlexists('jsonCommentTodo')
   syn clear jsonCommentTodo
