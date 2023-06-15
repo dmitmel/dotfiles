@@ -190,11 +190,13 @@ set nofixendofline
     " Shows a window for draging (-and-dropping) the currently opened file out.
     function! s:DragOut(path) abort
       if empty(a:path) | return | endif
-      if !executable('dragon-drag-and-drop')
-        echoerr 'Please install <https://github.com/mwh/dragon> for the DragOut command to work.'
-        return
-      endif
-      execute '!dragon-drag-and-drop' shellescape(a:path, 1)
+      for exe_name in ['dragon-drop', 'dragon-drag-and-drop']
+        if executable(exe_name)
+          execute '!'.exe_name shellescape(a:path, 1)
+          return
+        endif
+      endfor
+      echoerr 'Please install <https://github.com/mwh/dragon> for the DragOut command to work.'
     endfunction
     command -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
