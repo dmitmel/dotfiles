@@ -226,7 +226,7 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
     let g:coc_snippet_prev = '<S-Tab>'
 
     imap <silent><expr> <CR>    coc#pum#visible() ? "\<C-y>" : "\<Plug>delimitMateCR"
-    imap <silent><expr> <Esc>   coc#pum#visible() ? "\<C-e>" : "\<Esc>"
+    " imap <silent><expr> <Esc>   coc#pum#visible() ? "\<C-e>" : "\<Esc>"
     imap <silent><expr> <Tab>   coc#pum#visible() ? "\<C-n>" : "\<Tab>"
     imap <silent><expr> <S-Tab> coc#pum#visible() ? "\<C-p>" : "\<S-Tab>"
     inoremap <silent><expr> <Down> coc#pum#visible() ? coc#pum#next(0) : exists("b:dotfiles_prose_mode") ? "\<C-o>g\<Down>" : "\<Down>"
@@ -420,7 +420,7 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
   command! -bar DbgBreakDel call vimspector#ClearLineBreakpoint(expand('%'), line('.'))
   command! -nargs=? DbgBreakFunc call vimspector#AddFunctionBreakpoint(!empty(<q-args>) ? <q-args> : expand('<cexpr>'))
   command! -bar DbgBreakClearAll call vimspector#ClearBreakpoints()
-  command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakCond call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'condition': <q-args>})
+  command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakIf   call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'condition': <q-args>})
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakHit  call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'hitCondition': <q-args>})
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakLog  call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'logMessage': <q-args>})
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgEval      call vimspector#Evaluate(<q-args>)
@@ -435,7 +435,7 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
   \}
 
   let g:vimspector_configurations['Remote Attach'] = {
-\   'autoselect': v:false,
+  \ 'autoselect': v:false,
   \ 'adapter': 'multi-session',
   \ 'configuration': {
   \   'request': 'attach',

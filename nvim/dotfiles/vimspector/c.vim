@@ -3,6 +3,7 @@ let s:filetypes = ['c', 'cpp', 'objc', 'objcpp', 'rust', 'swift']
 " <https://github.com/microsoft/MIEngine> - the DAP server
 " <https://github.com/Microsoft/vscode-cpptools> - the corresponding VSCode extension
 " <https://code.visualstudio.com/docs/cpp/launch-json-reference> - options
+" <https://github.com/microsoft/MIEngine/blob/v1.13.5/src/MIDebugPackage/OpenFolderSchema.json> - options
 " <https://github.com/microsoft/vscode-cpptools/blob/v1.15.3/Extension/package.json#L3214-L4971> - options in VSCode
 let g:vimspector_adapters['vscode-cpptools'] = {
 \ 'name': 'cppdbg',

@@ -51,7 +51,7 @@ snippet ! Basic template (/usr/share/pacman/PKGBUILD.proto)
 		cd "\$pkgname-\$pkgver"
 		make DESTDIR="\$pkgdir/" install
 	}
-snippet !split Template for a split package (/usr/share/pacman/PKGBUILD-split.proto)
+snippet split! Template for a split package (/usr/share/pacman/PKGBUILD-split.proto)
 	# This is an example of a PKGBUILD for splitting packages. Use this as a
 	# start to creating your own, and remove these comments. For more information,
 	# see 'man PKGBUILD'. NOTE: Please fill out the license field for your package!
@@ -129,7 +129,7 @@ snippet !split Template for a split package (/usr/share/pacman/PKGBUILD-split.pr
 		cd "\$pkgbase-\$pkgver"
 		make DESTDIR="\$pkgdir/" install-pkg2
 	}
-snippet !vcs Template for a VCS package (/usr/share/pacman/PKGBUILD-vcs.proto)
+snippet vcs! Template for a VCS package (/usr/share/pacman/PKGBUILD-vcs.proto)
 	# This is an example PKGBUILD file. Use this as a start to creating your own,
 	# and remove these comments. For more information, see 'man PKGBUILD'.
 	# NOTE: Please fill out the license field for your package! If it is unknown,

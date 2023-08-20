@@ -186,6 +186,19 @@ set nofixendofline
     command -nargs=* -complete=file -bar EditGlob call s:EditGlob(<f-args>)
   " }}}
 
+  " EditClist {{{
+    function! s:EditList(...) abort
+      let list = []
+      for glob in a:000
+        call extend(list, glob(glob, 0, 1))
+      endfor
+      call map(list, '{"filename": v:val, "lnum": 1}')
+      call setqflist(list)
+      copen
+    endfunction
+    command -nargs=* -complete=file -bar EditList call s:EditList(<f-args>)
+  " }}}
+
   " DragOut {{{
     " Shows a window for draging (-and-dropping) the currently opened file out.
     function! s:DragOut(path) abort

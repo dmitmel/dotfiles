@@ -27,6 +27,8 @@ ignore = [
   "ANN401",   # dynamically typed expressions are disallowed
   "PLW0603",  # using the global statement is discouraged
   "PLW2901",  # outer loop variable overwritten by inner loop target
+  "B905",     # `zip()` without an explicit `strict` parameter
+  "E731",     # use `def` instead of assigning `lambda` to a variable
 ]
 
 [flake8-quotes]

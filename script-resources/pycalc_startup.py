@@ -43,3 +43,7 @@ def coth(x: float) -> float:
 
 def acoth(x: float) -> float:
   return atanh(1 / x)
+
+
+def relative_error(real: float, measured: float) -> float:
+  return abs(measured - real) / real
