@@ -56,7 +56,7 @@ function createRenderer() {
     },
   });
   md.use(markdownItTaskCheckbox);
-  md.use(markdownItEmoji, { shortcuts: {} });
+  md.use(markdownItEmoji.full, { shortcuts: {} });
   md.use(markdownItHeaderAnchors);
 
   return (src) => md.render(src);

@@ -163,7 +163,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 <style type="text/css"><!-- include styles.css start -->
   <xsl:text>*{box-sizing:border-box}body{background:#383838;color:#dadada;font-family:monospace;line-height:1.2;margin:8px}a{color:#7eafe9;text-decoration:none}a:active,a:focus,a:hover{color:#d1c5e9;</xsl:text>
-  <xsl:text>text-decoration:underline}a:active{color:#e6bdbc}svg.icon{fill:currentColor;height:1em;vertical-align:-.125em;width:1em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:</xsl:text>
+  <xsl:text>text-decoration:underline}a:active{color:#e6bdbc}svg.icon{height:1em;width:1em;fill:currentColor;vertical-align:-.125em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:</xsl:text>
   <xsl:text>auto}.nav{background:#404040;padding:6px 12px}.nav&gt;*{display:inline-block;margin-right:3px}table{border-spacing:0;width:100%}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}</xsl:text>
   <xsl:text>table&gt;:last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:</xsl:text>
   <xsl:text>focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#4c4c4c}tr&gt;*{text-align:left;white-space:nowrap}th{font-weight:700}th.sort&gt;a,tr&gt;*{padding:4px 12px}th.sort{padding:0}th.sort&gt;a{color:unset;cursor:pointer;</xsl:text>
