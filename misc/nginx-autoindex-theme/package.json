@@ -3,7 +3,7 @@
   "dependencies": {
     "@babel/code-frame": "^7.16.7",
     "cssnano": "^5.1.5",
-    "postcss": "^8.4.12",
+    "postcss": "^8.4.31",
     "postcss-reporter": "^7.0.5",
     "terser": "^5.14.2"
   },
