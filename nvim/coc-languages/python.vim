@@ -3,8 +3,9 @@ call extend(g:dotfiles_coc_filetypes, {'python': 1})
 
 let g:coc_user_config['python'] = {
 \ 'formatting': {
-\   'provider': 'yapf',
+\   'provider': 'ruff',
 \   'yapfArgs': ['--style=' . g:dotfiles_dir.'/misc/yapf.ini'],
+\   'ruffArgs': ['--config=' . g:dotfiles_dir.'/misc/ruff.toml', '--no-cache'],
 \   },
 \ 'linting': {
 \   'pylintEnabled': v:false,
@@ -25,5 +26,6 @@ let g:coc_user_config['pyright'] = {
 \  'inlayHints': {
 \     'functionReturnTypes': v:false,
 \     'variableTypes': v:false,
+\     'parameterTypes': v:false,
 \   }
 \ }

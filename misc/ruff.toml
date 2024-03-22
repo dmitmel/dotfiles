@@ -1,4 +1,6 @@
 line-length = 99
+indent-width = 2
+tab-size = 2
 
 # <https://beta.ruff.rs/docs/rules/>
 select = [
@@ -35,3 +37,8 @@ ignore = [
 inline-quotes = "double"
 multiline-quotes = "double"
 docstring-quotes = "double"
+
+[format]
+indent-style = "space"
+quote-style = "double"
+preview = true
