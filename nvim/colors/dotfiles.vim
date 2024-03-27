@@ -313,49 +313,55 @@
 
 " LSP semantic tokens {{{
   " <https://github.com/neoclide/coc.nvim/blob/514f1191ee659191757d8020b297fc81c86c9024/plugin/coc.vim#L464-L497>
+  " <https://github.com/neoclide/coc.nvim/blob/04405633dee69c74ae6b503d7bf74466729c8ceb/plugin/coc.vim#L563-L596>
+  " <https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokenTypes>
+  " <https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokenModifiers>
+  " <https://github.com/rust-lang/rust-analyzer/blob/ad51a17c627b4ca57f83f0dc1f3bb5f3f17e6d0b/editors/code/package.json#L1855-L2079>
+  " <https://github.com/rust-lang/rust-analyzer/blob/ad51a17c627b4ca57f83f0dc1f3bb5f3f17e6d0b/crates/ide/src/syntax_highlighting.rs#L65-L182>
+  " NOTE: <https://github.com/neoclide/coc.nvim/commit/b01ae44a99fd90ac095fbf101ebd234ccf0335d6>
 
-  hi! link CocSemKeyword Keyword
-  hi! link CocSemDocumentationKeyword Special
-  hi! link CocSemModifier StorageClass
-  hi! link CocSemDeprecated Strikethrough
+  hi! link CocSemTypeKeyword Keyword
+  hi! link CocSemTypeModKeywordDocumentation Special
+  hi! link CocSemTypeModifier StorageClass
+  hi! link CocSemModDeprecated Strikethrough
 
-  " hi! link CocSemComment Comment  " Messes with TODOs in comments
-  hi! link CocSemOperator Operator
-  hi! link CocSemString String
-  hi! link CocSemBoolean Boolean
-  hi! link CocSemNumber Number
-  hi! link CocSemLifetime Special
-  hi! link CocSemRegexp Special
+  " hi! link CocSemTypeComment Comment  " Messes with TODOs in comments
+  hi! link CocSemTypeOperator Operator
+  hi! link CocSemTypeString String
+  hi! link CocSemTypeBoolean Boolean
+  hi! link CocSemTypeNumber Number
+  hi! link CocSemTypeLifetime Special
+  hi! link CocSemTypeRegexp Special
 
-  hi! link CocSemFunction Function
-  hi! link CocSemMethod Function
-  hi! link CocSemMacro Define
-  hi! link CocSemDeclarationMacro Function
-  hi! link CocSemDefinitionMacro Function
-  hi! link CocSemAttribute PreProc
-  hi! link CocSemBuiltinAttribute PreProc
-  hi! link CocSemEvent Function
+  hi! link CocSemTypeFunction Function
+  hi! link CocSemTypeMethod Function
+  hi! link CocSemTypeMacro Define
+  hi! link CocSemTypeModMacroDeclaration Function
+  hi! link CocSemTypeModMacroDefinition Function
+  hi! link CocSemTypeAttribute PreProc
+  hi! link CocSemTypeBuiltinAttribute PreProc
+  hi! link CocSemTypeEvent Function
 
-  hi! link CocSemType Type
-  hi! link CocSemClass Type
-  hi! link CocSemInterface Type
-  hi! link CocSemStruct Type
-  hi! link CocSemEnum Type
-  hi! link CocSemSelfTypeKeyword Type
-  hi! link CocSemBuiltinType Type
-  hi! link CocSemTypeAlias Type
-  hi! link CocSemTypeParameter Special
-  hi! link CocSemDecorator Special
+  hi! link CocSemTypeType Type
+  hi! link CocSemTypeClass Type
+  hi! link CocSemTypeInterface Type
+  hi! link CocSemTypeStruct Type
+  hi! link CocSemTypeEnum Type
+  hi! link CocSemTypeSelfTypeKeyword Type
+  hi! link CocSemTypeBuiltinType Type
+  hi! link CocSemTypeTypeAlias Type
+  hi! link CocSemTypeTypeParameter Special
+  hi! link CocSemTypeDecorator Special
 
-  hi! link CocSemDeclarationParameter Variable
-  hi! link CocSemDeclarationProperty Variable
-  hi! link CocSemDeclarationVariable Variable
-  hi! link CocSemDefinitionParameter Variable
-  hi! link CocSemDefinitionProperty Variable
-  hi! link CocSemDefinitionVariable Variable
-  hi! link CocSemSelfKeyword Identifier
-  hi! link CocSemNamespace Identifier
-  hi! link CocSemEnumMember Function
+  hi! link CocSemTypeModParameterDeclaration Variable
+  hi! link CocSemTypeModPropertyDeclaration Variable
+  hi! link CocSemTypeModVariableDeclaration Variable
+  hi! link CocSemTypeModParameterDefinition Variable
+  hi! link CocSemTypeModPropertyDefinition Variable
+  hi! link CocSemTypeModVariableDefinition Variable
+  hi! link CocSemTypeSelfKeyword Identifier
+  hi! link CocSemTypeNamespace Identifier
+  hi! link CocSemTypeEnumMember Function
 
 " }}}
 
@@ -477,6 +483,11 @@
 
 " C {{{
   hi! link cOperator Special
+  hi! link cFormat   PreProc
+" }}}
+
+" C++ {{{
+  hi! link cppOperator Keyword
 " }}}
 
 " Rust {{{
@@ -644,6 +655,8 @@
   hi! link pythonExClass     pythonClass
   hi! link pythonBuiltinObj  pythonFunction
   hi! link pythonClassVar    Variable
+  hi! link pythonStrTemplate PreProc
+  hi! link pythonStrFormat PreProc
 " }}}
 
 " Ruby {{{
