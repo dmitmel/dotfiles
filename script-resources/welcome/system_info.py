@@ -31,7 +31,9 @@ def get_system_info() -> Tuple[str, List[str]]:
 
   info("Kernel", "%s %s", platform.system(), platform.release())
 
-  info("Uptime", humanize_timedelta(_get_uptime()))
+  uptime = _get_uptime()
+  if uptime:
+    info("Uptime", humanize_timedelta(uptime))
 
   users_info = _get_users()
   if users_info:
@@ -68,8 +70,14 @@ def _get_hostname() -> str:
   return hostname
 
 
-def _get_uptime() -> timedelta:
-  return datetime.now() - datetime.fromtimestamp(psutil.boot_time())
+def _get_uptime() -> Optional[timedelta]:
+  try:
+    boot_timestamp: float = psutil.boot_time()
+  except Exception as e:
+    print("Error in _get_uptime:", e)
+    return None
+
+  return datetime.now() - datetime.fromtimestamp(boot_timestamp)
 
 
 def _get_users() -> str:
@@ -77,7 +85,7 @@ def _get_users() -> str:
 
   for user in psutil.users():
     name: str = user.name
-    terminal: str = user.terminal
+    terminal: str = user.terminal or ""
     if name in users:
       users[name].append(terminal)
     else:
@@ -123,9 +131,15 @@ def _get_memory() -> Tuple[str, str, str]:
 
 
 def _get_disks() -> List[Tuple[str, str, str, str]]:
+  try:
+    disks = psutil.disk_partitions(all=False)
+  except Exception as e:
+    print("Error in _get_disks:", e)
+    return []
+
   result: List[Tuple[str, str, str, str]] = []
 
-  for disk in psutil.disk_partitions(all=False):
+  for disk in disks:
     if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
       # skip cd-rom drives with no disk in it on Windows; they may raise
       # ENOENT, pop-up a Windows GUI error for a non-ready partition or
