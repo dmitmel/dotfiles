@@ -229,6 +229,7 @@
   exec s:hi('IncSearch', { 'fg': 0x1, 'bg': 0x9 })
   exec s:hi('Search',    { 'fg': 0x1, 'bg': 0xA })
   hi! link Substitute    Search
+  hi! link CurSearch     Search
 
   exec s:hi('ModeMsg',  { 'fg': 0xB, 'bold': 1 })
   exec s:hi('Question', { 'fg': 0xB })
@@ -236,6 +237,7 @@
   exec s:hi('Visual',   { 'bg': 0x2 })
   exec s:hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
 
+  " exec s:hi('Cursor',       { 'bg': 'fg' })
   exec s:hi('CursorLine',   {            'bg': 0x1 })
   hi! link CursorColumn     CursorLine
   exec s:hi('ColorColumn',  {            'bg': 0x1 })
@@ -262,6 +264,7 @@
   exec s:hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
   exec s:hi('StatusLineNC', { 'fg': 0x3,  'bg': 0x1 })
   exec s:hi('VertSplit',    { 'fg': 0x2,  'bg': 0x2 })
+  hi! link WinSeparator     VertSplit
   hi! link TabLine          StatusLine
   hi! link TabLineFill      StatusLine
   exec s:hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
@@ -269,9 +272,10 @@
   hi! link FloatBorder      NormalFloat
   hi! link CocFloating      NormalFloat
 
-  hi! link PMenu                     NormalFloat
-  exec s:hi('PMenuSel',              { 'fg': 'bg', 'bg': 0xD })
-  hi! link CocMenuSel PmenuSel
+  hi! link Pmenu                     NormalFloat
+  exec s:hi('PmenuSel',              { 'fg': 'bg', 'bg': 0xD })
+  hi! link PmenuThumb                Cursor
+  hi! link CocMenuSel                PmenuSel
   exec s:hi('CocPumSearch',          { 'fg': 0xA })
   exec s:hi('CocPumDetail',          { 'fg': 0x4 })
   hi! link CocPumShortcut            CocPumDetail
