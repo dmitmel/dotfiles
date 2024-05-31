@@ -2,7 +2,7 @@ let s:filetypes = ['cmake']
 
 let g:vimspector_adapters['cmake'] = {
 \ 'name': 'cmake',
-\ 'command': ['socat', '-', 'UNIX-CONNECT:'.stdpath('run').'/cmake-nvim-debug'],
+\ 'command': ['socat', '-', 'UNIX-CONNECT:${workspaceRoot}/cmake-nvim-debug'],
 \ 'configuration': {},
 \}
 

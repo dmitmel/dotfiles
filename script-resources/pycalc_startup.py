@@ -1,5 +1,6 @@
 import cmath
 import math
+from decimal import Decimal
 from fractions import Fraction
 from math import *
 from typing import Set
@@ -15,7 +16,7 @@ def factors(n: int) -> Set[int]:
 
 
 def solve_quadratic(a: float, b: float, c: float) -> None:
-  d = b ** 2 - 4 * a * c
+  d = b**2 - 4 * a * c
   sd = cmath.sqrt(d)
   print("sqrt(D) = " + str(sd))
   print("x1 = " + str((-b + sd) / (2 * a)))

@@ -27,7 +27,10 @@ function! s:run_indent_motion(direction) abort
 
   let line_ignore_pat = ''
   if index(['c', 'cpp', 'objc', 'objcpp', 'glsl'], &ft) >= 0
-    let line_ignore_pat = '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>'
+    let line_ignore_pat = join([
+    \ '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>',
+    \ '^\s*\I\i*\s*:\s*$',
+    \ ], '\|')
   endif
 
   let base_linenr = Nextnonblank(cursor_linenr)

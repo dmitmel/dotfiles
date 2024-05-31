@@ -279,6 +279,8 @@ augroup dotfiles_zip
   autocmd BufReadCmd *.ccmod  call zip#Browse(expand('<amatch>'))
   " Firefox extensions
   autocmd BufReadCmd *.xpi    call zip#Browse(expand('<amatch>'))
+  " Python wheels
+  autocmd BufReadCmd *.whl    call zip#Browse(expand('<amatch>'))
 augroup END
 
 

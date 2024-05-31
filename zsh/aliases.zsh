@@ -17,8 +17,12 @@ alias dirs='dirs -v'
 alias grep='grep --color=auto'
 alias diff='diff --color=auto --unified'
 
-# exa is a modern replacement for ls - https://the.exa.website/
-if command_exists exa; then
+# exa is a modern replacement for ls - <https://the.exa.website/>
+# eza is a maintained fork of exa - <https://eza.rocks/>
+if command_exists exa || command_exists eza; then
+  if command_exists eza; then
+    alias exa='eza'
+  fi
   alias ls='exa --classify --group-directories-first'
   alias lsa='ls --all'
   alias l='ls --long --header --binary --group'
