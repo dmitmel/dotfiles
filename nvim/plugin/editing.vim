@@ -19,6 +19,13 @@ endif
 " Makes the CTRL-A and CTRL-X commands compatible with Neovim in regular Vim.
 set nrformats-=octal
 
+if has('nvim-0.5.0') || has('patch-9.0.1921')
+  set jumpoptions+=stack
+endif
+if has('nvim-0.10.2')
+  set jumpoptions-=clean
+endif
+
 
 " Indentination {{{
 " <https://vim.fandom.com/wiki/Indenting_source_code>
@@ -524,9 +531,14 @@ set nrformats-=octal
   \ 'riscv': '# %s',
   \ }
 
-  " Workaround for a select-mode mapping definition in:
-  " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
-  nmap <silent> <leader>hlt <Plug>HiLinkTrace
+  if has('nvim-0.9.0')
+    nmap <silent> <leader>hlt <Cmd>Inspect<CR>
+    command HLT Inspect
+  else
+    " Workaround for a select-mode mapping definition in:
+    " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
+    nmap <silent> <leader>hlt <Plug>HiLinkTrace
+  endif
 
   let g:closetag_filetypes = 'html,xhtml,phtml,xslt'
   let g:closetag_xhtml_filetypes = 'xhtml,xslt'

@@ -10,6 +10,7 @@ call add(s:clangd_args, '--enable-config')
 call add(s:clangd_args, '--query-driver='.expand('~').'/.platformio/packages/toolchain-*/bin/*')
 call add(s:clangd_args, '--query-driver=/usr/bin/*')
 call add(s:clangd_args, '--query-driver=/usr/local/bin/*')
+call add(s:clangd_args, '--header-insertion=never')
 let g:coc_user_config['clangd.arguments'] = s:clangd_args
 
 " let s:cache_dir = dotfiles#paths#xdg_cache_home() . '/ccls'

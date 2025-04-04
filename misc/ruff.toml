@@ -1,6 +1,5 @@
 line-length = 99
 indent-width = 2
-tab-size = 2
 
 # <https://beta.ruff.rs/docs/rules/>
 select = [

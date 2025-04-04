@@ -112,9 +112,11 @@ let s:plug = function('dotfiles#plugman#register')
 " UI {{{
   " Closes buffers the way you would expect - that is, without closing windows.
   call s:plug('https://github.com/moll/vim-bbye')
+  if !has('nvim-0.9.0')
   " Debugging utility for colorschemes. Prints the hlgroups, synstack and (most
   " importantly) the chain of hlgroup links with `:HLT` or `<leader>hlt`.
-  call s:plug('https://github.com/gerw/vim-HiLinkTrace')
+    call s:plug('https://github.com/gerw/vim-HiLinkTrace')
+  endif
   " A very fancy and modular statusline (not exactly "light as air", though).
   call s:plug('https://github.com/vim-airline/vim-airline')
   " Automatically re-saves sessions created with `:mksession`.
@@ -250,5 +252,9 @@ let s:plug = function('dotfiles#plugman#register')
       " A client for the Debug Adapter Protocol.
       call s:plug('https://github.com/puremourning/vimspector')
     endif
+    " if has('nvim') || v:version >=# 801
+    "   " Real-time preview of Markdown files in the browser (as the name implies).
+    "   call s:plug('https://github.com/iamcco/markdown-preview.nvim', { 'do': 'yarn --cwd=app install --frozen-lockfile' })
+    " endif
   endif
 " }}}

@@ -169,7 +169,7 @@ set nofixendofline
   " }}}
 
   " Open {{{
-    command -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
+    command! -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
   " EditGlob {{{

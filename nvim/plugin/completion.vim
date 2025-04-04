@@ -343,6 +343,7 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   let g:coc_disable_transparent_cursor = v:true
   " let g:coc_enable_locationlist = v:true
   " let g:coc_user_config['coc.preferences.useQuickfixForLocations'] = v:true
+  let g:coc_user_config['workspace.rootPatterns'] = ['.vim', '.git', '.hg']
 
   augroup dotfiles_coc
     autocmd!

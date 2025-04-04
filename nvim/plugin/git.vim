@@ -28,6 +28,7 @@ if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
   if not ok then return end
   vim.g.gitsigns_nvim_available = 1
   gitsigns.setup({
+    signs_staged_enable = false,
     signs = {
       add          = { text = vim.g.gitgutter_sign_added              },
       delete       = { text = vim.g.gitgutter_sign_removed            },
@@ -42,9 +43,6 @@ if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
       col = 0,
       row = 1,
     },
-      -- Disable the default mappings, we will define our own, and via the
-      -- intended way.
-    keymaps = {},
     on_attach = function(bufnr)
       local bufname = vim.api.nvim_buf_get_name(bufnr)
       if bufname:match('^fugitive:') then
