@@ -110,28 +110,40 @@ sudoedit() {
 alias sudoe="sudoedit"
 alias sue="sudoedit"
 
-# This idea was taken from <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
-SYNC_WORKING_DIR_STORAGE="${ZSH_CACHE_DIR}/last-working-dir"
+# <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
+# <https://unix.stackexchange.com/questions/274909/how-can-i-get-a-persistent-dirstack-with-unique-entries-in-zsh>
+# <https://wiki.archlinux.org/title/Zsh#Dirstack>
+SYNC_DIRSTACK_FILE="${ZSH_CACHE_DIR}/dirstack"
 
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd sync_working_dir_chpwd_hook
-sync_working_dir_chpwd_hook() {
+add-zsh-hook chpwd sync_dirstack_chpwd_hook
+sync_dirstack_chpwd_hook() {
   if [[ "$ZSH_SUBSHELL" == 0 ]]; then
-    sync_working_dir_save
+    sync_dirstack_save
   fi
 }
 
-sync_working_dir_save() {
-  pwd >| "$SYNC_WORKING_DIR_STORAGE"
+sync_dirstack_save() {
+  # declare a local array with unique elements (only the first occurence of
+  # each word is persisted)
+  local -aU saved_dirs=("$PWD" "${dirstack[@]}")
+  print_lines "${saved_dirs[@]}" >| "$SYNC_DIRSTACK_FILE"
 }
 
-sync_working_dir_load() {
-  local dir
-  if dir="$(<"$SYNC_WORKING_DIR_STORAGE")" 2>/dev/null && [[ -n "$dir" ]]; then
-    cd -- "$dir"
+sync_dirstack_load() {
+  local saved_dirs
+  if saved_dirs="$(<"$SYNC_DIRSTACK_FILE")" 2>/dev/null; then
+    # remove PWD from the saved dirstack using the array uniqueness feature
+    local -aU saved_dirs=("$PWD" "${(@f)saved_dirs}")
+    # skip the first entry in the saved dirstack
+    dirstack=("${saved_dirs[@]:1}")
+    # local dir; for dir in "${dirstack[@]}"; do
+    #   if cd -- "$dir"; then
+    #     break
+    #   fi
+    # done
   fi
 }
-alias cds="sync_working_dir_load"
 
 discord-avatar() {
   setopt local_options err_return
