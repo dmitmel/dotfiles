@@ -113,7 +113,7 @@ alias sue="sudoedit"
 # <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
 # <https://unix.stackexchange.com/questions/274909/how-can-i-get-a-persistent-dirstack-with-unique-entries-in-zsh>
 # <https://wiki.archlinux.org/title/Zsh#Dirstack>
-SYNC_DIRSTACK_FILE="${ZSH_CACHE_DIR}/dirstack"
+SYNC_DIRSTACK_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/zsh_dirstack.txt"
 
 autoload -Uz add-zsh-hook
 add-zsh-hook chpwd sync_dirstack_chpwd_hook
