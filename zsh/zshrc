@@ -59,6 +59,10 @@ for script in functions options path env zplg plugins aliases completion zle ali
   _perf_timer_stop "$script.zsh"
 done
 
+if is_function _dotfiles_customizations; then
+  _dotfiles_customizations
+fi
+
 _perf_timer_stop "total"
 
 if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
@@ -67,4 +71,14 @@ fi
 
 if [[ -n "$DOTFILES_SYNC_LAST_WORKING_DIR" ]]; then
   sync_working_dir_load
+fi
+
+if [[ -n "$DOTFILES_RUN_HTOP_AFTER_START" ]]; then
+  # Make it look as if the command was typed in interactively
+  print -Pn -- "$PROMPT"
+  print "htop"
+  if is_function omz_termsupport_preexec; then
+    omz_termsupport_preexec htop htop htop
+  fi
+  htop
 fi

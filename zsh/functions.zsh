@@ -23,6 +23,9 @@ viscd() {
 # Checks if a word can be meaningfully executed as a command (aliases,
 # functions and builtins also count).
 command_exists() { whence -- "$@" &>/dev/null; }
+is_function() { typeset -f -- "$@" &>/dev/null; }
+is_alias() { alias -- "$@" &>/dev/null; }
+is_command() { whence -p -- "$@" &>/dev/null; }
 # Searches the command binary in PATH.
 command_locate() { whence -p -- "$@"; }
 
