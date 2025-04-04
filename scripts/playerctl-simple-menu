@@ -37,14 +37,13 @@ PLAYER_ICON_NAME_FIXES = {
 }
 
 PLAYER_PLAYBACK_STATUS_EMOJIS = {
-  Playerctl.PlaybackStatus.PLAYING: "\u25B6",
-  Playerctl.PlaybackStatus.PAUSED: "\u23F8",
-  Playerctl.PlaybackStatus.STOPPED: "\u23F9",
+  Playerctl.PlaybackStatus.PLAYING: "\u25b6",
+  Playerctl.PlaybackStatus.PAUSED: "\u23f8",
+  Playerctl.PlaybackStatus.STOPPED: "\u23f9",
 }
 
 
 class Application(Gtk.Application):
-
   def __init__(self) -> None:
     super().__init__(application_id="com.github.dmitmel.dotfiles.playerctl-simple-menu")
 
@@ -140,7 +139,6 @@ class Application(Gtk.Application):
 
 
 class PlayerMenu(Gtk.Menu):
-
   def __init__(self, player: Playerctl.Player) -> None:
     super().__init__()
     self.connect("destroy", self.on_destroy)
@@ -197,11 +195,13 @@ class PlayerMenu(Gtk.Menu):
       label=lambda: playback_item_labels[player.props.playback_status],
       icon=(
         lambda: "media-playback-start"
-        if player.props.playback_status != PlaybackStatus.PLAYING else "media-playback-pause"
+        if player.props.playback_status != PlaybackStatus.PLAYING
+        else "media-playback-pause"
       ),
       sensitive=(
         lambda: player.props.can_play
-        if player.props.playback_status != PlaybackStatus.PLAYING else player.props.can_pause
+        if player.props.playback_status != PlaybackStatus.PLAYING
+        else player.props.can_pause
       ),
       action=player.play_pause,
     )
@@ -222,7 +222,7 @@ class PlayerMenu(Gtk.Menu):
     self.mute_item = self.create_item(
       label=lambda: "_Mute" if player.props.volume != 0 else "Nor_mal volume",
       icon=lambda: "audio-volume-muted" if player.props.volume != 0 else "audio-volume-high",
-      action=lambda: player.set_volume(0 if player.props.volume != 0 else 1)
+      action=lambda: player.set_volume(0 if player.props.volume != 0 else 1),
     )
     player.connect("volume", self.mute_item.on_player_update)
 
@@ -252,7 +252,7 @@ class PlayerMenu(Gtk.Menu):
 
     self.volume_half_item = self.create_item(
       label="Volume _50%",
-      icon="audio-volume-high",
+      icon="audio-volume-medium",
       sensitive=lambda: player.props.volume != 0.5,
       action=lambda: player.set_volume(0.5),
     )
@@ -275,16 +275,16 @@ class PlayerMenu(Gtk.Menu):
     player.connect("metadata", self.go_prev_item.on_player_update)
 
     self.shuffle_item = self.create_item(
-      label=lambda: "Don't shuffle (_R)" if player.props.shuffle else "Shuffle (_R)",
+      label=lambda: "Don't shu_ffle" if player.props.shuffle else "Shu_ffle",
       icon="media-playlist-shuffle",
       action=lambda: player.set_shuffle(not player.props.shuffle),
     )
     player.connect("shuffle", self.shuffle_item.on_player_update)
 
     loop_item_labels = {
-      Playerctl.LoopStatus.NONE: "Don't _loop",
-      Playerctl.LoopStatus.TRACK: "Loop _one",
-      Playerctl.LoopStatus.PLAYLIST: "Loop _all",
+      Playerctl.LoopStatus.NONE: "Don't _repeat",
+      Playerctl.LoopStatus.TRACK: "Repeat _one",
+      Playerctl.LoopStatus.PLAYLIST: "Repeat _all",
     }
     self.loop_items = {}
     for status, label in loop_item_labels.items():
@@ -302,7 +302,7 @@ class PlayerMenu(Gtk.Menu):
       label="Play a_gain",
       icon="go-first",
       sensitive=lambda: player.props.can_seek,
-      action=lambda: (player.set_position(0), player.play())
+      action=lambda: (player.set_position(0), player.play()),
     )
     player.connect("metadata", self.play_again_item.on_player_update)
 
@@ -426,7 +426,6 @@ class PlayerMenu(Gtk.Menu):
 
 
 class TimerSource(GLib.Source):
-
   def __init__(self, timeout: int, callback: Callable, *user_data: object) -> None:
     super().__init__()
     self.schedule(timeout)
