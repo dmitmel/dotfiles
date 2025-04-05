@@ -11,7 +11,7 @@
     "markdown-it": "^14.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
-    "prismjs": "^1.27.0"
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
