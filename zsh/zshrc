@@ -69,8 +69,8 @@ if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
   welcome
 fi
 
-if [[ -z "${DOTFILES_DONT_SYNC_DIRSTACK}" && "${#dirstack}" -eq 0 ]]; then
-  sync_dirstack_load
+if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "${#dirstack}" -eq 0 ]]; then
+  dirstack_load
 fi
 
 if [[ -n "$DOTFILES_RUN_HTOP_AFTER_START" ]]; then
