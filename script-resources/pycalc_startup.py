@@ -5,6 +5,20 @@ from fractions import Fraction
 from math import *
 from typing import Set
 
+try:
+  import pandas as pd
+
+  print("pandas available as `pd`")
+except ImportError:
+  pass
+
+try:
+  import matplotlib.pyplot as plt
+
+  print("matplotlib.pyplot available as `plt`")
+except ImportError:
+  pass
+
 
 def factors(n: int) -> Set[int]:
   result: Set[int] = set()

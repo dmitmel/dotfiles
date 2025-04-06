@@ -48,7 +48,9 @@ if (( ! _is_macos )); then
   else
     open_cmd='print >&2 -r -- "open: Platform $OSTYPE is not supported"; return 1'
   fi
-  eval "open(){local f; for f in \"\$@\"; do $open_cmd \"\$f\"; done;}"
+  # "${@:-.}" will substitute either the list of arguments, or the current
+  # directory if no arguments were given.
+  eval "open(){local f; for f in \"\${@:-.}\"; do $open_cmd \"\$f\"; done;}"
   unset open_cmd
 fi
 
