@@ -145,6 +145,11 @@ def _get_disks() -> List[Tuple[str, str, str, str]]:
       # ENOENT, pop-up a Windows GUI error for a non-ready partition or
       # just hang
       continue
+    elif psutil.LINUX and (
+      disk.mountpoint.startswith("/snap/") or disk.mountpoint.startswith("/var/snap/")
+    ):
+      # skip active snap packages
+      continue
 
     usage = psutil.disk_usage(disk.mountpoint)
     result.append((
