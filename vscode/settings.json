@@ -75,6 +75,17 @@
   "jupyter.experiments.enabled": false,
   "python.experiments.enabled": false,
 
+  // DISABLE THE FUCKING AI
+  "chat.commandCenter.enabled": false,
+  "chat.implicitContext.enabled": {
+    "editing-session": "never",
+    "panel": "never"
+  },
+  "github.copilot.editor.enableAutoCompletions": false,
+  "github.copilot.enable": {
+    "*": false
+  },
+
   // Language-specific settings
   "files.associations": {
     "*.json.patch": "json",
@@ -103,7 +114,6 @@
   "prettier.bracketSameLine": true,
   "prettier.arrowParens": "always",
   "prettier.proseWrap": "preserve",
-  "prettier.disableSuccessMessage": true,
 
   // JSON
   "json.schemas": [
