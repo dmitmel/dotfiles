@@ -1,0 +1,156 @@
+// vim: filetype=jsonc
+
+{
+  // Text editor
+  "window.zoomLevel": 0.8, // each increment above 0 => 20% zoom increase
+  "editor.fontSize": 13,
+  "debug.console.fontSize": 13,
+  "terminal.integrated.fontSize": 13,
+  "editor.fontFamily": "Fira Mono",
+  "editor.lineNumbers": "relative",
+  "files.trimTrailingWhitespace": true,
+  "editor.renderFinalNewline": "off",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "editor.formatOnSave": true,
+
+  // Syntax highlighting
+  "workbench.colorTheme": "Catppuccin Mocha",
+  "catppuccin.italicComments": false,
+  "catppuccin.italicKeywords": false,
+  "editor.bracketPairColorization.enabled": false,
+
+  "workbench.colorCustomizations": {
+    "terminal.background": "#2d2d2d",
+    "terminal.foreground": "#d3d0c8",
+    "terminal.selectionBackground": "#515151",
+    "terminalCursor.background": "#2d2d2d",
+    "terminalCursor.foreground": "#d3d0c8",
+    "terminal.ansiBlack": "#2d2d2d",
+    "terminal.ansiRed": "#f2777a",
+    "terminal.ansiGreen": "#99cc99",
+    "terminal.ansiYellow": "#ffcc66",
+    "terminal.ansiBlue": "#6699cc",
+    "terminal.ansiMagenta": "#cc99cc",
+    "terminal.ansiCyan": "#66cccc",
+    "terminal.ansiWhite": "#d3d0c8",
+    "terminal.ansiBrightBlack": "#747369",
+    "terminal.ansiBrightRed": "#f2777a",
+    "terminal.ansiBrightGreen": "#99cc99",
+    "terminal.ansiBrightYellow": "#ffcc66",
+    "terminal.ansiBrightBlue": "#6699cc",
+    "terminal.ansiBrightMagenta": "#cc99cc",
+    "terminal.ansiBrightCyan": "#66cccc",
+    "terminal.ansiBrightWhite": "#f2f0ec"
+  },
+
+  // Vim emulation
+  "vim.hlsearch": true,
+  "vim.useCtrlKeys": true,
+  "vim.visualstar": true,
+  "vim.surround": true,
+  "vim.sneak": true,
+  "vim.sneakReplacesF": true,
+  "vim.sneakUseIgnorecaseAndSmartcase": true,
+  "vim.showMarksInGutter": true,
+  "vim.vimrc.enable": true,
+  "vim.vimrc.path": "/home/dmitmel/dotfiles/vscode/config.vim",
+  "vim.leader": ",",
+  "extensions.experimental.affinity": {
+    "vscodevim.vim": 1
+  },
+
+  // Features that I don't need
+  "editor.codeLens": false,
+  "editor.inlayHints.enabled": "off",
+  "editor.minimap.enabled": false,
+
+  // Be more confident about things
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "git.confirmSync": false,
+
+  // Disable experimental features
+  "workbench.enableExperiments": false,
+  "jupyter.experiments.enabled": false,
+  "python.experiments.enabled": false,
+
+  // Language-specific settings
+  "files.associations": {
+    "*.json.patch": "json",
+    ".latexmkrc": "perl"
+  },
+
+  // Markdown
+  "markdown.styles": ["/home/dmitmel/dotfiles/script-resources/markdown2htmldoc/themes-out/my.css"],
+
+  "[markdown]": {
+    "editor.quickSuggestions": {
+      "other": "on"
+    }
+  },
+
+  // JavaScript
+  "prettier.printWidth": 100,
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.semi": true,
+  "prettier.singleQuote": true,
+  "prettier.quoteProps": "as-needed",
+  "prettier.jsxSingleQuote": false,
+  "prettier.trailingComma": "all",
+  "prettier.bracketSpacing": true,
+  "prettier.bracketSameLine": true,
+  "prettier.arrowParens": "always",
+  "prettier.proseWrap": "preserve",
+  "prettier.disableSuccessMessage": true,
+
+  // JSON
+  "json.schemas": [
+    {
+      "fileMatch": ["*.json.patch"],
+      "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
+    }
+  ],
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // LaTeX
+  "latex-workshop.formatting.latex": "latexindent",
+
+  "[latex]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "on"
+  },
+
+  "[bibtex]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "on"
+  },
+
+  // MATLAB
+  "terminal.integrated.commandsToSkipShell": ["matlab.interrupt"],
+  "MATLAB.showFeatureNotAvailableError": false,
+
+  // Makefile
+  "makefile.configureOnOpen": false,
+  "cmake.configureOnOpen": false,
+
+  // Python
+  "jupyter.debugJustMyCode": false,
+
+  // Unsorted
+  "cSpell.userWords": [
+    "biblatex",
+    "bibtex",
+    "Dmytro",
+    "ENUME",
+    "howpublished",
+    "Jakub",
+    "Meleshko",
+    "nnoremap",
+    "xnoremap"
+  ]
+}

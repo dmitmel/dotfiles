@@ -33,3 +33,5 @@ autocmd BufNewFile,BufRead */etc/fonts/*.conf,*/fontconfig/*.conf setf xml
 autocmd BufNewFile,BufRead */.clangd setf yaml
 
 autocmd BufNewFile,BufRead */.vimspector.json setf jsonc
+
+autocmd BufNewFile,BufRead */.latexmkrc setf perl
