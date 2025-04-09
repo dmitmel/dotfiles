@@ -148,3 +148,11 @@ alias yarn="yarn --emoji false"
 
 # <https://mpv.io/manual/stable/#pseudo-gui-mode>
 alias mpv='mpv --player-operation-mode=pseudo-gui'
+
+alias o='open'
+
+if command_exists vscodium && ! command_exists code; then
+  code() { vscodium "$@"; }
+fi
+
+':q'() { exit; }

@@ -119,19 +119,20 @@ DIRSTACK_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/zsh_dirstack.txt"
 
 autoload -Uz add-zsh-hook
 
-dirstack_chpwd_hook() {
+dirstack_save_hook() {
   if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "$ZSH_SUBSHELL" -eq 0 ]]; then
     dirstack_save
   fi
 }
-add-zsh-hook chpwd dirstack_chpwd_hook
+add-zsh-hook chpwd dirstack_save_hook
 
-dirstack_precmd_hook() {
+dirstack_load_hook() {
   if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "$ZSH_SUBSHELL" -eq 0 ]]; then
     dirstack_load
   fi
 }
-add-zsh-hook precmd dirstack_precmd_hook
+add-zsh-hook precmd dirstack_load_hook
+add-zsh-hook preexec dirstack_load_hook
 
 dirstack_save() {
   # declare a local array with unique elements (only the first occurence of
