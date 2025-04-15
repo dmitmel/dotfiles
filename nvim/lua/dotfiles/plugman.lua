@@ -48,8 +48,24 @@ function M.register(spec)
   specs[#specs + 1] = spec
 end
 
+--- <https://github.com/junegunn/vim-plug#plug-options>
+--- <https://github.com/junegunn/vim-plug/blob/baa66bcf349a6f6c125b0b2b63c112662b0669e1/plug.vim#L716-L752>
+---@class VimplugSpec
+---@field branch string
+---@field tag string
+---@field commit string
+---@field rtp string
+---@field dir string
+---@field as string
+---@field do string|function
+---@field on string|string[]
+---@field for string|string[]
+---@field frozen any
+---@field requires string|string[] <-- my addition
+---@field priority number
+
 ---@param repo string
----@param old_spec table
+---@param old_spec VimplugSpec
 function M.register_vimplug(repo, old_spec)
   local specs = M.lazy_config.spec
 
@@ -57,8 +73,6 @@ function M.register_vimplug(repo, old_spec)
   local spec = {
     repo,
     lazy = false,
-    -- HACK: ensure that old-style plugins are loaded in the order of registration
-    priority = #specs + 1,
   }
 
   local opt_err = "Unexpected value of option '%s', expected %s"
@@ -78,6 +92,17 @@ function M.register_vimplug(repo, old_spec)
       spec.name = value
     elseif key == "frozen" then
       spec.pin = not not value -- coerce to boolean
+    elseif key == "requires" then
+      if type(value) == "string" then
+        spec.dependencies = { value }
+      elseif vim.islist(value) and not vim.list_contains(value, function(elem) return type(elem) ~= "string" end) then
+        spec.dependencies = value
+      else
+        error(opt_err:format(key, "string or list of strings"))
+      end
+    elseif key == "priority" then
+      if type(value) ~= "number" then error(opt_err:format(key, "a number")) end
+      spec.priority = value
     else
       error(string.format("Plugin option '%s' is not supported", key))
     end
@@ -87,7 +112,7 @@ function M.register_vimplug(repo, old_spec)
 end
 
 function M.end_setup()
-  -- HACK: We have to mess with the internals a little bit.
+  -- HACK: We have to poke the internals a little bit.
   local Config = require('lazy.core.config')
   local Loader = require('lazy.core.loader')
 

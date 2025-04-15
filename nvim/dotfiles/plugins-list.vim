@@ -25,7 +25,7 @@ let s:plug = function('dotfiles#plugman#register')
   call s:plug('https://github.com/Raimondi/delimitMate')
   " A library which allows plugins to create mappings repeatable with the dot
   " command.
-  call s:plug('https://github.com/tpope/vim-repeat')
+  call s:plug('https://github.com/tpope/vim-repeat', { 'priority': 100 })
   " For commenting out code. I prefer this one to tpope's vim-commentary
   " because it handles embedded languages (e.g.: JS within HTML), places
   " comment markers on empty lines when multiple paragraphs of code are
@@ -96,17 +96,17 @@ let s:plug = function('dotfiles#plugman#register')
   " Library for creating custom text objects.
   call s:plug('https://github.com/kana/vim-textobj-user')
   " Entire contents of the buffer - `ae` and `ie`.
-  call s:plug('https://github.com/kana/vim-textobj-entire')
+  call s:plug('https://github.com/kana/vim-textobj-entire', { 'requires': 'vim-textobj-user' })
   " A single line - `al` (with indentation) and `il` (without indentation).
-  call s:plug('https://github.com/kana/vim-textobj-line')
+  call s:plug('https://github.com/kana/vim-textobj-line', { 'requires': 'vim-textobj-user' })
   " This one is really handy: a code block determined by indentation (when it
   " is the same or more indented) - `ai` (include blank lines) and `ii`
   " (exclude blanks, selecting a single paragraph).
-  call s:plug('https://github.com/kana/vim-textobj-indent')
+  call s:plug('https://github.com/kana/vim-textobj-indent', { 'requires': 'vim-textobj-user' })
   " Selects a comment block - `ic` and `ac` (not sure what is the difference).
   " Useful for reformatting comments with `gcgc` (a mapping of `gc` to `ac`
   " exists for compatibility with vim-commentary).
-  call s:plug('https://github.com/glts/vim-textobj-comment')
+  call s:plug('https://github.com/glts/vim-textobj-comment', { 'requires': 'vim-textobj-user' })
 " }}}
 
 " UI {{{
@@ -131,8 +131,8 @@ let s:plug = function('dotfiles#plugman#register')
     call s:plug('https://github.com/tpope/vim-fugitive')
     " Support for GitHub and GitLab (`:GBrowse`, ticket autocomplete in
     " `.git/COMMIT_EDITMSG`).
-    call s:plug('https://github.com/tpope/vim-rhubarb')
-    call s:plug('https://github.com/shumphrey/fugitive-gitlab.vim')
+    call s:plug('https://github.com/tpope/vim-rhubarb', { 'requires': 'vim-fugitive' })
+    call s:plug('https://github.com/shumphrey/fugitive-gitlab.vim', { 'requires': 'vim-fugitive' })
     " Show change markers (relative to what is in the Git repository) in the
     " sign column. vim-gitgutter is a bit slow and creates lots of temporary
     " files with `tempname()` (and then doesn't delete them), but vim-signify
@@ -154,7 +154,7 @@ let s:plug = function('dotfiles#plugman#register')
   call s:plug('https://github.com/junegunn/fzf', { 'do': './install --bin' })
   " All of the end-user commands for using fzf on everything: `:Files`,
   " `:Buffers`, `:Helptags`, `:Commands` and so on.
-  call s:plug('https://github.com/junegunn/fzf.vim')
+  call s:plug('https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' })
 " }}}
 
 " Programming {{{
@@ -166,7 +166,7 @@ let s:plug = function('dotfiles#plugman#register')
   " [1]: <https://github.com/sheerun/vim-polyglot#language-packs>
   " [2]: <https://github.com/tpope/vim-sensible>
   " [3]: <https://github.com/tpope/vim-sleuth>
-  call s:plug('https://github.com/sheerun/vim-polyglot')
+  call s:plug('https://github.com/sheerun/vim-polyglot', { 'requires': 'vim-sleuth' })
   let g:polyglot_disabled = get(g:, 'polyglot_disabled', [])
   " I disable the bundled version of vim-sensible because I define those
   " settings myself.
