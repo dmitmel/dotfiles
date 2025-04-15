@@ -4,7 +4,12 @@ call extend(g:dotfiles_coc_filetypes, s:filetypes)
 
 let g:coc_user_config['tsserver'] = {
 \ 'disableAutomaticTypeAcquisition': v:true,
-\ }
+\ 'useLocalTsdk': v:true,
+\ 'useSyntaxServer': v:false,
+\ 'experimental': {
+\   'enableProjectDiagnostics': v:false,
+\ },
+\}
 
 let g:coc_user_config['eslint'] = {
 \ 'probe': keys(s:filetypes),

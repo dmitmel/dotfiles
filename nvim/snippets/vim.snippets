@@ -33,3 +33,7 @@ snippet letdefault Assign a default value to a variable
 	let g:`dotfiles#ftplugin_helpers#vim#autoload_prefix()`$1 = get(g:, '`dotfiles#ftplugin_helpers#vim#autoload_prefix()`$1', $2)
 snippet autoid Get script's autoloaded identifier prefix
 	`dotfiles#ftplugin_helpers#vim#autoload_prefix()`
+snippet luablock lua <<EOF
+	lua <<EOF
+	$0
+	EOF

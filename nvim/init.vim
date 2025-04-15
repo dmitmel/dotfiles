@@ -22,19 +22,12 @@ let g:dotfiles_build_coc_from_source = get(g:, 'dotfiles_build_coc_from_source',
 let g:dotfiles_sane_indentline_enable = get(g:, 'dotfiles_sane_indentline_enable', 1)
 
 function! s:configure_runtimepath() abort
-  " NOTE: Vim actually might handle escaping of commas in RTP and such if you
-  " write `^,` or something, but honestly I don't want to think about that too
-  " hard. Even vim-plug doesn't care about that.
-  let rtp = split(&runtimepath, ',')
-  let dotf = g:nvim_dotfiles_dir
-  if index(rtp, dotf         ) < 0 | call insert(rtp, dotf         ) | endif
-  if index(rtp, dotf.'/after') < 0 | call    add(rtp, dotf.'/after') | endif
-  let &runtimepath = join(rtp, ',')
+  execute 'set runtimepath-='.g:nvim_dotfiles_dir
+  execute 'set runtimepath^='.g:nvim_dotfiles_dir
+  execute 'set runtimepath-='.g:nvim_dotfiles_dir.'/after'
+  execute 'set runtimepath+='.g:nvim_dotfiles_dir.'/after'
 endfunction
 call s:configure_runtimepath()
-
-" Make sure everybody knows that comma is the leader!
-let mapleader = ','
 
 if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
   set termguicolors
@@ -49,6 +42,13 @@ if has('nvim-0.2.1') || has('lua')
   endif
 endif
 
+" Make sure everybody knows that comma is the leader!
+let g:mapleader = ','
+
+" I want to load the colorscheme as early as possible, so that if any part of
+" config crashes, we still get the correct highlighting and colors.
+colorscheme dotfiles
+
 if has('nvim-0.5.0')
   " Preload the Lua utilities.
   lua require('dotfiles.global_utils')
@@ -61,6 +61,7 @@ let g:do_legacy_filetype = 1
 call dotfiles#plugman#auto_install()
 call dotfiles#plugman#begin()
 runtime! dotfiles/plugins-list.vim
+runtime! dotfiles/plugins-list.lua
 call dotfiles#plugman#end()
 " Automatically install/clean plugins (because I'm a programmer)
 augroup dotfiles_init
@@ -84,5 +85,3 @@ endif
 if has('syntax') && !exists('g:syntax_on')
   syntax enable
 endif
-
-colorscheme dotfiles

@@ -99,7 +99,7 @@ _preexec_alias_tips() {
       # if [[ "${orig_cmd}" == "${alias_str} "* ]]; then
       #   min_short_cmd="${alias_name} ${orig_cmd[${#alias_str}+2,-1]}"
       # else
-        min_short_cmd="${(@q+)short_cmd_words}"
+        min_short_cmd="${short_cmd_words[*]}"
       # fi
     fi
   done; unset alias_name alias_words

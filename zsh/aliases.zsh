@@ -13,6 +13,7 @@ alias nice='nice '
 alias history='fc -i -l 1'
 
 alias dirs='dirs -v'
+alias d='dirs -v'
 
 alias grep='grep --color=auto'
 alias diff='diff --color=auto --unified'

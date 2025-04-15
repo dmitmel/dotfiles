@@ -178,8 +178,12 @@ let s:plug = function('dotfiles#plugman#register')
     " The Lua standard library has been introduced in nvim 0.4.0, see
     " <https://github.com/neovim/neovim/commit/e2cc5fe09d98ce1ccaaa666a835c896805ccc196>.
     if has('nvim-0.4.0')
-      " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
-      call s:plug('https://github.com/bfredl/luarefvim')
+      " The Lua reference manual is shipped with Nvim as of 0.8.0, see
+      " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>.
+      if !has('nvim-0.8.0')
+        " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
+        call s:plug('https://github.com/bfredl/luarefvim')
+      endif
       " Type declaration files for the Lua Language Server[1] of Nvim's Lua
       " APIs (actually includes other stuff, such as a pre-made configuration
       " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
