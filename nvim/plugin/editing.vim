@@ -268,8 +268,6 @@ endif
   inoremap <C-u> <C-g>u<C-u>
   inoremap <C-w> <C-g>u<C-w>
 
-  nnoremap <leader>l <Cmd>set termguicolors!<CR>
-
 " }}}
 
 

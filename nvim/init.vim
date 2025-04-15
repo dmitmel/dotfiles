@@ -63,6 +63,7 @@ call dotfiles#plugman#begin()
 runtime! dotfiles/plugins-list.vim
 runtime! dotfiles/plugins-list.lua
 call dotfiles#plugman#end()
+call s:configure_runtimepath()
 " Automatically install/clean plugins (because I'm a programmer)
 augroup dotfiles_init
   autocmd!

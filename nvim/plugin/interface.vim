@@ -6,6 +6,8 @@
 " <https://github.com/tpope/vim-sensible/blob/2d9f34c09f548ed4df213389caa2882bfe56db58/plugin/sensible.vim#L35>
 command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 
+nnoremap <leader>l <Cmd>Lazy<CR>
+
 " Replicate the behavior of Zsh's complist module under my configuration.
 " 1st <Tab> - complete till the longest common prefix (longest).
 " 2nd <Tab> - list the matches, but don't select or complete anything yet (list).
@@ -229,11 +231,11 @@ let &history = max([&history, 10000])
   let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
 
   command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
-  command! -bar -bang -nargs=* -complete=custom,dotfiles#plugman#command_completion FilesPlugins
+  command! -bar -bang -nargs=* -complete=customlist,dotfiles#plugman#command_completion FilesPlugins
     \ if empty(<q-args>)
     \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#plugins_dir)
     \|elseif dotfiles#plugman#is_registered(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#get_installed_dir(<q-args>))
+    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#get_install_dir(<q-args>))
     \|else
     \|  echohl WarningMsg
     \|  echomsg 'Plugin not found: ' . string(<q-args>)
