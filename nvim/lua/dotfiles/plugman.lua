@@ -3,6 +3,8 @@ local lazy = require('lazy')
 
 dotfiles.plugman = M
 
+M.DEBUG_LOAD_ORDER = false
+
 ---@type LazyConfig
 M.lazy_config = {
   root = vim.g['dotfiles#plugman#plugins_dir'],
@@ -95,7 +97,7 @@ function M.register_vimplug(repo, old_spec)
     elseif key == "requires" then
       if type(value) == "string" then
         spec.dependencies = { value }
-      elseif vim.islist(value) and not vim.list_contains(value, function(elem) return type(elem) ~= "string" end) then
+      elseif vim.tbl_islist(value) and not vim.tbl_contains(value, function(elem) return type(elem) ~= "string" end) then
         spec.dependencies = value
       else
         error(opt_err:format(key, "string or list of strings"))
@@ -126,7 +128,11 @@ function M.end_setup()
   local old_loadplugins = vim.go.loadplugins
   -- Stub out this function so that lazy.nvim does not perform sourcing.
   local old_packadd = Loader.packadd
-  Loader.packadd = function(...) end
+  Loader.packadd = function(path)
+    if M.DEBUG_LOAD_ORDER then
+      print(path)
+    end
+  end
 
   lazy.setup(M.lazy_config)
 
