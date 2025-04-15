@@ -29,3 +29,12 @@ command! -bar -bang Delete
 \ endif |
 \ unlet! s:l_file
 command! -bar -bang Del Delete<bang>
+
+" Open {{{
+  " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>
+  " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>
+  if has('patch-9.1.0819') || has('nvim-0.11.0')
+    delcommand Open
+  endif
+  command -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
+" }}}
