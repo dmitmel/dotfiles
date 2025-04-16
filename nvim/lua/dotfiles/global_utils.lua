@@ -50,7 +50,7 @@ function _G.benchmark(runs, fn, ...)
     fn(i, ...)
   end
   local end_time = vim.loop.hrtime()
-  return (end_time - start_time) / 1e9
+  return (end_time - start_time) / 1e9 / runs
 end
 
 -- Taken from <https://github.com/nvim-lua/plenary.nvim/blob/15c3cb9e6311dc1a875eacb9fc8df69ca48d7402/lua/plenary/profile.lua#L7-L18>.

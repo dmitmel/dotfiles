@@ -10,13 +10,12 @@ __dir__ = os.path.dirname(__file__)
 
 
 class Color:
-
   def __init__(self, r: int, g: int, b: int) -> None:
-    if not (0 <= r <= 0xff):
+    if not (0 <= r <= 0xFF):
       raise Exception("r component out of range")
-    if not (0 <= g <= 0xff):
+    if not (0 <= g <= 0xFF):
       raise Exception("g component out of range")
-    if not (0 <= b <= 0xff):
+    if not (0 <= b <= 0xFF):
       raise Exception("b component out of range")
     self.r = r
     self.g = g
@@ -37,8 +36,12 @@ class Color:
     return "{:02x}{:02x}{:02x}".format(self.r, self.g, self.b)
 
   @property
+  def rgb888(self) -> int:
+    return ((self.r & 0xFF) << 16) | ((self.g & 0xFF) << 8) | (self.b & 0xFF)
+
+  @property
   def float_rgb(self) -> Tuple[float, float, float]:
-    return float(self.r) / 0xff, float(self.g) / 0xff, float(self.b) / 0xff
+    return float(self.r) / 0xFF, float(self.g) / 0xFF, float(self.b) / 0xFF
 
   def __getitem__(self, index: int) -> int:
     if index == 0:
@@ -126,7 +129,6 @@ class Theme(Protocol):
 
 
 class IniTheme(Theme):
-
   def __init__(self, file_path: str) -> None:
     self.file_path = file_path
     config = ConfigParser(interpolation=None)
@@ -139,7 +141,6 @@ class IniTheme(Theme):
 
 
 class ThemeGenerator(Protocol):
-
   @abstractmethod
   def file_name(self) -> str:
     raise NotImplementedError()
@@ -153,12 +154,10 @@ class ThemeGenerator(Protocol):
 
 
 class ThemeGeneratorKitty(ThemeGenerator):
-
   def file_name(self) -> str:
     return "kitty.conf"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-
     def write_color(key_name: str, color: Color) -> None:
       output.write("{} {}\n".format(key_name, color.css_hex))
 
@@ -184,12 +183,10 @@ class ThemeGeneratorKitty(ThemeGenerator):
 
 
 class ThemeGeneratorTermux(ThemeGenerator):
-
   def file_name(self) -> str:
     return "termux.properties"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-
     def write_color(key_name: str, color: Color) -> None:
       output.write("{}={}\n".format(key_name, color.css_hex))
 
@@ -201,12 +198,10 @@ class ThemeGeneratorTermux(ThemeGenerator):
 
 
 class ThemeGeneratorZsh(ThemeGenerator):
-
   def file_name(self) -> str:
     return "zsh.zsh"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-
     def write_color(key_name: str, color: Color) -> None:
       output.write("colorscheme_{}={}\n".format(key_name, color.hex))
 
@@ -225,7 +220,6 @@ class ThemeGeneratorZsh(ThemeGenerator):
 
 
 class ThemeGeneratorVim(ThemeGenerator):
-
   def file_name(self) -> str:
     return "vim.vim"
 
@@ -244,7 +238,7 @@ class ThemeGeneratorVim(ThemeGenerator):
     output.write("\\ ]\n")
     output.write(
       "let {}ansi_colors_mapping = [{}]\n".format(
-        namespace, ', '.join("0x{:X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
+        namespace, ", ".join("0x{:X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
       )
     )
 
@@ -265,7 +259,6 @@ class ThemeGeneratorSetvtrgb(ThemeGenerator):
 
 
 class ThemeGeneratorXfceTerminal(ThemeGenerator):
-
   def file_name(self) -> str:
     return "xfce4-terminal.theme"
 
@@ -289,14 +282,12 @@ class ThemeGeneratorXfceTerminal(ThemeGenerator):
 
 
 class ThemeGeneratorVscode(ThemeGenerator):
-
   ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"]
 
   def file_name(self) -> str:
     return "vscode-colorCustomizations.json"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-
     colors: Dict[str, str] = {
       "terminal.background": theme.bg.css_hex,
       "terminal.foreground": theme.fg.css_hex,
@@ -315,7 +306,6 @@ class ThemeGeneratorVscode(ThemeGenerator):
 
 
 class ThemeGeneratorIterm(ThemeGenerator):
-
   def file_name(self) -> str:
     return "iterm.itermcolors"
 
@@ -351,7 +341,6 @@ class ThemeGeneratorIterm(ThemeGenerator):
 
 
 class ThemeGeneratorCssVariables(ThemeGenerator):
-
   def file_name(self) -> str:
     return "variables.css"
 
@@ -363,7 +352,6 @@ class ThemeGeneratorCssVariables(ThemeGenerator):
 
 
 class ThemeGeneratorScss(ThemeGenerator):
-
   def file_name(self) -> str:
     return "_colorscheme.scss"
 
@@ -376,7 +364,6 @@ class ThemeGeneratorScss(ThemeGenerator):
 
 
 class ThemeGeneratorPrismJs(ThemeGenerator):
-
   def file_name(self) -> str:
     return "prismjs-theme.css"
 
@@ -389,7 +376,6 @@ class ThemeGeneratorPrismJs(ThemeGenerator):
 
 
 class ThemeGeneratorLua(ThemeGenerator):
-
   def file_name(self) -> str:
     return "colorscheme.lua"
 
@@ -397,9 +383,18 @@ class ThemeGeneratorLua(ThemeGenerator):
     output.write("local theme = {}\n")
     output.write("theme.base16_name = {}\n".format(json.dumps(theme.base16_name)))
     output.write("theme.is_dark = {}\n".format("true" if theme.is_dark else "false"))
+    output.write(
+      "---@type table<number, { gui: number, cterm: number, r: number, g: number, b: number }>\n"
+    )
     output.write("local colors = {\n")
-    for color in theme.base16_colors:
-      output.write("  {{0x{:02x}, 0x{:02x}, 0x{:02x}}},\n".format(*color))
+    for index, (gui_color, cterm_color) in enumerate(
+      zip(theme.base16_colors, BASE16_TO_ANSI_MAPPING)
+    ):
+      output.write(
+        "  [{:2}] = {{ gui = 0x{:06x}, cterm = {:2}, r = 0x{:02x}, g = 0x{:02x}, b = 0x{:02x} }},\n".format(
+          index, gui_color.rgb888, cterm_color, gui_color.r, gui_color.g, gui_color.b
+        ),
+      )
     output.write("}\n")
     output.write("theme.base16_colors = colors\n")
     output.write("theme.ansi_colors = {\n")
@@ -413,21 +408,22 @@ class ThemeGeneratorLua(ThemeGenerator):
     output.write("theme.selection_bg = colors[{}]\n".format(BASE16_SELECTION_BG_COLOR_IDX))
     output.write("theme.selection_fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
     output.write("theme.link_color = colors[{}]\n".format(BASE16_LINK_COLOR_IDX))
+    output.write("---@type table<number, number>\n")
     output.write(
       "theme.ansi_to_base16_mapping = {{{}}}\n".format(
-        ', '.join('0x{:0X}'.format(i) for i in ANSI_TO_BASE16_MAPPING)
+        ", ".join("0x{:0X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
       )
     )
+    output.write("---@type table<number, number>\n")
     output.write(
       "theme.base16_to_ansi_mapping = {{{}}}\n".format(
-        ', '.join('0x{:02X}'.format(i) for i in BASE16_TO_ANSI_MAPPING)
+        ", ".join("0x{:02X}".format(i) for i in BASE16_TO_ANSI_MAPPING)
       )
     )
     output.write("return theme\n")
 
 
 class ThemeGeneratorAppleTerminal(ThemeGenerator):
-
   ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"]
 
   def file_name(self) -> str:
@@ -451,13 +447,9 @@ class ThemeGeneratorAppleTerminal(ThemeGenerator):
         "{:.10f}".format(x).rstrip("0").rstrip(".") for x in color.float_rgb
       )
       color_archive = {
-        "$archiver":
-          "NSKeyedArchiver",
-        "$version":
-          100000,
-        "$top": {
-          "root": plistlib.UID(1)
-        },
+        "$archiver": "NSKeyedArchiver",
+        "$version": 100000,
+        "$top": {"root": plistlib.UID(1)},
         "$objects": [
           "$null",
           {
@@ -488,7 +480,7 @@ class ThemeGeneratorAppleTerminal(ThemeGenerator):
 
 
 def main() -> None:
-  theme: Theme = IniTheme(os.path.join(__dir__, 'data.ini'))
+  theme: Theme = IniTheme(os.path.join(__dir__, "data.ini"))
   generators: List[ThemeGenerator] = [
     ThemeGeneratorKitty(),
     ThemeGeneratorTermux(),
