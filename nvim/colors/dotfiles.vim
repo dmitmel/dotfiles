@@ -13,26 +13,16 @@
 " Creating the dictionaries for those takes more time than constructing a `:hi`
 " command string.
 
+if !has('lambda')
+  echoerr 'My colorscheme requires closures, they were added in patch 7.4.2120.'
+endif
+
 set background=dark
 hi clear
 if exists('syntax_on')
   syntax reset
 endif
 let g:colors_name = 'dotfiles'
-
-" This lookup table will be built in the `setup` function.
-let s:lookup = {}
-
-function! s:hi(group, defs) abort
-  let fg = s:lookup[get(a:defs, 'fg', '')]
-  let bg = s:lookup[get(a:defs, 'bg', '')]
-  let sp = s:lookup[get(a:defs, 'sp', '')]
-  let attr = get(a:defs, 'attr', 'NONE')
-  exe 'hi' a:group
-  \ 'guifg='.(fg.gui) 'ctermfg='.(fg.cterm)
-  \ 'guibg='.(bg.gui) 'ctermbg='.(bg.cterm)
-  \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
-endfunction
 
 function! s:lerp_byte(a, b, t) abort
   return min([0xff, max([0, float2nr(round(a:a * (1 - a:t) + a:b * a:t))])])
@@ -49,19 +39,27 @@ function! s:setup() abort
   let ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   let colors = g:dotfiles#colorscheme#base16_colors
 
-  let s:lookup = {}
+  let lookup = {}
   for color in range(len(colors))
-    let s:lookup[color] = colors[color]
+    let lookup[color] = colors[color]
   endfor
-  let s:lookup['fg'] = { 'gui': 'fg', 'cterm': 'fg' }
-  let s:lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
-  let s:lookup['']   = { 'gui': 'NONE', 'cterm': 'NONE' }
+  let lookup['fg'] = { 'gui': 'fg', 'cterm': 'fg' }
+  let lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
+  let lookup['']   = { 'gui': 'NONE', 'cterm': 'NONE' }
+
+  function! Hi(group, def) closure abort
+    let fg = lookup[get(a:def, 'fg', '')]
+    let bg = lookup[get(a:def, 'bg', '')]
+    let sp = lookup[get(a:def, 'sp', '')]
+    let attr = get(a:def, 'attr', 'NONE')
+    exe 'hi' a:group
+    \ 'guifg='.(fg.gui) 'ctermfg='.(fg.cterm)
+    \ 'guibg='.(bg.gui) 'ctermbg='.(bg.cterm)
+    \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
+  endfunction
 
   let has_nocombine = has('patch-8.0.0914') || has('nvim-0.5.0')
   let attr_nocombine = has_nocombine ? 'nocombine' : 'NONE'
-
-  " funcref() is marginally faster in Neovim for some reason /shrug
-  let l:Hi = has('nvim') && has('patch-7.4.2137') ? funcref('s:hi') : function('s:hi')
 
   " General syntax highlighting {{{
 

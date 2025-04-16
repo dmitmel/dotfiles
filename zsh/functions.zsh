@@ -211,3 +211,11 @@ omz_urlencode() {
 
   print -r -- "${str}"
 }
+
+nvim-startuptime() {
+  "$EDITOR" =(nvim --startuptime /dev/stdout --headless -c 'qall!')
+}
+
+vim-startuptime() {
+  "$EDITOR" =(vim --startuptime /dev/stdout --not-a-term -c 'qall!')
+}
