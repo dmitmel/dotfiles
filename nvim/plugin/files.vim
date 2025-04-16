@@ -168,10 +168,6 @@ set nofixendofline
     command Reveal call s:Reveal(expand('%'))
   " }}}
 
-  " Open {{{
-    command! -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
-  " }}}
-
   " EditGlob {{{
     " Yes, I know about the existence of :args, however it modifies the
     " argument list, so it doesn't play well with Obsession.vim because it

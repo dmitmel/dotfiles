@@ -252,7 +252,7 @@ let s:plug = function('dotfiles#plugman#register')
     else
       call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'release' })
     endif
-    if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
+    if (has('nvim-0.4.3') || v:version >=# 802) && has('python3')
       " A client for the Debug Adapter Protocol.
       call s:plug('https://github.com/puremourning/vimspector')
     endif
