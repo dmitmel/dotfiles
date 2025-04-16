@@ -35,8 +35,6 @@ function! s:hi(group, defs) abort
 endfunction
 
 function! s:lerp_byte(a, b, t) abort
-  " Floating-point numbers were added in vim-7.2, bit operations in
-  " patch-7.3.377. That's old enough for all intents and purposes.
   return min([0xff, max([0, float2nr(round(a:a * (1 - a:t) + a:b * a:t))])])
 endfunction
 
@@ -52,8 +50,8 @@ function! s:setup() abort
   let colors = g:dotfiles#colorscheme#base16_colors
 
   let s:lookup = {}
-  for [key, color] in items(colors)
-    let s:lookup[key] = color
+  for color in range(len(colors))
+    let s:lookup[color] = colors[color]
   endfor
   let s:lookup['fg'] = { 'gui': 'fg', 'cterm': 'fg' }
   let s:lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
