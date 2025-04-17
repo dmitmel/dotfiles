@@ -157,40 +157,32 @@ endif
 
 
   " Mappings for quick prototyping: duplicate this line and comment it out.
-  " Explanation for how they work:
-  " 1. First, a mark of the cursor position is recorded. This is done so that
-  " we can later return back to the original position on the duplicated line.
-  " 2. Then, a `:copy` command is inserted. In this instance it is the same as
-  " doing `yyp` or `yyP`, but doesn't clobber the yank register.
-  " 3. Afterwards the commenting command of the appropriate plugin is inserted.
-  " It is done in a weird way using `:normal` so that the rest of the mapping
-  " can be defined as non-recursive.
-  " 4. Lastly, we return to the previously saved cursor position with CTRL-O
-  " by popping from the jump list.
-  " Also, please note that the number of spaces before the line continuation
-  " backslashes matters here!
 
-  nnoremap <silent> <Plug>dotfiles_dup_and_comment_up
-  \ m':<C-u>copy.<Bar>exe "normal \<Plug>dotfiles_dup_and_comment_gcc"<CR><C-o>
-  \:<C-u>silent! call repeat#set("\<Plug>dotfiles_dup_and_comment_up")<CR>
-
-  nnoremap <silent> <Plug>dotfiles_dup_and_comment_down
-  \ m':<C-u>copy-<Bar>exe "normal \<Plug>dotfiles_dup_and_comment_gcc"<CR><C-o>
-  \:<C-u>silent! call repeat#set("\<Plug>dotfiles_dup_and_comment_down")<CR>
-
+  let s:comment_out_cmd = ''
   if dotfiles#plugman#is_registered('tcomment_vim')
-    " Tcomment allows us to comment out a line if it is a comment already
-    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc <Plug>TComment_Commentc
+    let s:comment_out_cmd = 'TComment!'   " the ! means to always comment out the line
   elseif dotfiles#plugman#is_registered('vim-commentary')
-    " vim-commentary does not
-    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc <Plug>CommentaryLine
-  else
-    nmap <silent> <Plug>dotfiles_dup_and_comment_gcc :<C-u>unsilent echo 'No commenting plugin found!'<CR>
+    let s:comment_out_cmd = 'Commentary'  " vim-commentary does not have this capability"
   endif
 
-  nmap <silent> <leader>[ <Plug>dotfiles_dup_and_comment_up
-  nmap <silent> <leader>] <Plug>dotfiles_dup_and_comment_down
+  if !empty(s:comment_out_cmd)
+    function! s:copy_and_comment_out(up) abort
+      if a:up
+        copy .
+        exe '-' . s:comment_out_cmd
+      else
+        copy -
+        exe '+' . s:comment_out_cmd
+      endif
+      call repeat#set("\<Plug>dotfiles_copy_and_comment_" . (a:up ? 'above' : 'below'), v:count)
+    endfunction
 
+    nnoremap <Plug>dotfiles_copy_and_comment_above <Cmd>call <SID>copy_and_comment_out(1)<CR>
+    nnoremap <Plug>dotfiles_copy_and_comment_below <Cmd>call <SID>copy_and_comment_out(0)<CR>
+
+    nmap <silent> <leader>[ <Plug>dotfiles_copy_and_comment_below
+    nmap <silent> <leader>] <Plug>dotfiles_copy_and_comment_above
+  endif
 
   " A dead-simple implementation of the `[d` and `]d` mappings of LineJuggler
   " for duplicating lines back and forth.
@@ -206,8 +198,9 @@ endif
   nnoremap <leader>p "0
   xnoremap <leader>p "0
 
-  " make the default Vim mappings more consistent
-  " https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/
+  " Make the default Vim mappings more consistent, see
+  " <https://www.reddit.com/r/vim/comments/dgbr9l/mappings_i_would_change_for_more_consistent_vim/>
+  " (this mapping has to be recursive because vim-repeat patches `<C-r>`)
   nmap U <C-r>
   nnoremap Y y$
 
@@ -508,17 +501,19 @@ endif
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
 
-  " Closely replicate the behavior of tpope/vim-commentary
-  nmap <silent> gc  <Plug>TComment_gc
-  nmap <silent> gcc <Plug>TComment_gcc
-  nmap <silent> gC  <Plug>TComment_gcb
-  " The default block commenting mapping refuses to work on a single line, as
-  " a workaround I give it another empty one to work with.
-  nmap <silent> gCC m'o<Esc>''<Plug>TComment_gcb+
-  xnoremap <silent> gc :TCommentMaybeInline<CR>
-  xnoremap <silent> gC :TCommentBlock<CR>
-  " Make an alias for the comment text object
-  omap <silent> gc ac
+  if dotfiles#plugman#is_registered('tcomment_vim')
+    " Closely replicate the behavior of tpope/vim-commentary
+    nmap <silent> gc  <Plug>TComment_gc
+    nmap <silent> gcc <Plug>TComment_gcc
+    nmap <silent> gC  <Plug>TComment_gcb
+    " The default block commenting mapping refuses to work on a single line, as
+    " a workaround I give it another empty one to work with.
+    nmap <silent> gCC m'o<Esc>''<Plug>TComment_gcb+
+    xnoremap <silent> gc :TCommentMaybeInline<CR>
+    xnoremap <silent> gC :TCommentBlock<CR>
+    " Make an alias for the comment text object
+    omap <silent> gc ac
+  endif
 
   " Prefer line C-style comments over block ones (/* ... */)
   set commentstring=//%s
