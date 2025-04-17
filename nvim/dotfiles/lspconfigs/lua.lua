@@ -4,9 +4,9 @@
 local lsp_ignition = require('dotfiles.lsp.ignition')
 local lsp_dummy_entry_plug = require('dotfiles.lsp.dummy_entry_plug')
 local utils = require('dotfiles.utils')
-local utils_vim = require('dotfiles.utils.vim')
 local vim_uri = require('vim.uri')
 local lsp_utils = require('dotfiles.lsp.utils')
+local nvim_lua_dev = require('dotfiles.lsp.nvim_lua_dev')
 
 local data_path = vim.call('dotfiles#paths#xdg_cache_home') .. '/lua-language-server'
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/server_configurations/sumneko_lua.lua>
@@ -61,40 +61,9 @@ local lua_config = lsp_ignition.setup_config('sumneko_lua', {
   },
 
   on_new_config = function(final_config, root_dir)
-    -- Yep, that's right, the library list is resolved at runtime, no need for
-    -- configurations!
-    local cfg_package_path = {}
-    local cfg_libraries = {}
-
-    -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/lua/vim.lua#L56-L85>
-    -- <https://github.com/neovim/neovim/commit/c60c7375f5754eea2a4209cc6441e70b2bb44f14#diff-a8fd4e44d96101de6e4453a16811a686ce91e33e4767af7666481edb338d0744>
-    -- <https://github.com/folke/lua-dev.nvim/blob/8c6a6e32525905a4ca0b74ca0ccd111ef0a6a49f/lua/lua-dev/sumneko.lua#L5-L52>
-    local pc = utils.nice_package_config
-    for _, rtp_dir in ipairs(vim.api.nvim_list_runtime_paths()) do
-      local lua_dir = rtp_dir .. pc.dir_sep .. 'lua'
-      if utils_vim.is_truthy(vim.fn.isdirectory(lua_dir)) then
-        -- TODO: Refine this check
-        if not (root_dir and vim.startswith(lua_dir, root_dir)) then
-          -- NOTE: rtp_dir must be used here and not lua_dir!
-          cfg_libraries[rtp_dir] = true
-        end
-        -- table.insert(cfg_package_path, lua_dir .. pc.dir_sep .. pc.template_char .. '.lua')
-        -- table.insert(cfg_package_path, lua_dir .. pc.dir_sep .. pc.template_char .. pc.dir_sep .. 'init.lua')
-      end
-    end
-    -- The Vim-specific paths are tried before Lua's `package.path` stuff, and
-    -- `init.lua` must come after literal files.
-    table.insert(cfg_package_path, 'lua' .. pc.dir_sep .. pc.template_char .. '.lua')
-    table.insert(
-      cfg_package_path,
-      'lua' .. pc.dir_sep .. pc.template_char .. pc.dir_sep .. 'init.lua'
-    )
-    for path in vim.gsplit(package.path, pc.path_list_sep) do
-      table.insert(cfg_package_path, path)
-    end
-
-    final_config.settings.Lua.runtime.path = cfg_package_path
-    final_config.settings.Lua.workspace.library = cfg_libraries
+    local extra_settings = nvim_lua_dev.lua_ls_settings_for_vim(root_dir)
+    final_config.settings.Lua.runtime.path = extra_settings.package_path
+    final_config.settings.Lua.workspace.library = extra_settings.libraries
   end,
 })
 
@@ -156,10 +125,7 @@ lsp_ignition.setup_config('stylua', {
             end
 
             local any_changes, common_lines_from_start, common_lines_from_end =
-              lsp_utils.simple_line_diff(
-                buf_lines,
-                fmt_lines
-              )
+              lsp_utils.simple_line_diff(buf_lines, fmt_lines)
             if not any_changes then
               return reply(nil, nil)
             end

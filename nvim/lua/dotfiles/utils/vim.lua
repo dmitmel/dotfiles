@@ -22,9 +22,7 @@ function M.is_truthy(value)
   error(string.format('value of type %s cannot be converted to boolean', type(t)))
 end
 
-function M.has(feature)
-  return M.is_truthy(vim.fn.has(feature))
-end
+function M.has(feature) return vim.fn.has(feature) == 1 end
 
 M.COMMAND_HANDLERS = {}
 
@@ -308,9 +306,7 @@ function M.define_adhoc_function(opts, body)
 
   table.insert(def_code, 'endfunction')
   vim.cmd(table.concat(def_code))
-  return function(...)
-    return vim.call(actual_name, ...)
-  end, actual_name
+  return function(...) return vim.call(actual_name, ...) end, actual_name
 end
 
 M.FILEFORMAT_OPTION_TO_NEWLINE_CHAR = {
@@ -356,9 +352,7 @@ do
   end
 end
 
-function M.replace_keys(str)
-  return vim.api.nvim_replace_termcodes(str, true, true, true)
-end
+function M.replace_keys(str) return vim.api.nvim_replace_termcodes(str, true, true, true) end
 
 ---@param bufnr number
 ---@return number
@@ -390,19 +384,12 @@ function M.normalize_tabpagenr(tabpagenr)
   end
 end
 
-M._unsilent_helper = M.define_adhoc_function(
-  { 'fun' },
-  [[
-  unsilent call a:fun()
-]]
-)
+M._unsilent_helper = M.define_adhoc_function({ 'fun' }, [[unsilent call a:fun()]])
 
 function M.unsilent(fun, ...)
   local args = utils.pack(...)
   local ret
-  M._unsilent_helper(function()
-    ret = fun(utils.unpack(args, 1, args.n))
-  end)
+  M._unsilent_helper(function() ret = fun(utils.unpack(args, 1, args.n)) end)
   return ret
 end
 

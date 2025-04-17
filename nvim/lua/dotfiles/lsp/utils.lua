@@ -95,7 +95,7 @@ end
 
 M.VSCODE_INSTALL_PATH = nil
 for _, dir in ipairs(M.VSCODE_POSSIBLE_INSTALL_PATHS) do
-  if utils_vim.is_truthy(vim.fn.isdirectory(dir)) then
+  if vim.fn.isdirectory(dir) == 1 then
     M.VSCODE_INSTALL_PATH = dir
     break
   end

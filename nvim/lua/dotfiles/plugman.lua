@@ -1,5 +1,6 @@
 local M = require('dotfiles.autoload')('dotfiles.plugman')
 local lazy = require('lazy')
+local utils_vim = require('dotfiles.utils.vim')
 
 dotfiles.plugman = M
 
@@ -81,29 +82,38 @@ function M.register_vimplug(repo, old_spec)
 
   -- <https://github.com/junegunn/vim-plug/blob/baa66bcf349a6f6c125b0b2b63c112662b0669e1/plug.vim#L716-L752>
   for key, value in pairs(old_spec) do
-    if key == "do" then
-      if type(value) ~= "string" and type(value) ~= "function" then
-        error(opt_err:format(key, "string or function"))
+    if key == 'do' then
+      if type(value) ~= 'string' and type(value) ~= 'function' then
+        error(opt_err:format(key, 'string or function'))
       end
       spec.build = value
-    elseif key == "branch" or key == "tag" or key == "commit" then
-      if type(value) ~= "string" then error(opt_err:format(key, "a string")) end
+    elseif key == 'branch' or key == 'tag' or key == 'commit' then
+      if type(value) ~= 'string' then
+        error(opt_err:format(key, 'a string'))
+      end
       spec[key] = value --[[@as any]]
-    elseif key == "as" then
-      if type(value) ~= "string" then error(opt_err:format(key, "a string")) end
+    elseif key == 'as' then
+      if type(value) ~= 'string' then
+        error(opt_err:format(key, 'a string'))
+      end
       spec.name = value
-    elseif key == "frozen" then
-      spec.pin = not not value -- coerce to boolean
-    elseif key == "requires" then
-      if type(value) == "string" then
+    elseif key == 'frozen' then
+      spec.pin = utils_vim.is_truthy(value)
+    elseif key == 'requires' then
+      if type(value) == 'string' then
         spec.dependencies = { value }
-      elseif vim.tbl_islist(value) and not vim.tbl_contains(value, function(elem) return type(elem) ~= "string" end) then
+      elseif
+        vim.tbl_islist(value)
+        and not vim.tbl_contains(value, function(elem) return type(elem) ~= 'string' end)
+      then
         spec.dependencies = value
       else
-        error(opt_err:format(key, "string or list of strings"))
+        error(opt_err:format(key, 'string or list of strings'))
       end
-    elseif key == "priority" then
-      if type(value) ~= "number" then error(opt_err:format(key, "a number")) end
+    elseif key == 'priority' then
+      if type(value) ~= 'number' then
+        error(opt_err:format(key, 'a number'))
+      end
       spec.priority = value
     else
       error(string.format("Plugin option '%s' is not supported", key))

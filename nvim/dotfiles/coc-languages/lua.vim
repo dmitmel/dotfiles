@@ -2,61 +2,41 @@ if !has('nvim-0.2.1') | finish | endif
 
 let s:filetypes = {'lua': 1}
 call extend(g:dotfiles_coc_filetypes, s:filetypes)
+call extend(g:dotfiles_coc_extensions, {'coc-sumneko-lua': 1, 'coc-stylua': 1})
 
-" The following is a port of `../dotfiles/lspconfigs/lua.lua`. See all of the
-" interesting comments there.
+let g:coc_user_config['stylua.styluaPath'] = exepath('stylua')
+let g:coc_user_config['stylua.configPath'] = g:nvim_dotfiles_dir . '/stylua.toml'
 
-function! s:get_server_settings() abort
-  let cfg_package_path = []
-  let cfg_libraries = {}
-
-  let lua_package_config = split(luaeval('package.config'), '\n')
-  let pc_dir_sep         = get(lua_package_config, 0, '/')
-  let pc_path_list_sep   = get(lua_package_config, 1, ';')
-  let pc_template_char   = get(lua_package_config, 2, '?')
-  for rtp_dir in nvim_list_runtime_paths()
-    let lua_dir = rtp_dir . pc_dir_sep . 'lua'
-    if isdirectory(lua_dir)
-      if !dotfiles#utils#starts_with(lua_dir, g:nvim_dotfiles_dir)
-        let cfg_libraries[rtp_dir] = v:true
-      endif
-      " call add(cfg_package_path, lua_dir . pc_dir_sep . pc_template_char . '.lua')
-      " call add(cfg_package_path, lua_dir . pc_dir_sep . pc_template_char . pc_dir_sep . 'init.lua')
-    endif
-  endfor
-  call add(cfg_package_path, 'lua' . pc_dir_sep . pc_template_char . '.lua')
-  call add(cfg_package_path, 'lua' . pc_dir_sep . pc_template_char . pc_dir_sep . 'init.lua')
-  call extend(cfg_package_path, split(luaeval('package.path'), dotfiles#utils#literal_regex(pc_path_list_sep)))
-
-  return {
-  \ 'telemetry': { 'enable': v:false },
-  \ 'runtime': { 'version': 'LuaJIT', 'path': cfg_package_path },
-  \ 'workspace': { 'library': cfg_libraries },
-  \ 'diagnostics': {
-  \   'globals': ['vim'],
-  \   'disable': ['empty-block'],
-  \   'libraryFiles': 'Opened',
-  \ },
-  \ 'completion': {
-  \   'workspaceWord': v:false,
-  \   'showWord': 'Disable',
-  \   'callSnippet': 'Replace',
-  \ }
-  \}
-endfunction
-
-let s:data_path = dotfiles#paths#xdg_cache_home() . '/lua-language-server'
-let s:command = 'lua-language-server'
-for s:install_path in ['/usr/lib/lua-language-server', '/usr/local/opt/lua-language-server/libexec']
-  if isdirectory(s:install_path)
-    let s:command = s:install_path.'/bin/lua-language-server'
+for s:server_dir in ['/usr/lib/lua-language-server', '/usr/local/opt/lua-language-server/libexec']
+  if isdirectory(s:server_dir)
+    let g:coc_user_config['sumneko-lua.serverDir'] = s:server_dir
     break
   endif
 endfor
-let g:coc_user_config['languageserver.sumneko_lua'] = {
-\ 'filetypes': keys(s:filetypes),
-\ 'command': s:command,
-\ 'args': ['--logpath='.s:data_path.'/log', '--metapath='.s:data_path.'/meta'],
-\ 'rootPatterns': ['.luarc.json', '.vim/', '.git/', '.hg/'],
-\ 'settings': { 'Lua': s:get_server_settings() },
-\ }
+
+let g:coc_user_config['sumneko-lua'] = {
+\ 'prompt': v:false,
+\ 'checkUpdate': v:false,
+\}
+
+let s:extra_settings = luaeval("require('dotfiles.lsp.nvim_lua_dev').lua_ls_settings_for_vim()")
+
+let g:coc_user_config['Lua'] = {
+\ 'telemetry': { 'enable': v:false },
+\ 'runtime': { 'path': s:extra_settings.package_path, 'version': 'LuaJIT' },
+\ 'workspace': { 'library': s:extra_settings.libraries },
+\ 'diagnostics': {
+\   'globals': ['vim'],
+\   'disable': ['empty-block'],
+\   'libraryFiles': 'Opened',
+\ },
+\ 'completion': {
+\   'workspaceWord': v:false,
+\   'showWord': 'Disable',
+\   'callSnippet': 'Replace',
+\ },
+\ 'format': { 'enable': !executable('stylua') },
+\}
+
+let s:data_path = dotfiles#paths#xdg_cache_home() . '/lua-language-server'
+let g:coc_user_config['Lua.misc.parameters'] = ['--logpath='.s:data_path.'/log', '--metapath='.s:data_path.'/meta']

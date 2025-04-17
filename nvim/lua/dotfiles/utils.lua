@@ -320,25 +320,16 @@ end
 -- <https://www.lua.org/manual/5.1/manual.html#lua_getinfo>
 -- <https://www.lua.org/manual/5.1/manual.html#lua_Debug>
 -- <https://www.lua.org/pil/23.1.html>
-function M.script_path()
-  local str = debug.getinfo(2, 'S').source
+---@param depth number?
+function M.script_path(depth)
+  depth = depth or 2
+  local str = debug.getinfo(depth, 'S').source
   if str:sub(1, 1) == '@' then
     return str:sub(2)
   else
     return nil
   end
 end
-
---- @type string[]
-M.package_config_lines = vim.split(package.config, '\n')
--- stylua: ignore
-M.nice_package_config = {
-  dir_sep          = M.package_config_lines[1], -- / or \
-  path_list_sep    = M.package_config_lines[2], -- ;
-  template_char    = M.package_config_lines[3], -- ?
-  exe_dir_char     = M.package_config_lines[4], -- !
-  clib_ignore_char = M.package_config_lines[5], -- -
-}
 
 -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/uri.lua#L77>
 -- <https://github.com/neovim/neovim/commit/a2c2a086528d74bb0f6b2b68745b015f22ddd68a#diff-0ff1311ddfd42d7213ccbc416ef5783991c5fc46d1fc95a1b408f38e82aeafa1R77>
