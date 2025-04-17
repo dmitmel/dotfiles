@@ -358,7 +358,7 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
   let g:coc_user_config['semanticTokens.filetypes'] = ['*']
   let g:coc_default_semantic_highlight_groups = 0
 
-  runtime! coc-languages/*.vim
+  runtime! dotfiles/coc-languages/*.vim
 
   if !g:dotfiles_build_coc_from_source
     let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
