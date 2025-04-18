@@ -19,4 +19,4 @@ function! s:patch_c_comments() abort
 endfunction
 call s:patch_c_comments()
 
-call dotfiles#utils#undo_ftplugin_hook('setlocal comments< commentstring<')
+call dotutils#undo_ftplugin_hook('setlocal comments< commentstring<')

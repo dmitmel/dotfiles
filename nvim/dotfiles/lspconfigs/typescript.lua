@@ -87,7 +87,7 @@ lsp_ignition.setup_config('eslint', {
   handlers = vim.tbl_deep_extend('force', lspconfig_eslint.handlers, {
     ['eslint/openDoc'] = lsp_utils.wrap_handler_errors(function(result, ctx, config)
       utils.check_type('result.url', result.url, 'string')
-      vim.call('dotfiles#utils#open_url', result.url)
+      vim.call('dotutils#open_url', result.url)
       return vim.NIL
     end),
   }),

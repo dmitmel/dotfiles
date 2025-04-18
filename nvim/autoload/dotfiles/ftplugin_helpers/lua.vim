@@ -35,13 +35,13 @@ endfunction
 
 function! dotfiles#ftplugin_helpers#lua#module_name() abort
   let path = expand('%:p')
-  if dotfiles#utils#ends_with(path, '.lua')
+  if dotutils#ends_with(path, '.lua')
     let path = has('win32') ? tr(path, '\', '/') : path
-    for dir in dotfiles#utils#list_runtime_paths()
+    for dir in dotutils#list_runtime_paths()
       let dir = (has('win32') ? tr(dir, '\', '/') : dir) . '/lua/'
-      if dotfiles#utils#starts_with(path, dir)
+      if dotutils#starts_with(path, dir)
         let path = path[len(dir):-5]
-        if dotfiles#utils#ends_with(path, '/init')
+        if dotutils#ends_with(path, '/init')
           let path = path[:-6]
         endif
         return tr(path, '/', '.')

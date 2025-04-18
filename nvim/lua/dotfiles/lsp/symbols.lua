@@ -66,7 +66,7 @@ function M.handler(err, params, ctx, opts)
     opts.title = string.format('LSP[%s] symbols', client_name)
   end
   opts.items = lsp.util.symbols_to_items(params, ctx.bufnr)
-  vim.call('dotfiles#utils#push_qf_list', opts)
+  vim.call('dotutils#push_qf_list', opts)
 end
 lsp.handlers['textDocument/documentSymbol'] = lsp_utils.wrap_handler_compat(M.handler)
 lsp.handlers['workspace/symbol'] = lsp_utils.wrap_handler_compat(M.handler)

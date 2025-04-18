@@ -25,7 +25,7 @@ function! airline#extensions#dotfiles_filesize#get() abort
     " MUCH faster than wordcount().bytes because it does a lot less work.
     let bytes = max([0, line2byte(line('$') + 1) - 1])
     let b:dotfiles_filesize = bytes
-    let b:dotfiles_filesize_str = dotfiles#utils#file_size_fmt(bytes)
+    let b:dotfiles_filesize_str = dotutils#file_size_fmt(bytes)
     let b:dotfiles_filesize_changedtick = b:changedtick
     let b:dotfiles_filesize_timer = reltimefloat(reltime())
   endif

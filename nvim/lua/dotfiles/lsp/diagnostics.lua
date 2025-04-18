@@ -170,7 +170,7 @@ function M.set_list(loclist, opts)
   local title = opts.title or ('Diagnostics from ' .. vim.fn.expand('%:.'))
   local items = vim_diagnostic.toqflist(vim_diagnostic.get(bufnr, opts))
   utils_vim.echo({ { string.format('Found %d diagnostics', #items) } })
-  vim.call('dotfiles#utils#push_qf_list', {
+  vim.call('dotutils#push_qf_list', {
     title = title,
     dotfiles_loclist_window = winnr,
     dotfiles_auto_open = opts.open,

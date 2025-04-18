@@ -1,3 +1,3 @@
 let b:runfileprg = ':source %'
 
-call dotfiles#utils#undo_ftplugin_hook('unlet! b:runfileprg')
+call dotutils#undo_ftplugin_hook('unlet! b:runfileprg')

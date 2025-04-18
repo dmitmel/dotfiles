@@ -73,7 +73,7 @@ let &history = max([&history, 10000])
   set confirm
 
   function! s:ConfirmBbye(bang, cmd) abort
-    let result = a:bang ? 2 : dotfiles#utils#do_confirm()
+    let result = a:bang ? 2 : dotutils#do_confirm()
     if result
       return a:cmd . (result == 2 ? '!' : '')
     else

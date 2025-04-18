@@ -1,3 +1,3 @@
 setlocal matchpairs-=<:>
 
-call dotfiles#utils#undo_ftplugin_hook('setlocal matchpairs<')
+call dotutils#undo_ftplugin_hook('setlocal matchpairs<')

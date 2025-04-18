@@ -162,7 +162,7 @@ set nofixendofline
         " for other systems let's not reinvent the bicycle, instead we open file's
         " parent directory using netrw's builtin function (don't worry, netrw is
         " always bundled with Nvim)
-        call dotfiles#utils#open_url(fnamemodify(a:path, ':h'))
+        call dotutils#open_url(fnamemodify(a:path, ':h'))
       endif
     endfunction
     command Reveal call s:Reveal(expand('%'))

@@ -1,19 +1,19 @@
-function! dotfiles#utils#array_remove_element(array, element) abort
+function! dotutils#array_remove_element(array, element) abort
   let index = index(a:array, a:element)
   if index >= 0
     call remove(a:array, index)
   endif
 endfunction
 
-function! dotfiles#utils#starts_with(str, prefix) abort
+function! dotutils#starts_with(str, prefix) abort
   return empty(a:prefix) || a:str[:len(a:prefix)-1] ==# a:prefix
 endfunction
 
-function! dotfiles#utils#ends_with(str, suffix) abort
+function! dotutils#ends_with(str, suffix) abort
   return a:str[len(a:str)-len(a:suffix):] ==# a:suffix
 endfunction
 
-function! dotfiles#utils#undo_ftplugin_hook(cmd) abort
+function! dotutils#undo_ftplugin_hook(cmd) abort
   if exists('b:undo_ftplugin')
     let b:undo_ftplugin .= ' | ' . a:cmd
   else
@@ -21,21 +21,21 @@ function! dotfiles#utils#undo_ftplugin_hook(cmd) abort
   endif
 endfunction
 
-function! dotfiles#utils#add_matchup_prefs(prefs) abort
+function! dotutils#add_matchup_prefs(prefs) abort
   if !has_key(g:matchup_matchpref, &filetype)
     let g:matchup_matchpref[&filetype] = {}
   endif
   call extend(g:matchup_matchpref[&filetype], a:prefs)
 endfunction
 
-function! dotfiles#utils#add_snippets_extra_scopes(scopes) abort
+function! dotutils#add_snippets_extra_scopes(scopes) abort
   if !exists('b:dotfiles_snippets_extra_scopes')
     let b:dotfiles_snippets_extra_scopes = []
   endif
   call extend(b:dotfiles_snippets_extra_scopes, a:scopes)
 endfunction
 
-function! dotfiles#utils#set_default(dict, key, default) abort
+function! dotutils#set_default(dict, key, default) abort
   if !has_key(a:dict, a:key)
     let a:dict[a:key] = a:default
   endif
@@ -46,7 +46,7 @@ endfunction
 " <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/src/workspace.ts#L810-L844>.
 " Alternatively, nvim's implementation can be used:
 " <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L966-L991>.
-function! dotfiles#utils#jump_to_file(path) abort
+function! dotutils#jump_to_file(path) abort
   let path = fnamemodify(a:path, ':p')
   " NOTE 1: bufname('') returns the short name, but we need a full one.  NOTE
   " 2: When trying to :edit a file when it is already opened in the current
@@ -61,7 +61,7 @@ function! dotfiles#utils#jump_to_file(path) abort
   endif
 endfunction
 
-function! dotfiles#utils#open_scratch_preview_win(opts) abort
+function! dotutils#open_scratch_preview_win(opts) abort
   let result = {}
 
   " Actual implementation of :pedit
@@ -131,7 +131,7 @@ function! dotfiles#utils#open_url(path) abort
   return netrw#BrowseX(a:path, 2)
 endfunction
 
-function! dotfiles#utils#push_qf_list(opts) abort
+function! dotutils#push_qf_list(opts) abort
   let loclist_window = get(a:opts, 'dotfiles_loclist_window', 0)
   let action = get(a:opts, 'dotfiles_action', ' ')
   let auto_open = get(a:opts, 'dotfiles_auto_open', 1)
@@ -145,7 +145,7 @@ function! dotfiles#utils#push_qf_list(opts) abort
 endfunction
 
 " Essentially a part of <https://github.com/romainl/vim-qf/blob/65f115c350934517382ae45198a74232a9069c2a/autoload/qf.vim#L86-L108>.
-function! dotfiles#utils#readjust_qf_list_height() abort
+function! dotutils#readjust_qf_list_height() abort
   let max_height = get(g:, 'qf_max_height', 10) < 1 ? 10 : get(g:, 'qf_max_height', 10)
   if get(b:, 'qf_isLoc', 0)
     execute 'lclose|' . (get(g:, 'qf_auto_resize', 1) ? min([max_height, len(getloclist(0))]) : '') . 'lwindow'
@@ -155,16 +155,16 @@ function! dotfiles#utils#readjust_qf_list_height() abort
 endfunction
 
 if has('*nvim_list_runtime_paths')
-  function! dotfiles#utils#list_runtime_paths() abort
+  function! dotutils#list_runtime_paths() abort
     return nvim_list_runtime_paths()
   endfunction
 else
-  function! dotfiles#utils#list_runtime_paths() abort
+  function! dotutils#list_runtime_paths() abort
     return split(&runtimepath, ',')
   endfunction
 endif
 
-function! dotfiles#utils#literal_regex(pat) abort
+function! dotutils#literal_regex(pat) abort
   let pat = escape(a:pat, '\')
   let pat = substitute(pat, '\n', '\\n', 'g')
   let pat = substitute(pat, '\r', '\\r', 'g')
@@ -173,7 +173,7 @@ endfunction
 
 " Escapes a regular expression and wraps it into slashes, for use in Ex
 " commands which take a `{pattern}`.
-function! dotfiles#utils#escape_and_wrap_regex(pat) abort
+function! dotutils#escape_and_wrap_regex(pat) abort
   let pat = a:pat
   let pat = substitute(pat, '\n', '\\n', 'g')
   let pat = substitute(pat, '\r', '\\r', 'g')
@@ -182,7 +182,7 @@ function! dotfiles#utils#escape_and_wrap_regex(pat) abort
   return '/'.pat.'/'
 endfunction
 
-function! dotfiles#utils#keepwinview(cmd) abort
+function! dotutils#keepwinview(cmd) abort
   let view = winsaveview()
   try
     execute a:cmd
@@ -195,7 +195,7 @@ endfunction
 " 0     = action cancelled
 " 1     = file written, safe to proceed
 " 2     = ignore unsaved changes, proceed forcibly
-function! dotfiles#utils#do_confirm() abort
+function! dotutils#do_confirm() abort
   if &confirm && &modified
     let fname = expand('%')
     if empty(fname)
@@ -218,24 +218,24 @@ function! dotfiles#utils#do_confirm() abort
 endfunction
 
 " Copied from <https://github.com/tpope/vim-eunuch/blob/7fb5aef524808d6ba67d6d986d15a2e291194edf/plugin/eunuch.vim#L26-L32>.
-function! dotfiles#utils#eunuch_fcall(fn, path, ...) abort
+function! dotutils#eunuch_fcall(fn, path, ...) abort
   let fn = get(get(g:, 'io_' . matchstr(a:path, '^\a\a\+\ze:'), {}), a:fn, a:fn)
   return call(fn, [a:path] + a:000)
 endfunction
 
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
-function! dotfiles#utils#url_encode(str) abort
+function! dotutils#url_encode(str) abort
   " iconv trick to convert utf-8 bytes to 8bits indiviual char.
   return substitute(iconv(a:str, 'latin1', 'utf-8'), '[^A-Za-z0-9_.~-]', '\="%".printf("%02X",char2nr(submatch(0)))','g')
 endfunction
 
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L464-L467>
-function! dotfiles#utils#url_decode(str) abort
+function! dotutils#url_decode(str) abort
   let str = substitute(substitute(substitute(a:str, '%0[Aa]\n$', '%0A', ''), '%0[Aa]', '\n', 'g'), '+', ' ', 'g')
   return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')
 endfunction
 
-function! dotfiles#utils#file_size_fmt(bytes) abort
+function! dotutils#file_size_fmt(bytes) abort
   let next_factor = 1
   for unit in ['B', 'K', 'M', 'G', 'T']
     let factor = next_factor

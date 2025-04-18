@@ -133,7 +133,7 @@ EOF
     else
       command! -nargs=0 -bar LspDiagnostics lua vim.lsp.diagnostic.set_qflist({severity_limit='Information'})
     endif
-    command! -nargs=0 -bar LspOpenLog lua vim.call('dotfiles#utils#jump_to_file', vim.lsp.get_log_path())
+    command! -nargs=0 -bar LspOpenLog lua vim.call('dotutils#jump_to_file', vim.lsp.get_log_path())
     command! -nargs=0 -bar -range LspFormat lua if <range> == 0 then vim.lsp.buf.formatting() else vim.lsp.buf.range_formatting(nil, {<line1>, 0}, {<line2>, #vim.fn.getline(<line2>)}) end
     command! -nargs=0 -bar LspFormatSync lua vim.lsp.buf.formatting_sync()
     command! -nargs=+ -bar LspWorkspaceSymbols lua vim.lsp.buf.workspace_symbol(<q-args>)

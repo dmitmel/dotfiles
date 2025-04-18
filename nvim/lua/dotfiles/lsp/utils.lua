@@ -457,7 +457,7 @@ function lsp.util.set_qflist(items, opts)
     opts = vim.empty_dict()
   end
   vim.call(
-    'dotfiles#utils#push_qf_list',
+    'dotutils#push_qf_list',
     vim.tbl_extend('keep', opts, {
       title = 'Language Server',
       items = items,
@@ -571,7 +571,7 @@ function M.jump_to_location_maybe_many(locations, opts)
   list_opts.title = opts.title or 'Language Server'
   list_opts.items, list_opts.idx = M.locations_to_items(locations, opts.current_position_params)
   list_opts.dotfiles_auto_open = #locations > 1
-  vim.call('dotfiles#utils#push_qf_list', list_opts)
+  vim.call('dotutils#push_qf_list', list_opts)
   if #locations == 1 then
     lsp.util.jump_to_location(locations[1])
   end

@@ -1,3 +1,3 @@
 setlocal noexpandtab
 
-call dotfiles#utils#undo_ftplugin_hook('setlocal expandtab<')
+call dotutils#undo_ftplugin_hook('setlocal expandtab<')

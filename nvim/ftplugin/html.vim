@@ -1,1 +1,1 @@
-call dotfiles#utils#add_matchup_prefs({ 'tagnameonly': 1, 'nolists': 1 })
+call dotutils#add_matchup_prefs({ 'tagnameonly': 1, 'nolists': 1 })

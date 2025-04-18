@@ -24,7 +24,7 @@ augroup END
 command! -bar -bang Delete
 \ let s:l_file = expand('%:p') |
 \ execute 'ConfirmBdelete<bang>' |
-\ if !bufloaded(s:l_file) && dotfiles#utils#eunuch_fcall('delete', s:l_file) |
+\ if !bufloaded(s:l_file) && dotutils#eunuch_fcall('delete', s:l_file) |
 \   echoerr 'Failed to delete "'.s:l_file.'"' |
 \ endif |
 \ unlet! s:l_file
@@ -34,5 +34,5 @@ command! -bar -bang Del Delete<bang>
   " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>
   " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>
   " <https://github.com/neovim/neovim/commit/c1e020b7f3457d3a14e7dda72a4f6ebf06e8f91d>
-  command! -nargs=* -complete=file Open call dotfiles#utils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
+  command! -nargs=* -complete=file Open call dotutils#open_url(empty(<q-args>) ? expand('%') : <q-args>)
 " }}}

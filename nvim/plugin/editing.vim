@@ -362,7 +362,7 @@ endif
   function! s:VisualStarSearch() abort
     let tmp = @"
     normal! y
-    let @/ = dotfiles#utils#literal_regex(@")
+    let @/ = dotutils#literal_regex(@")
     let @" = tmp
   endfunction
   xmap * <Cmd>call <SID>VisualStarSearch()<CR>/<CR>
@@ -398,7 +398,7 @@ endif
     " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
     " NOTE: The command is returned as a string and executed later so that "No
     " match" errors don't display as a stack trace.
-    return 'let v:hlsearch = 1 | '.a:loclist.'vimgrep '.dotfiles#utils#escape_and_wrap_regex(a:pattern).flags.' %'
+    return 'let v:hlsearch = 1 | '.a:loclist.'vimgrep '.dotutils#escape_and_wrap_regex(a:pattern).flags.' %'
   endfunction
   command! -nargs=* Csearch execute s:cmd_qf_search('',  <q-args>)
   command! -nargs=* Lsearch execute s:cmd_qf_search('l', <q-args>)
@@ -576,7 +576,7 @@ endif
   function! PutOutput(cmd) abort
     let output = ''
     silent! let output = dotfiles#sandboxed_execute#capture(a:cmd)
-    call dotfiles#utils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
+    call dotutils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
   endfunction
   command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
 

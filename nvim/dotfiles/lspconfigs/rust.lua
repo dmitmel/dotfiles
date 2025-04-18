@@ -106,7 +106,7 @@ lsp_ignition.setup_config('rust_analyzer', {
               )
               return
             end
-            vim.call('dotfiles#utils#open_scratch_preview_win', {
+            vim.call('dotutils#open_scratch_preview_win', {
               title = string.format('[Rust: recursive expansion of %s! macro]', params.name),
               text = params.expansion,
               setup_commands = { 'set syntax=rust' },
@@ -198,7 +198,7 @@ lsp_ignition.setup_config('rust_analyzer', {
               )
               return
             end
-            vim.call('dotfiles#utils#open_url', params)
+            vim.call('dotutils#open_url', params)
           end),
           bufnr
         )
@@ -221,7 +221,7 @@ lsp_ignition.setup_config('rust_analyzer', {
             assert(file:write(params))
             assert(file:flush())
             assert(file:close())
-            vim.call('dotfiles#utils#open_url', file_path)
+            vim.call('dotutils#open_url', file_path)
           end),
           bufnr
         )
@@ -238,7 +238,7 @@ lsp_ignition.setup_config('rust_analyzer', {
             if type(params) ~= 'string' then
               return
             end
-            vim.call('dotfiles#utils#open_scratch_preview_win', {
+            vim.call('dotutils#open_scratch_preview_win', {
               title = '[Rust: Item Tree]',
               text = params,
               vertical = true,
@@ -260,7 +260,7 @@ lsp_ignition.setup_config('rust_analyzer', {
             if type(params) ~= 'string' then
               return
             end
-            vim.call('dotfiles#utils#open_scratch_preview_win', {
+            vim.call('dotutils#open_scratch_preview_win', {
               title = '[Rust: HIR]',
               text = params,
               vertical = true,
@@ -299,7 +299,7 @@ lsp_ignition.setup_config('rust_analyzer', {
             if type(params) ~= 'string' then
               return
             end
-            vim.call('dotfiles#utils#open_scratch_preview_win', {
+            vim.call('dotutils#open_scratch_preview_win', {
               title = string.format(
                 '[Rust: Syntax Tree from %d:%d to %d:%d]',
                 start_pos[1],

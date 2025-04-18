@@ -7,10 +7,10 @@ if exists('g:qf_mapping_ack_style')
   endif
   nmap <buffer> ( <Plug>(qf_previous_file)
   nmap <buffer> ) <Plug>(qf_next_file)
-  nmap <buffer> <C-p> <Plug>(qf_older)<Cmd>call dotfiles#utils#readjust_qf_list_height()<CR>
-  nmap <buffer> <C-n> <Plug>(qf_newer)<Cmd>call dotfiles#utils#readjust_qf_list_height()<CR>
+  nmap <buffer> <C-p> <Plug>(qf_older)<Cmd>call dotutils#readjust_qf_list_height()<CR>
+  nmap <buffer> <C-n> <Plug>(qf_newer)<Cmd>call dotutils#readjust_qf_list_height()<CR>
   nmap <buffer> <CR> <CR>zv
-  call dotfiles#utils#undo_ftplugin_hook(join([
+  call dotutils#undo_ftplugin_hook(join([
   \ 'exe "silent! nunmap <buffer> <Esc>"',
   \ 'exe "silent! nunmap <buffer> ("',
   \ 'exe "silent! nunmap <buffer> )"',

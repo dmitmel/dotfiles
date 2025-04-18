@@ -10,4 +10,4 @@ setlocal comments=:---,:--
 let &l:include = '\v<%(%(do|load)file|require)>[^''"]*[''"]\zs[^''"]+'
 let &l:includeexpr = 'dotfiles#ftplugin_helpers#lua#includeexpr(v:fname)'
 
-call dotfiles#utils#undo_ftplugin_hook('unlet! b:runfileprg | setlocal comments< include< includeexpr<')
+call dotutils#undo_ftplugin_hook('unlet! b:runfileprg | setlocal comments< include< includeexpr<')
