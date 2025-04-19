@@ -1,46 +1,69 @@
--- Something similar to Vimscript's autoloading system, but for Lua, in
--- particular its aspect of being able to reload a module by re-running it.
--- Based on a tip from <https://defold.com/manuals/modules/#hot-reloading-modules>.
+-- Vimscript's autoloading system, but for Lua. Supports declaring namespaces
+-- that can be imported automatically upon the first reference, enables
+-- reloading modules by re-running them with `:source %` without breaking all
+-- imported references. Inspired by:
+-- <https://defold.com/manuals/modules/#hot-reloading-modules>,
+-- <https://github.com/neovim/neovim/commit/2e982f1aad9f1a03562b7a451d642f76b04c37cb/#diff-1acf614023cf9d30aa08ffd8cd145cc1f8e7f704bf615cb48e1c698afc11870c>.
 
-return setmetatable({}, {
-  __call = function(self, module_name)
-    -- NOTE: Path auto-detection is not used because it does not always produce
-    -- the same results. When the module is `require()`d normally the
-    -- `module_name` ends up being an absolute path, however, when the file is
-    -- `:luafile`d or `:source`d, the path is, instead, relative to RTP,
-    -- apparently.
-    --[[
-    if module_name == nil then
-      -- <https://www.lua.org/pil/23.1.html>
-      -- <https://www.lua.org/manual/5.1/manual.html#pdf-debug.getinfo>
-      -- <https://www.lua.org/manual/5.1/manual.html#lua_getinfo>
-      local caller_path = debug.getinfo(2, 'S').source
-      if string.sub(caller_path, 1, 1) == '@' then
-        module_name = string.sub(caller_path, 2)
-      end
-    end
-    --]]
+local MODULES = {}
 
-    if type(module_name) ~= 'string' then
-      error(string.format('module_name: expected string, got %s', type(module_name)))
-    end
-    local module_internals = rawget(self, module_name)
-    if module_internals == nil then
-      local meta = {
+---@generic T
+---@param module_name string
+---@param submodules? T
+---@param export_to? T
+---@return T
+local function declare_module(module_name, submodules, export_to)
+  if type(module_name) ~= 'string' then
+    error(string.format('module_name: expected string, got %s', type(module_name)))
+  end
+  if submodules ~= nil and type(submodules) ~= 'table' then
+    error(string.format('module_name: expected table, got %s', type(submodules)))
+  end
+  if export_to ~= nil and type(export_to) ~= 'table' then
+    error(string.format('export_to: expected table, got %s', type(export_to)))
+  end
+
+  local module = rawget(MODULES, module_name)
+  if module ~= nil then
+    module.info.reloading = true
+    module.info.reload_count = module.info.reload_count + 1
+  else
+    module = {
+      info = {
         name = module_name,
         reloading = false,
         reload_count = 0,
-      }
-      module_internals = {
-        meta = meta,
-        exports = { __module = meta },
-      }
-      rawset(self, module_name, module_internals)
-    else
-      local meta = module_internals.meta
-      meta.reloading = true
-      meta.reload_count = meta.reload_count + 1
+      },
+      exports = {},
+    }
+
+    if export_to ~= nil then
+      module.exports = export_to
     end
-    return module_internals.exports
-  end,
-})
+
+    -- Export this table as read-only, see <https://www.lua.org/pil/13.4.5.html>
+    module.exports.__module = setmetatable({}, {
+      __index = function(self, k) return module.info[k] end,
+      __newindex = function(self, k, v) error('attempt to update a read-only table', 2) end,
+    })
+
+    if submodules ~= nil then
+      -- Lazy-load submodules
+      setmetatable(module.exports, {
+        __index = function(self, key)
+          if submodules[key] ~= nil and type(key) == 'string' then
+            local submod = require(module_name .. '.' .. key)
+            rawset(self, key, submod)
+            return submod
+          end
+        end,
+      })
+    end
+
+    rawset(MODULES, module_name, module)
+  end
+
+  return module.exports
+end
+
+return declare_module

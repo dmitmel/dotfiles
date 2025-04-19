@@ -1,5 +1,7 @@
 --- TODO: split this module into categories
-local M = require('dotfiles.autoload')('dotfiles.utils')
+local M = require('dotfiles.autoload')('dotfiles.utils', {
+  vim = ..., ---@module 'dotfiles.utils.vim'
+})
 
 local vim_uri = require('vim.uri')
 local uv = require('luv')

@@ -1,11 +1,15 @@
+local M = require('dotfiles.autoload')('dotfiles', {
+  autoload = ..., ---@module 'dotfiles.autoload'
+  colorscheme = ..., ---@module 'dotfiles.colorscheme'
+  lsp = ..., ---@module 'dotfiles.lsp'
+  utils = ..., ---@module 'dotfiles.utils'
+  plugman = ..., ---@module 'dotfiles.plugman'
+}, _G.dotfiles)
+
 local utils = require('dotfiles.utils')
-local utils_vim = require('dotfiles.utils.vim')
 
-_G.dotfiles = _G.dotfiles or {}
-
--- For use in the interactive shell.
-_G.dotfiles.utils = utils
-_G.dotfiles.utils_vim = utils_vim
+_G.dotfiles = M
+_G.dotutils = utils
 
 local function dump_impl(opts, ...)
   local len = select('#', ...)
@@ -21,17 +25,10 @@ local function dump_impl(opts, ...)
   end
 end
 
-function _G.dump(...)
-  return dump_impl(nil, ...)
-end
+function _G.dump(...) return dump_impl(nil, ...) end
+function _G.dump_compact(...) return dump_impl({ newline = ' ', indent = '' }, ...) end
 
-function _G.dump_compact(...)
-  return dump_impl({ newline = ' ', indent = '' }, ...)
-end
-
-function _G.printf(...)
-  return print(string.format(...))
-end
+function _G.printf(...) return print(string.format(...)) end
 
 function _G.measure_time(fn, ...)
   local start_time = vim.loop.hrtime()
@@ -65,6 +62,6 @@ function _G.profile_start(out, opts)
   require('jit.p').start(popts, out)
 end
 
-function _G.profile_stop()
-  require('jit.p').stop()
-end
+function _G.profile_stop() require('jit.p').stop() end
+
+return M

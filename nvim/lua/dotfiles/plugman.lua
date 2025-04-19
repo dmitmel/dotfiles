@@ -2,8 +2,6 @@ local M = require('dotfiles.autoload')('dotfiles.plugman')
 local lazy = require('lazy')
 local utils_vim = require('dotfiles.utils.vim')
 
-dotfiles.plugman = M
-
 M.DEBUG_LOAD_ORDER = false
 
 ---@type LazyConfig

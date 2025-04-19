@@ -51,7 +51,7 @@ colorscheme dotfiles
 
 if has('nvim-0.5.0')
   " Preload the Lua utilities.
-  lua require('dotfiles.global_utils')
+  lua require('dotfiles')
 endif
 
 " Disable the new Lua-based filetype detection system introduced in the newer
