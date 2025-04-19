@@ -1,7 +1,12 @@
 """"""""""""""""""""""""""""""""" Text editing """""""""""""""""""""""""""""""""
 
+" Use VSCoded's built-in undo handling.
+nnoremap u undo
+nnoremap U undo
+nnoremap <C-r> redo
+
 " shift + undo = redo
-nnoremap U <C-r>
+nnoremap U redo
 " yank to the end
 nnoremap Y y$
 " disable search highlighting
@@ -35,17 +40,20 @@ nnoremap ) vii<esc>^
 nmap <leader>* m'viw<leader>*<esc>`'
 " :grep the selection
 xnoremap <leader>* workbench.action.findInFiles
+" duplicate current line and comment it out
+nnoremap <silent> <leader>[ m'yygccP`'
+nnoremap <silent> <leader>] m'yygccp`'j
 
-" Motions with support for word wrapping (Normal mode)
-nnoremap j gj
-nnoremap k gk
-nnoremap gj j
-nnoremap gk k
-" Motions with support for word wrapping (Visual mode)
-xnoremap j gj
-xnoremap k gk
-xnoremap gj j
-xnoremap gk k
+" " Motions with support for word wrapping (Normal mode)
+" nnoremap j gj
+" nnoremap k gk
+" nnoremap gj j
+" nnoremap gk k
+" " Motions with support for word wrapping (Visual mode)
+" xnoremap j gj
+" xnoremap k gk
+" xnoremap gj j
+" xnoremap gk k
 
 
 
@@ -72,11 +80,12 @@ nnoremap <space> workbench.action.showCommands
 xnoremap <space> workbench.action.showCommands
 nnoremap <leader>/ actions.find
 nnoremap <leader>f workbench.action.quickOpen
-nnoremap <leader>F workbench.action.files.openFolder
 nnoremap <leader>b workbench.action.showAllEditorsByMostRecentlyUsed
 nnoremap <leader>p workbench.action.problems.focus
+nnoremap Q workbench.actions.view.problems
 nnoremap <leader>o workbench.files.action.showActiveFileInExplorer
-nnoremap <leader>O workbench.action.closeSidebar
+nnoremap <leader>O workbench.action.files.openFolder
+" nnoremap <leader>O workbench.action.closeSidebar
 nnoremap <leader>n notifications.clearAll
 nnoremap <leader>s workbench.action.gotoSymbol
 nnoremap <leader>w workbench.action.showAllSymbols

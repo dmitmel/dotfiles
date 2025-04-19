@@ -86,6 +86,14 @@
     "*": false
   },
 
+  // Git
+  "gitlens.codeLens.enabled": false,
+  "gitlens.codeLens.authors.enabled": false,
+  "gitlens.codeLens.recentChange.enabled": false,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.currentLine.pullRequests.enabled": false,
+  "gitlens.plusFeatures.enabled": false,
+
   // Language-specific settings
   "files.associations": {
     "*.json.patch": "json",
@@ -150,6 +158,13 @@
 
   // Python
   "jupyter.debugJustMyCode": false,
+
+  // Rust
+  "files.readonlyInclude": {
+    "**/.cargo/registry/src/**/*.rs": true,
+    "**/.cargo/git/checkouts/**/*.rs": true,
+    "**/lib/rustlib/src/rust/library/**/*.rs": true
+  },
 
   // Unsorted
   "cSpell.userWords": [
