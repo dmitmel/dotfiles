@@ -17,7 +17,7 @@ function! s:open_help_online()
     let file = file[len(local_doc_prefix):-5]
     let tagname = tagname[:-4]
 
-    let tagname = dotutils#url_encode(tagname)
+    let tagname = dotutils#url_encode(tagname, '')
     if has('nvim')
       let url = 'https://neovim.io/doc/user/' . file . '.html#' . tagname
     else

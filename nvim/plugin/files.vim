@@ -142,32 +142,6 @@ set nofixendofline
     command DiffWithSaved call s:DiffWithSaved()
   " }}}
 
-  " Reveal {{{
-    " Reveal file in the system file explorer
-    function! s:Reveal(path) abort
-      " TODO: Implement on Linux. See
-      " <http://www.freedesktop.org/wiki/Specifications/file-manager-interface/>
-      " <https://dbus.freedesktop.org/doc/dbus-python/tutorial.html>
-      " <https://github.com/deluge-torrent/deluge/blob/deluge-2.0.5/deluge/common.py#L339-L377>
-      " <https://github.com/GNOME/shotwell/blob/shotwell-0.31.3/src/util/system.vala#L24-L49>
-      " <https://github.com/mixxxdj/mixxx/blob/2.3/src/util/desktophelper.cpp>
-      " <https://github.com/mozilla/gecko-dev/blob/beb8961e1298f3a09f443ebd7374353d684923d2/xpcom/io/nsLocalFileUnix.cpp#L2083-L2108>
-      " <https://github.com/mozilla/gecko-dev/blob/beb8961e1298f3a09f443ebd7374353d684923d2/toolkit/system/gnome/nsGIOService.cpp#L543-L632>
-      " (NOTE: GPL code, must put into a separate binary to avoid licensing issues)
-      if has('macunix')
-        " only macOS has functionality to really 'reveal' a file, that is, to open
-        " its parent directory in Finder and select this file
-        call system('open -R ' . fnamemodify(a:path, ':S'))
-      else
-        " for other systems let's not reinvent the bicycle, instead we open file's
-        " parent directory using netrw's builtin function (don't worry, netrw is
-        " always bundled with Nvim)
-        call dotutils#open_url(fnamemodify(a:path, ':h'))
-      endif
-    endfunction
-    command Reveal call s:Reveal(expand('%'))
-  " }}}
-
   " EditGlob {{{
     " Yes, I know about the existence of :args, however it modifies the
     " argument list, so it doesn't play well with Obsession.vim because it
@@ -215,15 +189,13 @@ set nofixendofline
 
 " on save (BufWritePre) {{{
 
-  function! s:IsUrl(str) abort
-    return a:str =~# '\v^\w+://'
-  endfunction
+  let s:url_regex = '\v^\w+://'
 
   " create directory {{{
     " Creates the parent directory of the file if it doesn't exist
     function! s:CreateDirOnSave() abort
       " check if this is a regular file and its path is not a URL
-      if empty(&buftype) && !s:IsUrl(expand('<afile>'))
+      if empty(&buftype) && expand('<afile>') !~# s:url_regex
         call mkdir(expand('<afile>:h'), 'p')
       endif
     endfunction
@@ -247,7 +219,7 @@ set nofixendofline
     let g:coc_format_on_save_ignore = {}
     function! s:FormatOnSave() abort
       let file = expand('<afile>')
-      if has_key(g:coc_format_on_save_ignore, &filetype) || s:IsUrl(file)
+      if has_key(g:coc_format_on_save_ignore, &filetype) || file =~# s:url_regex
         return
       endif
       if exists(':LspFormatSync')

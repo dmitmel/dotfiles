@@ -131,6 +131,27 @@ function! dotfiles#utils#open_url(path) abort
   return netrw#BrowseX(a:path, 2)
 endfunction
 
+function! dotutils#reveal_file(path) abort
+  if empty(a:path) | throw "The path must not be empty" | endif
+  let path = fnamemodify(a:path, ':p')
+  if has('macunix')
+    call system('open -R ' . shellescape(path, 0))
+  elseif has('unix') && executable('dbus-send')
+    " <http://www.freedesktop.org/wiki/Specifications/file-manager-interface/>
+    let cmd = 'dbus-send --print-reply --reply-timeout=1000 --dest=org.freedesktop.FileManager1'
+    let cmd .= ' /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems'
+    let url = 'file://' . dotutils#url_encode(path, '/')
+    let cmd .= ' array:string:' . shellescape(url, 0) . " string:''"
+    let output = system(cmd)
+    if v:shell_error
+      echoerr output
+    endif
+  else
+    " for other systems let's just open the file's parent directory
+    call dotutils#open_uri(fnamemodify(path, ':h'))
+  endif
+endfunction
+
 function! dotutils#push_qf_list(opts) abort
   let loclist_window = get(a:opts, 'dotfiles_loclist_window', 0)
   let action = get(a:opts, 'dotfiles_action', ' ')
@@ -224,9 +245,11 @@ function! dotutils#eunuch_fcall(fn, path, ...) abort
 endfunction
 
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
-function! dotutils#url_encode(str) abort
+function! dotutils#url_encode(str, allowed_chars) abort
   " iconv trick to convert utf-8 bytes to 8bits indiviual char.
-  return substitute(iconv(a:str, 'latin1', 'utf-8'), '[^A-Za-z0-9_.~-]', '\="%".printf("%02X",char2nr(submatch(0)))','g')
+  let bytestr = iconv(a:str, 'latin1', 'utf-8')
+  let regex = '[^' . escape(a:allowed_chars, ']\') . 'A-Za-z0-9_.~-]'
+  return substitute(bytestr, regex, '\="%".printf("%02X",char2nr(submatch(0)))', 'g')
 endfunction
 
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L464-L467>
