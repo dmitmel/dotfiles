@@ -58,6 +58,11 @@ function! s:setup() abort
     \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
   endfunction
 
+  function! HiClear(group) closure abort
+    exe 'hi clear' a:group
+    exe 'hi link' a:group 'NONE'
+  endfunction
+
   let has_nocombine = has('patch-8.0.0914') || has('nvim-0.5.0')
   let attr_nocombine = has_nocombine ? 'nocombine' : 'NONE'
 
@@ -66,7 +71,8 @@ function! s:setup() abort
   call Hi('Normal',        { 'fg': 0x5, 'bg': 0x0 })
   call Hi('Italic',        { 'fg': 0xE, 'attr': 'italic'    })
   call Hi('Bold',          { 'fg': 0xA, 'attr': 'bold'      })
-  call Hi('Underlined',    { 'fg': 0x8, 'attr': 'underline' })
+  call Hi('Underlined',    { 'fg': 0xD, 'attr': 'NONE' })
+  call Hi('ReallyUnderlined', { 'fg': 0xD, 'attr': 'underline' })
   call Hi('Strikethrough', { 'attr': 'strikethrough' })
   call Hi('Title',         { 'fg': 0xD })
   hi! link Directory Title
@@ -74,9 +80,11 @@ function! s:setup() abort
   hi! link SpecialKey Special
   call Hi('MatchParen',    { 'fg': 'fg', 'bg': 0x3 })
 
+  " For some reason I added the `noncombine` attribute to `NonText` when I
+  " committed my IndentLine plugin a while ago. No idea why.
+  call Hi('NonText',       { 'fg': 0x3 })
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  call Hi('NonText',    { 'fg': 0x3, 'attr': attr_nocombine })
   call Hi('IndentLine', { 'fg': 0x2, 'attr': attr_nocombine })
   hi! link IndentBlanklineChar               IndentLine
   hi! link IndentBlanklineSpaceChar          Whitespace
@@ -121,14 +129,175 @@ function! s:setup() abort
   hi! link Include         Keyword
   call Hi('PreProc',     { 'fg': 0xA })
   call Hi('Label',       { 'fg': 0xA })
-  hi! link Operator      NONE
-  hi! link Delimiter     NONE
+  call HiClear('Operator')
+  call HiClear('Delimiter')
   call Hi('Special',     { 'fg': 0xC })
   call Hi('Tag',         { 'fg': 0xA })
   call Hi('Type',        { 'fg': 0xA })
   hi! link Typedef         Type
 
   " }}}
+
+  if has('nvim-0.8.0') " Treesitter {{{
+    " Code from gruvbox.nvim was used as a basis for treesitter support:
+    " <https://github.com/ellisonleao/gruvbox.nvim/blob/a933d8666dad9363dc6908ae72cfc832299c2f59/lua/gruvbox.lua#L1112-L1245>
+
+    call HiClear('@variable')
+    hi! link @variable.member Variable
+    hi! link @variable.builtin Variable
+    call HiClear('@module')
+
+    call Hi('@text.strong',          { 'attr': 'bold'          })
+    call Hi('@text.emphasis',        { 'attr': 'italic'        })
+    call Hi('@text.underline',       { 'attr': 'underline'     })
+    call Hi('@text.strike',          { 'attr': 'strikethrough' })
+    call Hi('@markup.strong',        { 'attr': 'bold'          })
+    call Hi('@markup.italic',        { 'attr': 'italic'        })
+    call Hi('@markup.underline',     { 'attr': 'underline'     })
+    call Hi('@markup.strikethrough', { 'attr': 'strikethrough' })
+
+    hi! link @text.strong          Bold
+    hi! link @text.emphasis        Italic
+    hi! link @text.underline       Underlined
+    hi! link @text.strikethrough   Strikethrough
+    hi! link @markup.strong        Bold
+    hi! link @markup.italic        Italic
+    hi! link @markup.underline     Underlined
+    hi! link @markup.strikethrough Strikethrough
+
+    hi! link @comment                  Comment
+    call HiClear('@none')
+    hi! link @preproc                  PreProc
+    hi! link @define                   Define
+    hi! link @operator                 Operator
+    hi! link @punctuation.delimiter    Delimiter
+    hi! link @punctuation.bracket      Delimiter
+    hi! link @punctuation.special      Delimiter
+    hi! link @string                   String
+    hi! link @string.regex             String
+    hi! link @string.regexp            String
+    hi! link @string.escape            SpecialChar
+    hi! link @string.special           SpecialChar
+    hi! link @string.special.path      Underlined
+    hi! link @string.special.symbol    Identifier
+    hi! link @string.special.url       Underlined
+    hi! link @character                Character
+    hi! link @character.special        SpecialChar
+    hi! link @boolean                  Boolean
+    hi! link @number                   Number
+    hi! link @number.float             Float
+    hi! link @float                    Float
+    hi! link @function                 Function
+    hi! link @function.builtin         Special
+    hi! link @function.call            Function
+    hi! link @function.macro           Macro
+    hi! link @function.method          Function
+    hi! link @method                   Function
+    hi! link @method.call              Function
+    hi! link @constructor              Type
+    hi! link @parameter                Identifier
+    hi! link @keyword                  Keyword
+    hi! link @keyword.conditional      Conditional
+    hi! link @keyword.debug            Debug
+    hi! link @keyword.directive        PreProc
+    hi! link @keyword.directive.define Define
+    hi! link @keyword.exception        Exception
+    hi! link @keyword.function         Keyword
+    hi! link @keyword.import           Include
+    hi! link @keyword.operator         Keyword
+    hi! link @keyword.repeat           Repeat
+    hi! link @keyword.return           Keyword
+    hi! link @keyword.storage          StorageClass
+    hi! link @conditional              Conditional
+    hi! link @repeat                   Repeat
+    hi! link @debug                    Debug
+    hi! link @label                    Label
+    hi! link @include                  Include
+    hi! link @exception                Exception
+    hi! link @type                     Type
+    hi! link @type.builtin             Type
+    hi! link @type.definition          Typedef
+    hi! link @type.qualifier           Type
+    hi! link @storageclass             StorageClass
+    hi! link @attribute                PreProc
+    hi! link @field                    Identifier
+    hi! link @property                 Identifier
+    call HiClear('@variable')
+    hi! link @variable.builtin         Special
+    hi! link @variable.member          Identifier
+    hi! link @variable.parameter       Identifier
+    hi! link @constant                 Constant
+    hi! link @constant.builtin         Special
+    hi! link @constant.macro           Define
+    call HiClear('@markup')
+    hi! link @markup.heading           Title
+    hi! link @markup.raw               String
+    hi! link @markup.math              Special
+    hi! link @markup.environment       Macro
+    hi! link @markup.environment.name  Type
+    hi! link @markup.link              Underlined
+    hi! link @markup.link.label        String
+    hi! link @markup.list              Identifier
+    hi! link @markup.list.checked      GruvboxGreen
+    hi! link @markup.list.unchecked    GruvboxGray
+    hi! link @comment.todo             Todo
+    hi! link @comment.note             SpecialComment
+    hi! link @comment.warning          WarningMsg
+    hi! link @comment.error            ErrorMsg
+    hi! link @diff.plus                diffAdded
+    hi! link @diff.minus               diffRemoved
+    hi! link @diff.delta               diffChanged
+    call HiClear('@module')
+    call HiClear('@namespace')
+    hi! link @symbol                   Identifier
+    call HiClear('@text')
+    hi! link @text.title               Title
+    hi! link @text.literal             String
+    hi! link @text.uri                 Underlined
+    hi! link @text.math                Special
+    hi! link @text.environment         Macro
+    hi! link @text.environment.name    Type
+    hi! link @text.reference           Constant
+    hi! link @text.todo                Todo
+    hi! link @text.todo.checked        GruvboxGreen
+    hi! link @text.todo.unchecked      GruvboxGray
+    hi! link @text.note                SpecialComment
+    call Hi('@text.note.comment',    { 'fg': 0xE, 'attr': 'bold' })
+    hi! link @text.warning             WarningMsg
+    hi! link @text.danger              ErrorMsg
+    call Hi('@text.danger.comment',  { 'fg': 0x8, 'attr': 'bold' })
+    hi! link @text.diff.add            diffAdded
+    hi! link @text.diff.delete         diffRemoved
+    hi! link @tag                      Tag
+    hi! link @tag.attribute            Identifier
+    hi! link @tag.delimiter            Delimiter
+    hi! link @punctuation              Delimiter
+    hi! link @macro                    Macro
+    hi! link @structure                Structure
+    hi! link @lsp.type.class           @type
+    hi! link @lsp.type.comment         @comment
+    hi! link @lsp.type.decorator       @macro
+    hi! link @lsp.type.enum            @type
+    hi! link @lsp.type.enumMember      @constant
+    hi! link @lsp.type.function        @function
+    hi! link @lsp.type.interface       @constructor
+    hi! link @lsp.type.macro           @macro
+    hi! link @lsp.type.method          @method
+    hi! link @lsp.type.modifier.java   @keyword.type.java
+    hi! link @lsp.type.namespace       @namespace
+    hi! link @lsp.type.parameter       @parameter
+    hi! link @lsp.type.property        @property
+    hi! link @lsp.type.struct          @type
+    hi! link @lsp.type.type            @type
+    hi! link @lsp.type.typeParameter   @type.definition
+    hi! link @lsp.type.variable        @variable
+
+    call Hi('@comment.todo',    { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
+    call Hi('@comment.note',    { 'fg': 0xD, 'bg': 'bg', 'attr': 'reverse,bold' })
+    call Hi('@comment.warning', { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
+    call Hi('@comment.error',   { 'fg': 0x8, 'bg': 'bg', 'attr': 'reverse,bold' })
+
+  endif " }}}
 
   " User interface {{{
 
@@ -167,9 +336,9 @@ function! s:setup() abort
   hi! link CocMarkdownLink      Underlined
   hi! link CocLink              Underlined
   hi! link CocDiagnosticsFile   Directory
-  hi! link CocOutlineName       NONE
-  hi! link CocExtensionsLoaded  NONE
-  hi! link CocSymbolsName       NONE
+  call HiClear('CocOutlineName')
+  call HiClear('CocExtensionsLoaded')
+  call HiClear('CocSymbolsName')
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
@@ -250,6 +419,7 @@ function! s:setup() abort
   call Hi('qfWarning',    { 'fg': 0xA, 'attr': 'reverse,bold' })
   call Hi('qfInfo',       { 'fg': 0xD, 'attr': 'reverse,bold' })
   call Hi('qfNote',       { 'fg': 0xD, 'attr': 'reverse,bold' })
+  call HiClear('qfText')
 
   call Hi('SignColumn',   { 'fg': 0x3,  'bg': 0x1 })
   call Hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
@@ -374,7 +544,7 @@ function! s:setup() abort
     else
       call Hi('TermCursor', { 'attr': 'reverse' })
     endif
-    hi! link TermCursorNC NONE
+    call HiClear('TermCursorNC')
     for color in range(16)
       let g:terminal_color_{color} = colors[ansi_colors[color]].gui
     endfor
@@ -585,7 +755,7 @@ function! s:setup() abort
   hi! link typescriptCall                Variable
   hi! link typescriptArrowFuncArg        typescriptCall
   hi! link typescriptFuncType            typescriptCall
-  hi! link typescriptMessage             NONE
+  call HiClear('typescriptMessage')
   hi! link typescriptVariable            jsStorageClass
   hi! link typescriptAmbientDeclaration  typescriptVariable
   hi! link typescriptVariableDeclaration Variable
@@ -714,7 +884,7 @@ function! s:setup() abort
   " }}}
 
   " TOML {{{
-  hi! link tomlDotInKey NONE
+  call HiClear('tomlDotInKey')
   " }}}
 
   " Java {{{
