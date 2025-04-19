@@ -8,7 +8,6 @@
 local M = require('dotfiles.autoload')('dotfiles.sane_indentline')
 
 local utils = require('dotfiles.utils')
-local utils_vim = require('dotfiles.utils.vim')
 
 M.ns_id = M.ns_id or vim.api.nvim_create_namespace(M.__module.name)
 M.decorations_provider = M.decorations_provider or {}
@@ -52,7 +51,7 @@ function M.decorations_provider:on_start(tick)
   self:reset()
 
   if
-    not utils_vim.is_truthy(
+    not utils.is_truthy(
       utils.first_non_nil(vim.g.indent_blankline_enabled, vim.g.indentLine_enabled, true)
     )
   then
@@ -91,14 +90,14 @@ function M.decorations_provider:on_start(tick)
     -- stylua: ignore
   self.max_indent_level = utils.first_non_nil(vim.g.indentLine_indentLevel, vim.g.indent_blankline_indent_level, 20)
     -- stylua: ignore
-  self.add_one_more_indent_on_blanklines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_trailing_blankline_indent, true))
+  self.add_one_more_indent_on_blanklines = utils.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_trailing_blankline_indent, true))
     -- stylua: ignore
-  self.show_first_indent_level = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_first_indent_level, vim.g.indentLine_showFirstIndentLevel, true))
+  self.show_first_indent_level = utils.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_first_indent_level, vim.g.indentLine_showFirstIndentLevel, true))
     -- stylua: ignore
-  self.show_on_folded_lines = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_foldtext, false))
+  self.show_on_folded_lines = utils.is_truthy(utils.first_non_nil(vim.g.indent_blankline_show_foldtext, false))
 
     -- stylua: ignore
-  self.disable_with_nolist = utils_vim.is_truthy(utils.first_non_nil(vim.g.indent_blankline_disable_with_nolist, false))
+  self.disable_with_nolist = utils.is_truthy(utils.first_non_nil(vim.g.indent_blankline_disable_with_nolist, false))
     -- stylua: ignore
   self.filetypes_include = utils.tbl_to_set(utils.first_non_nil(vim.g.indent_blankline_filetype, vim.g.indentLine_fileType, {}))
     -- stylua: ignore
@@ -165,7 +164,7 @@ end
 --- and <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L50-L101>.
 function M.decorations_provider:check_disabled_for_buf(winid, bufnr)
   if
-    not utils_vim.is_truthy(
+    not utils.is_truthy(
       utils.first_non_nil(vim.b.indent_blankline_enabled, vim.b.indentLine_enabled, true)
     )
   then

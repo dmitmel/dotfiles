@@ -1,6 +1,6 @@
 local M = require('dotfiles.autoload')('dotfiles.plugman')
 local lazy = require('lazy')
-local utils_vim = require('dotfiles.utils.vim')
+local utils = require('dotfiles.utils')
 
 M.DEBUG_LOAD_ORDER = false
 
@@ -96,7 +96,7 @@ function M.register_vimplug(repo, old_spec)
       end
       spec.name = value
     elseif key == 'frozen' then
-      spec.pin = utils_vim.is_truthy(value)
+      spec.pin = utils.is_truthy(value)
     elseif key == 'requires' then
       if type(value) == 'string' then
         spec.dependencies = { value }

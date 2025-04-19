@@ -7,21 +7,6 @@ M.USER_COMMAND_PATTERN = '^[A-Z][a-zA-Z0-9]*$' -- :h user-cmd-ambiguous
 M.FUNCTION_NAME_PATTERN = '^[A-Z_][a-zA-Z0-9_]*$' -- :h :function
 M.VARIABLE_NAME_PATTERN = '^[A-Za-z_][A-Za-z0-9_]*$' -- shrug
 
--- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval/typval.c#L2963-L3012>
--- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval.c#L678-L711>
-function M.is_truthy(value)
-  local t = type(value)
-  -- stylua: ignore start
-  if t == 'boolean' then return value end
-  if t == 'number' then return value ~= 0 end
-  if t == 'string' then return value ~= '' end
-  if t == 'nil' then return false end
-  -- stylua: ignore end
-  -- return true
-  -- In accordance to the behavior of VimL:
-  error(string.format('value of type %s cannot be converted to boolean', type(t)))
-end
-
 function M.has(feature) return vim.fn.has(feature) == 1 end
 
 M.COMMAND_HANDLERS = {}

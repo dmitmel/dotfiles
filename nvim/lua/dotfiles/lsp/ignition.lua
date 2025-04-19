@@ -475,7 +475,7 @@ function M.should_attach(bufnr)
   end
 
   local ok, value = pcall(vim.api.nvim_buf_get_var, bufnr, 'lsp_enabled')
-  if ok and utils_vim.is_truthy(value) then
+  if ok and utils.is_truthy(value) then
     return false
   end
 
