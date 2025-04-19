@@ -271,3 +271,35 @@ call s:SudoEditInit()
 
 
 nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
+
+
+" Open the URL under cursor {{{
+
+  " In nvim v0.11.0 `gx` was completely replaced with a Lua implementation:
+  " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>
+  " However, this a default mapping is set at editor startup, but also I
+  " disable all default mappings from Neovim.
+  " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
+
+  function! s:gx(visual) abort
+    if !a:visual
+      let uri = dotutils#url_under_cursor()
+    else
+      let tmp = @a
+      try
+        normal! "ay
+        let uri = trim(@a)
+      finally
+        let @a = tmp
+      endtry
+    endif
+
+    if !empty(uri)
+      call dotutils#open_uri(uri)
+    endif
+  endfunction
+
+  nnoremap <silent> gx <Cmd>call <SID>gx(0)<CR>
+  xnoremap <silent> gx <Cmd>call <SID>gx(1)<CR>
+
+" }}}

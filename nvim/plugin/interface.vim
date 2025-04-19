@@ -221,6 +221,7 @@ let &history = max([&history, 10000])
   command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
 
   nnoremap <silent> <F1>      <Cmd>Helptags<CR>
+  inoremap <silent> <F1>      <Esc><Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
   nnoremap <silent> <leader>b <Cmd>Buffers<CR>
   nnoremap <silent> <leader>m <Cmd>Manpages<CR>

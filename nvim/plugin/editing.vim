@@ -361,9 +361,12 @@ endif
   " * and # in the Visual mode will search the selected text
   function! s:VisualStarSearch() abort
     let tmp = @"
-    normal! y
-    let @/ = dotutils#literal_regex(@")
-    let @" = tmp
+    try
+      normal! y
+      let @/ = dotutils#literal_regex(@")
+    finally
+      let @" = tmp
+    endtry
   endfunction
   xmap * <Cmd>call <SID>VisualStarSearch()<CR>/<CR>
   xmap # <Cmd>call <SID>VisualStarSearch()<CR>?<CR>
@@ -389,16 +392,10 @@ endif
       let @/ = a:pattern
       call histadd('search', a:pattern)
     endif
-    " I actually went to the trouble of finding in which exact patch flags were
-    " added to vimgrep! See, patches that old weren't even checked-in into Git
-    " properly (and, rather, pushed in batches), so I had to binary-search
-    " through the archives on their FTP server.
-    " <https://github.com/vim/vim/commit/05159a0c6a27a030c8497c5cf836977090f9e75d>.
-    let flags = has('patch-7.0047') ? 'gj' : ''
     " NOTE: v:hlsearch can't be set inside of a function, see |function-search-undo|
     " NOTE: The command is returned as a string and executed later so that "No
     " match" errors don't display as a stack trace.
-    return 'let v:hlsearch = 1 | '.a:loclist.'vimgrep '.dotutils#escape_and_wrap_regex(a:pattern).flags.' %'
+    return 'let v:hlsearch = 1 | '.a:loclist.'vimgrep '.dotutils#escape_and_wrap_regex(a:pattern).'gj %'
   endfunction
   command! -nargs=* Csearch execute s:cmd_qf_search('',  <q-args>)
   command! -nargs=* Lsearch execute s:cmd_qf_search('l', <q-args>)

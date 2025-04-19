@@ -198,7 +198,7 @@ lsp_ignition.setup_config('rust_analyzer', {
               )
               return
             end
-            vim.call('dotutils#open_url', params)
+            vim.call('dotutils#open_uri', params)
           end),
           bufnr
         )
@@ -221,7 +221,7 @@ lsp_ignition.setup_config('rust_analyzer', {
             assert(file:write(params))
             assert(file:flush())
             assert(file:close())
-            vim.call('dotutils#open_url', file_path)
+            vim.call('dotutils#open_uri', file_path)
           end),
           bufnr
         )

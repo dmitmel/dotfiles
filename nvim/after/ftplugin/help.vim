@@ -24,7 +24,7 @@ function! s:open_help_online()
       let url = 'https://vimhelp.org/' . file . '.txt.html#' . tagname
     endif
     echomsg 'Opening ' . url
-    call dotutils#open_url(url)
+    call dotutils#open_uri(url)
   endif
 endfunction
 

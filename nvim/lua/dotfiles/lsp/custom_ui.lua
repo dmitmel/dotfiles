@@ -5,6 +5,26 @@ local M = require('dotfiles.autoload')('dotfiles.lsp.custom_ui')
 local vim_ui = require('vim.ui')
 local utils = require('dotfiles.utils')
 
+local lua_open = vim_ui.open
+function vim_ui.open(path, opt)
+  if utils.is_truthy(vim.g['dotutils#use_lua_for_open_uri']) and lua_open ~= nil then
+    local netrw_cmd = vim.g.netrw_browsex_viewer
+    opt = vim.tbl_extend('keep', opt, {
+      cmd = netrw_cmd and vim.split(netrw_cmd, '%s') or nil,
+    })
+    return lua_open(path, opt)
+  else
+    vim.call('dotutils#open_uri', path)
+    local fake_system = {} --[[@cast fake_system vim.SystemObj]]
+    function fake_system:wait()
+      local fake_completed = {} --[[@cast fake_completed vim.SystemCompleted]]
+      fake_completed.code = 0
+      return fake_completed
+    end
+    return fake_system
+  end
+end
+
 local fzf_buf_marker_counter = 0
 
 --- Overrides <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/ui.lua#L21-L38>
@@ -70,9 +90,7 @@ function vim_ui.select(items, opts, on_choice)
       -- callbacks can run in between autocommands. The way `set_timeout` is
       -- implemented ensures that this function will really be called on the
       -- next event loop tick.
-      utils.set_timeout(0, function()
-        on_choice_once(nil, nil)
-      end)
+      utils.set_timeout(0, function() on_choice_once(nil, nil) end)
     end,
 
     options = {

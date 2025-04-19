@@ -1,4 +1,4 @@
-function! dotutils#array_remove_element(array, element) abort
+function! dotutils#remove(array, element) abort
   let index = index(a:array, a:element)
   if index >= 0
     call remove(a:array, index)
@@ -48,13 +48,13 @@ endfunction
 " <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L966-L991>.
 function! dotutils#jump_to_file(path) abort
   let path = fnamemodify(a:path, ':p')
-  " NOTE 1: bufname('') returns the short name, but we need a full one.  NOTE
-  " 2: When trying to :edit a file when it is already opened in the current
-  " buffer, Vim will attempt to write it and reload the buffer. Honestly, I was
-  " surprised to know that this wasn't the case when switching to another
-  " buffer, even though another buffer is modified, but it's fine, since :edit
-  " handles a ton of edge-cases for us, for instance, opening a previously
-  " unlisted buffer.
+  " NOTE 1: bufname('') returns the short name, but we need a full one.
+  " NOTE 2: When trying to :edit a file when it is already opened in the
+  " current buffer, Vim will attempt to write it and reload the buffer.
+  " Honestly, I was surprised to know that this wasn't the case when switching
+  " to another buffer, even though another buffer is modified, but it's fine,
+  " since :edit handles a ton of edge-cases for us, for instance, opening a
+  " previously unlisted buffer.
   if getbufinfo('')[0].name != path
     silent! normal! m'
     execute 'edit' fnameescape(path)
@@ -118,17 +118,96 @@ function! dotutils#open_scratch_preview_win(opts) abort
   return result
 endfunction
 
-" Opens file or URL with a system program.
-function! dotutils#open_url(path) abort
-  " HACK: The 2nd parameter of this function is called 'remote', it tells
-  " whether to open a remote (1) or local (0) file. However, it doesn't work as
-  " expected in this context, because it uses the 'gf' command if it's opening
-  " a local file (because this function was designed to be called from the 'gx'
-  " command). BUT, because this function only compares the value of the
-  " 'remote' parameter to 1, I can pass any other value, which will tell it to
-  " open a local file and ALSO this will ignore an if-statement which contains
-  " the 'gf' command.
-  return netrw#BrowseX(a:path, 2)
+let g:dotutils#use_lua_for_open_uri = get(g:, 'dotutils#use_lua_for_open_uri', 0)
+
+" Opens the URI with a system viewer program.
+function! dotutils#open_uri(uri, ...) abort
+  if a:0 > 1 | throw "Too many arguments" | endif
+  if empty(a:uri) | throw "The uri must not be empty" | endif
+  let opts = get(a:000, 0, {})
+  " So, for the longest time I've been using Netrw's internal function
+  " `netrw#BrowseX` for opening URLs in the browser, but as of Nvim 0.10 and
+  " Vim 9 the editors began adding public APIs to the standard library for this
+  " exact purpose. There is a bumpy transitional period between Nvim 0.10 and
+  " Nvim 0.11, when Nvim had both Lua and Netrw implementation of the URL
+  " opener --- the logic in this function exists to untangle that mess.
+  if has('nvim-0.10.0') && g:dotutils#use_lua_for_open_uri
+    " `vim.ui.open` was added in Nvim 0.10.0
+    " <https://github.com/neovim/neovim/commit/af6e6ccf3dee815850639ec5613dda3442caa7d6>,
+    " but did not replace Netrw mechanism until Nvim 0.11.0
+    " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>.
+    " The implementation of `vim.ui.open` received more improvements over time,
+    " but still, as of Nvim 0.11.0, it does not support nearly all environments
+    " that the Netrw code does, so for now I prefer not to rely on it.
+    call luaeval('vim.ui.open(_A):wait()', a:uri)
+  elseif has('vim9script') && !has('nvim') && has('patch-9.1.1054')
+    " Vim 9 has simply decoupled the `Open` function from Netrw at some point
+    " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
+    " into a proper public API, implemented in vim9script. Newest Vim versions
+    " have now gotten rid of the function `netrw#Open` and replaced it with
+    " `dist#vim9#Open`: <https://github.com/vim/vim/commit/839fd942654b2a7c90ad0633b1c8bb9da4094cbb>.
+    call dist#vim9#Open(a:uri)
+  else
+    try
+      " An `:Open` command was added to Vim in Netrw v174 (since Vim v9.1.0819)
+      " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>,
+      " and its functionality was exposed as a function a dozen commits later
+      " <https://github.com/vim/vim/commit/8b0fa7a565d8aec306e5755307d182fa7d81e65f>.
+      " These have also been backported to Neovim 0.11.0:
+      " <https://github.com/neovim/neovim/commit/c1e020b7f3457d3a14e7dda72a4f6ebf06e8f91d>,
+      " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>.
+      " For now, while Nvim ships with both `vim.ui.open` and `netrw#Open`, I'm
+      " going to rely on the later. Also, interesting fact, the current usage
+      " of this function in the netrw bundled with Nvim 0.11.0 is incorrect:
+      " <https://github.com/neovim/neovim/blob/44f1dbee0da3c516541434774b44f74a627b8e3f/runtime/pack/dist/opt/netrw/autoload/netrw.vim#L5148-L5149>
+      " `escape()` is unnecessary here. It has since been removed:
+      " <https://github.com/vim/vim/commit/2328a39a54fbd75576769193d7ff1ed2769e2ff9>.
+      call netrw#Open(a:uri)
+    catch /^Vim\%((\a\+)\)\=:E117:.*\<netrw#Open\>/
+      " If all else fails, we fall back to my good old
+      " HACK: Just re-use the `netrw#BrowseX` function that powers the `gx` mapping.
+      " There is one catch though: the `gx` mapping is supposed to work in
+      " Netrw file manager buffers as well, and if I understand the code
+      " correctly, when browsing a remote DIRECTORY it will cause the remote
+      " files to be downloaded and opened in the editor, which is not what I
+      " want. I want `gx` to ALWAYS open the URL with the system viewer. To
+      " change that I abuse the 2nd parameter of this function. It is called
+      " `remote`, it tells whether the file in the current buffer is remote (1)
+      " or local (0). BUT, the code in the function only compares the value of
+      " the 'remote' parameter to 1, so I can pass any other non-zero value,
+      " which will make it assume the current file is remote, but will
+      " short-citcuit the logic designed for downloading remote files.
+      call netrw#BrowseX(a:uri, 2)
+    endtry
+  endif
+endfunction
+
+function! dotutils#url_under_cursor() abort
+  if has('nvim-0.10.0')
+    " The Lua URL finder is better than Netrw's default one. It relies on
+    " Treesitter though. The `vim.treesitter.highlighter` API was added in Nvim
+    " 0.9, but we already checked for version 0.10.
+    if luaeval('vim.treesitter.highlighter and vim.treesitter.highlighter.active[_A] ~= nil', bufnr())
+      " <https://github.com/neovim/neovim/commit/9762c5e3406cab8152d8dd161c0178965d841676>
+      let url = luaeval('vim.ui._get_urls and vim.ui._get_urls()[1]')
+      if !empty(url) | return url | endif
+      " <https://github.com/neovim/neovim/commit/f864b68c5b0fe1482249167712cd16ff2b50ec45>
+      let url = luaeval('vim.ui._get_url and vim.ui._get_url()')
+      if !empty(url) | return url | endif
+    endif
+  endif
+  try
+    " Actually, some code was added to the Netrw code to add your own helpers
+    " for getting the URL, particularly in markdown:
+    " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>.
+    return netrw#GX()
+  catch /^Vim\%((\a\+)\)\=:E117:.*\<netrw#GX\>/
+    " This function was finally removed in Netrw v176
+    " <https://github.com/vim/vim/commit/ec961b05dcc1efb0a234f6d0b31a0945517e75d2>.
+    " As a last effort let's rely on a copy of code from the latest Vim 9
+    " <https://github.com/vim/vim/blob/23984602327600b7ef28dcedc772949d5c66b57f/runtime/plugin/openPlugin.vim#L24>
+    return matchstr(expand("<cWORD>"), '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}\ze[^A-Za-z0-9/]*$')
+  endtry
 endfunction
 
 function! dotutils#reveal_file(path) abort
