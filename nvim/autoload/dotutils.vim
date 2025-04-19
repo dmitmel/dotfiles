@@ -119,7 +119,7 @@ function! dotutils#open_scratch_preview_win(opts) abort
 endfunction
 
 " Opens file or URL with a system program.
-function! dotfiles#utils#open_url(path) abort
+function! dotutils#open_url(path) abort
   " HACK: The 2nd parameter of this function is called 'remote', it tells
   " whether to open a remote (1) or local (0) file. However, it doesn't work as
   " expected in this context, because it uses the 'gf' command if it's opening
