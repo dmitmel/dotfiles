@@ -19,43 +19,45 @@ let g:vimspector_adapters['vscode-cpptools'] = {
 \ },
 \}
 
-let g:vimspector_configurations['cpptools: (gdb) Launch'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'vscode-cpptools',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'launch',
-\   'program': '${program:${workspaceRoot\}/}',
-\   'args': ['*${args}'],
-\   'MIMode': 'gdb',
-\   'MIDebuggerPath': exepath('gdb'),
-\ },
-\}
+if executable(g:vimspector_adapters['vscode-cpptools'].command[0])
+  let g:vimspector_configurations['cpptools: (gdb) Launch'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'vscode-cpptools',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'launch',
+  \   'program': '${program:${workspaceRoot\}/}',
+  \   'args': ['*${args}'],
+  \   'MIMode': 'gdb',
+  \   'MIDebuggerPath': exepath('gdb'),
+  \ },
+  \}
 
-let g:vimspector_configurations['cpptools: (gdb) Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'vscode-cpptools',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'program': '${program:${workspaceRoot\}/}',
-\   'MIMode': 'gdb',
-\   'MIDebuggerPath': exepath('gdb'),
-\ },
-\}
+  let g:vimspector_configurations['cpptools: (gdb) Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'vscode-cpptools',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'program': '${program:${workspaceRoot\}/}',
+  \   'MIMode': 'gdb',
+  \   'MIDebuggerPath': exepath('gdb'),
+  \ },
+  \}
 
-let g:vimspector_configurations['cpptools: (gdb) Remote Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'vscode-cpptools',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'program': '${program:${workspaceRoot\}/}',
-\   'MIMode': 'gdb',
-\   'MIDebuggerServerAddress': '${address}',
-\   'MIDebuggerPath': exepath('gdb'),
-\ },
-\}
+  let g:vimspector_configurations['cpptools: (gdb) Remote Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'vscode-cpptools',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'program': '${program:${workspaceRoot\}/}',
+  \   'MIMode': 'gdb',
+  \   'MIDebuggerServerAddress': '${address}',
+  \   'MIDebuggerPath': exepath('gdb'),
+  \ },
+  \}
+endif
 
 " <https://github.com/vadimcn/codelldb> - the DAP server
 " <https://github.com/vadimcn/codelldb/tree/master/extension> - the corresponding VSCode extension
@@ -78,36 +80,38 @@ let g:vimspector_adapters['CodeLLDB'] = {
 \ },
 \}
 
-let g:vimspector_configurations['CodeLLDB: Launch'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'CodeLLDB',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'launch',
-\   'program': '${program}',
-\   'args': ['*${args}'],
-\ },
-\}
+if executable(g:vimspector_adapters['CodeLLDB'].command[0])
+  let g:vimspector_configurations['CodeLLDB: Launch'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'CodeLLDB',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'launch',
+  \   'program': '${program}',
+  \   'args': ['*${args}'],
+  \ },
+  \}
 
-let g:vimspector_configurations['CodeLLDB: Attach to PID'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'CodeLLDB',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\ },
-\}
+  let g:vimspector_configurations['CodeLLDB: Attach to PID'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'CodeLLDB',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \ },
+  \}
 
-let g:vimspector_configurations['CodeLLDB: Attach by Name'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'CodeLLDB',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'pid': v:null,
-\   'program': '${program}',
-\ },
-\}
+  let g:vimspector_configurations['CodeLLDB: Attach by Name'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'CodeLLDB',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'pid': v:null,
+  \   'program': '${program}',
+  \ },
+  \}
+endif
 
 " <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode> - the DAP server
 " <https://github.com/llvm/llvm-project/tree/main/lldb/tools/lldb-vscode#configurations> - options
@@ -126,33 +130,35 @@ let g:vimspector_adapters['lldb-vscode'] = {
 \ },
 \}
 
-let g:vimspector_configurations['lldb-vscode: Launch'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'lldb-vscode',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'launch',
-\   'program': '${program}',
-\   'args': ['*${args}'],
-\ },
-\}
+if executable(g:vimspector_adapters['lldb-vscode'].command[0])
+  let g:vimspector_configurations['lldb-vscode: Launch'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'lldb-vscode',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'launch',
+  \   'program': '${program}',
+  \   'args': ['*${args}'],
+  \ },
+  \}
 
-let g:vimspector_configurations['lldb-vscode: Attach to PID'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'lldb-vscode',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\ },
-\}
+  let g:vimspector_configurations['lldb-vscode: Attach to PID'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'lldb-vscode',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \ },
+  \}
 
-let g:vimspector_configurations['lldb-vscode: Attach by Name'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'lldb-vscode',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'pid': v:null,
-\   'program': '${program}',
-\ },
-\}
+  let g:vimspector_configurations['lldb-vscode: Attach by Name'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'lldb-vscode',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'pid': v:null,
+  \   'program': '${program}',
+  \ },
+  \}
+endif

@@ -22,39 +22,41 @@ let g:vimspector_adapters['js-debug'] = {
 \ },
 \}
 
-let g:vimspector_configurations['Node.js: Current File'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'js-debug',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'launch',
-\   'program': '${file}',
-\   'args': ['*${args}'],
-\ },
-\}
+if executable(g:vimspector_adapters['js-debug'].command[0])
+  let g:vimspector_configurations['Node.js: Current File'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'js-debug',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'launch',
+  \   'program': '${file}',
+  \   'args': ['*${args}'],
+  \ },
+  \}
 
-let g:vimspector_configurations['Node.js: Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'js-debug',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\ },
-\}
+  let g:vimspector_configurations['Node.js: Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'js-debug',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \ },
+  \}
 
-let g:vimspector_configurations['Node.js: Remote Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'js-debug',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'processId': v:null,
-\   'address': '${host:localhost}',
-\   'port': '${port:9229}',
-\   'localRoot': '${workspaceRoot}',
-\   'remoteRoot': '${remoteRoot:${workspaceRoot\}}',
-\ },
-\}
+  let g:vimspector_configurations['Node.js: Remote Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'js-debug',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'processId': v:null,
+  \   'address': '${host:localhost}',
+  \   'port': '${port:9229}',
+  \   'localRoot': '${workspaceRoot}',
+  \   'remoteRoot': '${remoteRoot:${workspaceRoot\}}',
+  \ },
+  \}
+endif
 
 " <https://github.com/microsoft/vscode-node-debug2> - the DAP server
 " <https://github.com/microsoft/vscode-node-debug2/blob/v1.43.0/src/nodeDebugInterfaces.d.ts> - options
@@ -71,36 +73,38 @@ let g:vimspector_adapters['node-debug2'] = {
 \ },
 \}
 
-let g:vimspector_configurations['Node.js (legacy): Current File'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'node-debug2',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'launch',
-\   'program': '${file}',
-\   'args': ['*${args}'],
-\ },
-\}
+if executable(g:vimspector_adapters['node-debug2'].command[0])
+  let g:vimspector_configurations['Node.js (legacy): Current File'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'node-debug2',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'launch',
+  \   'program': '${file}',
+  \   'args': ['*${args}'],
+  \ },
+  \}
 
-let g:vimspector_configurations['Node.js (legacy): Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'node-debug2',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\ },
-\}
+  let g:vimspector_configurations['Node.js (legacy): Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'node-debug2',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \ },
+  \}
 
-let g:vimspector_configurations['Node.js (legacy): Remote Attach'] = {
-\ 'autoselect': v:false,
-\ 'adapter': 'node-debug2',
-\ 'filetypes': s:filetypes,
-\ 'configuration': {
-\   'request': 'attach',
-\   'processId': v:null,
-\   'address': '${host:localhost}',
-\   'port': '${port:9229}',
-\   'localRoot': '${workspaceRoot}',
-\   'remoteRoot': '${remoteRoot:${workspaceRoot\}}',
-\ },
-\}
+  let g:vimspector_configurations['Node.js (legacy): Remote Attach'] = {
+  \ 'autoselect': v:false,
+  \ 'adapter': 'node-debug2',
+  \ 'filetypes': s:filetypes,
+  \ 'configuration': {
+  \   'request': 'attach',
+  \   'processId': v:null,
+  \   'address': '${host:localhost}',
+  \   'port': '${port:9229}',
+  \   'localRoot': '${workspaceRoot}',
+  \   'remoteRoot': '${remoteRoot:${workspaceRoot\}}',
+  \ },
+  \}
+endif
