@@ -47,7 +47,7 @@ function! s:setup() abort
   let lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
   let lookup['']   = { 'gui': 'NONE', 'cterm': 'NONE' }
 
-  function! Hi(group, def) closure abort
+  function! Hi(group, def) closure   " NOTE: no `abort`
     let fg = lookup[get(a:def, 'fg', '')]
     let bg = lookup[get(a:def, 'bg', '')]
     let sp = lookup[get(a:def, 'sp', '')]
@@ -58,22 +58,21 @@ function! s:setup() abort
     \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
   endfunction
 
-  function! HiClear(group) closure abort
+  function! HiClear(group) closure   " NOTE: no `abort`
     exe 'hi clear' a:group
     exe 'hi link' a:group 'NONE'
   endfunction
 
-  let has_nocombine = has('patch-8.0.0914') || has('nvim-0.5.0')
-  let attr_nocombine = has_nocombine ? 'nocombine' : 'NONE'
+  let nocombine     = has('patch-8.0.0914') ? 'nocombine'     : 'NONE'
+  let strikethrough = has('patch-8.0.1038') ? 'strikethrough' : 'NONE'
 
   " General syntax highlighting {{{
 
   call Hi('Normal',        { 'fg': 0x5, 'bg': 0x0 })
   call Hi('Italic',        { 'fg': 0xE, 'attr': 'italic'    })
   call Hi('Bold',          { 'fg': 0xA, 'attr': 'bold'      })
-  call Hi('Underlined',    { 'fg': 0xD, 'attr': 'NONE' })
-  call Hi('ReallyUnderlined', { 'fg': 0xD, 'attr': 'underline' })
-  call Hi('Strikethrough', { 'attr': 'strikethrough' })
+  call Hi('Underlined',    { 'fg': 0xD, 'attr': 'underline' })
+  call Hi('Strikethrough', { 'attr': strikethrough          })
   call Hi('Title',         { 'fg': 0xD })
   hi! link Directory Title
   call Hi('Conceal',       { 'fg': 0xC })
@@ -85,7 +84,7 @@ function! s:setup() abort
   call Hi('NonText',       { 'fg': 0x3 })
   " The idea of using the `nocombine` attribute was taken from
   " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  call Hi('IndentLine', { 'fg': 0x2, 'attr': attr_nocombine })
+  call Hi('IndentLine', { 'fg': 0x2, 'attr': nocombine })
   hi! link IndentBlanklineChar               IndentLine
   hi! link IndentBlanklineSpaceChar          Whitespace
   hi! link IndentBlanklineSpaceCharBlankline Whitespace
@@ -99,8 +98,8 @@ function! s:setup() abort
       exe 'hi IndentLineRainbow' . color
       \ 'ctermfg=' . colors[0x2].cterm
       \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], g:dotfiles_rainbow_indent_opacity)
-      \     'gui=' . attr_nocombine
-      \   'cterm=' . attr_nocombine
+      \     'gui=' . nocombine
+      \   'cterm=' . nocombine
     endif
   endfor
 
@@ -125,14 +124,13 @@ function! s:setup() abort
   call Hi('Function',    { 'fg': 0xD })
   call Hi('Identifier',  { 'fg': 0x8 })
   hi! link Variable        Identifier
-  " call Hi('Include',     { 'fg': 0xF })
   hi! link Include         Keyword
   call Hi('PreProc',     { 'fg': 0xA })
   call Hi('Label',       { 'fg': 0xA })
   call HiClear('Operator')
   call HiClear('Delimiter')
   call Hi('Special',     { 'fg': 0xC })
-  call Hi('Tag',         { 'fg': 0xA })
+  hi! link Tag             Function
   call Hi('Type',        { 'fg': 0xA })
   hi! link Typedef         Type
 
@@ -147,14 +145,14 @@ function! s:setup() abort
     hi! link @variable.builtin Variable
     call HiClear('@module')
 
-    call Hi('@text.strong',          { 'attr': 'bold'          })
-    call Hi('@text.emphasis',        { 'attr': 'italic'        })
-    call Hi('@text.underline',       { 'attr': 'underline'     })
-    call Hi('@text.strike',          { 'attr': 'strikethrough' })
-    call Hi('@markup.strong',        { 'attr': 'bold'          })
-    call Hi('@markup.italic',        { 'attr': 'italic'        })
-    call Hi('@markup.underline',     { 'attr': 'underline'     })
-    call Hi('@markup.strikethrough', { 'attr': 'strikethrough' })
+    call Hi('@text.strong',          { 'attr': 'bold'        })
+    call Hi('@text.emphasis',        { 'attr': 'italic'      })
+    call Hi('@text.underline',       { 'attr': 'underline'   })
+    call Hi('@text.strike',          { 'attr': strikethrough })
+    call Hi('@markup.strong',        { 'attr': 'bold'        })
+    call Hi('@markup.italic',        { 'attr': 'italic'      })
+    call Hi('@markup.underline',     { 'attr': 'underline'   })
+    call Hi('@markup.strikethrough', { 'attr': strikethrough })
 
     hi! link @text.strong          Bold
     hi! link @text.emphasis        Italic
@@ -269,8 +267,9 @@ function! s:setup() abort
     hi! link @text.diff.add            diffAdded
     hi! link @text.diff.delete         diffRemoved
     hi! link @tag                      Tag
+    hi! link @tag.builtin              Tag
     hi! link @tag.attribute            Identifier
-    hi! link @tag.delimiter            Delimiter
+    hi! link @tag.delimiter            Comment
     hi! link @punctuation              Delimiter
     hi! link @macro                    Macro
     hi! link @structure                Structure
@@ -331,8 +330,8 @@ function! s:setup() abort
   call Hi('CocFadeOut',       { 'fg': 0x3 })
   hi! link CocDisabled          CocFadeOut
   hi! link CocFloatDividingLine CocFadeOut
-  call Hi('CocUnderline',     { 'attr': 'underline'     })
-  call Hi('CocStrikeThrough', { 'attr': 'strikethrough' })
+  call Hi('CocUnderline',     { 'attr': 'underline'   })
+  call Hi('CocStrikeThrough', { 'attr': strikethrough })
   hi! link CocMarkdownLink      Underlined
   hi! link CocLink              Underlined
   hi! link CocDiagnosticsFile   Directory
@@ -376,7 +375,7 @@ function! s:setup() abort
     endfor
 
     call Hi(name_prefix.'UnderlineUnnecessary', { 'fg': 0x3 })
-    call Hi(name_prefix.'UnderlineDeprecated',  { 'attr': 'strikethrough' })
+    call Hi(name_prefix.'UnderlineDeprecated',  { 'attr': strikethrough })
 
     hi! link LspHover Search
     " <https://github.com/neovim/neovim/pull/15018>
@@ -445,7 +444,7 @@ function! s:setup() abort
   call Hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })
   call Hi('CmpItemKind',           { 'fg': 0xD })
   call Hi('CmpItemMenu',           { 'fg': 0x4 })
-  call Hi('CmpItemAbbrDeprecated', { 'attr': 'strikethrough' })
+  call Hi('CmpItemAbbrDeprecated', { 'attr': strikethrough })
 
   hi! link ctrlsfMatch     Search
   hi! link ctrlsfLnumMatch ctrlsfMatch
@@ -539,8 +538,8 @@ function! s:setup() abort
 
   " Integrated terminal {{{
   if has('nvim')
-    if has_nocombine
-      call Hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'attr': 'nocombine' })
+    if nocombine !=# 'NONE'
+      call Hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'attr': nocombine })
     else
       call Hi('TermCursor', { 'attr': 'reverse' })
     endif
@@ -593,7 +592,7 @@ function! s:setup() abort
   " }}}
 
   " XML {{{
-  hi! link xmlTagName         Function
+  hi! link xmlTagName         Tag
   hi! link xmlAttrib          Variable
   hi! link xmlTag             Comment
   hi! link xmlEndTag          Comment
@@ -674,7 +673,7 @@ function! s:setup() abort
   hi! link htmlItalic         Italic
   hi! link htmlTag            xmlTag
   hi! link htmlTagName        xmlTagName
-  hi! link htmlSpecialTagName xmlTagName
+  hi! link htmlSpecialTagName PreProc
   hi! link htmlEndTag         xmlEndTag
   hi! link htmlArg            xmlAttrib
   " }}}
@@ -862,9 +861,23 @@ function! s:setup() abort
   " }}}
 
   " Shell {{{
-  hi! link shQuote     String
-  hi! link zshFunction Function
-  hi! link zshVariable Variable
+  " <https://github.com/lunacookies/vim-sh/blob/cebda390c56654a4c9f96f66727e9be076a7aee3/syntax/sh.vim#L32-L50>
+  hi! link shQuote        StringDelimiter
+  hi! link zshFunction    Function
+  hi! link zshVariable    Variable
+  call HiClear('shArithmetic')
+  call HiClear('shCommandSub')
+  hi! link shEscape       Special
+  hi! link shOption       Special
+  hi! link zshOption      Special
+  hi! link shCaseLabel    String
+  hi! link shFor          Variable
+  hi! link zshPrecommand  Statement
+  hi! link shFunctionKey  Statement
+  hi! link zshDeref       Variable
+  hi! link shDerefSimple  Variable
+  hi! link shOperator     Operator
+  hi! link zshOperator    Operator
   " }}}
 
   " Assembly {{{
