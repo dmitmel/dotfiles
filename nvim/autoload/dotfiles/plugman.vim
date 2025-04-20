@@ -116,14 +116,13 @@ function! dotfiles#plugman#end() abort
 endfunction
 
 function! dotfiles#plugman#check_sync() abort
-  " <https://stackoverflow.com/a/13908273/12005228>
-  let installed_plugins = map(filter(glob(g:dotfiles#plugman#plugins_dir . '/{,.}*/', 1, 1), 'isdirectory(v:val)'), 'fnamemodify(v:val, ":h:t")')
-
-  let need_install = {}
   let need_clean = {}
-  for name in installed_plugins
+  " The last argument to dotutils#readdir() means to return only subdirectories.
+  for name in dotutils#readdir(g:dotfiles#plugman#plugins_dir, 1)
     let need_clean[name] = 1
   endfor
+
+  let need_install = {}
   for name in keys(g:plugs)
     if !has_key(g:plugs[name], 'uri')
       continue
