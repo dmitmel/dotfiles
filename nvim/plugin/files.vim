@@ -189,52 +189,49 @@ set nofixendofline
 
 " on save (BufWritePre) {{{
 
-  let s:url_regex = '\v^\w+://'
+  let s:url_regex = '^\a\+://'
 
-  " create directory {{{
-    " Creates the parent directory of the file if it doesn't exist
-    function! s:CreateDirOnSave() abort
-      " check if this is a regular file and its path is not a URL
-      if empty(&buftype) && expand('<afile>') !~# s:url_regex
-        call mkdir(expand('<afile>:h'), 'p')
+  " create parent directory of the file if it doesn't exist
+  function! CreateParentDir() abort
+    " check if this is a regular file and its path is not a URL
+    if empty(&buftype) && expand('<afile>') !~# s:url_regex
+      let dir = expand('<afile>:h')
+      if !isdirectory(dir)  " <https://github.com/vim/vim/pull/2775>
+        call mkdir(dir, 'p')
       endif
-    endfunction
-  " }}}
+    endif
+  endfunction
 
-  " fix whitespace {{{
-    " vint: -ProhibitCommandRelyOnUser -ProhibitCommandWithUnintendedSideEffect
-    function! s:FixWhitespaceOnSave() abort
-      let pos = getcurpos()
-      " remove trailing whitespace
-      keeppatterns %s/\s\+$//e
-      " remove trailing newlines
-      keeppatterns %s/\($\n\s*\)\+\%$//e
-      call setpos('.', pos)
-    endfunction
-    " vint: +ProhibitCommandRelyOnUser +ProhibitCommandWithUnintendedSideEffect
-    command! -bar FixWhitespace call s:FixWhitespaceOnSave()
-  " }}}
+  function! FixWhitespace() abort
+    let pos = getcurpos()
+    " remove trailing whitespace
+    keeppatterns %s/\s\+$//e
+    " remove trailing newlines
+    keeppatterns %s/\($\n\s*\)\+\%$//e
+    call setpos('.', pos)
+  endfunction
 
-  " auto-format with Coc.nvim {{{
-    let g:coc_format_on_save_ignore = {}
-    function! s:FormatOnSave() abort
-      let file = expand('<afile>')
-      if has_key(g:coc_format_on_save_ignore, &filetype) || file =~# s:url_regex
-        return
-      endif
-      if exists(':LspFormatSync')
-        LspFormatSync
-      elseif exists(':CocFormat')
-        CocFormat
-      endif
-    endfunction
-  " }}}
+  let g:format_on_save_ignore = {}
+  function! Format() abort
+    let file = expand('<afile>')
+    if get(g:format_on_save_ignore, &filetype, 0) || file =~# s:url_regex
+      return
+    endif
+    if exists(':LspFormatSync')
+      LspFormatSync
+    elseif exists(':CocFormat')
+      CocFormat
+    endif
+  endfunction
+
+  command -bar Format        call Format()
+  command -bar FormatIgnore  let g:format_on_save_ignore[&filetype] = 1
 
   augroup dotfiles_on_save
     autocmd!
-    autocmd BufWritePre * call s:FixWhitespaceOnSave()
-    autocmd BufWritePre * call s:FormatOnSave()
-    autocmd BufWritePre * call s:CreateDirOnSave()
+    autocmd BufWritePre * call FixWhitespace()
+    autocmd BufWritePre * call Format()
+    autocmd BufWritePre * call CreateParentDir()
   augroup END
 
 " }}}
