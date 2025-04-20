@@ -117,9 +117,12 @@ endfunction
 
 function! dotfiles#plugman#check_sync() abort
   let need_clean = {}
-  " The last argument to dotutils#readdir() means to return only subdirectories.
-  for name in dotutils#readdir(g:dotfiles#plugman#plugins_dir, 1)
-    let need_clean[name] = 1
+  " <https://stackoverflow.com/a/13908273/12005228>
+  for subdir in glob(fnameescape(g:dotfiles#plugman#plugins_dir) . '/{,.}*/', 1, 1)
+    let subdir = fnamemodify(subdir, ":h:t")
+    if subdir !=# "." && subdir !=# ".."
+      let need_clean[subdir] = 1
+    endif
   endfor
 
   let need_install = {}

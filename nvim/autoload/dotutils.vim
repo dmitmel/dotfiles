@@ -349,13 +349,3 @@ function! dotutils#file_size_fmt(bytes) abort
   let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
   return number_str . unit
 endfunction
-
-function! dotutils#readdir(dir, only_subdirs) abort
-  if exists('*readdir')
-    return readdir(a:dir, '!a:only_subdirs || isdirectory(a:dir . "/" . v:val)')
-  else
-  " <https://stackoverflow.com/a/13908273/12005228>
-    let pat = fnameescape(a:dir) . '/{,.}*' . (a:only_subdirs ? '/' : '')
-    return filter(map(glob(pat, 1, 1), 'fnamemodify(v:val, ":h:t")'), 'v:val !=# "." && v:val !=# ".."')
-  endif
-endfunction
