@@ -1,47 +1,44 @@
-" NOTE: Don't invent plugin manager abstraction layers anymore.
-let s:plug = function('dotfiles#plugman#register')
-
 " All plugin definitions are written as links to github.com (instead of the
 " typical `user/repo`) so that I can move the cursor over any and press `gx`.
 
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
-  call s:plug('https://github.com/tpope/vim-eunuch')
+  Plug 'https://github.com/tpope/vim-eunuch'
   " Superficial integration between Vim and the Ranger file manager[1], I only
   " use it for exploring the project (this idea was taken from the classic "oil
   " and vinegar" article[2]). Pressing `<leader>o` pops up the explorer in the
   " parent directory of the current buffer.
   " [1]: <https://ranger.github.io/>
   " [2}: <http://vimcasts.org/blog/2013/01/oil-and-vinegar-split-windows-and-project-drawer/>
-  call s:plug('https://github.com/francoiscabrol/ranger.vim')
+  Plug 'https://github.com/francoiscabrol/ranger.vim'
 " }}}
 
 " Editing {{{
   " Automatic tabular alignment of text. A pretty complicated plugin to use.
-  call s:plug('https://github.com/junegunn/vim-easy-align')
+  Plug 'https://github.com/junegunn/vim-easy-align'
   " Inserts closing quotes/parens/brackets/braces when typing an opening one.
   " Also handles <Space> or <Enter> being pressed within a pair of those
   " delimiters.
-  call s:plug('https://github.com/Raimondi/delimitMate')
+  Plug 'https://github.com/Raimondi/delimitMate'
   " A library which allows plugins to create mappings repeatable with the dot
   " command.
-  call s:plug('https://github.com/tpope/vim-repeat', { 'priority': 100 })
+  Plug 'https://github.com/tpope/vim-repeat', { 'priority': 100 }
   " For commenting out code. I prefer this one to tpope's vim-commentary
   " because it handles embedded languages (e.g.: JS within HTML), places
   " comment markers on empty lines when multiple paragraphs of code are
   " selected and has a mapping for adding block comments specifically.
-  call s:plug('https://github.com/tomtom/tcomment_vim')
+  Plug 'https://github.com/tomtom/tcomment_vim'
   " Adds a bunch of operators that should really be built-in to Vim: wrap text
   " in parentheses, quotes or even XML tags with `ys`, delete the surrounding
   " delimiters with `ds` and change them with `cs`.
-  call s:plug('https://github.com/tpope/vim-surround')
+  Plug 'https://github.com/tpope/vim-surround'
   " The following block selects between varying implementations of plugins for
   " drawing indentation guides like in those IDEs (even Notepad++ has them!).
   " Note that my configs also include an implementation - the "sane indentLine"
   " plugin.
   if !has('nvim-0.5.0')
     " "The Original".
-    call s:plug('https://github.com/Yggdroot/indentLine')
+    Plug 'https://github.com/Yggdroot/indentLine'
   elseif !g:dotfiles_sane_indentline_enable
     " Doesn't use concealed text, can put indent guides on blank lines, depends
     " this neovim PR[1] merged in v0.5.0, backwards compatible with the
@@ -49,31 +46,31 @@ let s:plug = function('dotfiles#plugman#register')
     " to fix of a critical bug[2].
     " [1]: <https://github.com/neovim/neovim/pull/13952>
     " [2]: <https://github.com/lukas-reineke/indent-blankline.nvim/pull/155>
-    call s:plug('https://github.com/lukas-reineke/indent-blankline.nvim')
+    Plug 'https://github.com/lukas-reineke/indent-blankline.nvim'
   endif
   if !exists('*searchcount')
     " Prints the number of search results when using the `/` command or the `n`
     " and `N` motions and similar.
-    call s:plug('https://github.com/henrik/vim-indexed-search')
+    Plug 'https://github.com/henrik/vim-indexed-search'
   endif
   " Extension of the built-in matchit plugin (highlights matching braces,
   " typically for blocks in syntaxes of C-like languages) and the `%` family of
   " motions (jump between those block delimiters), which adds support for
   " languages which use English keywords for delimiting blocks (Vimscript, Lua,
   " Ruby etc).
-  call s:plug('https://github.com/andymass/vim-matchup')
+  Plug 'https://github.com/andymass/vim-matchup'
   " Adds commands for inserting and moving around nearby lines: `[e` and `]e`
   " for swapping two lines, `]<Space>` and `[<Space>` for inserting blank ones.
   " Also adds many more useful (URL and XML encoding/decoding of selection, for
   " instance) and useless utilities.
-  call s:plug('https://github.com/tpope/vim-unimpaired')
+  Plug 'https://github.com/tpope/vim-unimpaired'
   " Sets up quite a few defaults for straightforward prose writing in Vim. Just
   " read its README for the set of features.
-  call s:plug('https://github.com/reedes/vim-pencil')
+  Plug 'https://github.com/reedes/vim-pencil'
   " Adds an operator `cx` for swapping two text selections. Occasionally VERY
   " useful, especially during refactoring for changing the order of arguments
   " in a function.
-  call s:plug('https://github.com/tommcdo/vim-exchange')
+  Plug 'https://github.com/tommcdo/vim-exchange'
   " Creates a simple ("powerful, reliable, yet minimal" indeed!) motion on the
   " keys `s` (forwards) and `S` (backwards) which is a logical continuation of
   " the built-in `f` `F` `t` `T` motions. This motion simply uses two keys for
@@ -83,67 +80,67 @@ let s:plug = function('dotfiles#plugman#register')
   " highlights the matches for the aforementioned built-in motions. I prefer it
   " to EasyMotion[1].
   " [1]: <https://github.com/easymotion/vim-easymotion>
-  call s:plug('https://github.com/justinmk/vim-sneak')
+  Plug 'https://github.com/justinmk/vim-sneak'
   " Shows a diff between two selected ranges of lines, or Git conflict markers.
   " Discovered this one thanks to TJ[1].
   " [1]: <https://github.com/tjdevries/config_manager/blob/1b7d2f60ed6685022e29c1bdef2625bb7856e1eb/xdg_config/nvim/lua/tj/plugins.lua#L604>
-  call s:plug('https://github.com/AndrewRadev/linediff.vim')
+  Plug 'https://github.com/AndrewRadev/linediff.vim'
   " Automatically close XML/HTML/JSX tags.
-  call s:plug('https://github.com/alvan/vim-closetag')
+  Plug 'https://github.com/alvan/vim-closetag'
 " }}}
 
 " Text objects {{{
   " Library for creating custom text objects.
-  call s:plug('https://github.com/kana/vim-textobj-user')
+  Plug 'https://github.com/kana/vim-textobj-user'
   " Entire contents of the buffer - `ae` and `ie`.
-  call s:plug('https://github.com/kana/vim-textobj-entire', { 'requires': 'vim-textobj-user' })
+  Plug 'https://github.com/kana/vim-textobj-entire', { 'requires': 'vim-textobj-user' }
   " A single line - `al` (with indentation) and `il` (without indentation).
-  call s:plug('https://github.com/kana/vim-textobj-line', { 'requires': 'vim-textobj-user' })
+  Plug 'https://github.com/kana/vim-textobj-line', { 'requires': 'vim-textobj-user' }
   " This one is really handy: a code block determined by indentation (when it
   " is the same or more indented) - `ai` (include blank lines) and `ii`
   " (exclude blanks, selecting a single paragraph).
-  call s:plug('https://github.com/kana/vim-textobj-indent', { 'requires': 'vim-textobj-user' })
+  Plug 'https://github.com/kana/vim-textobj-indent', { 'requires': 'vim-textobj-user' }
   " Selects a comment block - `ic` and `ac` (not sure what is the difference).
   " Useful for reformatting comments with `gcgc` (a mapping of `gc` to `ac`
   " exists for compatibility with vim-commentary).
-  call s:plug('https://github.com/glts/vim-textobj-comment', { 'requires': 'vim-textobj-user' })
+  Plug 'https://github.com/glts/vim-textobj-comment', { 'requires': 'vim-textobj-user' }
 " }}}
 
 " UI {{{
   " Closes buffers the way you would expect - that is, without closing windows.
-  call s:plug('https://github.com/moll/vim-bbye')
+  Plug 'https://github.com/moll/vim-bbye'
   if !has('nvim-0.9.0')
   " Debugging utility for colorschemes. Prints the hlgroups, synstack and (most
   " importantly) the chain of hlgroup links with `:HLT` or `<leader>hlt`.
-    call s:plug('https://github.com/gerw/vim-HiLinkTrace')
+    Plug 'https://github.com/gerw/vim-HiLinkTrace'
   endif
   " A very fancy and modular statusline (not exactly "light as air", though).
-  call s:plug('https://github.com/vim-airline/vim-airline')
+  Plug 'https://github.com/vim-airline/vim-airline'
   " Automatically re-saves sessions created with `:mksession`.
-  call s:plug('https://github.com/tpope/vim-obsession')
+  Plug 'https://github.com/tpope/vim-obsession'
   " Various nifty utilities for quickfix and location lists.
-  call s:plug('https://github.com/romainl/vim-qf')
+  Plug 'https://github.com/romainl/vim-qf'
 " }}}
 
 " Git {{{
   if g:vim_ide
     " A very, very high-quality UI for Git.
-    call s:plug('https://github.com/tpope/vim-fugitive')
+    Plug 'https://github.com/tpope/vim-fugitive'
     " Support for GitHub and GitLab (`:GBrowse`, ticket autocomplete in
     " `.git/COMMIT_EDITMSG`).
-    call s:plug('https://github.com/tpope/vim-rhubarb', { 'requires': 'vim-fugitive' })
-    call s:plug('https://github.com/shumphrey/fugitive-gitlab.vim', { 'requires': 'vim-fugitive' })
+    Plug 'https://github.com/tpope/vim-rhubarb', { 'requires': 'vim-fugitive' }
+    Plug 'https://github.com/shumphrey/fugitive-gitlab.vim', { 'requires': 'vim-fugitive' }
     " Show change markers (relative to what is in the Git repository) in the
     " sign column. vim-gitgutter is a bit slow and creates lots of temporary
     " files with `tempname()` (and then doesn't delete them), but vim-signify
     " flashes between results of `git diff` and `git diff --staged` when the
     " file is staged.
     if has('nvim-0.5.0')
-      call s:plug('https://github.com/lewis6991/gitsigns.nvim')
+      Plug 'https://github.com/lewis6991/gitsigns.nvim'
     elseif has('nvim') || has('patch-8.0.902')
-      call s:plug('https://github.com/mhinz/vim-signify')
+      Plug 'https://github.com/mhinz/vim-signify'
     else
-      call s:plug('https://github.com/airblade/vim-gitgutter')
+      Plug 'https://github.com/airblade/vim-gitgutter'
     endif
   endif
 " }}}
@@ -151,22 +148,22 @@ let s:plug = function('dotfiles#plugman#register')
 " FZF {{{
   " The core library for integration calling fzf from Vim (also handles
   " installation of fzf when it's not already available on the system).
-  call s:plug('https://github.com/junegunn/fzf', { 'do': './install --bin' })
+  Plug 'https://github.com/junegunn/fzf', { 'do': './install --bin' }
   " All of the end-user commands for using fzf on everything: `:Files`,
   " `:Buffers`, `:Helptags`, `:Commands` and so on.
-  call s:plug('https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' })
+  Plug 'https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' }
 " }}}
 
 " Programming {{{
   " Automatic indentation detection.
-  call s:plug('https://github.com/tpope/vim-sleuth')
+  Plug 'https://github.com/tpope/vim-sleuth'
   " A gigantic collection of syntax, ftplugin, indent, ftdetect etc scripts for
   " a lot of programming languages (the entire list[1]). Also bundles
   " vim-sensible[2] and vim-sleuth[3].
   " [1]: <https://github.com/sheerun/vim-polyglot#language-packs>
   " [2]: <https://github.com/tpope/vim-sensible>
   " [3]: <https://github.com/tpope/vim-sleuth>
-  call s:plug('https://github.com/sheerun/vim-polyglot', { 'requires': 'vim-sleuth' })
+  Plug 'https://github.com/sheerun/vim-polyglot', { 'requires': 'vim-sleuth' }
   let g:polyglot_disabled = get(g:, 'polyglot_disabled', [])
   " I disable the bundled version of vim-sensible because I define those
   " settings myself.
@@ -182,20 +179,20 @@ let s:plug = function('dotfiles#plugman#register')
       " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>.
       if !has('nvim-0.8.0')
         " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
-        call s:plug('https://github.com/bfredl/luarefvim')
+        Plug 'https://github.com/bfredl/luarefvim'
       endif
       " Type declaration files for the Lua Language Server[1] of Nvim's Lua
       " APIs (actually includes other stuff, such as a pre-made configuration
       " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
       " plugins).
       " [1]: <https://github.com/sumneko/lua-language-server>
-      " call s:plug('https://github.com/folke/lua-dev.nvim')
+      " Plug 'https://github.com/folke/lua-dev.nvim'
       " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
-      call s:plug('https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' })
+      Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
     endif
     if has('nvim-0.5.0')
       " An interactive Lua playground.
-      call s:plug('https://github.com/rafcamlet/nvim-luapad')
+      Plug 'https://github.com/rafcamlet/nvim-luapad'
     endif
     " The built-in LSP client has been introduced in nvim 0.5.0, see
     " <https://github.com/neovim/neovim/commit/a5ac2f45ff84a688a09479f357a9909d5b914294>.
@@ -204,61 +201,62 @@ let s:plug = function('dotfiles#plugman#register')
       " LSP client. Only defines stuff like names of executables of the
       " Servers, default settings and initializationOptions, workspace root
       " dir patterns etc. Might get rid of this soon.
-      call s:plug('https://github.com/neovim/nvim-lspconfig')
+      Plug 'https://github.com/neovim/nvim-lspconfig'
       " The current snippet expansion plugin. Doesn't contain any snippet
       " libraries of its own.
-      call s:plug('https://github.com/dcampos/nvim-snippy')
+      Plug 'https://github.com/dcampos/nvim-snippy'
       " The current completion plugin.
-      call s:plug('https://github.com/hrsh7th/nvim-cmp', { 'branch': 'main' })
+      Plug 'https://github.com/hrsh7th/nvim-cmp', { 'branch': 'main' }
       " The following plugins are actually completion sources for nvim-cmp:
       " The built-in Language Server client.
-      call s:plug('https://github.com/hrsh7th/cmp-nvim-lsp', { 'branch': 'main' })
+      Plug 'https://github.com/hrsh7th/cmp-nvim-lsp', { 'branch': 'main' }
       " Words from buffers (as I like to call them, the "dumb completions").
-      call s:plug('https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' })
+      Plug 'https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' }
       " File paths.
-      call s:plug('https://github.com/hrsh7th/cmp-path', { 'branch': 'main' })
+      Plug 'https://github.com/hrsh7th/cmp-path', { 'branch': 'main' }
       " Snippets registered in the snippet engine.
-      call s:plug('https://github.com/dcampos/cmp-snippy')
+      Plug 'https://github.com/dcampos/cmp-snippy'
     elseif g:dotfiles_build_coc_from_source
+      let s:npm_install = 'yarn install --frozen-lockfile'
       " Plugins for the old completion-and-language-analysis system based
       " around coc.nvim.
-      call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'master', 'do': s:npm_install }
       " Port of <https://github.com/rust-analyzer/rust-analyzer/tree/master/editors/code>.
-      call s:plug('https://github.com/fannheyward/coc-rust-analyzer', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/fannheyward/coc-rust-analyzer', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/vscode/tree/main/extensions/typescript-language-features>.
       " <https://github.com/Microsoft/TypeScript/wiki/Standalone-Server-%28tsserver%29>
-      call s:plug('https://github.com/neoclide/coc-tsserver', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-tsserver', { 'do': s:npm_install }
       " Port of <https://github.com/Microsoft/vscode-eslint>.
-      call s:plug('https://github.com/neoclide/coc-eslint', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-eslint', { 'do': s:npm_install }
       " Port of <https://github.com/prettier/prettier-vscode>.
-      call s:plug('https://github.com/neoclide/coc-prettier', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-prettier', { 'do': s:npm_install }
       " The snippet engine. The core actually doesn't handle expansion of
       " snippets, so this is required even when not using snippet libraries
       " because Language Servers often respond with snippets in completion
       " results.
-      call s:plug('https://github.com/neoclide/coc-snippets', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-snippets', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/vscode/tree/main/extensions/json-language-features>.
-      call s:plug('https://github.com/neoclide/coc-json', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-json', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/vscode/tree/main/extensions/html-language-features>.
-      call s:plug('https://github.com/neoclide/coc-html', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-html', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/vscode/tree/main/extensions/emmet>.
-      call s:plug('https://github.com/neoclide/coc-emmet', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-emmet', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/vscode/tree/main/extensions/css-language-features>.
-      call s:plug('https://github.com/neoclide/coc-css', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/neoclide/coc-css', { 'do': s:npm_install }
       " Port of <https://github.com/microsoft/pyright/tree/main/packages/vscode-pyright>.
-      call s:plug('https://github.com/fannheyward/coc-pyright', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/fannheyward/coc-pyright', { 'do': s:npm_install }
       " An adapter for <https://clangd.llvm.org/installation>.
-      call s:plug('https://github.com/clangd/coc-clangd', { 'do': 'yarn install --frozen-lockfile' })
+      Plug 'https://github.com/clangd/coc-clangd', { 'do': s:npm_install }
     else
-      call s:plug('https://github.com/neoclide/coc.nvim', { 'branch': 'release' })
+      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release' }
     endif
-    if (has('nvim-0.4.3') || v:version >=# 802) && has('python3')
+    if has('nvim-0.4.3') || v:version >= 802 && has('python3')
       " A client for the Debug Adapter Protocol.
-      call s:plug('https://github.com/puremourning/vimspector')
+      Plug 'https://github.com/puremourning/vimspector'
     endif
-    " if has('nvim') || v:version >=# 801
+    " if has('nvim') || v:version >= 801
     "   " Real-time preview of Markdown files in the browser (as the name implies).
-    "   call s:plug('https://github.com/iamcco/markdown-preview.nvim', { 'do': 'yarn --cwd=app install --frozen-lockfile' })
+    "   Plug 'https://github.com/iamcco/markdown-preview.nvim', { 'do': 'yarn --cwd=app install --frozen-lockfile' }
     " endif
   endif
 " }}}

@@ -21,7 +21,11 @@ function! dotfiles#plugman#register(repo, ...) abort
     " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/fragments.lua#L107-L121>
     let spec.as = fnamemodify(a:repo, ':t:s?\.git$??')
   endif
-  call dotfiles#plugman#register_impl(a:repo, spec)
+  call s:register_impl(a:repo, spec)
+endfunction
+
+function! dotfiles#plugman#define_commands() abort
+  command! -nargs=+ -bar Plug call dotfiles#plugman#register(<args>)
 endfunction
 
 
@@ -53,9 +57,10 @@ endfunction
 function! dotfiles#plugman#begin() abort
   lua require('lazy')
   lua require('dotfiles.plugman')
+  call dotfiles#plugman#define_commands()
 endfunction
 
-function! dotfiles#plugman#register_impl(repo, spec) abort
+function! s:register_impl(repo, spec) abort
   call v:lua.dotfiles.plugman.register_vimplug(a:repo, a:spec)
 endfunction
 
@@ -105,9 +110,10 @@ function! dotfiles#plugman#begin() abort
   let g:plug_url_format = g:dotfiles#plugman#url_format
   call plug#begin(g:dotfiles#plugman#plugins_dir)
   silent! delcommand PlugUpgrade
+  call dotfiles#plugman#define_commands()
 endfunction
 
-function! dotfiles#plugman#register_impl(repo, spec) abort
+function! s:register_impl(repo, spec) abort
   call plug#(a:repo, a:spec)
 endfunction
 
