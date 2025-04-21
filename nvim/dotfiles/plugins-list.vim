@@ -48,11 +48,9 @@
     " [2]: <https://github.com/lukas-reineke/indent-blankline.nvim/pull/155>
     Plug 'https://github.com/lukas-reineke/indent-blankline.nvim'
   endif
-  if !exists('*searchcount')
-    " Prints the number of search results when using the `/` command or the `n`
-    " and `N` motions and similar.
-    Plug 'https://github.com/henrik/vim-indexed-search'
-  endif
+  " Prints the number of search results when using the `/` command or the `n`
+  " and `N` motions and similar.
+  Plug 'https://github.com/henrik/vim-indexed-search', { 'if': !exists('*searchcount') }
   " Extension of the built-in matchit plugin (highlights matching braces,
   " typically for blocks in syntaxes of C-like languages) and the `%` family of
   " motions (jump between those block delimiters), which adds support for
@@ -109,11 +107,9 @@
 " UI {{{
   " Closes buffers the way you would expect - that is, without closing windows.
   Plug 'https://github.com/moll/vim-bbye'
-  if !has('nvim-0.9.0')
   " Debugging utility for colorschemes. Prints the hlgroups, synstack and (most
   " importantly) the chain of hlgroup links with `:HLT` or `<leader>hlt`.
-    Plug 'https://github.com/gerw/vim-HiLinkTrace'
-  endif
+  Plug 'https://github.com/gerw/vim-HiLinkTrace', { 'if': !has('nvim-0.9.0') }
   " A very fancy and modular statusline (not exactly "light as air", though).
   Plug 'https://github.com/vim-airline/vim-airline'
   " Automatically re-saves sessions created with `:mksession`.
@@ -177,10 +173,8 @@
     if has('nvim-0.4.0')
       " The Lua reference manual is shipped with Nvim as of 0.8.0, see
       " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>.
-      if !has('nvim-0.8.0')
-        " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
-        Plug 'https://github.com/bfredl/luarefvim'
-      endif
+      " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
+      Plug 'https://github.com/bfredl/luarefvim', { 'if': !has('nvim-0.8.0') }
       " Type declaration files for the Lua Language Server[1] of Nvim's Lua
       " APIs (actually includes other stuff, such as a pre-made configuration
       " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
@@ -190,10 +184,8 @@
       " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
       Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
     endif
-    if has('nvim-0.5.0')
-      " An interactive Lua playground.
-      Plug 'https://github.com/rafcamlet/nvim-luapad'
-    endif
+    " An interactive Lua playground.
+    Plug 'https://github.com/rafcamlet/nvim-luapad', { 'if': has('nvim-0.5.0') }
     " The built-in LSP client has been introduced in nvim 0.5.0, see
     " <https://github.com/neovim/neovim/commit/a5ac2f45ff84a688a09479f357a9909d5b914294>.
     if has('nvim-0.5.0') && get(g:, 'dotfiles_use_nvimlsp', 0)

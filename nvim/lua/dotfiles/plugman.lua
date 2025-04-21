@@ -61,9 +61,10 @@ end
 ---@field do string|function
 ---@field on string|string[]
 ---@field for string|string[]
----@field frozen any
----@field requires string|string[] <-- my addition
----@field priority number
+---@field frozen number|boolean
+---@field requires string|string[] equivalent to `dependencies` of lazy.nvim
+---@field priority number equivalent to `priority` of lazy.nvim
+---@field if number|boolean equivalent to `enabled` of lazy.nvim
 
 ---@param repo string
 ---@param old_spec VimplugSpec
@@ -97,6 +98,8 @@ function M.register_vimplug(repo, old_spec)
       spec.name = value
     elseif key == 'frozen' then
       spec.pin = utils.is_truthy(value)
+    elseif key == 'if' then
+      spec.enabled = utils.is_truthy(value)
     elseif key == 'requires' then
       if type(value) == 'string' then
         spec.dependencies = { value }

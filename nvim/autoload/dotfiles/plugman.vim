@@ -11,6 +11,8 @@ let g:dotfiles#plugman#autoclean = get(g:, 'dotfiles#plugman#autoclean', 1)
 " However, authenication like that has been removed by GitHub:
 " <https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls>.
 let g:dotfiles#plugman#url_format = 'https://github.com/%s.git'
+" <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
+let g:dotfiles#plugman#default_priority = 50
 
 function! dotfiles#plugman#register(repo, ...) abort
   if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2): ' . a:0 | endif
@@ -21,6 +23,7 @@ function! dotfiles#plugman#register(repo, ...) abort
     " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/fragments.lua#L107-L121>
     let spec.as = fnamemodify(a:repo, ':t:s?\.git$??')
   endif
+  let spec.priority = get(spec, 'priority', g:dotfiles#plugman#default_priority)
   call s:register_impl(a:repo, spec)
 endfunction
 
@@ -114,10 +117,19 @@ function! dotfiles#plugman#begin() abort
 endfunction
 
 function! s:register_impl(repo, spec) abort
-  call plug#(a:repo, a:spec)
+  if get(a:spec, 'if', 1)
+    call plug#(a:repo, a:spec)
+  endif
 endfunction
 
 function! dotfiles#plugman#end() abort
+  " The sort() function must be stable, meaning that we do not disrupt the order
+  if v:version > 704 || (v:version == 704 && has("patch148"))
+    " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
+    let def_prio = g:dotfiles#plugman#default_priority
+    call sort(g:plugs_order, { name1, name2 -> get(g:plugs[name1], 'priority', def_prio) -
+    \                                          get(g:plugs[name2], 'priority', def_prio) })
+  endif
   call plug#end()
 endfunction
 
