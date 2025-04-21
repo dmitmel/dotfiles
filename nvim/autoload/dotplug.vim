@@ -12,7 +12,7 @@ let g:dotplug#url_format = 'https://github.com/%s.git'
 " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
 let g:dotplug#default_priority = 50
 
-function! dotplug#register(repo, ...) abort
+function! dotplug#(repo, ...) abort
   if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2): ' . a:0 | endif
   let spec = get(a:000, 0, {})
   if !has_key(spec, 'as')
@@ -22,12 +22,13 @@ function! dotplug#register(repo, ...) abort
     let spec.as = fnamemodify(a:repo, ':t:s?\.git$??')
   endif
   let spec.priority = get(spec, 'priority', g:dotplug#default_priority)
-  call s:register_impl(a:repo, spec)
+  call s:dotplug_impl(a:repo, spec)
 endfunction
 
-function! dotplug#define_commands() abort
-  command! -nargs=+ -bar Plug call dotplug#register(<args>)
+function! dotplug#define_plug_here() abort
+  return 'command! -nargs=+ -bar Plug call dotplug#(<args>)'
 endfunction
+
 
 
 
@@ -37,12 +38,12 @@ if g:dotplug#implementation == 'lazy.nvim' && has('nvim-0.8.0') " {{{
 let g:dotplug#repo = 'folke/lazy.nvim'
 let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', stdpath('data') . '/lazy')
 
-function! dotplug#is_registered(name) abort
-  return luaeval('dotfiles.plugman.find_plugin(_A) ~= nil', a:name)
+function! dotplug#has(name) abort
+  return luaeval('dotplug.find_plugin(_A) ~= nil', a:name)
 endfunction
 
-function! dotplug#get_install_dir(name) abort
-  return luaeval('dotfiles.plugman.find_plugin(_A).dir', a:name)
+function! dotplug#plugin_dir(name) abort
+  return luaeval('dotplug.find_plugin(_A).dir', a:name)
 endfunction
 
 function! dotplug#auto_install() abort
@@ -56,25 +57,27 @@ function! dotplug#auto_install() abort
 endfunction
 
 function! dotplug#begin() abort
-  lua require('lazy')
-  lua require('dotfiles.plugman')
-  call dotplug#define_commands()
+  lua _G.LazyNvim = require('lazy')
+  lua _G.dotplug = require('dotplug')
+  exe dotplug#define_plug_here()
 endfunction
 
-function! s:register_impl(repo, spec) abort
-  call v:lua.dotfiles.plugman.register_vimplug(a:repo, a:spec)
+function! s:dotplug_impl(repo, spec) abort
+  call v:lua.dotplug.vimplug(a:repo, a:spec)
 endfunction
 
 function! dotplug#end() abort
-  call v:lua.dotfiles.plugman.end_setup()
+  call v:lua.dotplug.end_setup()
 endfunction
 
 function! dotplug#check_sync() abort
 endfunction
 
 function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
-  return v:lua.dotfiles.plugman.plugin_names_completion()
+  return v:lua.dotplug.plugin_names_completion()
 endfunction
+
+
 
 
 
@@ -86,11 +89,11 @@ let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
 let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', s:stdpath_config . '/plugged')
 
 
-function! dotplug#is_registered(name) abort
+function! dotplug#has(name) abort
   return has_key(g:plugs, a:name) ? v:true : v:false
 endfunction
 
-function! dotplug#get_install_dir(name) abort
+function! dotplug#plugin_dir(name) abort
   return g:plugs[a:name].dir
 endfunction
 
@@ -111,10 +114,10 @@ function! dotplug#begin() abort
   let g:plug_url_format = g:dotplug#url_format
   call plug#begin(g:dotplug#plugins_dir)
   silent! delcommand PlugUpgrade
-  call dotplug#define_commands()
+  exe dotplug#define_plug_here()
 endfunction
 
-function! s:register_impl(repo, spec) abort
+function! s:dotplug_impl(repo, spec) abort
   if get(a:spec, 'if', 1)
     call plug#(a:repo, a:spec)
   endif
@@ -175,6 +178,8 @@ endfunction
 function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
   return keys(g:plugs)
 endfunction
+
+
 
 
 

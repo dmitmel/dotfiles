@@ -1,6 +1,8 @@
-local M = require('dotfiles.autoload')('dotfiles.plugman')
+local M = require('dotfiles.autoload')('dotplug', {}, _G.dotplug)
 local lazy = require('lazy')
 local utils = require('dotfiles.utils')
+
+_G.dotplug = M
 
 M.DEBUG_LOAD_ORDER = false
 
@@ -44,7 +46,7 @@ function M.plugin_names_completion()
 end
 
 ---@param spec LazySpec
-function M.register(spec)
+function M.plug(spec)
   local specs = M.lazy_config.spec
   specs[#specs + 1] = spec
 end
@@ -68,7 +70,7 @@ end
 
 ---@param repo string
 ---@param old_spec VimplugSpec
-function M.register_vimplug(repo, old_spec)
+function M.vimplug(repo, old_spec)
   local specs = M.lazy_config.spec
 
   ---@type LazyPluginSpec

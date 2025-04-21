@@ -164,9 +164,9 @@ endif
   " Mappings for quick prototyping: duplicate this line and comment it out.
 
   let s:comment_out_cmd = ''
-  if dotplug#is_registered('tcomment_vim')
+  if dotplug#has('tcomment_vim')
     let s:comment_out_cmd = 'TComment!'   " the ! means to always comment out the line
-  elseif dotplug#is_registered('vim-commentary')
+  elseif dotplug#has('vim-commentary')
     let s:comment_out_cmd = 'Commentary'  " vim-commentary does not have this capability"
   endif
 
@@ -299,7 +299,7 @@ endif
 
   let s:searchcount_plugin_available = 1
   noremap <Plug>dotfiles_search_show_count <nop>
-  if dotplug#is_registered('vim-indexed-search')
+  if dotplug#has('vim-indexed-search')
     let g:indexed_search_mappings = 0
     nnoremap <Plug>dotfiles_search_show_count :ShowSearchIndex<CR>
     xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
@@ -503,7 +503,7 @@ endif
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
 
-  if dotplug#is_registered('tcomment_vim')
+  if dotplug#has('tcomment_vim')
     " Closely replicate the behavior of tpope/vim-commentary
     nmap <silent> gc  <Plug>TComment_gc
     nmap <silent> gcc <Plug>TComment_gcc

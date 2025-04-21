@@ -187,19 +187,19 @@ let &history = max([&history, 10000])
     \ 'dotfiles_tweaks',
     \ 'dotfiles_filesize',
     \ ]
-  if dotplug#is_registered('vim-fugitive')
+  if dotplug#has('vim-fugitive')
     call extend(g:airline_extensions, ['branch', 'fugitiveline'])
   endif
-  if dotplug#is_registered('vim-gitgutter') || dotplug#is_registered('vim-signify')
+  if dotplug#has('vim-gitgutter') || dotplug#has('vim-signify')
     call extend(g:airline_extensions, ['hunks'])
   endif
-  if dotplug#is_registered('gitsigns.nvim')
+  if dotplug#has('gitsigns.nvim')
     call extend(g:airline_extensions, ['dotfiles_gitsigns_nvim'])
   endif
-  if dotplug#is_registered('coc.nvim')
+  if dotplug#has('coc.nvim')
     call extend(g:airline_extensions, ['coc', 'dotfiles_coclist'])
   endif
-  if dotplug#is_registered('vim-obsession')
+  if dotplug#has('vim-obsession')
     call extend(g:airline_extensions, ['obsession'])
   endif
   if get(g:, 'dotfiles_use_nvimlsp', 0)
@@ -235,8 +235,8 @@ let &history = max([&history, 10000])
   command! -bar -bang -nargs=* -complete=customlist,dotplug#command_completion FilesPlugins
     \ if empty(<q-args>)
     \|  execute 'Files<bang>' fnameescape(dotplug#plugins_dir)
-    \|elseif dotplug#is_registered(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotplug#get_install_dir(<q-args>))
+    \|elseif dotplug#has(<q-args>)
+    \|  execute 'Files<bang>' fnameescape(dotplug#plugin_dir(<q-args>))
     \|else
     \|  echohl WarningMsg
     \|  echomsg 'Plugin not found: ' . string(<q-args>)

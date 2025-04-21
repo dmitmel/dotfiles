@@ -3,7 +3,6 @@ local M = require('dotfiles.autoload')('dotfiles', {
   colorscheme = ..., ---@module 'dotfiles.colorscheme'
   lsp = ..., ---@module 'dotfiles.lsp'
   utils = ..., ---@module 'dotfiles.utils'
-  plugman = ..., ---@module 'dotfiles.plugman'
 }, _G.dotfiles)
 
 local utils = require('dotfiles.utils')

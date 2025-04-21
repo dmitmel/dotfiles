@@ -1,6 +1,8 @@
 " All plugin definitions are written as links to github.com (instead of the
 " typical `user/repo`) so that I can move the cursor over any and press `gx`.
 
+exe dotplug#define_plug_here()
+
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   Plug 'https://github.com/tpope/vim-eunuch'

@@ -13,7 +13,7 @@ set complete-=i
 set completeopt=menuone,noselect
 
 
-if dotplug#is_registered('nvim-snippy')  " {{{
+if dotplug#has('nvim-snippy')  " {{{
 
   function! s:get_snippet_scopes(scopes) abort
     call extend(a:scopes, get(b:, 'dotfiles_snippets_extra_scopes', []))
@@ -44,11 +44,11 @@ EOF
 endif  " }}}
 
 
-if dotplug#is_registered('nvim-cmp')  " {{{
+if dotplug#has('nvim-cmp')  " {{{
 
   lua require('dotfiles.completion')
 
-  if dotplug#is_registered('cmp-nvim-lsp')
+  if dotplug#has('cmp-nvim-lsp')
     lua require('cmp_nvim_lsp').update_capabilities(require('dotfiles.lsp.ignition').default_config.capabilities)
   endif
 
@@ -207,7 +207,7 @@ EOF
 endif  " }}}
 
 
-if dotplug#is_registered('coc.nvim')  " {{{
+if dotplug#has('coc.nvim')  " {{{
 
   " let g:coc_node_args = ['-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'), '--nolazy', '--inspect']
 
@@ -366,7 +366,7 @@ if dotplug#is_registered('coc.nvim')  " {{{
 endif  " }}}
 
 
-if dotplug#is_registered('vimspector')  " {{{
+if dotplug#has('vimspector')  " {{{
 
   " <https://github.com/puremourning/vimspector/blob/ebeebc121423a5ab9a31c996f9881880b658c644/README.md#changing-the-default-signs>
   let s:vimspector_signs = {
