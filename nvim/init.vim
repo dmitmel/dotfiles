@@ -52,32 +52,34 @@ function! s:start_self_debug_server(port) abort
   if !isdirectory(osv_dir)
     return
   endif
-  let rtp_backup = &runtimepath
+  let rtp = &runtimepath
   try
-    let &rtp .= ',' . osv_dir
-    let nvim_args = []
-    " Firstly, we need to ensure that Neovim is started in a pristine
-    " environment, without running ANY scripts, it should operate used ONLY as
-    " an RPC server.
-    let nvim_args += ['-u', 'NONE']   " Disable any user or system configs
-    let nvim_args += ['--noplugins']  " Disable loading `plugin/` scripts
-    let nvim_args += ['-i', 'NONE']   " Disable ShaDa
-    let nvim_args += ['-n']           " Disable swapfile
-    " This is done so that the child process can `require()` the osv library.
-    " Hopefully, escaping the string as JSON will prevent any runaway Vimscript
-    " escape characters.
-    let nvim_args += ['-c', 'let &rtp = ' . json_encode(escape(osv_dir, ','))]
-    " Block any further initialization or processing. This does not prevent Vim
-    " from processing RPC requests though.
-    let nvim_args += ['-c', 'call getchar()']
-    let osv_options = { 'host': '127.0.0.1', 'port': a:port, 'blocking': v:true, 'args': nvim_args }
-    lua require('osv').launch(vim.call('eval', 'l:osv_options'))
+    lua <<EOF
+
+    local osv_dir = vim.fn.eval('l:osv_dir')
+    vim.opt.runtimepath:prepend(osv_dir)
+
+    local osv = require('osv')
+
+    -- The way OSV launches the headless Neovim by default is too brittle.
+    -- See <https://github.com/jbyuki/one-small-step-for-vimkind/issues/62>.
+    osv.on["start_server"] = function(args, env)
+      local init_cmd = 'let &rtp = $DOTFILES_OSV_PATH'
+      args = { vim.v.progpath, '--clean', '--embed', '--headless', '-c', init_cmd }
+      env = { DOTFILES_OSV_PATH = osv_dir }
+      return vim.fn.jobstart(args, { rpc = true, env = env })
+    end
+
+    -- Fix for a typo here: <https://github.com/jbyuki/one-small-step-for-vimkind/blob/330049a237635b7cae8aef4972312e6da513cf91/src/launch.lua.t#L162-L163>
+    osv.callback = osv.on
+
+    osv.launch({ blocking = true, host = '127.0.0.1', port = vim.fn.eval('a:port') })
+
+EOF
   catch
-    echohl ErrorMsg
-    echomsg 'Error in ' . v:throwpoint . ': ' v:exception
-    echohl NONE
+    call nvim_echo([ ['Error in ' . v:throwpoint . "\n" . v:exception, 'ErrorMsg'] ], v:true, {})
   finally
-    let &runtimepath = rtp_backup
+    let &runtimepath = rtp
   endtry
 endfunction
 
