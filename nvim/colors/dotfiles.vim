@@ -782,6 +782,7 @@ function! s:setup() abort
   hi! link typescriptTemplateSB          PreProc
   hi! link typescriptDebugger            Keyword
   hi! link typescriptRegexpString        Special
+  call HiClear('typescriptFuncCallArg')
   " }}}
 
   " Markdown {{{

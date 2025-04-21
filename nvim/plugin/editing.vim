@@ -555,10 +555,12 @@ endif
   " Seems to be the closest one to SQLite. <https://www.sqlite.org/lang.html>
   let g:sql_type_default = 'sqlinformix'
 
-  let g:yats_host_keyword = 0
+  let g:yats_host_keyword = 0         " for yats.vim as an external plugin
+  let g:typescript_host_keyword = 0   " for yats.vim bundled with Vim/Nvim
 
-  " <https://github.com/sheerun/vim-polyglot/blob/83422e0a1fcfc88f3475104b0e0674e8dbe3130e/ftplugin/markdown.vim#L751-L760>
+  " <https://github.com/preservim/vim-markdown/blob/8f6cb3a6ca4e3b6bcda0730145a0b700f3481b51/ftplugin/markdown.vim#L770-L779>
   let g:vim_markdown_no_default_key_mappings = 1
+  let g:vim_markdown_folding_disabled = 1
 
   let g:java_highlight_all = 1
 

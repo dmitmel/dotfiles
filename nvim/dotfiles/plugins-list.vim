@@ -85,6 +85,8 @@
   Plug 'https://github.com/AndrewRadev/linediff.vim'
   " Automatically close XML/HTML/JSX tags.
   Plug 'https://github.com/alvan/vim-closetag'
+  " Automatic indentation detection.
+  Plug 'https://github.com/tpope/vim-sleuth'
 " }}}
 
 " Text objects {{{
@@ -150,40 +152,72 @@
   Plug 'https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' }
 " }}}
 
+" Language packs {{{
+  " NOTE: I've been using vim-polyglot previously, which is a giant collection
+  " of syntax packs and language-specific plugins. However, it has not been
+  " updated for a long time, it required some hacks to make it work properly,
+  " it cannot be integrated with the new Lua filetype detection system in Nvim,
+  " plus a lot of syntax packs have been absorbed by Vim and Neovim over time.
+  " So, instead of using the giant and clumsy vim-polyglot, I will include a
+  " handful of language packs that I actually need, whether it is because they
+  " are better than those in `$VIMRUNTIME` or have not been bundled with Vim
+  " yet. In any case, a good list of language packs can be found here:
+  " <https://github.com/sheerun/vim-polyglot#language-packs>
+
+  " I like these three much better than Vim's and Nvim's default ones:
+  Plug 'https://github.com/tbastos/vim-lua'
+  Plug 'https://github.com/plasticboy/vim-markdown'
+  " (this one highlights function invocations which the default one does not do)
+  Plug 'https://github.com/bfrg/vim-cpp-modern'
+
+  " JavaScript and TypeScript development:
+  Plug 'https://github.com/pangloss/vim-javascript'
+  " TypeScript evolves faster than Vim updates are released, so I include this
+  " plugin instead of relying on its copy upstreamed into Vim. Great username btw.
+  Plug 'https://github.com/HerringtonDarkholme/yats.vim' " , { 'if': !has('nvim-0.4.0') && !has('patch-8.1.1486') }
+  " For some reason, `$VIMRUNTIME` includes support only for TSX out of the
+  " box, but not for JSX. By default, JSX filetype is just an alias for JS.
+  Plug 'https://github.com/MaxMEllon/vim-jsx-pretty'
+
+  " The Rust language pack bundled with Vim has not been outdated for a long
+  " time[1], plus this is an official plugin and it's super good.
+  " [1]: <https://github.com/vim/vim/pull/13075>
+  Plug 'https://github.com/rust-lang/rust.vim'
+
+  " The indenting script here is just so much better than the default one.
+  " Discovered this plugin thanks to vim-polyglot.
+  Plug 'https://github.com/Vimjas/vim-python-pep8-indent'
+
+  " Sysadmin stuff:
+  Plug 'https://github.com/MTDL9/vim-log-highlighting'
+  " I actually got so used to this one since it was included with vim-polyglot,
+  " while the `$VIMRUNTIME` just uses plain `dosini` for systemd configs.
+  Plug 'https://github.com/wgwoods/vim-systemd-syntax'
+  " <https://github.com/vim/vim/commit/6e649224926bbc1df6a4fdfa7a96b4acb1f8bee0>
+  " <https://github.com/neovim/neovim/commit/f6a9f0bfcaeb256bac1b1c8273e6c40750664967>
+  Plug 'https://github.com/chr4/nginx.vim', { 'if': !has('nvim-0.6.0') && !has('patch-8.2.3474') }
+
+  " Some niche languages that were not included with Vim until recently:
+  " <https://github.com/neovim/neovim/commit/79d492a4218ee6b4da5becbebb712a0f1f65d0f5>
+  Plug 'https://github.com/tikhomirov/vim-glsl', { 'if': !has('nvim-0.11.0') && !has('patch-9.1.0610') }
+  " <https://github.com/neovim/neovim/commit/0ba77f2f31c9de42f1e7a8435e6322d3f0a04fa5>
+  Plug 'https://github.com/cespare/vim-toml', { 'if': !has('nvim-0.6.0') && !has('patch-8.2.3520') }
+  " <https://github.com/neovim/neovim/commit/3e47e529b0354dbd665202bbc4f485a5160206bf>
+  Plug 'https://github.com/cakebaker/scss-syntax.vim', { 'if': !has('nvim-0.5.0') && !has('patch-8.1.2397') }
+
+  " The Lua reference manual[1] and luv documentation[2] are now shipped with Nvim, see:
+  " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>
+  " <https://github.com/neovim/neovim/commit/33ddca6fa0534df2605699070fdd1e5c6e4a7bcf>
+  " [1]: <https://www.lua.org/manual/5.1/>
+  " [2]: <https://github.com/luvit/luv/blob/master/docs.md>
+  if g:vim_ide && has('nvim-0.4.0') && !has('nvim-0.8.0')
+    Plug 'https://github.com/bfredl/luarefvim'
+    Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
+  endif
+" }}}
+
 " Programming {{{
-  " Automatic indentation detection.
-  Plug 'https://github.com/tpope/vim-sleuth'
-  " A gigantic collection of syntax, ftplugin, indent, ftdetect etc scripts for
-  " a lot of programming languages (the entire list[1]). Also bundles
-  " vim-sensible[2] and vim-sleuth[3].
-  " [1]: <https://github.com/sheerun/vim-polyglot#language-packs>
-  " [2]: <https://github.com/tpope/vim-sensible>
-  " [3]: <https://github.com/tpope/vim-sleuth>
-  Plug 'https://github.com/sheerun/vim-polyglot', { 'requires': 'vim-sleuth' }
-  let g:polyglot_disabled = get(g:, 'polyglot_disabled', [])
-  " I disable the bundled version of vim-sensible because I define those
-  " settings myself.
-  call add(g:polyglot_disabled, 'sensible')
-  " Bundled vim-sleuth is disabled because the upstream has more features and
-  " requires less hacks to work with my setup.
-  call add(g:polyglot_disabled, 'autoindent')
   if g:vim_ide
-    " The Lua standard library has been introduced in nvim 0.4.0, see
-    " <https://github.com/neovim/neovim/commit/e2cc5fe09d98ce1ccaaa666a835c896805ccc196>.
-    if has('nvim-0.4.0')
-      " The Lua reference manual is shipped with Nvim as of 0.8.0, see
-      " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>.
-      " Reference manual of Lua 5.1 as a vimdoc file. <https://www.lua.org/manual/5.1/>
-      Plug 'https://github.com/bfredl/luarefvim', { 'if': !has('nvim-0.8.0') }
-      " Type declaration files for the Lua Language Server[1] of Nvim's Lua
-      " APIs (actually includes other stuff, such as a pre-made configuration
-      " for sumneko_lua[1], but that is opt-in due to the nature of Lua-based
-      " plugins).
-      " [1]: <https://github.com/sumneko/lua-language-server>
-      " Plug 'https://github.com/folke/lua-dev.nvim'
-      " Mirror of the luv[1] documentation as a vimdoc file. <https://github.com/luvit/luv/blob/master/docs.md>
-      Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
-    endif
     " An interactive Lua playground.
     Plug 'https://github.com/rafcamlet/nvim-luapad', { 'if': has('nvim-0.5.0') }
     " The built-in LSP client has been introduced in nvim 0.5.0, see
@@ -211,7 +245,7 @@
     else
       Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release' }
     endif
-    if has('nvim-0.4.3') || v:version >= 802 && has('python3')
+    if has('nvim-0.4.3') || (v:version >= 802 && has('python3'))
       " A client for the Debug Adapter Protocol.
       Plug 'https://github.com/puremourning/vimspector'
     endif

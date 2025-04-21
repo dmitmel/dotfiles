@@ -1,15 +1,3 @@
-if exists('g:did_load_polyglot')
-  " This will be remembered across reloads
-  let s:has_polyglot = 1
-endif
-if exists('s:has_polyglot')
-  " Makes polyglot not delete autocommands created in the ftdetect/*.vim files.
-  " It will set this flags almost immediately after sourcing ftdetect files and
-  " the stock filetype.vim has been inhibited already (see ../filetype.vim), so
-  " this is fine.
-  unlet! g:did_load_filetypes
-endif
-
 autocmd BufNewFile,BufRead */assets/*.json.patch setf json
 
 autocmd BufNewFile,BufRead *.frag setf glsl

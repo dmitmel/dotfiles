@@ -1,6 +1,6 @@
 source <sfile>:h/javascript.vim
 
-" <https://github.com/sheerun/vim-polyglot/blob/c96947b1c64c56f70125a9bac9c006f69e45d5d3/syntax/common.vim#L18-L19>
+" <https://github.com/HerringtonDarkholme/yats.vim/blob/b325c449a2db4d9ee38aa441afa850a815982e8b/syntax/common.vim#L11-L12>
 setlocal iskeyword-=#
 
 if hlexists('typescriptCommentTodo')
