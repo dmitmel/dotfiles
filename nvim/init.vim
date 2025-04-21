@@ -48,7 +48,7 @@ function! s:configure_runtimepath() abort
 endfunction
 
 function! s:start_self_debug_server(port) abort
-  let osv_dir = g:dotfiles#plugman#plugins_dir . '/one-small-step-for-vimkind'
+  let osv_dir = g:dotplug#plugins_dir . '/one-small-step-for-vimkind'
   if !isdirectory(osv_dir)
     return
   endif
@@ -111,31 +111,25 @@ if has('nvim-0.5.0')
   lua require('dotfiles')
 endif
 
-call dotfiles#plugman#auto_install()
-call dotfiles#plugman#begin()
+call dotplug#auto_install()
+call dotplug#begin()
+
 runtime! dotfiles/plugins-list.vim
-runtime! dotfiles/plugins-list.lua
-call dotfiles#plugman#end()
+if has('nvim-0.5.0')
+  runtime! dotfiles/plugins-list.lua
+endif
+
+call dotplug#end()
 call s:configure_runtimepath()
-" Automatically install/clean plugins (because I'm a programmer)
+
 augroup dotfiles_init
   autocmd!
-  autocmd VimEnter * call dotfiles#plugman#check_sync()
+  autocmd VimEnter * call dotplug#check_sync()
 augroup END
 
 if has('nvim-0.5.0')
   lua require('dotfiles.rplugin_bridge')
 endif
 
-" NOTE: What the following block does is effectively source the files
-" `filetype.vim`, `ftplugin.vim`, `indent.vim`, `syntax/syntax.vim` from
-" `$VIMRUNTIME` IN ADDITION TO sourcing the plugin scripts, `plugin/**/*.vim`.
-" The last bit is very important because the rest of vimrc runs in a world when
-" all plugins have been initialized, and so adjustments to e.g. autocommands
-" are possible.
-if has('autocmd') && !(exists('g:did_load_filetypes') && exists('g:did_load_ftplugin') && exists('g:did_indent_on'))
-  filetype plugin indent on
-endif
-if has('syntax') && !exists('g:syntax_on')
-  syntax enable
-endif
+filetype plugin indent on
+syntax enable

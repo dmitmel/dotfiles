@@ -6,9 +6,9 @@ M.DEBUG_LOAD_ORDER = false
 
 ---@type LazyConfig
 M.lazy_config = {
-  root = vim.g['dotfiles#plugman#plugins_dir'],
+  root = vim.g['dotplug#plugins_dir'],
   git = {
-    url_format = vim.g['dotfiles#plugman#url_format'],
+    url_format = vim.g['dotplug#url_format'],
   },
   spec = {},
   performance = {

@@ -187,19 +187,19 @@ let &history = max([&history, 10000])
     \ 'dotfiles_tweaks',
     \ 'dotfiles_filesize',
     \ ]
-  if dotfiles#plugman#is_registered('vim-fugitive')
+  if dotplug#is_registered('vim-fugitive')
     call extend(g:airline_extensions, ['branch', 'fugitiveline'])
   endif
-  if dotfiles#plugman#is_registered('vim-gitgutter') || dotfiles#plugman#is_registered('vim-signify')
+  if dotplug#is_registered('vim-gitgutter') || dotplug#is_registered('vim-signify')
     call extend(g:airline_extensions, ['hunks'])
   endif
-  if dotfiles#plugman#is_registered('gitsigns.nvim')
+  if dotplug#is_registered('gitsigns.nvim')
     call extend(g:airline_extensions, ['dotfiles_gitsigns_nvim'])
   endif
-  if dotfiles#plugman#is_registered('coc.nvim')
+  if dotplug#is_registered('coc.nvim')
     call extend(g:airline_extensions, ['coc', 'dotfiles_coclist'])
   endif
-  if dotfiles#plugman#is_registered('vim-obsession')
+  if dotplug#is_registered('vim-obsession')
     call extend(g:airline_extensions, ['obsession'])
   endif
   if get(g:, 'dotfiles_use_nvimlsp', 0)
@@ -232,11 +232,11 @@ let &history = max([&history, 10000])
   let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
 
   command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
-  command! -bar -bang -nargs=* -complete=customlist,dotfiles#plugman#command_completion FilesPlugins
+  command! -bar -bang -nargs=* -complete=customlist,dotplug#command_completion FilesPlugins
     \ if empty(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#plugins_dir)
-    \|elseif dotfiles#plugman#is_registered(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotfiles#plugman#get_install_dir(<q-args>))
+    \|  execute 'Files<bang>' fnameescape(dotplug#plugins_dir)
+    \|elseif dotplug#is_registered(<q-args>)
+    \|  execute 'Files<bang>' fnameescape(dotplug#get_install_dir(<q-args>))
     \|else
     \|  echohl WarningMsg
     \|  echomsg 'Plugin not found: ' . string(<q-args>)

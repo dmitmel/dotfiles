@@ -1,20 +1,18 @@
-" The filename is totally not a reference to Arch'es package manager.
+let g:dotplug#implementation =
+\ get(g:, 'dotplug#implementation', has('nvim-0.8.0') ? 'lazy.nvim' : 'vim-plug')
 
-let g:dotfiles#plugman#implementation =
-\ get(g:, 'dotfiles#plugman#implementation', has('nvim-0.8.0') ? 'lazy.nvim' : 'vim-plug')
-
-let g:dotfiles#plugman#autoinstall = get(g:, 'dotfiles#plugman#autoinstall', 1)
-let g:dotfiles#plugman#autoclean = get(g:, 'dotfiles#plugman#autoclean', 1)
+let g:dotplug#autoinstall = get(g:, 'dotplug#autoinstall', 1)
+let g:dotplug#autoclean = get(g:, 'dotplug#autoclean', 1)
 
 " vim-plug uses `https://git::@github.com/@s.git`, see
 " <https://github.com/junegunn/vim-plug/issues/56#issuecomment-52072710>.
 " However, authenication like that has been removed by GitHub:
 " <https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls>.
-let g:dotfiles#plugman#url_format = 'https://github.com/%s.git'
+let g:dotplug#url_format = 'https://github.com/%s.git'
 " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
-let g:dotfiles#plugman#default_priority = 50
+let g:dotplug#default_priority = 50
 
-function! dotfiles#plugman#register(repo, ...) abort
+function! dotplug#register(repo, ...) abort
   if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2): ' . a:0 | endif
   let spec = get(a:000, 0, {})
   if !has_key(spec, 'as')
@@ -23,80 +21,80 @@ function! dotfiles#plugman#register(repo, ...) abort
     " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/fragments.lua#L107-L121>
     let spec.as = fnamemodify(a:repo, ':t:s?\.git$??')
   endif
-  let spec.priority = get(spec, 'priority', g:dotfiles#plugman#default_priority)
+  let spec.priority = get(spec, 'priority', g:dotplug#default_priority)
   call s:register_impl(a:repo, spec)
 endfunction
 
-function! dotfiles#plugman#define_commands() abort
-  command! -nargs=+ -bar Plug call dotfiles#plugman#register(<args>)
+function! dotplug#define_commands() abort
+  command! -nargs=+ -bar Plug call dotplug#register(<args>)
 endfunction
 
 
 
 
-if g:dotfiles#plugman#implementation == 'lazy.nvim' && has('nvim-0.8.0') " {{{
+if g:dotplug#implementation == 'lazy.nvim' && has('nvim-0.8.0') " {{{
 
-let g:dotfiles#plugman#repo = 'folke/lazy.nvim'
-let g:dotfiles#plugman#plugins_dir = get(g:, 'dotfiles#plugman#plugins_dir', stdpath('data') . '/lazy')
+let g:dotplug#repo = 'folke/lazy.nvim'
+let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', stdpath('data') . '/lazy')
 
-function! dotfiles#plugman#is_registered(name) abort
+function! dotplug#is_registered(name) abort
   return luaeval('dotfiles.plugman.find_plugin(_A) ~= nil', a:name)
 endfunction
 
-function! dotfiles#plugman#get_install_dir(name) abort
+function! dotplug#get_install_dir(name) abort
   return luaeval('dotfiles.plugman.find_plugin(_A).dir', a:name)
 endfunction
 
-function! dotfiles#plugman#auto_install() abort
-  let lazypath = g:dotfiles#plugman#plugins_dir.'/lazy.nvim'
+function! dotplug#auto_install() abort
+  let lazypath = g:dotplug#plugins_dir.'/lazy.nvim'
   if !isdirectory(lazypath)
-    let lazyrepo = printf(g:dotfiles#plugman#url_format, g:dotfiles#plugman#repo)
+    let lazyrepo = printf(g:dotplug#url_format, g:dotplug#repo)
     execute '!git clone --filter=blob:none --branch=stable -c advice.detachedHead=false --progress'
       \ shellescape(lazyrepo, 1) shellescape(lazypath, 1)
   endif
   execute 'set runtimepath^='.lazypath
 endfunction
 
-function! dotfiles#plugman#begin() abort
+function! dotplug#begin() abort
   lua require('lazy')
   lua require('dotfiles.plugman')
-  call dotfiles#plugman#define_commands()
+  call dotplug#define_commands()
 endfunction
 
 function! s:register_impl(repo, spec) abort
   call v:lua.dotfiles.plugman.register_vimplug(a:repo, a:spec)
 endfunction
 
-function! dotfiles#plugman#end() abort
+function! dotplug#end() abort
   call v:lua.dotfiles.plugman.end_setup()
 endfunction
 
-function! dotfiles#plugman#check_sync() abort
+function! dotplug#check_sync() abort
 endfunction
 
-function! dotfiles#plugman#command_completion(arg_lead, cmd_line, cursor_pos) abort
+function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
   return v:lua.dotfiles.plugman.plugin_names_completion()
 endfunction
 
 
 
 " }}}
-elseif g:dotfiles#plugman#implementation == 'vim-plug' " {{{
+elseif g:dotplug#implementation == 'vim-plug' " {{{
 
-let g:dotfiles#plugman#repo = 'junegunn/vim-plug'
+let g:dotplug#repo = 'junegunn/vim-plug'
 let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
-let g:dotfiles#plugman#plugins_dir = get(g:, 'dotfiles#plugman#plugins_dir', s:stdpath_config . '/plugged')
+let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', s:stdpath_config . '/plugged')
 
 
-function! dotfiles#plugman#is_registered(name) abort
+function! dotplug#is_registered(name) abort
   return has_key(g:plugs, a:name) ? v:true : v:false
 endfunction
 
-function! dotfiles#plugman#get_install_dir(name) abort
+function! dotplug#get_install_dir(name) abort
   return g:plugs[a:name].dir
 endfunction
 
-function! dotfiles#plugman#auto_install() abort
+function! dotplug#auto_install() abort
   let s:install_path = 'autoload/plug.vim'
   if exists('*nvim_get_runtime_file') && !empty(nvim_get_runtime_file(s:install_path, 1))
     return
@@ -105,15 +103,15 @@ function! dotfiles#plugman#auto_install() abort
   endif
   let s:install_path = s:stdpath_config . '/' . s:install_path
   execute '!curl -fL'
-  \ shellescape('https://raw.githubusercontent.com/' . g:dotfiles#plugman#repo . '/master/plug.vim', 1)
+  \ shellescape('https://raw.githubusercontent.com/' . g:dotplug#repo . '/master/plug.vim', 1)
   \ '--create-dirs -o' shellescape(s:install_path, 1)
 endfunction
 
-function! dotfiles#plugman#begin() abort
-  let g:plug_url_format = g:dotfiles#plugman#url_format
-  call plug#begin(g:dotfiles#plugman#plugins_dir)
+function! dotplug#begin() abort
+  let g:plug_url_format = g:dotplug#url_format
+  call plug#begin(g:dotplug#plugins_dir)
   silent! delcommand PlugUpgrade
-  call dotfiles#plugman#define_commands()
+  call dotplug#define_commands()
 endfunction
 
 function! s:register_impl(repo, spec) abort
@@ -122,21 +120,21 @@ function! s:register_impl(repo, spec) abort
   endif
 endfunction
 
-function! dotfiles#plugman#end() abort
+function! dotplug#end() abort
   " The sort() function must be stable, meaning that we do not disrupt the order
   if v:version > 704 || (v:version == 704 && has("patch148"))
     " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
-    let def_prio = g:dotfiles#plugman#default_priority
+    let def_prio = g:dotplug#default_priority
     call sort(g:plugs_order, { name1, name2 -> get(g:plugs[name1], 'priority', def_prio) -
     \                                          get(g:plugs[name2], 'priority', def_prio) })
   endif
   call plug#end()
 endfunction
 
-function! dotfiles#plugman#check_sync() abort
+function! dotplug#check_sync() abort
   let need_clean = {}
   " <https://stackoverflow.com/a/13908273/12005228>
-  for subdir in glob(fnameescape(g:dotfiles#plugman#plugins_dir) . '/{,.}*/', 1, 1)
+  for subdir in glob(fnameescape(g:dotplug#plugins_dir) . '/{,.}*/', 1, 1)
     let subdir = fnamemodify(subdir, ":h:t")
     if subdir !=# "." && subdir !=# ".."
       let need_clean[subdir] = 1
@@ -155,10 +153,10 @@ function! dotfiles#plugman#check_sync() abort
     endif
   endfor
 
-  if !g:dotfiles#plugman#autoinstall
+  if !g:dotplug#autoinstall
     let need_install = {}
   endif
-  if !g:dotfiles#plugman#autoclean
+  if !g:dotplug#autoclean
     let need_clean = {}
   endif
 
@@ -174,12 +172,12 @@ function! dotfiles#plugman#check_sync() abort
   endif
 endfunction
 
-function! dotfiles#plugman#command_completion(arg_lead, cmd_line, cursor_pos) abort
+function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
   return keys(g:plugs)
 endfunction
 
 
 
 else
-  throw "Invalid plugin manager choice:" string(dotfiles#plugman#implementation)
+  throw "Invalid plugin manager choice:" string(dotplug#implementation)
 end   " }}}

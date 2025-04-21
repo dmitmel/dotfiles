@@ -164,9 +164,9 @@ endif
   " Mappings for quick prototyping: duplicate this line and comment it out.
 
   let s:comment_out_cmd = ''
-  if dotfiles#plugman#is_registered('tcomment_vim')
+  if dotplug#is_registered('tcomment_vim')
     let s:comment_out_cmd = 'TComment!'   " the ! means to always comment out the line
-  elseif dotfiles#plugman#is_registered('vim-commentary')
+  elseif dotplug#is_registered('vim-commentary')
     let s:comment_out_cmd = 'Commentary'  " vim-commentary does not have this capability"
   endif
 
@@ -299,7 +299,7 @@ endif
 
   let s:searchcount_plugin_available = 1
   noremap <Plug>dotfiles_search_show_count <nop>
-  if dotfiles#plugman#is_registered('vim-indexed-search')
+  if dotplug#is_registered('vim-indexed-search')
     let g:indexed_search_mappings = 0
     nnoremap <Plug>dotfiles_search_show_count :ShowSearchIndex<CR>
     xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
@@ -503,7 +503,7 @@ endif
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
 
-  if dotfiles#plugman#is_registered('tcomment_vim')
+  if dotplug#is_registered('tcomment_vim')
     " Closely replicate the behavior of tpope/vim-commentary
     nmap <silent> gc  <Plug>TComment_gc
     nmap <silent> gcc <Plug>TComment_gcc
@@ -572,8 +572,8 @@ endif
   let g:c_no_bracket_error = 1
   let g:c_no_curly_error = 1
 
-	let g:lua_version = 5
-	let g:lua_subversion = 1
+  let g:lua_version = 5
+  let g:lua_subversion = 1
 
 " }}}
 

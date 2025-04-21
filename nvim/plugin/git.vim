@@ -22,7 +22,7 @@ let g:signify_sign_change            = g:gitgutter_sign_modified
 let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
 
 
-if dotfiles#plugman#is_registered('gitsigns.nvim')  " {{{
+if dotplug#is_registered('gitsigns.nvim')  " {{{
   lua <<EOF
   local ok, gitsigns = pcall(require, 'gitsigns')
   if not ok then return end
