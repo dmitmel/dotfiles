@@ -63,11 +63,11 @@ function! s:start_self_debug_server(port) abort
 
     -- The way OSV launches the headless Neovim by default is too brittle.
     -- See <https://github.com/jbyuki/one-small-step-for-vimkind/issues/62>.
-    osv.on["start_server"] = function(args, env)
-      local init_cmd = 'let &rtp = $DOTFILES_OSV_PATH'
-      args = { vim.v.progpath, '--clean', '--embed', '--headless', '-c', init_cmd }
-      env = { DOTFILES_OSV_PATH = osv_dir }
-      return vim.fn.jobstart(args, { rpc = true, env = env })
+    osv.on["start_server"] = function(_args, _env)
+      local my_args = { vim.v.progpath, '--clean', '--embed', '--headless' }
+      local nvim = vim.fn.jobstart(my_args, { rpc = true })
+      vim.fn.rpcrequest(nvim, 'nvim_exec_lua', 'vim.o.runtimepath = (...)', { osv_dir })
+      return nvim
     end
 
     -- Fix for a typo here: <https://github.com/jbyuki/one-small-step-for-vimkind/blob/330049a237635b7cae8aef4972312e6da513cf91/src/launch.lua.t#L162-L163>
@@ -85,7 +85,7 @@ endfunction
 
 call s:configure_runtimepath()
 
-if get(g:, 'dotfiles_debug_self_on_port', 0)
+if has('nvim') && get(g:, 'dotfiles_debug_self_on_port', 0)
   call s:start_self_debug_server(g:dotfiles_debug_self_on_port)
 endif
 
