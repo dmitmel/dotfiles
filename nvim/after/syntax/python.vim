@@ -1,10 +1,9 @@
 let s:saved_syntax = b:current_syntax
-let s:restore_syn_case = trim(execute('syntax case', 'silent'))
 unlet! b:current_syntax
-syn include @SQL syntax/sql.vim
+syntax include @SQL syntax/sql.vim
+syntax case match
 let b:current_syntax = s:saved_syntax
-execute s:restore_syn_case
-unlet! s:saved_syntax s:restore_syn_case
+unlet! s:saved_syntax
 
 " <https://github.com/sublimehq/Packages/blob/759d6eed9b4beed87e602a23303a121c3a6c2fb3/Python/Python.sublime-syntax#L39>
 " <https://github.com/neovim/neovim/blob/7f93b2ab01c93720820712a3c81462a58d04dfa0/runtime/syntax/python.vim#L123-L135>

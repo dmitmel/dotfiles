@@ -285,7 +285,7 @@ nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
       let tmp = @a
       try
         normal! "ay
-        let uri = trim(@a)
+        let uri = exists('*trim') ? trim(@a) : @a
       finally
         let @a = tmp
       endtry
