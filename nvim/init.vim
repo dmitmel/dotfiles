@@ -33,7 +33,9 @@ let g:do_filetype_lua = has('nvim')
 
 function! s:remove(list, element) abort
   let i = index(a:list, a:element)
-  if i >= 0 | call remove(a:list, i) | endif
+  if i >= 0
+    call remove(a:list, i)
+  endif
 endfunction
 
 function! s:configure_runtimepath() abort
@@ -45,11 +47,35 @@ function! s:configure_runtimepath() abort
   let &runtimepath = join(rtp, ',')
 endfunction
 
-function! s:start_self_debug_server() abort
+function! s:start_self_debug_server(port) abort
+  let osv_dir = g:dotfiles#plugman#plugins_dir . '/one-small-step-for-vimkind'
+  if !isdirectory(osv_dir)
+    return
+  endif
   let rtp_backup = &runtimepath
   try
-    let &rtp .= ',' . g:dotfiles#plugman#plugins_dir . '/one-small-step-for-vimkind'
-    lua require('osv').launch({ host = '127.0.0.1', port = 8086, blocking = true })
+    let &rtp .= ',' . osv_dir
+    let nvim_args = []
+    " Firstly, we need to ensure that Neovim is started in a pristine
+    " environment, without running ANY scripts, it should operate used ONLY as
+    " an RPC server.
+    let nvim_args += ['-u', 'NONE']   " Disable any user or system configs
+    let nvim_args += ['--noplugins']  " Disable loading `plugin/` scripts
+    let nvim_args += ['-i', 'NONE']   " Disable ShaDa
+    let nvim_args += ['-n']           " Disable swapfile
+    " This is done so that the child process can `require()` the osv library.
+    " Hopefully, escaping the string as JSON will prevent any runaway Vimscript
+    " escape characters.
+    let nvim_args += ['-c', 'let &rtp = ' . json_encode(escape(osv_dir, ','))]
+    " Block any further initialization or processing. This does not prevent Vim
+    " from processing RPC requests though.
+    let nvim_args += ['-c', 'call getchar()']
+    let osv_options = { 'host': '127.0.0.1', 'port': a:port, 'blocking': v:true, 'args': nvim_args }
+    lua require('osv').launch(vim.call('eval', 'l:osv_options'))
+  catch
+    echohl ErrorMsg
+    echomsg 'Error in ' . v:throwpoint . ': ' v:exception
+    echohl NONE
   finally
     let &runtimepath = rtp_backup
   endtry
@@ -57,8 +83,8 @@ endfunction
 
 call s:configure_runtimepath()
 
-if get(g:, 'dotfiles_debug_self', 0)
-  call s:start_self_debug_server()
+if get(g:, 'dotfiles_debug_self_on_port', 0)
+  call s:start_self_debug_server(g:dotfiles_debug_self_on_port)
 endif
 
 if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
