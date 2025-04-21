@@ -41,14 +41,19 @@ endif
   " `shiftwidth` number spaces in front of a line.
   set smarttab
 
-  function! DotfilesSetIndent(expandtab, shiftwidth) abort
-    let &l:expandtab = a:expandtab
-    let &l:shiftwidth = a:shiftwidth
-    let &l:tabstop = a:shiftwidth
-    let &l:softtabstop = a:shiftwidth
+  function! SetIndent(use_tabs, cmd_arg) abort
+    if a:cmd_arg !=# '?'
+      let prev_width = &l:expandtab ? shiftwidth() : &l:tabstop
+      let width = empty(a:cmd_arg) ? prev_width : +(a:cmd_arg)
+      let &l:expandtab   = !a:use_tabs
+      let &l:shiftwidth  = width
+      let &l:tabstop     = width
+      let &l:softtabstop = width
+    endif
+    echo printf('set %set sw=%d ts=%d sts=%d', &l:et ? '' : 'no', &l:sw, &l:ts, &l:sts)
   endfunction
-  command -nargs=1 -bar Indent call DotfilesSetIndent(1, str2nr(<q-args>))
-  command -nargs=1 -bar IndentTabs call DotfilesSetIndent(0, str2nr(<q-args>))
+  command -nargs=? -bar Indent call SetIndent(0, <q-args>)
+  command -nargs=? -bar IndentTabs call SetIndent(1, <q-args>)
   command -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
 
   let g:sleuth_automatic = 0
@@ -57,7 +62,7 @@ endif
       silent Sleuth
     endif
     " Sync shiftwidth, tabstop and softtabstop with each other.
-    call DotfilesSetIndent(&l:expandtab, &l:expandtab ? shiftwidth() : &l:tabstop)
+    silent call SetIndent(&l:expandtab, '')
   endfunction
   augroup dotfiles_sleuth_hack
     autocmd!

@@ -5,6 +5,8 @@
 --- <https://github.com/bfredl/bfredl.github.io/blob/ed438742f0a1d8a36669bcd4ccb019f5dca9fac2/nvim/lua/bfredl/miniguide.lua>
 --- <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/init.lua>
 --- <https://github.com/Yggdroot/indentLine/blob/5617a1cf7d315e6e6f84d825c85e3b669d220bfa/after/plugin/indentLine.vim>
+---
+--- TODO: `:h nvim__redraw()`
 local M = require('dotfiles.autoload')('dotfiles.sane_indentline')
 
 local utils = require('dotfiles.utils')
@@ -195,6 +197,7 @@ end
 function M.decorations_provider:on_line(winid, bufnr, row)
   local win_info = self.wins_info[winid]
   local buf_info = self.bufs_info[bufnr]
+  local lnum = row + 1
 
   local shiftwidth = buf_info.shiftwidth
   local indent = 0
@@ -202,13 +205,16 @@ function M.decorations_provider:on_line(winid, bufnr, row)
   local space_hlgroups = self.hlgroups_space
   -- NOTE: nvim_win_call also switches the buffer, and folds are window-local.
   vim.api.nvim_win_call(winid, function()
-    if self.show_on_folded_lines or vim.fn.foldclosed(row + 1) < 0 then
-      indent = vim.fn.indent(row + 1)
+    if self.show_on_folded_lines or vim.fn.foldclosed(lnum) < 0 then
+      indent = vim.fn.indent(lnum)
       if indent == 0 then
-        indent = math.min(
-          vim.fn.indent(vim.fn.prevnonblank(row + 1)),
-          vim.fn.indent(vim.fn.nextnonblank(row + 1))
-        )
+        local prev_nb, next_nb = vim.fn.prevnonblank(lnum), vim.fn.nextnonblank(lnum)
+        if prev_nb == next_nb then
+          -- Save time by not calling indent() twice.
+          indent = vim.fn.indent(next_nb)
+        else
+          indent = math.min(vim.fn.indent(prev_nb), vim.fn.indent(next_nb))
+        end
         space_char = self.blankline_char
         space_hlgroups = self.hlgroups_space_blankline
         if self.add_one_more_indent_on_blanklines then
@@ -247,10 +253,8 @@ function M.decorations_provider:on_line(winid, bufnr, row)
     left_offset = left_offset + char_width
 
     local space_width = math.max(0, shiftwidth - char_width)
-    local space = string.rep(
-      space_char,
-      space_width + unrendered_char_cols + math.min(left_offset, 0)
-    )
+    local space =
+      string.rep(space_char, space_width + unrendered_char_cols + math.min(left_offset, 0))
     if #space > 0 then
       chunks[#chunks + 1] = { space, space_hlgroups[curr_indent_level % #space_hlgroups + 1] }
     end
@@ -272,9 +276,7 @@ function M.decorations_provider:on_line(winid, bufnr, row)
   end
 end
 
-function M.decorations_provider:on_end(tick)
-  self:reset()
-end
+function M.decorations_provider:on_end(tick) self:reset() end
 
 -- stylua: ignore start
 vim.api.nvim_set_decoration_provider(M.ns_id, {
