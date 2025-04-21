@@ -424,6 +424,7 @@ if dotfiles#plugman#is_registered('vimspector')  " {{{
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgBreakLog  call vimspector#SetLineBreakpoint(expand('%'), line('.'), {'logMessage': <q-args>})
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgEval      call vimspector#Evaluate(<q-args>)
   command! -nargs=1 -complete=custom,vimspector#CompleteExpr DbgWatch     call vimspector#AddWatch(<q-args>)
+  command! -bar DbgStartLua lua require('osv').launch({ host = '127.0.0.1', port = 8086, blocking = true })
 
   let g:vimspector_configurations = {}
   let g:vimspector_adapters = {}

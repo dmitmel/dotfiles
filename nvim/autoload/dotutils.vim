@@ -1,10 +1,3 @@
-function! dotutils#remove(array, element) abort
-  let index = index(a:array, a:element)
-  if index >= 0
-    call remove(a:array, index)
-  endif
-endfunction
-
 function! dotutils#starts_with(str, prefix) abort
   return empty(a:prefix) || a:str[:len(a:prefix)-1] ==# a:prefix
 endfunction

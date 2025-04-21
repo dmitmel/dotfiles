@@ -2,12 +2,6 @@ set nocompatible
 set cpoptions&vim
 set encoding=utf-8
 
-if has('nvim')
-  " Get rid of all default mappings defined here:
-  " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua>
-  mapclear
-endif
-
 " Sensible defaults:
 " <https://github.com/tpope/vim-sensible/blob/master/plugin/sensible.vim>
 " <https://github.com/sheerun/vimrc/blob/master/plugin/vimrc.vim>
@@ -20,19 +14,47 @@ if !exists('g:dotfiles_boot_reltime')
   let g:dotfiles_boot_localtime = localtime()
 endif
 
+if has('nvim')
+  " Get rid of all default mappings defined here:
+  " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua>
+  mapclear
+endif
+
 let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
 let g:vim_ide = get(g:, 'vim_ide', 0)
 let g:dotfiles_sane_indentline_enable = get(g:, 'dotfiles_sane_indentline_enable', 1)
 
-function! s:configure_runtimepath() abort
-  execute 'set runtimepath-='.g:nvim_dotfiles_dir
-  execute 'set runtimepath^='.g:nvim_dotfiles_dir
-  execute 'set runtimepath-='.g:nvim_dotfiles_dir.'/after'
-  execute 'set runtimepath+='.g:nvim_dotfiles_dir.'/after'
+function! s:remove(list, element) abort
+  let i = index(a:list, a:element)
+  if i >= 0 | call remove(a:list, i) | endif
 endfunction
+
+function! s:configure_runtimepath() abort
+  let rtp = split(&runtimepath, ',')
+  call s:remove(rtp, g:nvim_dotfiles_dir)
+  call   insert(rtp, g:nvim_dotfiles_dir)
+  call s:remove(rtp, g:nvim_dotfiles_dir . '/after')
+  call      add(rtp, g:nvim_dotfiles_dir . '/after')
+  let &runtimepath = join(rtp, ',')
+endfunction
+
+function! s:start_self_debug_server() abort
+  let rtp_backup = &runtimepath
+  try
+    let &rtp .= ',' . g:dotfiles#plugman#plugins_dir . '/one-small-step-for-vimkind'
+    lua require('osv').launch({ host = '127.0.0.1', port = 8086, blocking = true })
+  finally
+    let &runtimepath = rtp_backup
+  endtry
+endfunction
+
 call s:configure_runtimepath()
+
+if get(g:, 'dotfiles_debug_self', 0)
+  call s:start_self_debug_server()
+endif
 
 if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
   set termguicolors
