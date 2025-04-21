@@ -360,10 +360,8 @@ if dotfiles#plugman#is_registered('coc.nvim')  " {{{
 
   runtime! dotfiles/coc-languages/*.vim
 
-  if !g:dotfiles_build_coc_from_source
-    let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
-    call extend(g:coc_global_extensions, keys(g:dotfiles_coc_extensions))
-  endif
+  let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
+  call extend(g:coc_global_extensions, keys(g:dotfiles_coc_extensions))
 
 endif  " }}}
 

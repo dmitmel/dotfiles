@@ -208,37 +208,6 @@
       Plug 'https://github.com/hrsh7th/cmp-path', { 'branch': 'main' }
       " Snippets registered in the snippet engine.
       Plug 'https://github.com/dcampos/cmp-snippy'
-    elseif g:dotfiles_build_coc_from_source
-      let s:npm_install = 'yarn install --frozen-lockfile'
-      " Plugins for the old completion-and-language-analysis system based
-      " around coc.nvim.
-      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'master', 'do': s:npm_install }
-      " Port of <https://github.com/rust-analyzer/rust-analyzer/tree/master/editors/code>.
-      Plug 'https://github.com/fannheyward/coc-rust-analyzer', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/vscode/tree/main/extensions/typescript-language-features>.
-      " <https://github.com/Microsoft/TypeScript/wiki/Standalone-Server-%28tsserver%29>
-      Plug 'https://github.com/neoclide/coc-tsserver', { 'do': s:npm_install }
-      " Port of <https://github.com/Microsoft/vscode-eslint>.
-      Plug 'https://github.com/neoclide/coc-eslint', { 'do': s:npm_install }
-      " Port of <https://github.com/prettier/prettier-vscode>.
-      Plug 'https://github.com/neoclide/coc-prettier', { 'do': s:npm_install }
-      " The snippet engine. The core actually doesn't handle expansion of
-      " snippets, so this is required even when not using snippet libraries
-      " because Language Servers often respond with snippets in completion
-      " results.
-      Plug 'https://github.com/neoclide/coc-snippets', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/vscode/tree/main/extensions/json-language-features>.
-      Plug 'https://github.com/neoclide/coc-json', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/vscode/tree/main/extensions/html-language-features>.
-      Plug 'https://github.com/neoclide/coc-html', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/vscode/tree/main/extensions/emmet>.
-      Plug 'https://github.com/neoclide/coc-emmet', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/vscode/tree/main/extensions/css-language-features>.
-      Plug 'https://github.com/neoclide/coc-css', { 'do': s:npm_install }
-      " Port of <https://github.com/microsoft/pyright/tree/main/packages/vscode-pyright>.
-      Plug 'https://github.com/fannheyward/coc-pyright', { 'do': s:npm_install }
-      " An adapter for <https://clangd.llvm.org/installation>.
-      Plug 'https://github.com/clangd/coc-clangd', { 'do': s:npm_install }
     else
       Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release' }
     endif
