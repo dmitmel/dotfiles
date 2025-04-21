@@ -4,8 +4,11 @@ let s:filetypes = {'lua': 1}
 call extend(g:dotfiles_coc_filetypes, s:filetypes)
 call extend(g:dotfiles_coc_extensions, {'coc-sumneko-lua': 1, 'coc-stylua': 1})
 
-let g:coc_user_config['stylua.styluaPath'] = exepath('stylua')
-let g:coc_user_config['stylua.configPath'] = g:nvim_dotfiles_dir . '/stylua.toml'
+let g:coc_user_config['stylua'] = {
+\ 'styluaPath': exepath('stylua'),
+\ 'checkUpdate': v:false,
+\ 'configPath': g:nvim_dotfiles_dir . '/stylua.toml',
+\}
 
 for s:server_dir in ['/usr/lib/lua-language-server', '/usr/local/opt/lua-language-server/libexec']
   if isdirectory(s:server_dir)

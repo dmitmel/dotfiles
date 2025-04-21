@@ -290,6 +290,8 @@ function! s:setup() abort
     hi! link @lsp.type.type            @type
     hi! link @lsp.type.typeParameter   @type.definition
     hi! link @lsp.type.variable        @variable
+    hi! link @module.builtin.lua       Type
+    hi! link @function.builtin.lua     Type
 
     call Hi('@comment.todo',    { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
     call Hi('@comment.note',    { 'fg': 0xD, 'bg': 'bg', 'attr': 'reverse,bold' })
