@@ -3,7 +3,7 @@ snippet function function
 		$0
 	endfunction
 snippet autofunction autoloaded function
-	function! `dotfiles#ftplugin_helpers#vim#autoload_prefix()`$1($2) abort
+	function! `dotfiles#ft#vim#autoload_prefix()`$1($2) abort
 		$0
 	endfunction
 snippet augroup autocommand group
@@ -30,9 +30,9 @@ snippet try try-catch block
 
 	endtry
 snippet letdefault Assign a default value to a variable
-	let g:`dotfiles#ftplugin_helpers#vim#autoload_prefix()`$1 = get(g:, '`dotfiles#ftplugin_helpers#vim#autoload_prefix()`$1', $2)
+	let g:`dotfiles#ft#vim#autoload_prefix()`$1 = get(g:, '`dotfiles#ft#vim#autoload_prefix()`$1', $2)
 snippet autoid Get script's autoloaded identifier prefix
-	`dotfiles#ftplugin_helpers#vim#autoload_prefix()`
+	`dotfiles#ft#vim#autoload_prefix()`
 snippet luablock lua <<EOF
 	lua <<EOF
 	$0

@@ -1,4 +1,4 @@
-function! dotfiles#ftplugin_helpers#vim#autoload_prefix() abort
+function! dotfiles#ft#vim#autoload_prefix() abort
   let path = expand('%:p')
   if dotutils#ends_with(path, '.vim')
     let path = has('win32') ? tr(path, '\', '/') : path

@@ -10,7 +10,7 @@
 " <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/lua/vim.lua#L56-L85>
 " 3. How Vim sets updates package.path to match runtimepath:
 " <https://github.com/vim/vim/blob/v8.2.3425/src/if_lua.c#L2368-L2431>
-function! dotfiles#ftplugin_helpers#lua#includeexpr(fname) abort
+function! dotfiles#ft#lua#includeexpr(fname) abort
   if exists('*luaeval')
     " In NVim this will only take care of resolving system libraries, in Vim
     " this should be able to handle RTP scripts as well. This is because Nvim
@@ -33,7 +33,7 @@ function! dotfiles#ftplugin_helpers#lua#includeexpr(fname) abort
   return tr(a:fname, '.', '/')
 endfunction
 
-function! dotfiles#ftplugin_helpers#lua#module_name() abort
+function! dotfiles#ft#lua#module_name() abort
   let path = expand('%:p')
   if dotutils#ends_with(path, '.lua')
     let path = has('win32') ? tr(path, '\', '/') : path

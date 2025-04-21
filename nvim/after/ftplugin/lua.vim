@@ -8,6 +8,6 @@ setlocal comments=:---,:--
 
 " Taken from <https://github.com/xolox/vim-lua-ftplugin/blob/bcbf914046684f19955f24664c1659b330fcb241/ftplugin/lua.vim#L21-L24>
 let &l:include = '\v<%(%(do|load)file|require)>[^''"]*[''"]\zs[^''"]+'
-let &l:includeexpr = 'dotfiles#ftplugin_helpers#lua#includeexpr(v:fname)'
+let &l:includeexpr = 'dotfiles#ft#lua#includeexpr(v:fname)'
 
 call dotutils#undo_ftplugin_hook('unlet! b:runfileprg | setlocal comments< include< includeexpr<')
