@@ -572,6 +572,9 @@ endif
   let g:c_no_bracket_error = 1
   let g:c_no_curly_error = 1
 
+	let g:lua_version = 5
+	let g:lua_subversion = 1
+
 " }}}
 
 

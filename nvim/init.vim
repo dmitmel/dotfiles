@@ -26,6 +26,11 @@ let g:dotfiles_dir = expand('<sfile>:p:h:h')
 let g:vim_ide = get(g:, 'vim_ide', 0)
 let g:dotfiles_sane_indentline_enable = get(g:, 'dotfiles_sane_indentline_enable', 1)
 
+" Make sure everybody knows that comma is the leader!
+let g:mapleader = ','
+" Use Nvim's new filetype detection system if it is available.
+let g:do_filetype_lua = has('nvim')
+
 function! s:remove(list, element) abort
   let i = index(a:list, a:element)
   if i >= 0 | call remove(a:list, i) | endif
@@ -69,9 +74,6 @@ if has('nvim-0.2.1') || has('lua')
   endif
 endif
 
-" Make sure everybody knows that comma is the leader!
-let g:mapleader = ','
-
 " I want to load the colorscheme as early as possible, so that if any part of
 " config crashes, we still get the correct highlighting and colors.
 colorscheme dotfiles
@@ -80,10 +82,6 @@ if has('nvim-0.5.0')
   " Preload the Lua utilities.
   lua require('dotfiles')
 endif
-
-" Disable the new Lua-based filetype detection system introduced in the newer
-" Nvim versions.
-let g:do_legacy_filetype = 1
 
 call dotfiles#plugman#auto_install()
 call dotfiles#plugman#begin()

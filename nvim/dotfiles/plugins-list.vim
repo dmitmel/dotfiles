@@ -214,6 +214,13 @@
     Plug 'https://github.com/bfredl/luarefvim'
     Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
   endif
+
+  if has('nvim-0.5.0') && !has('nvim-0.7.0')
+    " An alternative and optimized filetype detection system. No longer
+    " required as it was integrated into the Neovim core in v0.7.0:
+    " <https://github.com/neovim/neovim/commit/3fd454bd4a6ceb1989d15cf2d3d5e11d7a253b2d>
+    Plug 'https://github.com/nathom/filetype.nvim', { 'branch': 'main' }
+  endif
 " }}}
 
 " Programming {{{
