@@ -335,6 +335,7 @@ if dotplug#has('coc.nvim')  " {{{
   " On Neovim, the UltiSnips snippets loader has to spawn a subprocess for the
   " Python rplugin provider, even if no snippets in its format are found.
   let g:coc_user_config['snippets.ultisnips.enable'] = v:false
+  let g:coc_user_config['snippets.textmateSnippetsRoots'] = [g:nvim_dotfiles_dir.'/snippets']
   let g:coc_user_config['signature.target'] = 'echo'
   let g:coc_user_config['dialog.rounded'] = v:false
   let g:coc_user_config['dialog.floatHighlight'] = 'CocFloating'

@@ -1,0 +1,95 @@
+{
+  "assert": {
+    "prefix": "assert",
+    "description": "Assertion",
+    "body": [
+      "if (!($1)) {", //
+      "\tthrow new Error(\"Assertion failed: $1\");",
+      "}"
+    ]
+  },
+  "foriarr": {
+    "prefix": "foriarr",
+    "description": "fast for-loop over an array",
+    "body": [
+      "for (let ${2:i} = 0, len = ${1:array}.length; ${2:i} < len; ${2:i}++) {",
+      "\tlet ${3:element} = ${1:array}[${2:i}];",
+      "\t$0",
+      "}"
+    ]
+  },
+  "iife": {
+    "prefix": "iife",
+    "description": "Immediately-invoked function expression (IIFE)",
+    "body": [
+      "(function() {", //
+      "\t'use strict';",
+      "\t$0",
+      "})();"
+    ]
+  },
+  "iifearr": {
+    "prefix": "iifearr",
+    "description": "Immediately-invoked function expression (IIFE), arrow edition",
+    "body": [
+      "(() => {", //
+      "\t$0",
+      "})();"
+    ]
+  },
+  "iifeasync": {
+    "prefix": "iifeasync",
+    "description": "Immediately-invoked function expression (IIFE), async arrow edition",
+    "body": [
+      "(async () => {", //
+      "\t$0",
+      "})();"
+    ]
+  },
+  "nodecallback": {
+    "prefix": "nodecallback",
+    "description": "Old-school Node.js callback",
+    "body": [
+      "(err, $1) => {", //
+      "\tif (err != null) throw err;",
+      "\t$0",
+      "}"
+    ]
+  },
+  "reqfs": {
+    "prefix": "reqfs",
+    "description": "Import the 'fs' module",
+    "body": ["const fs = require('fs');"]
+  },
+  "reqpaths": {
+    "prefix": "reqpaths",
+    "description": "Import the 'path' module",
+    "body": ["const path = require('path');"]
+  },
+  "igmodule": {
+    "prefix": "igmodule",
+    "description": "Impact.js module",
+    "body": [
+      "ig.module('$1')", //
+      "\t.requires('$2')",
+      "\t.defines(() => {",
+      "\t\t$0",
+      "\t});"
+    ]
+  },
+  "timeit": {
+    "prefix": "timeit",
+    "description": "measure execution time of a section of code",
+    "body": [
+      "let startTime${1:Test} = performance.now();",
+      "$0",
+      "let elapsedTime${1:Test} = performance.now() - startTime${1:Test};",
+      "console.log(elapsedTime${1:Test});"
+    ]
+  },
+  "unreachable": {
+    "prefix": "unreachable",
+    "description": "",
+    "body": ["throw new Error('unreachable');"]
+  }
+}

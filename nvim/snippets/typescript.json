@@ -1,0 +1,15 @@
+{
+  "cctsclass": {
+    "prefix": "cctsclass",
+    "description": "ultimate-crosscode-typedefs class",
+    "body": [
+      "interface ${1:MyClass} extends ${2:ig.Class} {",
+      "\t$0",
+      "}",
+      "interface ${1:MyClass}Constructor extends ImpactClass<${1:MyClass}> {",
+      "\tnew (/* TODO */): ${1:MyClass};",
+      "}",
+      "var ${1:MyClass}: ${1:MyClass}Constructor;"
+    ]
+  }
+}

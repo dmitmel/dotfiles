@@ -1,0 +1,32 @@
+{
+  "if": {
+    "prefix": "if",
+    "description": "",
+    "body": ["if($1)", "\t$0", "endif()"]
+  },
+  "ifelse": {
+    "prefix": "ifelse",
+    "description": "",
+    "body": ["if($1)", "\t$2", "else()", "\t$0", "endif()"]
+  },
+  "foreach": {
+    "prefix": "foreach",
+    "description": "",
+    "body": ["foreach($1)", "\t$0", "endforeach()"]
+  },
+  "while": {
+    "prefix": "while",
+    "description": "",
+    "body": ["while($1)", "\t$0", "endwhile()"]
+  },
+  "macro": {
+    "prefix": "macro",
+    "description": "",
+    "body": ["macro($1)", "\t$0", "endmacro()"]
+  },
+  "function": {
+    "prefix": "function",
+    "description": "",
+    "body": ["function($1)", "\t$0", "endfunction()"]
+  }
+}

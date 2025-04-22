@@ -12,12 +12,12 @@ autocmd BufReadPost */node_modules/typescript/lib/lib.*.d.ts ++nested
 autocmd BufReadPre */node_modules/typescript/lib/lib.*.d.ts
 \ unlet! b:dotfiles_fileformat_checked
 
-autocmd BufNewFile,BufRead *.snippets setf snippets
-
 autocmd BufNewFile,BufRead */etc/fonts/*.conf,*/fontconfig/*.conf setf xml
 
 autocmd BufNewFile,BufRead */.clangd setf yaml
 
-autocmd BufNewFile,BufRead */.vimspector.json setf jsonc
+autocmd BufNewFile,BufRead */.vimspector.json setf jsonc.vimspector
 
 autocmd BufNewFile,BufRead */.latexmkrc setf perl
+
+autocmd BufNewFile,BufRead */snippets/*.json setf jsonc.snippets

@@ -1,0 +1,17 @@
+{
+  "codeblock": {
+    "prefix": "codeblock",
+    "description": "code block",
+    "body": ["\\`\\`\\`$1", "$0", "\\`\\`\\`"]
+  },
+  "sub": {
+    "prefix": "sub",
+    "description": "subscript text",
+    "body": ["$1<sub>$2</sub>$0"]
+  },
+  "sup": {
+    "prefix": "sup",
+    "description": "superscript text",
+    "body": ["$1<sup>$2</sup>$0"]
+  }
+}
