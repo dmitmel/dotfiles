@@ -12,6 +12,6 @@ let g:coc_user_config['json.schemas'] = [
 \ },
 \ {
 \   'fileMatch': ['*.vimspector.json'],
-\   'url': 'https://raw.githubusercontent.com/Yash-Singh1/vscode-snippets-json-schema/main/schema.json',
+\   'url': 'https://puremourning.github.io/vimspector/schema/vimspector.schema.json',
 \ },
 \]
