@@ -37,11 +37,12 @@ function! s:loader_mapping(lhs, plugin) abort
 endfunction
 
 function! dotplug#define_loader_keymap(lhs, plugin) abort
-  return printf(
-  \ 'noremap  <silent><expr> %1$s %2$sloader_mapping(%3$s, %4$s)' . "\n" .
-  \ 'noremap! <silent><expr> %1$s %2$sloader_mapping(%3$s, %4$s)',
-  \ a:lhs, expand('<SID>'), json_encode(a:lhs), json_encode(a:plugin)
-  \)
+  let cmds = []
+  for map_cmd in ['noremap', 'noremap!']
+    call add(cmds, printf('%s <silent><expr> %s %sloader_mapping(%s, %s)',
+    \ map_cmd, a:lhs, expand('<SID>'), json_encode(a:lhs), json_encode(a:plugin)))
+  endfor
+  return join(cmds, "\n")
 endfunction
 
 

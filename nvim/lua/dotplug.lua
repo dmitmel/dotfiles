@@ -29,7 +29,7 @@ M.lazy_config = {
 ---@param name string
 ---@return LazyPlugin|nil
 function M.find_plugin(name)
-  vim.validate('name', name, 'string')
+  utils.check_type('name', name, 'string')
   for _, spec in pairs(lazy.plugins()) do
     if spec.name == name then
       return spec
@@ -40,7 +40,7 @@ end
 
 ---@param names string[]
 function M.load(names)
-  vim.validate('names', names, vim.tbl_islist, 'list')
+  utils.check_type('names', names, utils.is_list(names), 'list')
   if vim.tbl_isempty(names) then
     error('expected one or more plugin names')
   end
@@ -65,27 +65,29 @@ end
 
 --- <https://github.com/junegunn/vim-plug#plug-options>
 --- <https://github.com/junegunn/vim-plug/blob/baa66bcf349a6f6c125b0b2b63c112662b0669e1/plug.vim#L716-L752>
+--- <https://lazy.folke.io/spec>
 ---@class VimplugSpec
----@field branch    string           = |LazyPluginSpec.branch|
----@field tag       string           = |LazyPluginSpec.tag|
----@field commit    string           = |LazyPluginSpec.tag|
----@field rtp       string           unsupported
----@field dir       string           unsupported
----@field as        string           = |LazyPluginSpec.name|
----@field do        string|function  = |LazyPluginSpec.build|
----@field on        string|string[]  unsupported
----@field for       string|string[]  unsupported
----@field frozen    number|boolean   = |LazyPluginSpec.pin|
----@field requires  string|string[]  = |LazyPluginSpec.dependencies|
----@field priority  number           = |LazyPluginSpec.priority|
----@field if        number|boolean   = |LazyPluginSpec.enabled|
----@field lazy      number|boolean   = |LazyPluginSpec.lazy|
+---@field branch?   string           = |LazyPluginSpec.branch|
+---@field tag?      string           = |LazyPluginSpec.tag|
+---@field commit?   string           = |LazyPluginSpec.tag|
+---@field rtp?      string           unsupported
+---@field dir?      string           unsupported
+---@field as?       string           = |LazyPluginSpec.name|
+---@field do?       string|function  = |LazyPluginSpec.build|
+---@field on?       string|string[]  unsupported
+---@field for?      string|string[]  unsupported
+---@field frozen?   number|boolean   = |LazyPluginSpec.pin|
+---@field requires? string|string[]  = |LazyPluginSpec.dependencies|
+---@field priority? number           = |LazyPluginSpec.priority|
+---@field if?       number|boolean   = |LazyPluginSpec.enabled|
+---@field lazy?     number|boolean   = |LazyPluginSpec.lazy|
+---@field setup?    string           = |LazyPluginSpec.config|
 
 ---@param repo string
 ---@param old_spec VimplugSpec
 function M.vimplug(repo, old_spec)
-  vim.validate('repo', repo, 'string')
-  vim.validate('old_spec', old_spec, 'table')
+  utils.check_type('repo', repo, 'string')
+  utils.check_type('old_spec', old_spec, 'table')
 
   local specs = M.lazy_config.spec
 
@@ -95,24 +97,19 @@ function M.vimplug(repo, old_spec)
     lazy = false,
   }
 
-  local opt_err = "Unexpected value of option '%s', expected %s"
-
   -- <https://github.com/junegunn/vim-plug/blob/baa66bcf349a6f6c125b0b2b63c112662b0669e1/plug.vim#L716-L752>
   for key, value in pairs(old_spec) do
     if key == 'do' then
-      if type(value) ~= 'string' and type(value) ~= 'function' then
-        error(opt_err:format(key, 'string or function'))
+      if type(value) == 'string' or type(value) == 'function' then
+      else
+        error(string.format('%s: expected string or function, got %s', key, type(value)))
       end
       spec.build = value
     elseif key == 'branch' or key == 'tag' or key == 'commit' then
-      if type(value) ~= 'string' then
-        error(opt_err:format(key, 'a string'))
-      end
+      utils.check_type('key', value, 'string')
       spec[key] = value --[[@as any]]
     elseif key == 'as' then
-      if type(value) ~= 'string' then
-        error(opt_err:format(key, 'a string'))
-      end
+      utils.check_type('key', value, 'string')
       spec.name = value
     elseif key == 'frozen' then
       spec.pin = utils.is_truthy(value)
@@ -124,18 +121,19 @@ function M.vimplug(repo, old_spec)
       if type(value) == 'string' then
         spec.dependencies = { value }
       elseif
-        vim.tbl_islist(value)
-        and not vim.tbl_contains(value, function(elem) return type(elem) ~= 'string' end)
+          utils.is_list(value)
+          and not vim.tbl_contains(value, function(elem) return type(elem) ~= 'string' end)
       then
         spec.dependencies = value
       else
-        error(opt_err:format(key, 'string or list of strings'))
+        error(string.format('%s: expected string or list of strings', key))
       end
     elseif key == 'priority' then
-      if type(value) ~= 'number' then
-        error(opt_err:format(key, 'a number'))
-      end
+      utils.check_type('key', value, 'number')
       spec.priority = value
+    elseif key == 'setup' then
+      utils.check_type('key', value, 'string')
+      spec.config = function() vim.cmd(value) end
     else
       error(string.format("Plugin option '%s' is not supported", key))
     end

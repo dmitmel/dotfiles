@@ -135,7 +135,7 @@ exe dotplug#define_plug_here()
     " files with `tempname()` (and then doesn't delete them), but vim-signify
     " flashes between results of `git diff` and `git diff --staged` when the
     " file is staged.
-    if has('nvim-0.5.0')
+    if has('nvim-0.9.0')
       Plug 'https://github.com/lewis6991/gitsigns.nvim'
     elseif has('nvim') || has('patch-8.0.902')
       Plug 'https://github.com/mhinz/vim-signify'
@@ -254,7 +254,7 @@ exe dotplug#define_plug_here()
       " Snippets registered in the snippet engine.
       Plug 'https://github.com/dcampos/cmp-snippy'
     else
-      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release' }
+      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release', 'if': has('nvim-0.7.0') }
     endif
     if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
       " A client for the Debug Adapter Protocol.

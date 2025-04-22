@@ -21,12 +21,24 @@ do
   M.nil_wrap = vim_fn.nil_wrap
 end
 
+local is_list = vim.islist or vim.tbl_islist
+M.is_list = is_list
+
 -- Faster and lighter alternative to `vim.validate`.
 ---@param name string
 ---@param value any
 ---@param expected_type type
 ---@param optional? boolean
+---@overload fun(name: string, value: any, valid: boolean, expected?: string)
 function M.check_type(name, value, expected_type, optional)
+  -- Overloaded form
+  if expected_type == true then      -- The check succeeded
+    return
+  elseif expected_type == false then -- The check failed
+    local expected = optional --[[@as string]]
+    error(string.format('%s: expected %s, got %s', name, expected, value))
+  end
+  -- Basic form
   if optional and value == nil then
     return
   end

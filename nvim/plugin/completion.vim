@@ -209,6 +209,8 @@ endif  " }}}
 
 if dotplug#has('coc.nvim')  " {{{
 
+  let g:coc_disable_startup_warning = 1
+
   " let g:coc_node_args = ['-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'), '--nolazy', '--inspect']
 
   let g:dotfiles_coc_extensions = {}
