@@ -55,26 +55,10 @@ function! s:start_self_debug_server(port) abort
   let rtp = &runtimepath
   try
     lua <<EOF
-
     local osv_dir = vim.fn.eval('l:osv_dir')
     vim.opt.runtimepath:prepend(osv_dir)
-
     local osv = require('osv')
-
-    -- The way OSV launches the headless Neovim by default is too brittle.
-    -- See <https://github.com/jbyuki/one-small-step-for-vimkind/issues/62>.
-    osv.on["start_server"] = function(_args, _env)
-      local my_args = { vim.v.progpath, '-u', 'NONE', '-i', 'NONE', '-n', '--embed', '--headless' }
-      local nvim = vim.fn.jobstart(my_args, { rpc = true })
-      vim.fn.rpcrequest(nvim, 'nvim_exec_lua', 'vim.o.runtimepath = (...)', { osv_dir })
-      return nvim
-    end
-
-    -- Fix for a typo here: <https://github.com/jbyuki/one-small-step-for-vimkind/blob/330049a237635b7cae8aef4972312e6da513cf91/src/launch.lua.t#L162-L163>
-    osv.callback = osv.on
-
     osv.launch({ blocking = true, host = '127.0.0.1', port = vim.fn.eval('a:port') })
-
 EOF
   catch
     call nvim_echo([ ['Error in ' . v:throwpoint . "\n" . v:exception, 'ErrorMsg'] ], v:true, {})
