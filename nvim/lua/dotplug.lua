@@ -1,3 +1,5 @@
+-- See the complementary code in ../autoload/dotplug.vim
+
 local M = require('dotfiles.autoload')('dotplug', {}, _G.dotplug)
 local lazy = require('lazy')
 local utils = require('dotfiles.utils')
@@ -27,6 +29,7 @@ M.lazy_config = {
 ---@param name string
 ---@return LazyPlugin|nil
 function M.find_plugin(name)
+  vim.validate('name', name, 'string')
   for _, spec in pairs(lazy.plugins()) do
     if spec.name == name then
       return spec
@@ -35,14 +38,23 @@ function M.find_plugin(name)
   return nil
 end
 
----@return string[]
+---@param names string[]
+function M.load(names)
+  vim.validate('names', names, vim.tbl_islist, 'list')
+  if vim.tbl_isempty(names) then
+    error('expected one or more plugin names')
+  end
+  lazy.load({ plugins = names, wait = true })
+end
+
+---@return string
 function M.plugin_names_completion()
   ---@type string[]
   local names = {}
   for _, spec in pairs(lazy.plugins()) do
     names[#names + 1] = spec.name
   end
-  return names
+  return table.concat(names, '\n')
 end
 
 ---@param spec LazySpec
@@ -54,23 +66,27 @@ end
 --- <https://github.com/junegunn/vim-plug#plug-options>
 --- <https://github.com/junegunn/vim-plug/blob/baa66bcf349a6f6c125b0b2b63c112662b0669e1/plug.vim#L716-L752>
 ---@class VimplugSpec
----@field branch string
----@field tag string
----@field commit string
----@field rtp string
----@field dir string
----@field as string
----@field do string|function
----@field on string|string[]
----@field for string|string[]
----@field frozen number|boolean
----@field requires string|string[] equivalent to `dependencies` of lazy.nvim
----@field priority number equivalent to `priority` of lazy.nvim
----@field if number|boolean equivalent to `enabled` of lazy.nvim
+---@field branch    string           = |LazyPluginSpec.branch|
+---@field tag       string           = |LazyPluginSpec.tag|
+---@field commit    string           = |LazyPluginSpec.tag|
+---@field rtp       string           unsupported
+---@field dir       string           unsupported
+---@field as        string           = |LazyPluginSpec.name|
+---@field do        string|function  = |LazyPluginSpec.build|
+---@field on        string|string[]  unsupported
+---@field for       string|string[]  unsupported
+---@field frozen    number|boolean   = |LazyPluginSpec.pin|
+---@field requires  string|string[]  = |LazyPluginSpec.dependencies|
+---@field priority  number           = |LazyPluginSpec.priority|
+---@field if        number|boolean   = |LazyPluginSpec.enabled|
+---@field lazy      number|boolean   = |LazyPluginSpec.lazy|
 
 ---@param repo string
 ---@param old_spec VimplugSpec
 function M.vimplug(repo, old_spec)
+  vim.validate('repo', repo, 'string')
+  vim.validate('old_spec', old_spec, 'table')
+
   local specs = M.lazy_config.spec
 
   ---@type LazyPluginSpec
@@ -102,6 +118,8 @@ function M.vimplug(repo, old_spec)
       spec.pin = utils.is_truthy(value)
     elseif key == 'if' then
       spec.enabled = utils.is_truthy(value)
+    elseif key == 'lazy' then
+      spec.lazy = utils.is_truthy(value)
     elseif key == 'requires' then
       if type(value) == 'string' then
         spec.dependencies = { value }

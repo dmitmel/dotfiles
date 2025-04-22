@@ -256,9 +256,9 @@ exe dotplug#define_plug_here()
     else
       Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release' }
     endif
-    if (has('nvim-0.4.3') || v:version >= 802) && has('python3')
+    if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
       " A client for the Debug Adapter Protocol.
-      Plug 'https://github.com/puremourning/vimspector'
+      Plug 'https://github.com/puremourning/vimspector', { 'lazy': v:true }
     endif
     " if has('nvim') || v:version >= 801
     "   " Real-time preview of Markdown files in the browser (as the name implies).

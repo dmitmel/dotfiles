@@ -37,3 +37,5 @@ snippet timeit measure time of a section of code
 	$0
 	local elapsed_time${1:_test} = vim.loop.hrtime() - start_time${1:_test}
 	print(elapsed_time${1:_test} / 1e6)
+snippet validate check a parameter with vim.validate()
+	vim.validate('${1}', ${1:param}, '${2:type}')

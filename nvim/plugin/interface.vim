@@ -221,7 +221,7 @@ let &history = max([&history, 10000])
   command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
 
   nnoremap <silent> <F1>      <Cmd>Helptags<CR>
-  inoremap <silent> <F1>      <Esc><Cmd>Helptags<CR>
+  " inoremap <silent> <F1>      <Esc><Cmd>Helptags<CR>
   nnoremap <silent> <leader>f <Cmd>Files<CR>
   nnoremap <silent> <leader>b <Cmd>Buffers<CR>
   nnoremap <silent> <leader>m <Cmd>Manpages<CR>
@@ -231,17 +231,24 @@ let &history = max([&history, 10000])
   let g:fzf_layout = { 'down': '~40%' }
   let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
 
+  function! s:FilesPlugins(bang, arg) abort
+    let fzf_cmd = 'Files' . (a:bang ? '!' : '')
+    if empty(a:arg)
+      execute fzf_cmd fnameescape(g:dotplug#plugins_dir)
+    elseif dotplug#has(a:arg)
+      execute fzf_cmd fnameescape(dotplug#plugin_dir(a:arg))
+    else
+      echohl WarningMsg
+      echomsg 'Plugin not found: ' . string(a:arg)
+      echohl None
+    endif
+  endfunction
+
   command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
-  command! -bar -bang -nargs=* -complete=customlist,dotplug#command_completion FilesPlugins
-    \ if empty(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotplug#plugins_dir)
-    \|elseif dotplug#has(<q-args>)
-    \|  execute 'Files<bang>' fnameescape(dotplug#plugin_dir(<q-args>))
-    \|else
-    \|  echohl WarningMsg
-    \|  echomsg 'Plugin not found: ' . string(<q-args>)
-    \|  echohl None
-    \|endif
+  command! -bar -bang -nargs=* -complete=custom,dotplug#complete_plugin_names FilesPlugins
+  \ call s:FilesPlugins(<bang>0, <q-args>)
+
+  nnoremap <silent> <leader>P <Cmd>FilesPlugins<CR>
 " }}}
 
 

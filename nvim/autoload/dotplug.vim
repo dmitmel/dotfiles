@@ -1,3 +1,5 @@
+" See the complementary code in ../lua/dotplug.lua
+
 let g:dotplug#implementation =
 \ get(g:, 'dotplug#implementation', has('nvim-0.8.0') ? 'lazy.nvim' : 'vim-plug')
 
@@ -15,18 +17,31 @@ let g:dotplug#default_priority = 50
 function! dotplug#(repo, ...) abort
   if a:0 > 1 | throw 'Invalid number of arguments for function (must be 1..2): ' . a:0 | endif
   let spec = get(a:000, 0, {})
-  if !has_key(spec, 'as')
-    " Ensure consistency between vim-plug and lazy.nvim.
-    " <https://github.com/junegunn/vim-plug/blob/fc2813ef4484c7a5c080021ceaa6d1f70390d920/plug.vim#L715>
-    " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/fragments.lua#L107-L121>
-    let spec.as = fnamemodify(a:repo, ':t:s?\.git$??')
-  endif
+  " Ensure consistency between vim-plug and lazy.nvim.
+  " <https://github.com/junegunn/vim-plug/blob/fc2813ef4484c7a5c080021ceaa6d1f70390d920/plug.vim#L715>
+  " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/fragments.lua#L107-L121>
+  let spec.as = get(spec, 'as', fnamemodify(a:repo, ':t:s?\.git$??'))
   let spec.priority = get(spec, 'priority', g:dotplug#default_priority)
   call s:dotplug_impl(a:repo, spec)
 endfunction
 
 function! dotplug#define_plug_here() abort
   return 'command! -nargs=+ -bar Plug call dotplug#(<args>)'
+endfunction
+
+function! s:loader_mapping(lhs, plugin) abort
+  call dotplug#load(a:plugin)
+  execute 'map'  a:lhs '<nop>'
+  execute 'map!' a:lhs '<nop>'
+  return ''
+endfunction
+
+function! dotplug#define_loader_keymap(lhs, plugin) abort
+  return printf(
+  \ 'noremap  <silent><expr> %1$s %2$sloader_mapping(%3$s, %4$s)' . "\n" .
+  \ 'noremap! <silent><expr> %1$s %2$sloader_mapping(%3$s, %4$s)',
+  \ a:lhs, expand('<SID>'), json_encode(a:lhs), json_encode(a:plugin)
+  \)
 endfunction
 
 
@@ -66,6 +81,10 @@ function! s:dotplug_impl(repo, spec) abort
   call v:lua.dotplug.vimplug(a:repo, a:spec)
 endfunction
 
+function! dotplug#load(...) abort
+  call v:lua.dotplug.load(a:000)
+endfunction
+
 function! dotplug#end() abort
   call v:lua.dotplug.end_setup()
 endfunction
@@ -73,7 +92,7 @@ endfunction
 function! dotplug#check_sync() abort
 endfunction
 
-function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
+function! dotplug#complete_plugin_names(arg_lead, cmd_line, cursor_pos) abort
   return v:lua.dotplug.plugin_names_completion()
 endfunction
 
@@ -87,7 +106,6 @@ elseif g:dotplug#implementation == 'vim-plug' " {{{
 let g:dotplug#repo = 'junegunn/vim-plug'
 let s:stdpath_config = exists('*stdpath') ? stdpath('config') : expand('~/.vim')
 let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', s:stdpath_config . '/plugged')
-
 
 function! dotplug#has(name) abort
   return has_key(g:plugs, a:name) ? v:true : v:false
@@ -118,9 +136,18 @@ function! dotplug#begin() abort
 endfunction
 
 function! s:dotplug_impl(repo, spec) abort
+  if get(a:spec, 'lazy', 0)
+    " If `{ 'on': [] }` is passed to vim-plug, then the plugin will be
+    " installed, but won't get loaded until the first invocation of `plug#load`
+    let a:spec.on = get(a:spec, 'on', [])
+  endif
   if get(a:spec, 'if', 1)
     call plug#(a:repo, a:spec)
   endif
+endfunction
+
+function! dotplug#load(...) abort
+  call call('plug#load', a:000)
 endfunction
 
 function! dotplug#end() abort
@@ -175,8 +202,8 @@ function! dotplug#check_sync() abort
   endif
 endfunction
 
-function! dotplug#command_completion(arg_lead, cmd_line, cursor_pos) abort
-  return keys(g:plugs)
+function! dotplug#complete_plugin_names(arg_lead, cmd_line, cursor_pos) abort
+  return join(keys(g:plugs), "\n")
 endfunction
 
 
