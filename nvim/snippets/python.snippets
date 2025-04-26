@@ -1,0 +1,19 @@
+snippet ! command-line tool script template
+	#!/usr/bin/env python3
+	
+	import sys
+	from typing import List
+	
+	
+	def main(argv: List[str]) -> int:
+		$0
+		return 0
+	
+	
+	if __name__ == "__main__":
+		sys.exit(main(sys.argv))
+snippet __dir__ Save path to the script's parent directory into __dir__
+	__dir__ = os.path.dirname(os.path.realpath(__file__))
+snippet ifmain if __name__ == "__main__"
+	if __name__ == "__main__":
+		$0

@@ -6,3 +6,34 @@ snippet letdefault Assign a default value to a variable
 	let g:`dotfiles#ft#vim#autoload_prefix()`$1 = get(g:, '`dotfiles#ft#vim#autoload_prefix()`$1', $2)
 snippet autoid Get script's autoloaded identifier prefix
 	`dotfiles#ft#vim#autoload_prefix()`
+snippet function function
+	function! $1($2) abort
+		$0
+	endfunction
+snippet augroup autocommand group
+	augroup dotfiles_$1
+		autocmd!
+		autocmd $0
+	augroup END
+snippet if if block
+	if ${1:condition}
+		$0
+	endif
+snippet for for loop
+	for ${1:var} in ${2:container}
+		$0
+	endfor
+snippet while while loop
+	while ${1:condition}
+		$0
+	endwhile
+snippet try try-catch block
+	try
+		$0
+	catch /.*/
+
+	endtry
+snippet luablock lua <<EOF
+	lua <<EOF
+	$0
+	EOF

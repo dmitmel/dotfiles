@@ -1,0 +1,30 @@
+snippet vimspector-conf vimspector: a basic config file
+	{
+		"$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+		"configurations": {
+			$0
+		}
+	}
+snippet vimspector-launch vimspector: launch configuration
+	"${1:Configuration Name}": {
+		"adapter": "${2:adapter}",
+		"configuration": {
+			"request": "launch",
+			"program": "${workspaceFolder}/${3:<program>}",
+			"args": []$0
+		}
+	}
+snippet vimspector-attach vimspector: attach configuration
+	"${1:Configuration Name}": {
+		"adapter": "${2:adapter}",
+		"configuration": {
+			"request": "attach",
+			"program": "${workspaceFolder}/${3:<program>}"$0
+		}
+	}
+snippet snippet
+	"${1:name}": {
+		"prefix": "${2:$1}",
+		"description": "$3",
+		"body": [$0]
+	},

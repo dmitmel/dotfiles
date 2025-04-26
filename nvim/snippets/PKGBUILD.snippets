@@ -1,0 +1,210 @@
+snippet ! Basic template (/usr/share/pacman/PKGBUILD.proto)
+	# This is an example PKGBUILD file. Use this as a start to creating your own,
+	# and remove these comments. For more information, see 'man PKGBUILD'.
+	# NOTE: Please fill out the license field for your package! If it is unknown,
+	# then please put 'unknown'.
+	$0
+	# Maintainer: Your Name <youremail@domain.com>
+	pkgname=NAME
+	pkgver=VERSION
+	pkgrel=1
+	epoch=
+	pkgdesc=""
+	arch=()
+	url=""
+	license=('GPL')
+	groups=()
+	depends=()
+	makedepends=()
+	checkdepends=()
+	optdepends=()
+	provides=()
+	conflicts=()
+	replaces=()
+	backup=()
+	options=()
+	install=
+	changelog=
+	source=("\$pkgname-\$pkgver.tar.gz"
+	        "\$pkgname-\$pkgver.patch")
+	noextract=()
+	md5sums=()
+	validpgpkeys=()
+	
+	prepare() {
+		cd "\$pkgname-\$pkgver"
+		patch -p1 -i "\$srcdir/\$pkgname-\$pkgver.patch"
+	}
+	
+	build() {
+		cd "\$pkgname-\$pkgver"
+		./configure --prefix=/usr
+		make
+	}
+	
+	check() {
+		cd "\$pkgname-\$pkgver"
+		make -k check
+	}
+	
+	package() {
+		cd "\$pkgname-\$pkgver"
+		make DESTDIR="\$pkgdir/" install
+	}
+snippet split! Template for a split package (/usr/share/pacman/PKGBUILD-split.proto)
+	# This is an example of a PKGBUILD for splitting packages. Use this as a
+	# start to creating your own, and remove these comments. For more information,
+	# see 'man PKGBUILD'. NOTE: Please fill out the license field for your package!
+	# If it is unknown, then please put 'unknown'.
+	$0
+	# Maintainer: Your Name <youremail@domain.com>
+	pkgname=('pkg1' 'pkg2')
+	pkgbase=BASE
+	pkgver=VERSION
+	pkgrel=1
+	epoch=
+	pkgdesc=""
+	arch=()
+	url=""
+	license=('GPL')
+	groups=()
+	depends=()
+	makedepends=()
+	checkdepends=()
+	optdepends=()
+	provides=()
+	conflicts=()
+	replaces=()
+	backup=()
+	options=()
+	install=
+	changelog=
+	source=("\$pkgbase-\$pkgver.tar.gz"
+	        "\$pkgname-\$pkgver.patch")
+	noextract=()
+	md5sums=()
+	validpgpkeys=()
+	
+	prepare() {
+		cd "\$pkgname-\$pkgver"
+		patch -p1 -i "\$srcdir/\$pkgname-\$pkgver.patch"
+	}
+	
+	build() {
+		cd "\$pkgbase-\$pkgver"
+		./configure --prefix=/usr
+		make
+	}
+	
+	check() {
+		cd "\$pkgname-\$pkgver"
+		make -k check
+	}
+	
+	package_pkg1() {
+		# options and directives that can be overridden
+		pkgdesc=""
+		arch=()
+		url=""
+		license=()
+		groups=()
+		depends=()
+		optdepends=()
+		provides=()
+		conflicts=()
+		replaces=()
+		backup=()
+		options=()
+		install=
+		changelog=
+	
+		cd "\$pkgbase-\$pkgver"
+		make DESTDIR="\$pkgdir/" install-pkg1
+	}
+	
+	package_pkg2() {
+		# options and directives overrides
+		pkgdesc=""
+	
+		cd "\$pkgbase-\$pkgver"
+		make DESTDIR="\$pkgdir/" install-pkg2
+	}
+snippet vcs! Template for a VCS package (/usr/share/pacman/PKGBUILD-vcs.proto)
+	# This is an example PKGBUILD file. Use this as a start to creating your own,
+	# and remove these comments. For more information, see 'man PKGBUILD'.
+	# NOTE: Please fill out the license field for your package! If it is unknown,
+	# then please put 'unknown'.
+	$0
+	# The following guidelines are specific to BZR, GIT, HG and SVN packages.
+	# Other VCS sources are not natively supported by makepkg yet.
+	
+	# Maintainer: Your Name <youremail@domain.com>
+	pkgname=NAME-VCS # '-bzr', '-git', '-hg' or '-svn'
+	pkgver=VERSION
+	pkgrel=1
+	pkgdesc=""
+	arch=()
+	url=""
+	license=('GPL')
+	groups=()
+	depends=()
+	makedepends=('VCS_PACKAGE') # 'bzr', 'git', 'mercurial' or 'subversion'
+	provides=("\${pkgname%-VCS}")
+	conflicts=("\${pkgname%-VCS}")
+	replaces=()
+	backup=()
+	options=()
+	install=
+	source=('FOLDER::VCS+URL#FRAGMENT')
+	noextract=()
+	md5sums=('SKIP')
+	
+	# Please refer to the 'USING VCS SOURCES' section of the PKGBUILD man page for
+	# a description of each element in the source array.
+	
+	pkgver() {
+		cd "\$srcdir/\${pkgname%-VCS}"
+	
+	# The examples below are not absolute and need to be adapted to each repo. The
+	# primary goal is to generate version numbers that will increase according to
+	# pacman's version comparisons with later commits to the repo. The format
+	# VERSION='VER_NUM.rREV_NUM.HASH', or a relevant subset in case VER_NUM or HASH
+	# are not available, is recommended.
+	
+	# Bazaar
+		printf "r%s" "\$(bzr revno)"
+	
+	# Git, tags available
+		printf "%s" "\$(git describe --long | sed 's/\([^-]*-\)g/r\1/;s/-/./g')"
+	
+	# Git, no tags available
+		printf "r%s.%s" "\$(git rev-list --count HEAD)" "\$(git rev-parse --short HEAD)"
+	
+	# Mercurial
+		printf "r%s.%s" "\$(hg identify -n)" "\$(hg identify -i)"
+	
+	# Subversion
+		printf "r%s" "\$(svnversion | tr -d 'A-z')"
+	}
+	
+	prepare() {
+		cd "\$srcdir/\${pkgname%-VCS}"
+		patch -p1 -i "\$srcdir/\${pkgname%-VCS}.patch"
+	}
+	
+	build() {
+		cd "\$srcdir/\${pkgname%-VCS}"
+		./autogen.sh
+		./configure --prefix=/usr
+		make
+	}
+	
+	check() {
+		cd "\$srcdir/\${pkgname%-VCS}"
+		make -k check
+	}
+	
+	package() {
+		cd "\$srcdir/\${pkgname%-VCS}"
+		make DESTDIR="\$pkgdir/" install
+	}

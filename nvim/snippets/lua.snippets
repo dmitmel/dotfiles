@@ -7,3 +7,35 @@ snippet dotmod! dotfiles Lua module
 	$0
 
 	return M
+snippet schedule call to vim.schedule()
+	vim.schedule(function()
+		$0
+	end)
+snippet schedulewrap call to vim.schedule_wrap()
+	vim.schedule_wrap(function()
+		$0
+	end)
+snippet optrequire optional require()
+	local ${2:module}_available, ${2:module} = pcall(require, '$1')
+snippet iterlist iterate over a list-style table
+	for ${3:_}, ${2:element} in ipairs(${1:list}) do
+		$0
+	end
+snippet iterdict iterate over a dictionary-style table
+	for ${2:key}, ${3:value} in ipairs(${1:dict}) do
+		$0
+	end
+snippet nodecallback Node.js-style callback for luv
+	function(${2:err}, ${1:...})
+		if ${2:err} then
+			return callback(${2:err})
+		end
+		$0
+	end
+snippet timeit measure time of a section of code
+	local start_time${1:_test} = vim.loop.hrtime()
+	$0
+	local elapsed_time${1:_test} = vim.loop.hrtime() - start_time${1:_test}
+	print(elapsed_time${1:_test} / 1e6)
+snippet validate check a parameter with vim.validate()
+	vim.validate('${1}', ${1:param}, '${2:type}')

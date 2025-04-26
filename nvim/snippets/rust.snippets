@@ -1,0 +1,12 @@
+snippet testmod test module
+	#[cfg(test)]
+	mod tests {
+		use super::*;
+	
+		$0
+	}
+snippet test a unit test
+	#[test]
+	fn test_${1:something}() {
+		$0
+	}
