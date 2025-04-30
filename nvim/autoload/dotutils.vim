@@ -6,28 +6,6 @@ function! dotutils#ends_with(str, suffix) abort
   return a:str[len(a:str)-len(a:suffix):] ==# a:suffix
 endfunction
 
-function! dotutils#undo_ftplugin_hook(cmd) abort
-  if exists('b:undo_ftplugin')
-    let b:undo_ftplugin .= ' | ' . a:cmd
-  else
-    let b:undo_ftplugin = a:cmd
-  endif
-endfunction
-
-function! dotutils#add_matchup_prefs(prefs) abort
-  if !has_key(g:matchup_matchpref, &filetype)
-    let g:matchup_matchpref[&filetype] = {}
-  endif
-  call extend(g:matchup_matchpref[&filetype], a:prefs)
-endfunction
-
-function! dotutils#add_snippets_extra_scopes(scopes) abort
-  if !exists('b:dotfiles_snippets_extra_scopes')
-    let b:dotfiles_snippets_extra_scopes = []
-  endif
-  call extend(b:dotfiles_snippets_extra_scopes, a:scopes)
-endfunction
-
 function! dotutils#set_default(dict, key, default) abort
   if !has_key(a:dict, a:key)
     let a:dict[a:key] = a:default

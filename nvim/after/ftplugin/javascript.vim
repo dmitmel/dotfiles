@@ -1,5 +1,4 @@
 setlocal matchpairs-=<:>
-
 let b:runfileprg = 'node -- %'
-
-call dotutils#undo_ftplugin_hook('setlocal matchpairs< | unlet! b:runfileprg')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n" .
+\ 'setlocal matchpairs< | unlet! b:runfileprg'

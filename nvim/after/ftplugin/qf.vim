@@ -10,12 +10,12 @@ if exists('g:qf_mapping_ack_style')
   nmap <buffer> <C-p> <Plug>(qf_older)<Cmd>call dotutils#readjust_qf_list_height()<CR>
   nmap <buffer> <C-n> <Plug>(qf_newer)<Cmd>call dotutils#readjust_qf_list_height()<CR>
   nmap <buffer> <CR> <CR>zv
-  call dotutils#undo_ftplugin_hook(join([
-  \ 'exe "silent! nunmap <buffer> <Esc>"',
-  \ 'exe "silent! nunmap <buffer> ("',
-  \ 'exe "silent! nunmap <buffer> )"',
-  \ 'exe "silent! nunmap <buffer> <C-p>"',
-  \ 'exe "silent! nunmap <buffer> <C-n>"',
-  \ 'exe "silent! nunmap <buffer> <CR>"',
-  \ ], ' | '))
+
+  let b:undo_ftplugin = get(b:, 'undo_ftplugin', '')
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> <Esc>"
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> ("
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> )"
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> <C-p>"
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> <C-n>"
+  let b:undo_ftplugin .= "| silent! nunmap <buffer> <CR>"
 endif

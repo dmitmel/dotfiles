@@ -1,4 +1,2 @@
-setlocal iskeyword+=-
-setlocal comments=:# commentstring=#%s
-
-call dotutils#undo_ftplugin_hook('setlocal iskeyword< comments< commentstring<')
+setlocal iskeyword+=- comments=:# commentstring=#%s
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal iskeyword< comments< commentstring<"

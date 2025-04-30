@@ -6,4 +6,5 @@ let b:runfileprg = ':Open %.html'
 let b:delimitMate_nesting_quotes = ['`']
 setlocal matchpairs-=<:>
 
-call dotutils#undo_ftplugin_hook('setlocal makeprg< matchpairs< | unlet! b:runfileprg b:delimitMate_nesting_quotes')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n" .
+\ 'setlocal makeprg< matchpairs< | unlet! b:runfileprg b:delimitMate_nesting_quotes'

@@ -30,4 +30,4 @@ endfunction
 
 command! -bar -buffer OpenHelpOnline call s:open_help_online()
 
-call dotutils#undo_ftplugin_hook('silent! delcommand OpenHelpOnline')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n silent! delcommand OpenHelpOnline"

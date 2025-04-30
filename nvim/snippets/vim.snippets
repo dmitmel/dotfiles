@@ -37,3 +37,5 @@ snippet luablock lua <<EOF
 	lua <<EOF
 	$0
 	EOF
+snippet undoft snippet for extending b:undo_ftplugin
+	let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal $0"

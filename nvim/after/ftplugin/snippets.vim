@@ -1,3 +1,2 @@
 setlocal noexpandtab nofoldenable
-
-call dotutils#undo_ftplugin_hook('setlocal expandtab< foldenable<')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal expandtab< foldenable<"

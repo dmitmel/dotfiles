@@ -474,7 +474,10 @@ endif
 
   let g:matchup_delim_noskips = 2
   let g:matchup_delim_nomids = 1
-  let g:matchup_matchpref = {}
+  let g:matchup_matchpref = {
+  \ 'html': { 'tagnameonly': 1, 'nolists': 1 },
+  \ 'xml': { 'tagnameonly': 1 },
+  \ }
 
   let g:surround_{char2nr('*')} = "**\r**"
   let g:surround_{char2nr('~')} = "~~\r~~"

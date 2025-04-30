@@ -1,3 +1,2 @@
 setlocal commentstring=;%s
-
-call dotutils#undo_ftplugin_hook('setlocal commentstring<')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal commentstring<"

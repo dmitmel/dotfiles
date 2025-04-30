@@ -1,3 +1,2 @@
 setlocal nofoldenable foldmethod=manual
-
-call dotutils#undo_ftplugin_hook('setlocal foldenable< foldmethod<')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal foldenable< foldmethod<"

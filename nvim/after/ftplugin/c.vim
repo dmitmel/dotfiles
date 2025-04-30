@@ -19,4 +19,4 @@ function! s:patch_c_comments() abort
 endfunction
 call s:patch_c_comments()
 
-call dotutils#undo_ftplugin_hook('setlocal comments< commentstring<')
+let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal comments< commentstring<"
