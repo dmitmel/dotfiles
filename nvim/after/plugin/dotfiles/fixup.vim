@@ -38,3 +38,8 @@ command! -bar -bang Del Delete<bang>
 command! -nargs=* -complete=file Open call dotutils#open_uri(empty(<q-args>) ? expand('%') : <q-args>)
 
 command! -nargs=* -complete=file Reveal call dotutils#reveal_file(empty(<q-args>) ? expand('%') : <q-args>)
+
+if exists(':Man') != 2
+  " In regular Vim the :Man command is not defined by default, see `:h man.vim`
+  runtime! ftplugin/man.vim
+endif
