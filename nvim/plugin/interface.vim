@@ -318,10 +318,23 @@ let &history = max([&history, 10000])
 " }}}
 
 
-nnoremap <silent> <F9> :<C-u>make!<CR>
+if dotplug#has('vim-dispatch')
+  exe dotutils#cmd_abbrev('make', 'Make')
+  nnoremap <F9> :<C-u>Make<CR>
+else
+  nnoremap <F9> :<C-u>make!<CR>
+endif
 
-command! -bar -bang RunFile execute (b:runfileprg[0] ==# ':' ? b:runfileprg[1:] : '!' . b:runfileprg)
-nnoremap <silent> <F5> :<C-u>RunFile<CR>
+
+function! s:run_file() abort
+  if exists('b:runfileprg')
+    return (b:runfileprg[0] ==# ':' ? b:runfileprg[1:] : '!' . b:runfileprg)
+  else
+    return '!' . expand('%:h') . '/' . expand('%:t')
+  endif
+endfunction
+command! -bar -nargs=* Run execute s:run_file() . (!empty(<q-args>) ? ' ' : '') . <q-args>
+nnoremap <F5> :<C-r>=<SID>run_file()<CR><CR>
 
 
 if exists('*api_info')

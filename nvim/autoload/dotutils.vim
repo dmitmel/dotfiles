@@ -13,6 +13,12 @@ function! dotutils#set_default(dict, key, default) abort
   return a:dict[a:key]
 endfunction
 
+" Taken from <https://vim.fandom.com/wiki/Replace_a_builtin_command_using_cabbrev>
+function! dotutils#cmd_abbrev(lhs, rhs) abort
+  return printf("cabbrev %s <C-r>=(getcmdpos()==1 && getcmdtype()==':' ? %s : %s)<CR>",
+  \             a:lhs, string(a:rhs), string(a:lhs))
+endfunction
+
 " Essentially, implements
 " <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/src/workspace.ts#L810-L844>.
 " Alternatively, nvim's implementation can be used:

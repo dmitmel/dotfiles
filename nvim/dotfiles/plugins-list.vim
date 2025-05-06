@@ -227,6 +227,8 @@ exe dotplug#define_plug_here()
 
 " Programming {{{
   if g:vim_ide
+    " Asynchronous task runner. Old, but gold.
+    Plug 'https://github.com/tpope/vim-dispatch'
     " An interactive Lua playground.
     Plug 'https://github.com/rafcamlet/nvim-luapad', { 'if': has('nvim-0.5.0') }
     " A debugger for Lua scripts running in Neovim itself.
