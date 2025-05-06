@@ -1,8 +1,7 @@
 " This plugin ended up being useless.
 finish
 
-call extend(g:dotfiles_coc_extensions, {'coc-vimlsp': 1})
-call extend(g:dotfiles_coc_filetypes, {'vim': 1})
+call dotutils#add_unique(g:coc_global_extensions, 'coc-vimlsp')
 
 let g:coc_user_config['vimlsp'] = {
 \ 'suggest.fromRuntimepath': v:true,
@@ -20,13 +19,10 @@ let g:coc_user_config['vimlsp'] = {
 " times and bragging purposes.
 finish
 
-let s:filetypes = {'vim': 1}
-call extend(g:dotfiles_coc_filetypes, s:filetypes)
-
 " <https://github.com/iamcco/coc-vimlsp/blob/38beb0033c24a50e306343282acb071ffae6eed4/src/index.ts#L47-L82>
 " workspace.isNvim: <https://github.com/neoclide/coc.nvim/blob/1c25102840e1d6d36bca9db8114e8a56f480afc4/autoload/coc/util.vim#L539>
 let g:coc_user_config['languageserver.vimls'] = {
-\ 'filetypes': keys(s:filetypes),
+\ 'filetypes': ['vim'],
 \ 'command': 'vim-language-server',
 \ 'args': ['--stdio'],
 \ 'initializationOptions': {

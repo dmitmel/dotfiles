@@ -40,9 +40,6 @@ if dotplug#has('nvim-cmp')  " {{{
 endif  " }}}
 
 
-let s:diagnostic_sign_texts = { 'Error': 'XX', 'Warn': '!!', 'Info': '>>', 'Hint': '>>' }
-
-
 if get(g:, 'dotfiles_use_nvimlsp', 0)  " {{{
 
   lua <<EOF
@@ -68,7 +65,7 @@ EOF
 
     let s:name_prefix = has('nvim-0.6.0') ? 'Diagnostic' : 'LspDiagnostics'
     let s:severity_name = ['Error', 'Warn', 'Info', 'Hint'][s:severity]
-    let s:sign_opts.text = s:diagnostic_sign_texts[s:severity_name]
+    let s:sign_opts.text = ['XX', '!!', '>>', '>>'][s:severity_name]
     if !has('nvim-0.6.0')
       let s:severity_name = ['Error', 'Warning', 'Information', 'Hint'][s:severity]
     endif
@@ -194,15 +191,11 @@ endif  " }}}
 
 if dotplug#has('coc.nvim')  " {{{
 
+  let g:coc_config_home = g:nvim_dotfiles_dir
   let g:coc_disable_startup_warning = 1
-
   " let g:coc_node_args = ['-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'), '--nolazy', '--inspect']
-
-  let g:dotfiles_coc_extensions = {}
-
-  " set of filetypes (that are added in language-specific scripts) for which
-  " coc mappings are enabled
-  let g:dotfiles_coc_filetypes = {}
+  let g:coc_user_config = {}
+  let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
 
   function! s:coc_buf_supports(provider) abort
     return g:coc_service_initialized && CocAction('ensureDocument') && CocHasProvider(a:provider)
@@ -298,41 +291,18 @@ if dotplug#has('coc.nvim')  " {{{
   " Stolen from <https://github.com/keanuplayz/dotfiles/blob/097aaf4ae3721b27c7fc341c6c7b99d78c7d9338/nvim/plugin/commands.vim#L1>
   command! -nargs=0 -bar CocOrganizeImports call CocAction('organizeImport')
 
-  let g:coc_user_config = {}
+  call dotutils#add_unique(g:coc_global_extensions, 'coc-snippets')
 
-  call extend(g:dotfiles_coc_extensions, {'coc-snippets': 1})
-  let g:coc_user_config['diagnostic'] = {
-  \ 'virtualText': v:true,
-  \ 'virtualTextCurrentLineOnly': v:false,
-  \ 'enableMessage': 'jump',
-  \ 'errorSign':   s:diagnostic_sign_texts.Error,
-  \ 'warningSign': s:diagnostic_sign_texts.Warn,
-  \ 'infoSign':    s:diagnostic_sign_texts.Info,
-  \ 'hintSign':    s:diagnostic_sign_texts.Hint,
-  \ }
-  " Note that the real priorities range from signPriority to signPriority+4
-  " <https://github.com/neoclide/coc.nvim/blob/70f11e074f45bc1bed1c17e3b0c2cf687f5582b6/src/diagnostic/buffer.ts#L257>
-  let g:coc_user_config['diagnostic.signPriority'] = 20
-  let g:coc_user_config['suggest.floatEnable'] = v:false
-  let g:coc_user_config['suggest.enableFloat'] = v:false
-  let g:coc_user_config['suggest.noselect'] = v:true
-  let g:coc_user_config['inlayHint.enable'] = v:false
-  let g:coc_user_config['workspace.progressTarget'] = 'statusline'
-  let g:coc_user_config['coc.preferences.maxFileSize'] = '1MB'
-  " On Neovim, the UltiSnips snippets loader has to spawn a subprocess for the
-  " Python rplugin provider, even if no snippets in its format are found.
-  let g:coc_user_config['snippets.ultisnips.enable'] = v:false
-  let g:coc_user_config['snippets.textmateSnippetsRoots'] =
-  \ [ g:nvim_dotfiles_dir . '/snippets', g:dotfiles_dir . '/vscode/snippets' ]
-  let g:coc_user_config['signature.target'] = 'echo'
-  let g:coc_user_config['dialog.rounded'] = v:false
-  let g:coc_user_config['dialog.floatHighlight'] = 'CocFloating'
-  let g:coc_user_config['dialog.floatBorderHighlight'] = 'CocFloating'
-  let g:coc_user_config['list.selectedSignText'] = '> '
+  let g:coc_user_config['snippets.textmateSnippetsRoots'] = [
+  \ g:nvim_dotfiles_dir . '/snippets', g:dotfiles_dir . '/vscode/snippets'
+  \]
+
+  " Show the cursor when in CocList
   let g:coc_disable_transparent_cursor = v:true
-  " let g:coc_enable_locationlist = v:true
-  " let g:coc_user_config['coc.preferences.useQuickfixForLocations'] = v:true
-  let g:coc_user_config['workspace.rootPatterns'] = ['.vim', '.git', '.hg']
+
+  let g:coc_user_config['colors.filetypes'] = ['*']
+  let g:coc_user_config['semanticTokens.filetypes'] = ['*']
+  let g:coc_default_semantic_highlight_groups = 0
 
   augroup dotfiles_coc
     autocmd!
@@ -343,13 +313,6 @@ if dotplug#has('coc.nvim')  " {{{
     autocmd User CocOpenFloatPrompt nmap <buffer><silent> <C-c> <Esc>
   augroup END
 
-  let g:coc_user_config['colors.filetypes'] = ['*']
-  let g:coc_user_config['semanticTokens.filetypes'] = ['*']
-  let g:coc_default_semantic_highlight_groups = 0
-
   runtime! dotfiles/coc-languages/*.vim
-
-  let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
-  call extend(g:coc_global_extensions, keys(g:dotfiles_coc_extensions))
 
 endif  " }}}

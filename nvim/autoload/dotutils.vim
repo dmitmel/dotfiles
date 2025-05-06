@@ -6,11 +6,10 @@ function! dotutils#ends_with(str, suffix) abort
   return a:str[len(a:str)-len(a:suffix):] ==# a:suffix
 endfunction
 
-function! dotutils#set_default(dict, key, default) abort
-  if !has_key(a:dict, a:key)
-    let a:dict[a:key] = a:default
+function! dotutils#add_unique(list, element) abort
+  if index(a:list, a:element) < 0
+    call add(a:list, a:element)
   endif
-  return a:dict[a:key]
 endfunction
 
 " Taken from <https://vim.fandom.com/wiki/Replace_a_builtin_command_using_cabbrev>

@@ -1,2 +1,1 @@
-call extend(g:dotfiles_coc_filetypes, {'yaml': 1})
-call extend(g:dotfiles_coc_extensions, {'coc-prettier': 1})
+call dotutils#add_unique(g:coc_global_extensions, 'coc-prettier')

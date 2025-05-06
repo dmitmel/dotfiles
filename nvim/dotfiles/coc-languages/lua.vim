@@ -1,8 +1,3 @@
-if !has('nvim-0.2.1') | finish | endif
-
-let s:filetypes = {'lua': 1}
-call extend(g:dotfiles_coc_filetypes, s:filetypes)
-
 function! s:find_server() abort
   for s:server_dir in ['/usr/lib/lua-language-server', '/usr/local/opt/lua-language-server/libexec']
     if isdirectory(s:server_dir)
@@ -12,7 +7,9 @@ function! s:find_server() abort
   return 'lua-language-server'
 endfunction
 
-let s:extra_settings = luaeval("require('dotfiles.lsp.nvim_lua_dev').lua_ls_settings_for_vim()")
+if has('nvim-0.2.1')
+  let s:extra_settings = luaeval("require('dotfiles.lsp.nvim_lua_dev').lua_ls_settings_for_vim()")
+endif
 
 let g:coc_user_config['Lua'] = {
 \ 'telemetry': { 'enable': v:false },
@@ -32,7 +29,7 @@ let g:coc_user_config['Lua'] = {
 
 let s:data_path = dotfiles#paths#xdg_cache_home() . '/lua-language-server'
 let g:coc_user_config['languageserver.sumneko_lua'] = {
-\ 'filetypes': keys(s:filetypes),
+\ 'filetypes': ['lua'],
 \ 'command': s:find_server(),
 \ 'args': ['--logpath='.s:data_path.'/log', '--metapath='.s:data_path.'/meta'],
 \ 'rootPatterns': ['.luarc.json', '.vim/', '.git/', '.hg/'],

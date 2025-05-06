@@ -1,0 +1,81 @@
+{
+  "inlayHint.enable": false,
+  "codeLens.enable": false,
+  "diagnostic.virtualText": true,
+  "diagnostic.virtualTextCurrentLineOnly": false,
+  "diagnostic.enableMessage": "jump",
+  "diagnostic.errorSign": "XX",
+  "diagnostic.warningSign": "!!",
+  "diagnostic.infoSign": ">>",
+  "diagnostic.hintSign": ">>",
+  // Note that the real priorities range from signPriority to signPriority+4
+  // <https://github.com/neoclide/coc.nvim/blob/70f11e074f45bc1bed1c17e3b0c2cf687f5582b6/src/diagnostic/buffer.ts#L257>
+  "diagnostic.signPriority": 20,
+  "suggest.enableFloat": false,
+  "suggest.noselect": true,
+  "coc.preferences.maxFileSize": "1MB",
+  // In Neovim, the UltiSnips snippets loader has to spawn a subprocess for the
+  // Python rplugin provider, even if no snippets in its format are found.
+  "snippets.ultisnips.enable": false,
+  "signature.target": "echo",
+  "dialog.rounded": false,
+  "dialog.floatHighlight": "CocFloating",
+  "dialog.floatBorderHighlight": "CocFloating",
+  "list.selectedSignText": "> ",
+  "workspace.rootPatterns": [".vim", ".git", ".hg", ".projections.json"],
+
+  "tsserver.disableAutomaticTypeAcquisition": true,
+  "tsserver.useLocalTsdk": true,
+  "tsserver.useSyntaxServer": "never",
+  "tsserver.experimental.enableProjectDiagnostics": false,
+
+  "eslint.autoFixOnSave": true,
+  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+
+  // See <https://github.com/dmitmel/eslint-config-dmitmel/blob/master/prettier.config.js>
+  "prettier.printWidth": 100,
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.semi": true,
+  "prettier.singleQuote": true,
+  "prettier.quoteProps": "as-needed",
+  "prettier.jsxSingleQuote": false,
+  "prettier.trailingComma": "all",
+  "prettier.bracketSpacing": true,
+  "prettier.bracketSameLine": true,
+  "prettier.arrowParens": "always",
+  "prettier.proseWrap": "preserve",
+
+  "html.autoClosingTags": false,
+  "javascript.autoClosingTags": false,
+  "typescript.autoClosingTags": false,
+  "html.autoCreateQuotes": false,
+  "emmet.includeLanguages": { "jinja": "html" },
+  "emmet.excludeLanguages": ["markdown", "javascriptreact", "typescriptreact"],
+
+  "python.formatting.provider": "ruff",
+  "python.linting.ruffEnabled": true,
+
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.diagnosticMode": "workspace",
+  // "python.analysis.typeCheckingMode": "strict",
+
+  "rust-analyzer.diagnostics.enable": false,
+  "rust-analyzer.completion.autoimport.enable": false,
+
+  "json.schemas": [
+    {
+      "fileMatch": ["*.json.patch"],
+      "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
+    },
+    {
+      "fileMatch": ["*/snippets/*.json"],
+      "url": "https://raw.githubusercontent.com/Yash-Singh1/vscode-snippets-json-schema/main/schema.json"
+    },
+    {
+      "fileMatch": ["*.vimspector.json"],
+      "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
+    }
+  ]
+}
