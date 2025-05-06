@@ -182,8 +182,8 @@ endif
       call repeat#set("\<Plug>dotfiles_copy_and_comment_" . (a:up ? 'above' : 'below'), v:count)
     endfunction
 
-    nnoremap <Plug>dotfiles_copy_and_comment_above :call <SID>copy_and_comment_out(1)<CR>
-    nnoremap <Plug>dotfiles_copy_and_comment_below :call <SID>copy_and_comment_out(0)<CR>
+    nnoremap <Plug>dotfiles_copy_and_comment_above :<C-u>call <SID>copy_and_comment_out(1)<CR>
+    nnoremap <Plug>dotfiles_copy_and_comment_below :<C-u>call <SID>copy_and_comment_out(0)<CR>
 
     nmap <silent> <leader>[ <Plug>dotfiles_copy_and_comment_below
     nmap <silent> <leader>] <Plug>dotfiles_copy_and_comment_above
@@ -260,8 +260,11 @@ endif
       return "\<C-o>g" . a:rhs
     endif
   endfunction
-  inoremap <expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("<Up>")
-  inoremap <expr> <Plug>dotfiles<Down> <SID>arrow_mapping("<Down>")
+  inoremap <silent><expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("<Up>")
+  inoremap <silent><expr> <Plug>dotfiles<Down> <SID>arrow_mapping("<Down>")
+
+  if empty(maparg('<Up>', 'i'))   | imap <Up>   <Plug>dotfiles<Up>   | endif
+  if empty(maparg('<Down>', 'i')) | imap <Down> <Plug>dotfiles<Down> | endif
 
 " }}}
 
@@ -271,12 +274,12 @@ endif
   " Make sure that the `langmap` option doesn't affect mappings.
   set nolangremap
 
-  nnoremap <leader>kk :set keymap&<CR>
-  nnoremap <leader>kr :set keymap=russian-jcuken-custom<CR>
-  nnoremap <leader>ku :set keymap=ukrainian-jcuken-custom<CR>
+  nnoremap <leader>kk :<C-u>set keymap&<CR>
+  nnoremap <leader>kr :<C-u>set keymap=russian-jcuken-custom<CR>
+  nnoremap <leader>ku :<C-u>set keymap=ukrainian-jcuken-custom<CR>
   imap     <A-k>      <C-o><leader>k
 
-  nnoremap <C-o> :DotfilesSwapKeymaps<CR>
+  nnoremap <C-o> :<C-u>DotfilesSwapKeymaps<CR>
   command! -nargs=0 DotfilesSwapKeymaps let [b:dotfiles_prev_keymap, &keymap] = [&keymap, get(b:, 'dotfiles_prev_keymap', '')]
 
 " }}}
@@ -299,7 +302,7 @@ endif
     xnoremap \ <Cmd>noh<CR>
   else
     " In legacy Vim's, situation's a bit more complex. Normal mode is trivial:
-    nnoremap <silent> \ :noh<CR>
+    nnoremap <silent> \ :<C-u>noh<CR>
     " But Visual mode is where the flicker issue appears. `normal! gv` instead
     " of just `gv` at the end adresses the flicker problem.
     xnoremap <silent> \ :<C-u>noh<Bar>norm!gv<CR>
@@ -311,7 +314,7 @@ endif
   noremap <Plug>dotfiles_search_show_count <nop>
   if dotplug#has('vim-indexed-search')
     let g:indexed_search_mappings = 0
-    nnoremap <Plug>dotfiles_search_show_count :ShowSearchIndex<CR>
+    nnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>
     xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
   elseif exists('*searchcount')
     " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
@@ -319,7 +322,7 @@ endif
     if s:has_cmd_mappings
       noremap <Plug>dotfiles_search_show_count <Cmd>call dotfiles#search#show_count({})<CR>
     else
-      nnoremap <Plug>dotfiles_search_show_count :call dotfiles#search#show_count({})<CR>
+      nnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count({})<CR>
       xnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count({})<CR>gv
     endif
   else
@@ -426,9 +429,9 @@ endif
   endif
 
   " quick insertion of the substitution command
-  nnoremap gs/ :%s///g<Left><Left><Left>
+  nnoremap gs/ :<C-u>%s///g<Left><Left><Left>
   xnoremap gs/ :s/\%V//g<Left><Left><Left>
-  nnoremap gss :%s///g<Left><Left>
+  nnoremap gss :<C-u>%s///g<Left><Left>
   xnoremap gss :s///g<Left><Left>
 
 " }}}

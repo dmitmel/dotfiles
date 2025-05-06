@@ -97,7 +97,7 @@ set nofixendofline
       call feedkeys(":\<C-u>" . cmd, 'nt')
     endif
   endfunction
-  nnoremap <silent> <leader>* :call <SID>grep_word()<CR>
+  nnoremap <silent> <leader>* :<C-u>call <SID>grep_word()<CR>
 
   function! s:grep_visual() abort
     let tmp = @"
@@ -122,7 +122,7 @@ set nofixendofline
   " Android/Termux, so the tempname() function was chosen because it respects
   " $TMPDIR.
   let g:ranger_choice_file = tempname()
-  nnoremap <silent> <Leader>o :Ranger<CR>
+  nnoremap <silent> <Leader>o :<C-u>Ranger<CR>
   " ranger.vim relies on the Bclose.vim plugin, but I use Bbye.vim, so this
   " command is here just for compatitabilty
   command! -bang -complete=buffer -nargs=? Bclose Bdelete<bang> <args>
@@ -293,7 +293,7 @@ nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
     endtry
   endfunction
 
-  nnoremap <silent> gx      :call dotutils#open_uri(dotutils#url_under_cursor())<CR>
+  nnoremap <silent> gx :<C-u>call dotutils#open_uri(dotutils#url_under_cursor())<CR>
   xnoremap <silent> gx :<C-u>call dotutils#open_uri(<SID>gx_get_selection())<CR>
 
 " }}}

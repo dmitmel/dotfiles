@@ -6,7 +6,11 @@
 " <https://github.com/tpope/vim-sensible/blob/2d9f34c09f548ed4df213389caa2882bfe56db58/plugin/sensible.vim#L35>
 command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 
-nnoremap <leader>l :Lazy<CR>
+if dotplug#has('lazy.nvim')
+  nnoremap <leader>l :<C-u>Lazy<CR>
+else
+  nnoremap <leader>l :<C-u>PlugDiff<CR>
+endif
 
 set wildmenu   " Enable completion in the command-line mode.
 
@@ -111,9 +115,9 @@ let &history = max([&history, 10000])
   set shortmess+=F
 
   " buffer navigation {{{
-    nnoremap <silent> <Tab>   :bnext<CR>
-    nnoremap <silent> <S-Tab> :bprev<CR>
-    nnoremap <silent> gb      :buffer#<CR>
+    nnoremap <silent> <Tab>   :<C-u>bnext<CR>
+    nnoremap <silent> <S-Tab> :<C-u>bprev<CR>
+    nnoremap <silent> gb      :<C-u>buffer#<CR>
   " }}}
 
   " ask for confirmation when closing unsaved buffers
@@ -134,8 +138,8 @@ let &history = max([&history, 10000])
   " switching because when these lists are loaded, they also create (but not
   " load) buffers for all of the mentioned files, and should a buffer be
   " deleted entirely, switching to that buffer starts to fail with E92.
-  nnoremap <silent> <BS>  :ConfirmBdelete<CR>
-  nnoremap <silent> <Del> :ConfirmBdelete<bar>quit<CR>
+  nnoremap <silent> <BS>  :<C-u>ConfirmBdelete<CR>
+  nnoremap <silent> <Del> :<C-u>ConfirmBdelete<bar>quit<CR>
 
 " }}}
 
@@ -163,14 +167,14 @@ let &history = max([&history, 10000])
   " command used for the preview window in CocList. TODO: investigate.
   " set noequalalways
 
-  nnoremap <silent> <A-BS> :quit<CR>
+  nnoremap <silent> <A-BS> :<C-u>quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
   nnoremap <leader>v <C-W>v<C-O>
 
   " Open just the current buffer in a new tab.
-  nnoremap <leader>t :tab split<CR>
-  nnoremap <leader>T :tabclose<CR>
+  nnoremap <leader>t :<C-u>tab split<CR>
+  nnoremap <leader>T :<C-u>tabclose<CR>
 
 " }}}
 
@@ -267,10 +271,10 @@ let &history = max([&history, 10000])
   command! -bar -bang CListFuzzy call dotfiles#fzf#qflist_fuzzy(0, <bang>0)
   command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
 
-  nnoremap <silent> <F1>      :Helptags<CR>
-  nnoremap <silent> <leader>f :Files<CR>
-  nnoremap <silent> <leader>b :Buffers<CR>
-  nnoremap <silent> <leader>m :Manpages<CR>
+  nnoremap <silent> <F1>      :<C-u>Helptags<CR>
+  nnoremap <silent> <leader>f :<C-u>Files<CR>
+  nnoremap <silent> <leader>b :<C-u>Buffers<CR>
+  nnoremap <silent> <leader>m :<C-u>Manpages<CR>
 
   " <https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515>
   let $FZF_DEFAULT_OPTS = '--color=16'
@@ -294,7 +298,8 @@ let &history = max([&history, 10000])
   command! -bar -bang -nargs=* -complete=custom,dotplug#complete_plugin_names FilesPlugins
   \ call s:FilesPlugins(<bang>0, <q-args>)
 
-  nnoremap <silent> <leader>P :FilesPlugins<CR>
+  nnoremap <silent> <leader>P :<C-u>FilesPlugins<CR>
+  nnoremap <silent> <leader>R :<C-u>FilesRuntime<CR>
 " }}}
 
 
@@ -305,18 +310,18 @@ let &history = max([&history, 10000])
   nmap ]l <Plug>(qf_loc_next)
   nmap Q <Plug>(qf_qf_toggle)
   " Jump to the currently selected error in the qflist again
-  nnoremap <leader>q :cc<CR>zv
+  nnoremap <leader>q :<C-u>cc<CR>zv
   let g:qf_mapping_ack_style = 1
   " Pick and jump using fzf
-  nnoremap <leader>z :CListFuzzy<CR>
+  nnoremap <leader>z :<C-u>CListFuzzy<CR>
   let g:qf_bufname_or_text = 2
 " }}}
 
 
-nnoremap <silent> <F9> :make!<CR>
+nnoremap <silent> <F9> :<C-u>make!<CR>
 
 command! -bar -bang RunFile execute (b:runfileprg[0] ==# ':' ? b:runfileprg[1:] : '!' . b:runfileprg)
-nnoremap <silent> <F5> :RunFile<CR>
+nnoremap <silent> <F5> :<C-u>RunFile<CR>
 
 
 if exists('*api_info')
