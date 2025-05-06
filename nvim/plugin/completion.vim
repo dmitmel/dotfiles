@@ -1,18 +1,3 @@
-" Disable showing completion-related messages in the bottom of the screen, such
-" as "match X of Y", "The only match", "Pattern not found" etc.
-set shortmess+=c
-
-" Don't let the built-in completion mode (i_CTRL-N and i_CTRL-P) take results
-" from included files. That is slow and imprecise, tags are much better for
-" that.
-set complete-=i
-
-" <https://github.com/neoclide/coc.nvim/blob/705135211e84725766e434f59e63ae3592c609d9/src/completion/index.ts#L595-L600>
-" on the other hand
-" <https://github.com/hrsh7th/nvim-compe/blob/077329e6bd1704d1acdff087ef1a73df23e92789/autoload/compe.vim#L46-L53>
-set completeopt=menuone,noselect
-
-
 if dotplug#has('nvim-snippy')  " {{{
 
   function! s:get_snippet_scopes(scopes) abort

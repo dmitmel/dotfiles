@@ -8,11 +8,58 @@ command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 
 nnoremap <leader>l :Lazy<CR>
 
-" Replicate the behavior of Zsh's complist module under my configuration.
-" 1st <Tab> - complete till the longest common prefix (longest).
-" 2nd <Tab> - list the matches, but don't select or complete anything yet (list).
-" 3rd <Tab> - start the selection menu (i.e. wildmenu), select and complete the first match (full).
-set wildmenu wildmode=longest,list,full
+set wildmenu   " Enable completion in the command-line mode.
+
+if has('patch-8.2.4325') || has('nvim-0.4.0')
+  " This option used to be one of the selling points of Neovim.
+  set wildoptions+=pum wildmode=longest,full
+else
+  " If the popup menu is not available, replicate the behavior of Zsh's
+  " complist module under my configuration.
+  " 1st <Tab> - complete till the longest common prefix (longest).
+  " 2nd <Tab> - list the matches, but don't select or complete anything yet (list).
+  " 3rd <Tab> - start the selection menu (i.e. wildmenu), select and complete the first match (full).
+  set wildmode=longest,list,full
+endif
+
+if has('patch-8.2.4463') || has('nvim-0.9.0')
+  set wildoptions+=fuzzy " Enable fuzzy matching in the cmdline completion menu
+endif
+
+" Disable showing completion-related messages in the bottom of the screen, such
+" as "match X of Y", "The only match", "Pattern not found" etc.
+set shortmess+=c
+
+" Don't let the built-in completion mode (i_CTRL-N and i_CTRL-P) take results
+" from included files. That is slow and imprecise, tags are much better for that.
+set complete-=i
+
+" Show the popup menu even if it contains only one item, and don't pre-select
+" the first candidate in the list (also won't pre-insert the first completion).
+set completeopt=menuone,noselect
+
+if has('patch-9.1.0463') || has('nvim-0.11.0')
+  set completeopt+=fuzzy   " Enable fuzzy matching in the popup completion menu
+endif
+
+" Set the maximum height of the completion menu, or the maximum number of items
+" shown (by default the whole screen height will be used).
+set pumheight=20
+
+if exists('&pumwidth')
+  " Set the minimum width of the completion menu if it is customizable (it used
+  " to be hardcoded).
+  set pumwidth=15
+endif
+
+if g:vim_ide == 0
+  imap <silent><expr> <CR>    pumvisible() ? "\<C-y>" : "\<Plug>delimitMateCR"
+  imap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+  imap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+  imap <silent><expr> <Down>  pumvisible() ? "\<C-n>" : "\<Plug>dotfiles\<Down>"
+  imap <silent><expr> <Up>    pumvisible() ? "\<C-p>" : "\<Plug>dotfiles\<Up>"
+  imap <silent>     <C-Space> <C-x><C-o>
+endif
 
 " always show the sign column
 set signcolumn=yes
