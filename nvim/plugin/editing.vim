@@ -255,8 +255,12 @@ endif
   inoremap <silent><expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("<Up>")
   inoremap <silent><expr> <Plug>dotfiles<Down> <SID>arrow_mapping("<Down>")
 
-  if empty(maparg('<Up>', 'i'))   | imap <Up>   <Plug>dotfiles<Up>   | endif
-  if empty(maparg('<Down>', 'i')) | imap <Down> <Plug>dotfiles<Down> | endif
+  if empty(maparg('<Up>', 'i'))
+    imap <Up>   <Plug>dotfiles<Up>
+  endif
+  if empty(maparg('<Down>', 'i'))
+    imap <Down> <Plug>dotfiles<Down>
+  endif
 
 " }}}
 
