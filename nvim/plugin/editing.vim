@@ -20,7 +20,7 @@ endif
 set nrformats-=octal
 
 if has('nvim-0.5.0') || has('patch-9.0.1921')
-  set jumpoptions+=stack
+  " set jumpoptions+=stack  " NOTE: this fills the jumplist with irrelevant and annoying jumps.
 endif
 if has('nvim-0.10.2')
   set jumpoptions-=clean
