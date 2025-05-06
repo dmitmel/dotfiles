@@ -6,7 +6,7 @@
 " <https://github.com/tpope/vim-sensible/blob/2d9f34c09f548ed4df213389caa2882bfe56db58/plugin/sensible.vim#L35>
 command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 
-nnoremap <leader>l <Cmd>Lazy<CR>
+nnoremap <leader>l :Lazy<CR>
 
 " Replicate the behavior of Zsh's complist module under my configuration.
 " 1st <Tab> - complete till the longest common prefix (longest).
@@ -64,9 +64,9 @@ let &history = max([&history, 10000])
   set shortmess+=F
 
   " buffer navigation {{{
-    nnoremap <silent> <Tab>   <Cmd>bnext<CR>
-    nnoremap <silent> <S-Tab> <Cmd>bprev<CR>
-    nnoremap <silent> gb      <Cmd>buffer#<CR>
+    nnoremap <silent> <Tab>   :bnext<CR>
+    nnoremap <silent> <S-Tab> :bprev<CR>
+    nnoremap <silent> gb      :buffer#<CR>
   " }}}
 
   " ask for confirmation when closing unsaved buffers
@@ -80,15 +80,15 @@ let &history = max([&history, 10000])
       return ''
     endif
   endfunction
-  command! -bar -bang ConfirmBdelete exec s:ConfirmBbye(<bang>0, 'Bdelete')
-  command! -bar -bang ConfirmBwipeout exec s:ConfirmBbye(<bang>0, 'Bwipeout')
+  command! -bar -bang ConfirmBdelete  execute s:ConfirmBbye(<bang>0, 'Bdelete')
+  command! -bar -bang ConfirmBwipeout execute s:ConfirmBbye(<bang>0, 'Bwipeout')
 
   " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist
   " switching because when these lists are loaded, they also create (but not
   " load) buffers for all of the mentioned files, and should a buffer be
   " deleted entirely, switching to that buffer starts to fail with E92.
-  nnoremap <silent> <BS>  <Cmd>ConfirmBdelete<CR>
-  nnoremap <silent> <Del> <Cmd>ConfirmBdelete<bar>quit<CR>
+  nnoremap <silent> <BS>  :ConfirmBdelete<CR>
+  nnoremap <silent> <Del> :ConfirmBdelete<bar>quit<CR>
 
 " }}}
 
@@ -116,14 +116,14 @@ let &history = max([&history, 10000])
   " command used for the preview window in CocList. TODO: investigate.
   " set noequalalways
 
-  nnoremap <silent> <A-BS> <Cmd>quit<CR>
+  nnoremap <silent> <A-BS> :quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
   nnoremap <leader>v <C-W>v<C-O>
 
   " Open just the current buffer in a new tab.
-  nnoremap <leader>t <Cmd>tab split<CR>
-  nnoremap <leader>T <Cmd>tabclose<CR>
+  nnoremap <leader>t :tab split<CR>
+  nnoremap <leader>T :tabclose<CR>
 
 " }}}
 
@@ -220,11 +220,10 @@ let &history = max([&history, 10000])
   command! -bar -bang CListFuzzy call dotfiles#fzf#qflist_fuzzy(0, <bang>0)
   command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
 
-  nnoremap <silent> <F1>      <Cmd>Helptags<CR>
-  " inoremap <silent> <F1>      <Esc><Cmd>Helptags<CR>
-  nnoremap <silent> <leader>f <Cmd>Files<CR>
-  nnoremap <silent> <leader>b <Cmd>Buffers<CR>
-  nnoremap <silent> <leader>m <Cmd>Manpages<CR>
+  nnoremap <silent> <F1>      :Helptags<CR>
+  nnoremap <silent> <leader>f :Files<CR>
+  nnoremap <silent> <leader>b :Buffers<CR>
+  nnoremap <silent> <leader>m :Manpages<CR>
 
   " <https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515>
   let $FZF_DEFAULT_OPTS = '--color=16'
@@ -248,7 +247,7 @@ let &history = max([&history, 10000])
   command! -bar -bang -nargs=* -complete=custom,dotplug#complete_plugin_names FilesPlugins
   \ call s:FilesPlugins(<bang>0, <q-args>)
 
-  nnoremap <silent> <leader>P <Cmd>FilesPlugins<CR>
+  nnoremap <silent> <leader>P :FilesPlugins<CR>
 " }}}
 
 
@@ -259,18 +258,18 @@ let &history = max([&history, 10000])
   nmap ]l <Plug>(qf_loc_next)
   nmap Q <Plug>(qf_qf_toggle)
   " Jump to the currently selected error in the qflist again
-  nnoremap <leader>q <Cmd>cc<CR>zv
+  nnoremap <leader>q :cc<CR>zv
   let g:qf_mapping_ack_style = 1
   " Pick and jump using fzf
-  nnoremap <leader>z <Cmd>CListFuzzy<CR>
+  nnoremap <leader>z :CListFuzzy<CR>
   let g:qf_bufname_or_text = 2
 " }}}
 
 
-nnoremap <silent> <F9> <Cmd>make!<CR>
+nnoremap <silent> <F9> :make!<CR>
 
 command! -bar -bang RunFile execute (b:runfileprg[0] ==# ':' ? b:runfileprg[1:] : '!' . b:runfileprg)
-nnoremap <silent> <F5> <Cmd>RunFile<CR>
+nnoremap <silent> <F5> :RunFile<CR>
 
 
 if exists('*api_info')

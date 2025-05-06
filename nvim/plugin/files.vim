@@ -87,25 +87,30 @@ set nofixendofline
     let &grepprg = 'grep -R -I -n -H'
   endif " }}}
 
-  nnoremap <leader>/ :<C-u>grep<space>
-
-  function! s:grep_mapping_star_normal() abort
+  function! s:grep_word() abort
     let word = expand('<cword>')
     if !empty(word)
       let cmd = 'grep -- ' . shellescape('\b' . word . '\b', 1)
+      " The `t` flag makes Vim treat the fed keys as if they were typed from
+      " keyboard by the user. This is important for preserving the `:grep`
+      " command in history.
       call feedkeys(":\<C-u>" . cmd, 'nt')
     endif
   endfunction
-  function! s:grep_mapping_star_visual() abort
+  nnoremap <silent> <leader>* :call <SID>grep_word()<CR>
+
+  function! s:grep_visual() abort
     let tmp = @"
-    normal! y
-    let text = @"
-    let @" = tmp
-    let cmd = 'grep -- ' . shellescape(text, 1)
+    try
+      normal! gvy
+      let text = @"
+    finally
+      let @" = tmp
+    endtry
+    let cmd = 'grep -F -- ' . shellescape(text, 1)
     call feedkeys(":\<C-u>" . cmd, 'nt')
   endfunction
-  nnoremap <leader>* <Cmd>call <SID>grep_mapping_star_normal()<CR>
-  xnoremap <leader>* <Cmd>call <SID>grep_mapping_star_visual()<CR>
+  xnoremap <silent> <leader>* :<C-u>call <SID>grep_visual()<CR>
 
 " }}}
 
@@ -117,7 +122,7 @@ set nofixendofline
   " Android/Termux, so the tempname() function was chosen because it respects
   " $TMPDIR.
   let g:ranger_choice_file = tempname()
-  nnoremap <silent> <Leader>o <Cmd>Ranger<CR>
+  nnoremap <silent> <Leader>o :Ranger<CR>
   " ranger.vim relies on the Bclose.vim plugin, but I use Bbye.vim, so this
   " command is here just for compatitabilty
   command! -bang -complete=buffer -nargs=? Bclose Bdelete<bang> <args>
@@ -278,25 +283,17 @@ nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
   " disable all default mappings from Neovim.
   " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
 
-  function! s:gx(visual) abort
-    if !a:visual
-      let uri = dotutils#url_under_cursor()
-    else
-      let tmp = @a
-      try
-        normal! "ay
-        let uri = exists('*trim') ? trim(@a) : @a
-      finally
-        let @a = tmp
-      endtry
-    endif
-
-    if !empty(uri)
-      call dotutils#open_uri(uri)
-    endif
+  function! s:gx_get_selection() abort
+    let tmp = @"
+    try
+      normal! gvy
+      return substitute(@", '[ \t\n\r]*', '', 'g')
+    finally
+      let @" = tmp
+    endtry
   endfunction
 
-  nnoremap <silent> gx <Cmd>call <SID>gx(0)<CR>
-  xnoremap <silent> gx <Cmd>call <SID>gx(1)<CR>
+  nnoremap <silent> gx      :call dotutils#open_uri(dotutils#url_under_cursor())<CR>
+  xnoremap <silent> gx :<C-u>call dotutils#open_uri(<SID>gx_get_selection())<CR>
 
 " }}}

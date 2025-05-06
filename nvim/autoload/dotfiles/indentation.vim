@@ -7,20 +7,16 @@ function! dotfiles#indentation#unindent(first_line, last_line, base_indent) abor
   endfor
 endfunction
 
-function! dotfiles#indentation#run_indent_motion_next() abort
-  let linenr = s:run_indent_motion(1)
-  execute 'normal! ' . linenr . 'G^'
-endfunction
-
-function! dotfiles#indentation#run_indent_motion_prev() abort
-  let linenr = s:run_indent_motion(-1)
-  execute 'normal! ' . linenr . 'G^'
+function! dotfiles#indentation#get_indent_motion(direction) abort
+  let offset = dotfiles#indentation#get_indent_motion_line(a:direction) - line('.')
+  return offset > 0 ? (offset . '+') : offset < 0 ? (-offset . '-') : '_'
 endfunction
 
 " Based on <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim>
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
-function! s:run_indent_motion(direction) abort
+function! dotfiles#indentation#get_indent_motion_line(direction) abort
+  if a:direction != 1 && a:direction != -1 | throw 'direction must be 1 or -1' | endif
   let Nextnonblank = a:direction < 0 ? function('prevnonblank') : function('nextnonblank')
   let cursor_linenr = line('.')
   let max_linenr = line('$')

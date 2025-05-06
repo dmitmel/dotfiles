@@ -103,11 +103,15 @@ endif
   nnoremap <leader>< :Unindent<CR>
   xnoremap <leader>< :Unindent<CR>
 
-  noremap <silent> <Plug>dotfiles_indent_motion_next <Cmd>call dotfiles#indentation#run_indent_motion_next()<CR>
-  noremap <silent> <Plug>dotfiles_indent_motion_prev <Cmd>call dotfiles#indentation#run_indent_motion_prev()<CR>
-  map <expr> ( !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_prev" : "("
+  " NOTE: This is my very own custom Vim motion!!!
+  " <https://vim.fandom.com/wiki/Creating_new_text_objects>
+  noremap <expr> ( dotfiles#indentation#get_indent_motion(-1)
+  noremap <expr> ) dotfiles#indentation#get_indent_motion(1)
+  " <expr> mappings in Operator mode are not dot-repeatable.
+  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indentation#get_indent_motion(-1)<CR>
+  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indentation#get_indent_motion(1)<CR>
+  " Don't pollute the Select mode.
   sunmap (
-  map <expr> ) !exists("b:dotfiles_prose_mode") ? "\<Plug>dotfiles_indent_motion_next" : ")"
   sunmap )
 
 " }}}
@@ -175,18 +179,15 @@ endif
 
   if !empty(s:comment_out_cmd)
     function! s:copy_and_comment_out(up) abort
-      if a:up
-        copy .
-        exe '-' . s:comment_out_cmd
-      else
-        copy -
-        exe '+' . s:comment_out_cmd
-      endif
+      exe 'copy ' . (a:up ? '.' : '-')
+      let pos = getcurpos()
+      exe (a:up ? '-' : '+') . s:comment_out_cmd
+      call setpos('.', pos)
       call repeat#set("\<Plug>dotfiles_copy_and_comment_" . (a:up ? 'above' : 'below'), v:count)
     endfunction
 
-    nnoremap <Plug>dotfiles_copy_and_comment_above <Cmd>call <SID>copy_and_comment_out(1)<CR>
-    nnoremap <Plug>dotfiles_copy_and_comment_below <Cmd>call <SID>copy_and_comment_out(0)<CR>
+    nnoremap <Plug>dotfiles_copy_and_comment_above :call <SID>copy_and_comment_out(1)<CR>
+    nnoremap <Plug>dotfiles_copy_and_comment_below :call <SID>copy_and_comment_out(0)<CR>
 
     nmap <silent> <leader>[ <Plug>dotfiles_copy_and_comment_below
     nmap <silent> <leader>] <Plug>dotfiles_copy_and_comment_above
@@ -232,42 +233,39 @@ endif
   xnoremap <leader>dp :diffput<CR>
   xnoremap <leader>dl :Linediff<CR>
 
-  " Horizontal scroll
+  " Horizontal scroll (these mappings work in Normal, Visual and Select modes)
   " Alt+hjkl and Alt+Arrow  - scroll one column/row
   " Alt+Shift+hjkl          - scroll half a page
-  " normal mode
-  nnoremap <M-h> zh
-  nnoremap <M-H> zH
-  nnoremap <M-Left> zh
-  nnoremap <M-j> <C-e>
-  nnoremap <M-J> <C-d>
-  nnoremap <M-Down> <C-e>
-  nnoremap <M-k> <C-y>
-  nnoremap <M-K> <C-u>
-  nnoremap <M-Up> <C-y>
-  nnoremap <M-l> zl
-  nnoremap <M-L> zL
-  nnoremap <M-Right> zl
-  " visual mode
-  xnoremap <M-h> zh
-  xnoremap <M-H> zH
-  xnoremap <M-Left> zh
-  xnoremap <M-j> <C-e>
-  xnoremap <M-J> <C-d>
-  xnoremap <M-Down> <C-e>
-  xnoremap <M-k> <C-y>
-  xnoremap <M-K> <C-u>
-  xnoremap <M-Up> <C-y>
-  xnoremap <M-l> zl
-  xnoremap <M-L> zL
-  xnoremap <M-Right> zl
+  for s:key in ['h', 'H', 'l', 'L', 'Left', 'Right']
+    execute 'noremap <M-'.s:key.'> z'.(len(s:key) > 1 ? '<'.s:key.'>' : s:key)
+    execute 'ounmap <M-'.s:key.'>'
+  endfor
+  " HACK: The first letter is the rhs of the mapping, the rest is the lhs. Do a backflip! :crazy:
+  for s:key in ['ej', 'yk', 'dJ', 'uK', 'eDown', 'yUp']
+    execute 'noremap <M-'.s:key[1:].'> <C-'.s:key[0].'>'
+    execute 'ounmap <M-'.s:key[1:].'>'
+  endfor
 
+  " Helpers to apply A/I to every line selected in Visual mode.
   xnoremap A :normal! A
   xnoremap I :normal! I
 
   " Break undo on CTRL-W andd CTRL-U in the Insert mode.
   inoremap <C-u> <C-g>u<C-u>
   inoremap <C-w> <C-g>u<C-w>
+
+  " My final attempt at untangling the mess that are the <Up> and <Down> keys.
+  function! s:arrow_mapping(rhs) abort
+    if get(b:, 'pencil_wrap_mode', 0) == 0
+      return a:rhs   " No wrapping enabled
+    elseif s:has_cmd_mappings
+      return "\<Cmd>normal g" . a:rhs . "\<CR>"  " This does not make the statusline flicker
+    else
+      return "\<C-o>g" . a:rhs
+    endif
+  endfunction
+  inoremap <expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("<Up>")
+  inoremap <expr> <Plug>dotfiles<Down> <SID>arrow_mapping("<Down>")
 
 " }}}
 
@@ -277,12 +275,12 @@ endif
   " Make sure that the `langmap` option doesn't affect mappings.
   set nolangremap
 
-  nnoremap <leader>kk <Cmd>set keymap&<CR>
-  nnoremap <leader>kr <Cmd>set keymap=russian-jcuken-custom<CR>
-  nnoremap <leader>ku <Cmd>set keymap=ukrainian-jcuken-custom<CR>
+  nnoremap <leader>kk :set keymap&<CR>
+  nnoremap <leader>kr :set keymap=russian-jcuken-custom<CR>
+  nnoremap <leader>ku :set keymap=ukrainian-jcuken-custom<CR>
   imap     <A-k>      <C-o><leader>k
 
-  nnoremap <C-o> <Cmd>DotfilesSwapKeymaps<CR>
+  nnoremap <C-o> :DotfilesSwapKeymaps<CR>
   command! -nargs=0 DotfilesSwapKeymaps let [b:dotfiles_prev_keymap, &keymap] = [&keymap, get(b:, 'dotfiles_prev_keymap', '')]
 
 " }}}
@@ -295,8 +293,21 @@ endif
   set ignorecase smartcase
 
   set hlsearch
-  nnoremap \ <Cmd>nohlsearch<CR>
-  xnoremap \ <Cmd>nohlsearch<CR>
+
+  " \ is the inverse of / -- if the latter highlights search results, the
+  " former executes :nohlsearch to turn the highlighting off.
+  if s:has_cmd_mappings
+    " Everything's easier when you have <Cmd> -- these work instantly, silently
+    " and without flicker.
+    nnoremap \ <Cmd>noh<CR>
+    xnoremap \ <Cmd>noh<CR>
+  else
+    " In legacy Vim's, situation's a bit more complex. Normal mode is trivial:
+    nnoremap <silent> \ :noh<CR>
+    " But Visual mode is where the flicker issue appears. `normal! gv` instead
+    " of just `gv` at the end adresses the flicker problem.
+    xnoremap <silent> \ :<C-u>noh<Bar>norm!gv<CR>
+  endif
 
   let g:indexed_search_center = 1
 
@@ -370,16 +381,14 @@ endif
   function! s:VisualStarSearch() abort
     let tmp = @"
     try
-      normal! y
+      normal! gvy
       let @/ = dotutils#literal_regex(@")
     finally
       let @" = tmp
     endtry
   endfunction
-  xmap * <Cmd>call <SID>VisualStarSearch()<CR>/<CR>
-  xmap # <Cmd>call <SID>VisualStarSearch()<CR>?<CR>
-  xmap g* *
-  xmap g# #
+  xmap * :<C-u>call <SID>VisualStarSearch()<CR>/<CR>
+  xmap # :<C-u>call <SID>VisualStarSearch()<CR>?<CR>
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
   command! -nargs=+ Search let @/ = escape(<q-args>, '/') | normal! /<C-r>/<CR>
@@ -501,10 +510,6 @@ endif
   sunmap F
   sunmap t
   sunmap T
-  nnoremap <leader>s <Cmd>echoerr 'Please, use `cl` instead of `<leader>s`!'<CR>
-  nnoremap <leader>S <Cmd>echoerr 'Please, use `cc` instead of `<leader>S`!'<CR>
-  xnoremap <leader>s <Cmd>echoerr 'Please, use `c` instead of `<leader>s`!'<CR>
-  xnoremap <leader>S <Cmd>echoerr 'Please, use `C` instead of `<leader>S`!'<CR>
 
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
