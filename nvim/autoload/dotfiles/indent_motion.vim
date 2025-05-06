@@ -1,21 +1,12 @@
-function! dotfiles#indentation#unindent(first_line, last_line, base_indent) abort
-  let nonblank_linenrs = filter(range(a:first_line, a:last_line), '!empty(getline(v:val))')
-  let min_indent = min(map(copy(nonblank_linenrs), 'indent(v:val)'))
-  let delta = min_indent - a:base_indent
-  for linenr in nonblank_linenrs
-    execute linenr.'left' (indent(linenr) - delta)
-  endfor
-endfunction
-
-function! dotfiles#indentation#get_indent_motion(direction) abort
-  let offset = dotfiles#indentation#get_indent_motion_line(a:direction) - line('.')
+function! dotfiles#indent_motion#run(direction) abort
+  let offset = dotfiles#indent_motion#find_line(a:direction) - line('.')
   return offset > 0 ? (offset . '+') : offset < 0 ? (-offset . '-') : '_'
 endfunction
 
 " Based on <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim>
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
-function! dotfiles#indentation#get_indent_motion_line(direction) abort
+function! dotfiles#indent_motion#find_line(direction) abort
   if a:direction != 1 && a:direction != -1 | throw 'direction must be 1 or -1' | endif
   let Nextnonblank = a:direction < 0 ? function('prevnonblank') : function('nextnonblank')
   let cursor_linenr = line('.')

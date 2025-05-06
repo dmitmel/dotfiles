@@ -99,17 +99,13 @@ endif
     command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
   endif
 
-  command! -bar -bang -range -nargs=? Unindent call dotfiles#indentation#unindent(<line1>, <line2>, str2nr(<q-args>))
-  nnoremap <leader>< :Unindent<CR>
-  xnoremap <leader>< :Unindent<CR>
-
   " NOTE: This is my very own custom Vim motion!!!
   " <https://vim.fandom.com/wiki/Creating_new_text_objects>
-  noremap <expr> ( dotfiles#indentation#get_indent_motion(-1)
-  noremap <expr> ) dotfiles#indentation#get_indent_motion(1)
+  noremap <expr> ( dotfiles#indent_motion#run(-1)
+  noremap <expr> ) dotfiles#indent_motion#run(1)
   " <expr> mappings in Operator mode are not dot-repeatable.
-  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indentation#get_indent_motion(-1)<CR>
-  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indentation#get_indent_motion(1)<CR>
+  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indent_motion#run(-1)<CR>
+  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indent_motion#run(1)<CR>
   " Don't pollute the Select mode.
   sunmap (
   sunmap )
