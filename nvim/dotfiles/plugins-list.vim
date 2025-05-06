@@ -34,22 +34,10 @@ exe dotplug#define_plug_here()
   " in parentheses, quotes or even XML tags with `ys`, delete the surrounding
   " delimiters with `ds` and change them with `cs`.
   Plug 'https://github.com/tpope/vim-surround'
-  " The following block selects between varying implementations of plugins for
-  " drawing indentation guides like in those IDEs (even Notepad++ has them!).
-  " Note that my configs also include an implementation - the "sane indentLine"
-  " plugin.
-  if !has('nvim-0.5.0')
-    " "The Original".
-    Plug 'https://github.com/Yggdroot/indentLine'
-  elseif !g:dotfiles_sane_indentline_enable
-    " Doesn't use concealed text, can put indent guides on blank lines, depends
-    " this neovim PR[1] merged in v0.5.0, backwards compatible with the
-    " original indentLine (in terms of options). Must be later than v2.1.0 due
-    " to fix of a critical bug[2].
-    " [1]: <https://github.com/neovim/neovim/pull/13952>
-    " [2]: <https://github.com/lukas-reineke/indent-blankline.nvim/pull/155>
-    Plug 'https://github.com/lukas-reineke/indent-blankline.nvim'
-  endif
+  " Draws indentation guides like in normie text editors. My configs also
+  " include my own Lua implementation of this plugin, the Original is used only
+  " when the former is not available.
+  Plug 'https://github.com/Yggdroot/indentLine', { 'if': !has('nvim-0.5.0') }
   " Prints the number of search results when using the `/` command or the `n`
   " and `N` motions and similar.
   Plug 'https://github.com/henrik/vim-indexed-search', { 'if': !exists('*searchcount') }

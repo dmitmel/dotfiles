@@ -34,48 +34,39 @@ endif
   " `smartindent` is a "fallback" autoindentation mechanism which just uses
   " curly brackets and the words from `cinwords` for determining indentation
   " and is activated when `cindent` and `indentexpr` are not set. This will be
-  " the case only for buffers without a filetype because most ftplugins already
-  " define reasonable indentation settings, AND text files.
+  " the case only for buffers without a filetype AND text files because most
+  " ftplugins already define reasonable indentation settings.
   set smartindent
   " <Tab> inserts `shiftwidth` number spaces in front of a line, <BS> deletes
   " `shiftwidth` number spaces in front of a line.
   set smarttab
+  " Use 2 spaces for indentination by default.
+  set expandtab shiftwidth=2
+  " When tabs are used though, give them the width of 4 (the influence of @2767mr).
+  set tabstop=4
+  " A negative number here tells Vim to use the value of `shiftwidth` for this option.
+  set softtabstop=-1
+  " Round indents to the multiple of shiftwidth when using shift (< and >) commands.
+  set shiftround
 
-  function! s:set_indent(use_tabs, cmd_arg, cmd_mods) abort
-    if a:cmd_arg !=# '?'
-      let prev_width = &l:expandtab ? shiftwidth() : &l:tabstop
-      let width = empty(a:cmd_arg) ? prev_width : +(a:cmd_arg)
+  function! s:indent_cmd(use_tabs, arg, mods) abort
+    if empty(a:arg) || a:arg ==# '?'
+      if a:mods =~# '\<verbose\>'
+        verbose set expandtab? shiftwidth? tabstop? softtabstop?
+      else
+        echo printf('set %set sw=%d ts=%d sts=%d', &l:et ? '' : 'no', &l:sw, &l:ts, &l:sts)
+      endif
+    else
+      let width          = +(a:arg)
       let &l:expandtab   = !a:use_tabs
       let &l:shiftwidth  = width
       let &l:tabstop     = width
-      let &l:softtabstop = width
-    elseif a:cmd_mods =~# '\<verbose\>'
-      verbose set expandtab? shiftwidth? tabstop? softtabstop?
-    else
-      echo printf('set %set sw=%d ts=%d sts=%d', &l:et ? '' : 'no', &l:sw, &l:ts, &l:sts)
+      let &l:softtabstop = -1
     endif
   endfunction
-  command! -nargs=? -bar Indent call s:set_indent(0, <q-args>, <q-mods>)
-  command! -nargs=? -bar IndentTabs call s:set_indent(1, <q-args>, <q-mods>)
+  command! -nargs=? -bar Indent      call s:indent_cmd(0, <q-args>, <q-mods>)
+  command! -nargs=? -bar IndentTabs  call s:indent_cmd(1, <q-args>, <q-mods>)
   command! -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
-
-  let g:sleuth_automatic = 0
-  function! DotfilesSleuth() abort
-    if exists(':Sleuth') && get(b:, 'sleuth_automatic', 1)
-      silent Sleuth
-    endif
-    " Sync shiftwidth, tabstop and softtabstop with each other.
-    silent call s:set_indent(&l:expandtab, '', '')
-  endfunction
-  augroup dotfiles_sleuth_hack
-    autocmd!
-    autocmd FileType * nested call DotfilesSleuth()
-  augroup END
-
-  " use 2 spaces for indentination
-  set expandtab shiftwidth=2 tabstop=2 softtabstop=2
-  " round indents to multiple of shiftwidth when using shift (< and >) commands
-  set shiftround
 
   let g:indentLine_char = "\u2502"
   let g:indentLine_first_char = g:indentLine_char
@@ -86,8 +77,8 @@ endif
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
 
-  if g:dotfiles_sane_indentline_enable && has('nvim-0.5.0')
-    lua require('dotfiles.sane_indentline')
+  if !dotplug#has('indentLine') && has('nvim-0.5.0')
+    lua require('dotfiles.sane_indentline').setup()
     function! s:indent_lines_set(global, status) abort
       let dict = a:global ? g: : b:
       let status = a:status is# 'toggle' ? !get(dict, 'indentLine_enabled', 1) : a:status
@@ -97,6 +88,7 @@ endif
     command! -bar -bang IndentLinesEnable  call s:indent_lines_set(<bang>0, 1)
     command! -bar -bang IndentLinesDisable call s:indent_lines_set(<bang>0, 0)
     command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
+    exe dotutils#cmd_abbrev('IL', 'IndentLinesToggle')
   endif
 
   " NOTE: This is my very own custom Vim motion!!!
@@ -255,7 +247,7 @@ endif
     if get(b:, 'pencil_wrap_mode', 0) == 0
       return a:rhs   " No wrapping enabled
     elseif s:has_cmd_mappings
-      return "\<Cmd>normal g" . a:rhs . "\<CR>"  " This does not make the statusline flicker
+      return "\<Cmd>normal! g" . a:rhs . "\<CR>"  " This does not make the statusline flicker
     else
       return "\<C-o>g" . a:rhs
     endif

@@ -24,7 +24,6 @@ let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
 let g:vim_ide = get(g:, 'vim_ide', 0)
-let g:dotfiles_sane_indentline_enable = get(g:, 'dotfiles_sane_indentline_enable', 1)
 
 " Make sure everybody knows that comma is the leader!
 let g:mapleader = ','

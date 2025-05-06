@@ -278,14 +278,16 @@ end
 
 function M.decorations_provider:on_end(tick) self:reset() end
 
--- stylua: ignore start
-vim.api.nvim_set_decoration_provider(M.ns_id, {
-  on_start = function(_, ...) return M.decorations_provider:on_start(...) end,
-  -- on_buf = function(_, ...) return M.decorations_provider:on_buf(...) end,
-  on_win = function(_, ...) return M.decorations_provider:on_win(...) end,
-  on_line = function(_, ...) return M.decorations_provider:on_line(...) end,
-  on_end = function(_, ...) return M.decorations_provider:on_end(...) end,
-})
--- stylua: ignore end
+function M.setup()
+  -- stylua: ignore start
+  vim.api.nvim_set_decoration_provider(M.ns_id, {
+    on_start = function(_, ...) return M.decorations_provider:on_start(...) end,
+    -- on_buf = function(_, ...) return M.decorations_provider:on_buf(...) end,
+    on_win = function(_, ...) return M.decorations_provider:on_win(...) end,
+    on_line = function(_, ...) return M.decorations_provider:on_line(...) end,
+    on_end = function(_, ...) return M.decorations_provider:on_end(...) end,
+  })
+  -- stylua: ignore end
+end
 
 return M
