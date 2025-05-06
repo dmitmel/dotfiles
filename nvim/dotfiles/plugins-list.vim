@@ -154,11 +154,15 @@ exe dotplug#define_plug_here()
   " yet. In any case, a good list of language packs can be found here:
   " <https://github.com/sheerun/vim-polyglot#language-packs>
 
-  " I like these three much better than Vim's and Nvim's default ones:
+  " I like these much better than Vim's and Nvim's default ones:
   Plug 'https://github.com/tbastos/vim-lua'
   Plug 'https://github.com/plasticboy/vim-markdown'
+  Plug 'https://github.com/vim-python/python-syntax'
   " (this one highlights function invocations which the default one does not do)
   Plug 'https://github.com/bfrg/vim-cpp-modern'
+  " The indenting script here is just so much better than the default one.
+  " Discovered this plugin thanks to vim-polyglot.
+  Plug 'https://github.com/Vimjas/vim-python-pep8-indent'
 
   " JavaScript and TypeScript development:
   Plug 'https://github.com/pangloss/vim-javascript'
@@ -173,10 +177,6 @@ exe dotplug#define_plug_here()
   " time[1], plus this is an official plugin and it's super good.
   " [1]: <https://github.com/vim/vim/pull/13075>
   Plug 'https://github.com/rust-lang/rust.vim'
-
-  " The indenting script here is just so much better than the default one.
-  " Discovered this plugin thanks to vim-polyglot.
-  Plug 'https://github.com/Vimjas/vim-python-pep8-indent'
 
   " Sysadmin stuff:
   Plug 'https://github.com/MTDL9/vim-log-highlighting'

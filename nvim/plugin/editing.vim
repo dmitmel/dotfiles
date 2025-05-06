@@ -562,6 +562,7 @@ endif
   let g:vala_syntax_folding_enabled = 0
 
   let g:python_recommended_style = 0
+  let g:python_highlight_all = 1
 
   " Seems to be the closest one to SQLite. <https://www.sqlite.org/lang.html>
   let g:sql_type_default = 'sqlinformix'
@@ -580,6 +581,9 @@ endif
 
   let g:lua_version = 5
   let g:lua_subversion = 1
+
+  let g:vim_json_conceal = 0
+  let g:javascript_plugin_jsdoc = 1
 
 " }}}
 
