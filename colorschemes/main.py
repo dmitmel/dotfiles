@@ -3,8 +3,9 @@
 import json
 import os
 from abc import abstractmethod
+from collections.abc import Iterator
 from configparser import ConfigParser
-from typing import IO, Any, BinaryIO, Dict, Iterator, List, Protocol, TextIO, Tuple
+from typing import IO, Any, BinaryIO, Protocol, TextIO
 
 __dir__ = os.path.dirname(__file__)
 
@@ -40,7 +41,7 @@ class Color:
     return ((self.r & 0xFF) << 16) | ((self.g & 0xFF) << 8) | (self.b & 0xFF)
 
   @property
-  def float_rgb(self) -> Tuple[float, float, float]:
+  def float_rgb(self) -> tuple[float, float, float]:
     return float(self.r) / 0xFF, float(self.g) / 0xFF, float(self.b) / 0xFF
 
   def __getitem__(self, index: int) -> int:
@@ -59,13 +60,13 @@ class Color:
     yield self.b
 
 
-ANSI_TO_BASE16_MAPPING: List[int] = [
+ANSI_TO_BASE16_MAPPING: list[int] = [
   0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5,  # 0x0
   0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7,  # 0x8
   0x9, 0xF, 0x1, 0x2, 0x4, 0x6,            # 0x10
 ]  # yapf: disable
 
-BASE16_TO_ANSI_MAPPING: List[int] = [ANSI_TO_BASE16_MAPPING.index(i) for i in range(16)]
+BASE16_TO_ANSI_MAPPING: list[int] = [ANSI_TO_BASE16_MAPPING.index(i) for i in range(16)]
 BASE16_BG_COLOR_IDX = 0x0
 BASE16_FG_COLOR_IDX = 0x5
 BASE16_SELECTION_BG_COLOR_IDX = 0x2
@@ -75,7 +76,7 @@ BASE16_LINK_COLOR_IDX = 0xC
 class Theme(Protocol):
   base16_name: str
   is_dark: bool
-  base16_colors: List[Color]
+  base16_colors: list[Color]
 
   @property
   def name(self) -> str:
@@ -106,7 +107,7 @@ class Theme(Protocol):
     return self.fg
 
   @property
-  def ansi_colors(self) -> List[Color]:
+  def ansi_colors(self) -> list[Color]:
     return [self.base16_colors[i] for i in ANSI_TO_BASE16_MAPPING]
 
   @property
@@ -114,7 +115,7 @@ class Theme(Protocol):
     return self.ansi_colors[BASE16_LINK_COLOR_IDX]
 
   @property
-  def css_variables(self) -> Dict[str, Color]:
+  def css_variables(self) -> dict[str, Color]:
     d = {
       "bg": self.bg,
       "fg": self.fg,
@@ -288,7 +289,7 @@ class ThemeGeneratorVscode(ThemeGenerator):
     return "vscode-colorCustomizations.json"
 
   def generate(self, theme: Theme, output: TextIO) -> None:
-    colors: Dict[str, str] = {
+    colors: dict[str, str] = {
       "terminal.background": theme.bg.css_hex,
       "terminal.foreground": theme.fg.css_hex,
       "terminal.selectionBackground": theme.selection_bg.css_hex,
@@ -443,9 +444,7 @@ class ThemeGeneratorAppleTerminal(ThemeGenerator):
     }
 
     def write_color(key_name: str, color: Color) -> None:
-      float_rgb_str = " ".join(
-        "{:.10f}".format(x).rstrip("0").rstrip(".") for x in color.float_rgb
-      )
+      float_rgb_str = " ".join("{:.10f}".format(x).rstrip("0").rstrip(".") for x in color.float_rgb)
       color_archive = {
         "$archiver": "NSKeyedArchiver",
         "$version": 100000,
@@ -479,9 +478,27 @@ class ThemeGeneratorAppleTerminal(ThemeGenerator):
     plistlib.dump(profile, output, fmt=plistlib.FMT_XML)
 
 
+class ThemeGeneratorMintty(ThemeGenerator):
+  ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"]
+
+  def file_name(self) -> str:
+    return ".minttyrc"
+
+  def generate(self, theme: Theme, output: TextIO) -> None:
+    def write_color(name: str, color: Color) -> None:
+      output.write(f"{name}={color.r},{color.g},{color.b}\n")
+
+    write_color("BackgroundColour", theme.bg)
+    write_color("ForegroundColour", theme.fg)
+    write_color("CursorColour", theme.cursor_bg)
+    for idx, name in enumerate(self.ANSI_COLOR_NAMES):
+      write_color(name, theme.ansi_colors[idx])
+      write_color("Bold" + name, theme.ansi_colors[idx + 8])
+
+
 def main() -> None:
   theme: Theme = IniTheme(os.path.join(__dir__, "data.ini"))
-  generators: List[ThemeGenerator] = [
+  generators: list[ThemeGenerator] = [
     ThemeGeneratorKitty(),
     ThemeGeneratorTermux(),
     ThemeGeneratorZsh(),
@@ -495,6 +512,7 @@ def main() -> None:
     ThemeGeneratorPrismJs(),
     ThemeGeneratorLua(),
     ThemeGeneratorAppleTerminal(),
+    ThemeGeneratorMintty(),
   ]
 
   out_dir = os.path.join(__dir__, "out")
