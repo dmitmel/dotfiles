@@ -1,2 +1,3 @@
-setlocal comments&vim commentstring=//%s
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal comments< commentstring<"
+setlocal comments&vim
+call dotutils#ftplugin_undo_set('&comments')
+exe dotutils#ftplugin_set('&commentstring', '//%s')

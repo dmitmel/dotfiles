@@ -1,2 +1,2 @@
-setlocal nofoldenable foldmethod=manual
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal foldenable< foldmethod<"
+exe dotutils#ftplugin_set('&foldenable', 0)
+exe dotutils#ftplugin_set('&foldmethod', 'manual')

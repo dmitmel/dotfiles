@@ -1,3 +1,2 @@
-let b:delimitMate_nesting_quotes = ['"', "'"]
-let b:runfileprg = 'python -- %'
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n unlet! b:delimitMate_nesting_quotes b:runfileprg"
+call dotutils#ftplugin_set('delimitMate_nesting_quotes', ['"', "'"])
+call dotutils#ftplugin_set('runfileprg', 'python -- %')

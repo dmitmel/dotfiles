@@ -1,10 +1,9 @@
 source <sfile>:h/text.vim
 
-let &l:makeprg = 'markdown2htmldoc -- %:S %:S.html'
-let b:runfileprg = ':Open %.html'
+exe dotutils#ftplugin_set('&makeprg', 'markdown2htmldoc -- %:S %:S.html')
+call dotutils#ftplugin_set('runfileprg', ':Open %.html')
 
-let b:delimitMate_nesting_quotes = ['`']
+call dotutils#ftplugin_set('delimitMate_nesting_quotes', ['`'])
+
 setlocal matchpairs-=<:>
-
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n" .
-\ 'setlocal makeprg< matchpairs< | unlet! b:runfileprg b:delimitMate_nesting_quotes'
+call dotutils#ftplugin_undo_set('matchpairs')

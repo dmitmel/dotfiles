@@ -1,2 +1,1 @@
-setlocal noexpandtab
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal expandtab<"
+exe dotutils#ftplugin_set('&expandtab', 0)

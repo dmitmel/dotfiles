@@ -18,12 +18,7 @@ if exists('g:qf_mapping_ack_style')
   nmap <buffer> <CR> <CR>zv
 
   let b:undo_ftplugin = get(b:, 'undo_ftplugin', '')
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> <Esc>"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> q"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> ("
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> )"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> <Plug>dotfiles_qf_height"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> <C-p>"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> <C-n>"
-  let b:undo_ftplugin .= "| silent! nunmap <buffer> <CR>"
+  for s:key in ['<Esc>', 'q', '(', ')', '<Plug>dotfiles_qf_height', '<C-p>', '<C-n>', '<CR>']
+    let b:undo_ftplugin .= ' | silent! nunmap <buffer> ' . s:key
+  endfor
 endif

@@ -1,2 +1,1 @@
-setlocal commentstring=;%s
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal commentstring<"
+exe dotutils#ftplugin_set('&commentstring', ';%s')
