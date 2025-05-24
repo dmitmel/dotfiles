@@ -227,19 +227,19 @@ let &history = max([&history, 10000])
     \ 'tabline',
     \ 'hunks',
     \ 'dotfiles_tweaks',
-    \ 'dotfiles_filesize',
+    \ 'filesize',
     \ ]
   if dotplug#has('vim-fugitive')
     call extend(g:airline_extensions, ['branch', 'fugitiveline'])
   endif
   if dotplug#has('coc.nvim')
-    call extend(g:airline_extensions, ['coc', 'dotfiles_coclist'])
+    call extend(g:airline_extensions, ['coc', 'coclist'])
   endif
   if dotplug#has('vim-obsession')
     call extend(g:airline_extensions, ['obsession'])
   endif
   if get(g:, 'dotfiles_use_nvimlsp', 0)
-    call extend(g:airline_extensions, ['dotfiles_use_nvimlsp'])
+    call extend(g:airline_extensions, ['dotfiles_nvimlsp'])
   endif
 
   let g:airline_detect_iminsert = 1
