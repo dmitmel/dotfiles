@@ -221,17 +221,29 @@ endif
   xnoremap <leader>dp :diffput<CR>
   xnoremap <leader>dl :Linediff<CR>
 
+  function! s:insert_to_normal_map(rhs) abort
+    if s:has_cmd_mappings
+      return '<Cmd>normal!'.a:rhs.'<CR>'
+    else
+      " This is super cringe, but it works.
+      return '<C-r>=execute("normal!'.(a:rhs[0] ==# '<' ? '<bslash><lt>'.a:rhs[1:] : a:rhs).'")<CR>'
+    endif
+  endfunction
+
   " Horizontal scroll (these mappings work in Normal, Visual and Select modes)
   " Alt+hjkl and Alt+Arrow  - scroll one column/row
   " Alt+Shift+hjkl          - scroll half a page
   for s:key in ['h', 'H', 'l', 'L', 'Left', 'Right']
-    execute 'noremap <M-'.s:key.'> z'.(len(s:key) > 1 ? '<'.s:key.'>' : s:key)
+    let s:rhs = 'z'.(len(s:key) > 1 ? '<'.s:key.'>' : s:key)
+    execute 'noremap <M-'.s:key.'> '.s:rhs
     execute 'ounmap <M-'.s:key.'>'
+    execute 'inoremap <silent> <M-'.s:key.'> '.s:insert_to_normal_map(s:rhs)
   endfor
   " HACK: The first letter is the rhs of the mapping, the rest is the lhs. Do a backflip! :crazy:
   for s:key in ['ej', 'yk', 'dJ', 'uK', 'eDown', 'yUp']
     execute 'noremap <M-'.s:key[1:].'> <C-'.s:key[0].'>'
     execute 'ounmap <M-'.s:key[1:].'>'
+    execute 'inoremap <silent> <M-'.s:key[1:].'> '.s:insert_to_normal_map('<C-'.s:key[0].'>')
   endfor
 
   " Helpers to apply A/I to every line selected in Visual mode.
