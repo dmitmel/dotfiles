@@ -268,6 +268,7 @@ let &history = max([&history, 10000])
   nnoremap <silent> <leader>f :<C-u>Files<CR>
   nnoremap <silent> <leader>b :<C-u>Buffers<CR>
   nnoremap <silent> <leader>m :<C-u>Manpages<CR>
+  nnoremap <silent> <C-/>     :<C-u>Lines<CR>
 
   " <https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515>
   let $FZF_DEFAULT_OPTS = '--color=16'

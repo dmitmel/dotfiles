@@ -159,7 +159,7 @@ endif
   if dotplug#has('tcomment_vim')
     let s:comment_out_cmd = 'TComment!'   " the ! means to always comment out the line
   elseif dotplug#has('vim-commentary')
-    let s:comment_out_cmd = 'Commentary'  " vim-commentary does not have this capability"
+    let s:comment_out_cmd = 'Commentary'  " vim-commentary does not have this capability
   endif
 
   if !empty(s:comment_out_cmd)
@@ -207,8 +207,11 @@ endif
   nnoremap <C-n> <C-i>
   nnoremap <C-p> <C-o>
 
-  " Source of this trick: <https://youtu.be/bQfFvExpZDU?t=268>
-  nnoremap Q gq
+  " Execute a macro on every line in a Visual selection. These were taken from
+  " <https://github.com/neovim/neovim/blob/d7e0d46ffa8f9f1eaf27f8b7ee32ef9a21cb9b84/runtime/lua/vim/_defaults.lua#L115-L130>
+  xnoremap <silent><expr> @ (mode() ==# 'V' ? ':normal! @<C-R>=reg_recorded()<CR><CR>' : 'Q')
+  " I'm not mapping `Q`, as it is used for opening the quickfix list.
+  "xnoremap <silent><expr> Q (mode() ==# 'V' ? ':normal! @'.getcharstr().'<CR>' : '@')
 
   " normal mode
   nnoremap <leader>dg :.diffget<CR>
@@ -339,12 +342,12 @@ endif
 
   cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? <SID>search_mapping('') : '')
 
-  noremap <expr> *  <SID>search_mapping('*')
-  noremap <expr> #  <SID>search_mapping('#')
-  noremap <expr> g* <SID>search_mapping('g*')
-  noremap <expr> g# <SID>search_mapping('g#')
-  noremap <expr> n  <SID>search_mapping('Nn'[v:searchforward])
-  noremap <expr> N  <SID>search_mapping('nN'[v:searchforward])
+  noremap <silent><expr> *  <SID>search_mapping('*')
+  noremap <silent><expr> #  <SID>search_mapping('#')
+  noremap <silent><expr> g* <SID>search_mapping('g*')
+  noremap <silent><expr> g# <SID>search_mapping('g#')
+  noremap <silent><expr> n  <SID>search_mapping('Nn'[v:searchforward])
+  noremap <silent><expr> N  <SID>search_mapping('nN'[v:searchforward])
   for s:key in ['*', '#', 'g*', 'g#', 'n', 'N']
   " Remove those from the Select and Operator modes.
     exe 'sunmap' s:key
@@ -418,11 +421,14 @@ endif
     set inccommand=nosplit
   endif
 
-  " quick insertion of the substitution command
-  nnoremap gs/ :<C-u>%s///g<Left><Left><Left>
-  xnoremap gs/ :s/\%V//g<Left><Left><Left>
-  nnoremap gss :<C-u>%s///g<Left><Left>
-  xnoremap gss :s///g<Left><Left>
+  " The mnemonic is [g]o [s]ubstitute.
+  nnoremap gs :<C-u>%s/
+  " Substitute inside a Visual selection.
+  xnoremap <expr> gs (visualmode() ==# 'V' ? ':s/' : ':s/\%V')
+
+  " Repeat the last substitution and keep the flags.
+  " Taken from <https://github.com/neovim/neovim/blob/d7e0d46ffa8f9f1eaf27f8b7ee32ef9a21cb9b84/runtime/lua/vim/_defaults.lua#L108-L113>
+  nnoremap & :&&<CR>
 
 " }}}
 
