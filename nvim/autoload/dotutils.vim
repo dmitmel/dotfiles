@@ -13,7 +13,7 @@ function! dotutils#add_unique(list, element) abort
 endfunction
 
 " Taken from <https://vim.fandom.com/wiki/Replace_a_builtin_command_using_cabbrev>
-function! dotutils#cmd_abbrev(lhs, rhs) abort
+function! dotutils#cmd_alias(lhs, rhs) abort
   return printf("cabbrev %s <C-r>=(getcmdpos()==1 && getcmdtype()==':' ? %s : %s)<CR>",
   \             a:lhs, string(a:rhs), string(a:lhs))
 endfunction

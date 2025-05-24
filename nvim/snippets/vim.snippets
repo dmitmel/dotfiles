@@ -39,3 +39,5 @@ snippet luablock lua <<EOF
 	EOF
 snippet undoft snippet for extending b:undo_ftplugin
 	let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal $0"
+snippet cabbrev define a command alias
+	execute dotutils#cmd_alias('${1:lhs}', '${2:rhs}')

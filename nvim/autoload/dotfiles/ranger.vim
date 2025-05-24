@@ -47,20 +47,23 @@ function! dotfiles#ranger#run(ranger_args) abort
     endif
 
     if has_key(self, 'terminal_buf')
-      execute 'Bwipeout' self.terminal_buf
+      " Must be done with a bang, older Neovim versions ask about closing the
+      " terminal buffer even if the process in it is not running anymore.
+      execute 'Bwipeout!' self.terminal_buf
     endif
 
-    " readfile() returns on empty list on failure and prints an error message.
-    " `silent!` silences the error, but we still get the empty list back if the
-    " file can't be read.
-    silent! let paths = readfile(self.choice_file)
-    " delete() throws an error if the file does not exist. We don't care about
-    " this either.
+    try
+      let paths = readfile(self.choice_file)
+    catch
+      let paths = []
+    endtry
+
+    " Ignore the error if the file does not exist.
     silent! call delete(self.choice_file)
 
     for path in paths
       try
-        execute self.edit_cmd fnameescape(path)
+        execute self.edit_cmd fnameescape(fnamemodify(path, ':~:.'))
       catch
         echohl ErrorMsg
         echomsg v:exception
@@ -72,10 +75,17 @@ function! dotfiles#ranger#run(ranger_args) abort
   if has('nvim')
     enew
     let self.terminal_buf = bufnr()
-    call termopen(cmd, self)
+    if has('nvim-0.11')
+      let self.term = v:true
+      call jobstart(cmd, self)
+    else
+      call termopen(cmd, self)
+    endif
+    setlocal nobuflisted
     startinsert
   elseif has('terminal')
     let self.terminal_buf = term_start(cmd, { 'curwin': 1, 'exit_cb': function(self.on_exit) })
+    call setbufvar(self.terminal_buf, '&buflisted', 0)
   else
     " Regular Vim executes commands in the TTY, so this will work just fine. The
     " only problem I experienced with this method of calling Ranger is that Vim

@@ -250,6 +250,9 @@ let &history = max([&history, 10000])
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
   let g:airline#extensions#tabline#left_alt_sep = ''
+  " This pattern never matches anything, found it in `:help /\_$`. This needs to
+  " be done because airline by default hides all terminal buffers.
+  let g:airline#extensions#tabline#ignore_bufadd_pat = '\_$.'
 
 " }}}
 
@@ -309,7 +312,7 @@ let &history = max([&history, 10000])
 
 
 if dotplug#has('vim-dispatch')
-  exe dotutils#cmd_abbrev('make', 'Make')
+  execute dotutils#cmd_alias('make', 'Make')
   nnoremap <F9> :<C-u>Make<CR>
 else
   nnoremap <F9> :<C-u>make!<CR>
@@ -343,3 +346,26 @@ endif
   endfunction
   command! -bar Uptime echo Uptime()
 " }}}
+
+
+augroup dotfiles_terminal
+  autocmd!
+  autocmd WinEnter * if &buftype == 'terminal' | startinsert | endif
+
+  let s:fix_terminal_win = 'setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no'
+  if has('patch-8.2.3227') || has('nvim-0.7.0')  " `virtualedit` used to be a global-only option
+    let s:fix_terminal_win .= ' virtualedit=none'
+  endif
+
+  if has('nvim')
+    autocmd TermOpen * execute s:fix_terminal_win
+    autocmd TermOpen * startinsert
+  elseif has('terminal')
+    autocmd TerminalWinOpen * execute s:fix_terminal_win
+    autocmd TerminalWinOpen * IndentLinesDisable
+  endif
+augroup END
+
+if has('nvim')
+  exe dotutils#cmd_alias('term', 'split<Bar>term')
+endif

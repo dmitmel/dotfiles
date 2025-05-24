@@ -88,7 +88,7 @@ endif
     command! -bar -bang IndentLinesEnable  call s:indent_lines_set(<bang>0, 1)
     command! -bar -bang IndentLinesDisable call s:indent_lines_set(<bang>0, 0)
     command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
-    exe dotutils#cmd_abbrev('IL', 'IndentLinesToggle')
+    exe dotutils#cmd_alias('IL', 'IndentLinesToggle')
   endif
 
   " NOTE: This is my very own custom Vim motion!!!
@@ -130,7 +130,7 @@ endif
     " but the truth is that it is complicated to account for stuff like folds,
     " and I've tried.
     if 1 <= line("'\"") && line("'\"") <= line('$')
-      execute "normal! g`\"zz"
+      execute 'normal! g`"zz'
     endif
     silent! .foldopen
   endfunction
