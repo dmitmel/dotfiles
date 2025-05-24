@@ -33,7 +33,7 @@ function! dotutils#jump_to_file(path) abort
   " previously unlisted buffer.
   if getbufinfo('')[0].name != path
     silent! normal! m'
-    execute 'edit' fnameescape(path)
+    edit `=path`
   endif
 endfunction
 

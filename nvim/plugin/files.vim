@@ -116,16 +116,45 @@ set nofixendofline
 
 
 " Ranger {{{
-  let g:ranger_replace_netrw = 1
-  let g:ranger_map_keys = 0
-  " The default path (/tmp/chosenfile) is inaccessible at least on
-  " Android/Termux, so the tempname() function was chosen because it respects
-  " $TMPDIR.
-  let g:ranger_choice_file = tempname()
-  nnoremap <silent> <Leader>o :<C-u>Ranger<CR>
-  " ranger.vim relies on the Bclose.vim plugin, but I use Bbye.vim, so this
-  " command is here just for compatitabilty
-  command! -bang -complete=buffer -nargs=? Bclose Bdelete<bang> <args>
+
+  function! s:maybe_open_ranger(bufnr, path)
+    if isdirectory(a:path)
+      " I'm going to use :Bwipeout here precisely because it removes entries
+      " related to the deleted buffer in the jumplist. When, let's say, a `gf`
+      " command is ran over a directory name, then an entry will be added to
+      " the jumplist corresponding to the directory. When the directory buffer
+      " is wiped out, going backwards in the jumplist will instead take you to
+      " the file from where `gf` was executed.
+      execute 'Bwipeout' a:bufnr
+      call dotfiles#ranger#run(['+edit', '--', a:path])
+    endif
+  endfunction
+
+  augroup dotfiles_ranger
+    autocmd!
+    " The `nested` is a fix for <https://github.com/neovim/neovim/issues/34004>.
+    " Also see <https://vi.stackexchange.com/questions/4521/when-exactly-does-afile-differ-from-amatch>.
+    autocmd BufEnter * nested call s:maybe_open_ranger(expand('<abuf>'), expand('<amatch>'))
+  augroup END
+
+  " If a user command defined with `-complete=file` is invoked, Vim handles the
+  " expansion of `%` for us, but doesn't process |backtick-expansion|s.
+  command! -nargs=* -complete=file -bang Ranger call dotfiles#ranger#run(
+  \ map(['+<mods> edit<bang>', <f-args>], "v:val =~# '^`.*`$' ? expand(v:val) : v:val"))
+
+  " |`=| is so useful and I didn't know about it for years! It is essentially a
+  " command substitution, similar to `$(...)` in the shell, it expands to the
+  " result of the expression in the backticks. It works for all commands
+  " expecting a |{file}|, such as |:edit|, and the returned string can contain
+  " any |cmdline-special| characters without the need for escaping. Note that I
+  " can't use just `--selectfile=%` here because that fails in buffers with an
+  " empty name, whereas `expand('%')` returns an empty string just fine.
+
+  " Open Ranger in the parent directory of the current buffer.
+  nnoremap <silent> <Leader>o :<C-u>Ranger `='--selectfile='.expand('%')`<CR>
+  " `cd` to the directory selected in Ranger.
+  nnoremap <silent> <Leader>O :<C-u>Ranger `='--selectfile='.expand('%')` --choosedir +cd --cmd `='cd\ '.getcwd()`<CR>
+
 " }}}
 
 
@@ -148,13 +177,12 @@ set nofixendofline
   " }}}
 
   " EditGlob {{{
-    " Yes, I know about the existence of :args, however it modifies the
-    " argument list, so it doesn't play well with Obsession.vim because it
-    " saves the argument list in the session file.
+    " Yes, I do know about the existence of :args, however, it modifies the
+    " argument list, which for some reason is saved into the session file.
     function! s:EditGlob(...) abort
       for glob in a:000
-        for name in glob(glob, 0, 1)
-          execute 'edit' fnameescape(name)
+        for name in expand(glob, 0, 1)
+          edit `=name`
         endfor
       endfor
     endfunction

@@ -6,13 +6,6 @@ exe dotplug#define_plug_here()
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   Plug 'https://github.com/tpope/vim-eunuch'
-  " Superficial integration between Vim and the Ranger file manager[1], I only
-  " use it for exploring the project (this idea was taken from the classic "oil
-  " and vinegar" article[2]). Pressing `<leader>o` pops up the explorer in the
-  " parent directory of the current buffer.
-  " [1]: <https://ranger.github.io/>
-  " [2}: <http://vimcasts.org/blog/2013/01/oil-and-vinegar-split-windows-and-project-drawer/>
-  Plug 'https://github.com/francoiscabrol/ranger.vim'
 " }}}
 
 " Editing {{{
