@@ -156,8 +156,6 @@ endif
   xnoremap > >gv
 
 
-  " Mappings for quick prototyping: duplicate this line and comment it out.
-
   let s:comment_out_cmd = ''
   if dotplug#has('tcomment_vim')
     let s:comment_out_cmd = 'TComment!'   " the ! means to always comment out the line
@@ -177,6 +175,7 @@ endif
     nnoremap <Plug>dotfiles_copy_and_comment_above :<C-u>call <SID>copy_and_comment_out(1)<CR>
     nnoremap <Plug>dotfiles_copy_and_comment_below :<C-u>call <SID>copy_and_comment_out(0)<CR>
 
+    " Mappings for quick prototyping: duplicate this line and comment it out.
     nmap <silent> <leader>[ <Plug>dotfiles_copy_and_comment_below
     nmap <silent> <leader>] <Plug>dotfiles_copy_and_comment_above
   endif
@@ -318,62 +317,46 @@ endif
 
   let g:indexed_search_center = 1
 
-  let s:searchcount_plugin_available = 1
-  noremap <Plug>dotfiles_search_show_count <nop>
+  let s:show_search_count_cmd = ''
   if dotplug#has('vim-indexed-search')
     let g:indexed_search_mappings = 0
-    nnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>
-    xnoremap <Plug>dotfiles_search_show_count :<C-u>ShowSearchIndex<CR>gv
+    let s:show_search_count_cmd = 'ShowSearchIndex'
   elseif exists('*searchcount')
     " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
-    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count_nowait({'no_limits': <bang>0})
-    if s:has_cmd_mappings
-      noremap <Plug>dotfiles_search_show_count <Cmd>call dotfiles#search#show_count({})<CR>
-    else
-      nnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count({})<CR>
-      xnoremap <Plug>dotfiles_search_show_count :<C-u>call dotfiles#search#show_count({})<CR>gv
-    endif
-  else
-    let s:searchcount_plugin_available = 0
+    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count({'no_limits': <bang>0})
+    let s:show_search_count_cmd = 'call dotfiles#search#show_count_async({})'
   endif
 
   " The following section is based on
   " <https://github.com/henrik/vim-indexed-search/blob/5af020bba084b699d0453f242d7d76711d64b1e3/plugin/indexed-search.vim#L94-L152>.
-  function! s:search_mapping_after()
-    let fdo = has('folding') ? split(&foldopen, ',') : []
-    return
-    \ (index(fdo, 'all') >= 0 || index(fdo, 'search') >= 0 ? 'zv' : '') .
-    \ (get(g:, 'indexed_search_center', 0) ? 'zz' : '') .
-    \ "\<Plug>dotfiles_search_show_count"
+  function! s:search_mapping(lhs)
+    return a:lhs
+    \ . (&foldopen =~# '\<all\>\|\<search\>' ? 'zv' : '')
+    \ . (get(g:, 'indexed_search_center', 0) ? 'zz' : '')
+    \ . (s:has_cmd_mappings ? "\<Cmd>" : ":\<C-u>")
+    \ . s:show_search_count_cmd . "\<CR>"
+    \ . ((!s:has_cmd_mappings && mode() =~# "^[vV\<C-v>]") ? 'gv' : '')
   endfunction
 
-  map  <expr> <Plug>dotfiles_search_after <SID>search_mapping_after()
-  imap        <Plug>dotfiles_search_after <nop>
+  cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? <SID>search_mapping('') : '')
 
-  cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? "\<Plug>dotfiles_search_after" : '')
-  " map  <expr> gd   "gd" . "\<Plug>dotfiles_search_after"
-  " map  <expr> gD   "gD" . "\<Plug>dotfiles_search_after"
-  map  <expr> *    "*"  . "\<Plug>dotfiles_search_after"
-  map  <expr> #    "#"  . "\<Plug>dotfiles_search_after"
-  map  <expr> g*   "g*" . "\<Plug>dotfiles_search_after"
-  map  <expr> g#   "g#" . "\<Plug>dotfiles_search_after"
-  map  <expr> n    "n"  . "\<Plug>dotfiles_search_after"
-  map  <expr> N    "N"  . "\<Plug>dotfiles_search_after"
-  " Remove those from the select mode.
-  " sunmap gd
-  " sunmap gD
-  sunmap *
-  sunmap #
-  sunmap g*
-  sunmap g#
-  sunmap n
-  sunmap N
+  noremap <expr> *  <SID>search_mapping('*')
+  noremap <expr> #  <SID>search_mapping('#')
+  noremap <expr> g* <SID>search_mapping('g*')
+  noremap <expr> g# <SID>search_mapping('g#')
+  noremap <expr> n  <SID>search_mapping('Nn'[v:searchforward])
+  noremap <expr> N  <SID>search_mapping('nN'[v:searchforward])
+  for s:key in ['*', '#', 'g*', 'g#', 'n', 'N']
+  " Remove those from the Select and Operator modes.
+    exe 'sunmap' s:key
+    exe 'ounmap' s:key
+  endfor
 
   " The built-in message that shows the number of search results should be
   " enabled only if a search counting plugin is not available at the moment.
   if has('patch-8.1.1270') || has('nvim-0.4.0')
     " <https://github.com/neovim/neovim/commit/777c2a25ce00f12b2d0dc26d594b1ba7ba10dcc6>
-    if s:searchcount_plugin_available
+    if !empty(s:show_search_count_cmd)
       set shortmess+=S
     else
       set shortmess-=S
@@ -509,14 +492,10 @@ endif
   nmap <leader>a <Plug>(LiveEasyAlign)
 
   let g:sneak#prompt = 'sneak> '
-  map f <Plug>Sneak_f
-  map F <Plug>Sneak_F
-  map t <Plug>Sneak_t
-  map T <Plug>Sneak_T
-  sunmap f
-  sunmap F
-  sunmap t
-  sunmap T
+  for s:key in ['f', 'F', 't', 'T']
+    exe 'map '.s:key.' <Plug>Sneak_'.s:key
+    exe 'sunmap '.s:key
+  endfor
 
   " Remove the mappings that I won't use
   let g:tcomment_maps = 0
