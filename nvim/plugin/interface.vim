@@ -76,22 +76,12 @@ set showcmd
 set belloff=
 
 set title
-let g:dotfiles_titlestring_user_host = $USER . '@' . substitute(hostname(), '\.local$', '', '')
-function! s:titlestring() abort
-  if &filetype ==# 'fzf' && exists('b:fzf')
-    let str = "FZF %{get(b:fzf,'name','')}"
-  else
-    let str = '%F%m'
-  endif
-  return '%{g:dotfiles_titlestring_user_host}: ' . str . ' (%{v:progname})'
-endfunction
 if has('patch-8.2.2854') || has('nvim-0.5.0')
-  let &titlestring = '%{%'.expand('<SID>').'titlestring()%}'
-else
-  let &titlestring = s:titlestring()
+  set titlestring=%{%dotfiles#titlestring#get()%}
+elseif exists('+titlestring')
   augroup dotfiles_titlestring
     autocmd!
-    autocmd BufEnter * let &titlestring = s:titlestring()
+    autocmd VimEnter,BufEnter * let &titlestring = dotfiles#titlestring#get()
   augroup END
 endif
 
