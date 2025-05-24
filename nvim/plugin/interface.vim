@@ -225,17 +225,12 @@ let &history = max([&history, 10000])
     \ 'whitespace',
     \ 'wordcount',
     \ 'tabline',
+    \ 'hunks',
     \ 'dotfiles_tweaks',
     \ 'dotfiles_filesize',
     \ ]
   if dotplug#has('vim-fugitive')
     call extend(g:airline_extensions, ['branch', 'fugitiveline'])
-  endif
-  if dotplug#has('vim-gitgutter') || dotplug#has('vim-signify')
-    call extend(g:airline_extensions, ['hunks'])
-  endif
-  if dotplug#has('gitsigns.nvim')
-    call extend(g:airline_extensions, ['dotfiles_gitsigns_nvim'])
   endif
   if dotplug#has('coc.nvim')
     call extend(g:airline_extensions, ['coc', 'dotfiles_coclist'])
