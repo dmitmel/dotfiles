@@ -93,11 +93,11 @@ endif
 
   " NOTE: This is my very own custom Vim motion!!!
   " <https://vim.fandom.com/wiki/Creating_new_text_objects>
-  noremap <expr> ( dotfiles#indent_motion#run(-1)
-  noremap <expr> ) dotfiles#indent_motion#run(1)
+  noremap <expr> ( dotfiles#indent_motion#get(-1)
+  noremap <expr> ) dotfiles#indent_motion#get(1)
   " <expr> mappings in Operator mode are not dot-repeatable.
-  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indent_motion#run(-1)<CR>
-  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indent_motion#run(1)<CR>
+  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indent_motion#get(-1)<CR>
+  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indent_motion#get(1)<CR>
   " Don't pollute the Select mode.
   sunmap (
   sunmap )
@@ -154,7 +154,6 @@ endif
   " stay in the Visual mode when using shift commands
   xnoremap < <gv
   xnoremap > >gv
-
 
   let s:comment_out_cmd = ''
   if dotplug#has('tcomment_vim')

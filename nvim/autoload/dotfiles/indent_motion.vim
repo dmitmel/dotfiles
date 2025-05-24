@@ -1,4 +1,4 @@
-function! dotfiles#indent_motion#run(direction) abort
+function! dotfiles#indent_motion#get(direction) abort
   let offset = dotfiles#indent_motion#find_line(a:direction) - line('.')
   return offset > 0 ? (offset . '+') : offset < 0 ? (-offset . '-') : '_'
 endfunction
@@ -9,60 +9,51 @@ endfunction
 function! dotfiles#indent_motion#find_line(direction) abort
   if a:direction != 1 && a:direction != -1 | throw 'direction must be 1 or -1' | endif
   let Nextnonblank = a:direction < 0 ? function('prevnonblank') : function('nextnonblank')
-  let cursor_linenr = line('.')
-  let max_linenr = line('$')
 
-  let line_ignore_pat = ''
-  if index(['c', 'cpp', 'objc', 'objcpp', 'glsl'], &ft) >= 0
-    let line_ignore_pat = join([
-    \ '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>',
-    \ '^\s*\I\i*\s*:\s*$',
-    \ ], '\|')
+  let cursor_line = line('.')
+  let start_line = Nextnonblank(cursor_line)
+  let start_indent = indent(start_line)
+  if start_line <= 0 || start_indent < 0 | return cursor_line | endif
+
+  let line_ignore_pat = get(b:, 'indent_motion_exclude_lines', '')
+  if !empty(line_ignore_pat) && getline(start_line) !~# line_ignore_pat
+    let IgnoreLine = { nr -> getline(nr) =~# line_ignore_pat }
+  else
+    let IgnoreLine = { nr -> 0 }
   endif
 
-  let base_linenr = Nextnonblank(cursor_linenr)
-  let base_indent = indent(base_linenr)
-  if base_linenr <= 0 || base_indent < 0 | return cursor_linenr | endif
-  if getline(base_linenr) =~# line_ignore_pat
-    let line_ignore_pat = ''
-  endif
-
-  let curr_linenr = base_linenr
+  let current_line = start_line
   while 1
-    let curr_linenr = Nextnonblank(curr_linenr + a:direction)
-    let curr_indent = indent(curr_linenr)
-    if curr_linenr <= 0 || curr_indent < 0 | return base_linenr | endif
-    if empty(line_ignore_pat) || getline(curr_linenr) !~# line_ignore_pat
-      break
-    endif
+    let current_line = Nextnonblank(current_line + a:direction)
+    let current_indent = indent(current_line)
+    if current_line <= 0 || current_indent < 0 | return start_line | endif
+    if !IgnoreLine(current_line) | break | endif
   endwhile
 
-  if curr_indent < base_indent
-    let base_indent = curr_indent
+  if current_indent < start_indent
+    let start_indent = current_indent
   endif
 
   while 1
-    let next_linenr = curr_linenr
+    let next_line = current_line
     while 1
-      let next_linenr = Nextnonblank(next_linenr + a:direction)
-      let next_indent = indent(next_linenr)
-      if next_linenr <= 0 || next_indent < 0 | return curr_linenr | endif
-      if empty(line_ignore_pat) || getline(next_linenr) !~# line_ignore_pat
-        break
-      endif
+      let next_line = Nextnonblank(next_line + a:direction)
+      let next_indent = indent(next_line)
+      if next_line <= 0 || next_indent < 0 | return current_line | endif
+      if !IgnoreLine(next_line) | break | endif
     endwhile
 
-    if next_indent < base_indent
-      return curr_linenr
-    elseif curr_linenr + a:direction != next_linenr
-      if curr_indent > 0 && next_indent == 0
-        return next_linenr
-      elseif base_indent == 0 && curr_indent == 0
-        return curr_linenr
+    if next_indent < start_indent
+      return current_line
+    elseif current_line + a:direction != next_line
+      if current_indent > 0 && next_indent == 0
+        return next_line
+      elseif start_indent == 0 && current_indent == 0
+        return current_line
       endif
     endif
 
-    let curr_linenr = next_linenr
-    let curr_indent = next_indent
+    let current_line = next_line
+    let current_indent = next_indent
   endwhile
 endfunction

@@ -20,3 +20,10 @@ endfunction
 call s:patch_c_comments()
 
 let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n setlocal comments< commentstring<"
+
+let b:indent_motion_exclude_lines = join([
+\ '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>',
+\ '^\s*\I\i*\s*:\s*$',
+\ ], '\|')
+
+let b:undo_ftplugin = "\n unlet! b:indent_motion_exclude_lines"
