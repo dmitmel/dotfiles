@@ -27,7 +27,7 @@ let g:coc_user_config['Lua'] = {
 \ },
 \}
 
-let s:data_path = dotfiles#paths#xdg_cache_home() . '/lua-language-server'
+let s:data_path = dotutils#xdg_dir('cache') . '/lua-language-server'
 let g:coc_user_config['languageserver.sumneko_lua'] = {
 \ 'filetypes': ['lua'],
 \ 'command': s:find_server(),

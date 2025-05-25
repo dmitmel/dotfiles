@@ -325,3 +325,33 @@ function! dotutils#file_size_fmt(bytes) abort
   let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
   return number_str . unit
 endfunction
+
+let s:XDG_DIR_TYPES = {
+\ 'data':    ['XDG_DATA_HOME',   '.local/share', '$LOCALAPPDATA'     ],
+\ 'config':  ['XDG_CONFIG_HOME', '.config',      '$LOCALAPPDATA'     ],
+\ 'cache':   ['XDG_CACHE_HOME',  '.cache',       '$LOCALAPPDATA/Temp'],
+\ 'state':   ['XDG_STATE_HOME',  '.local/state', '$LOCALAPPDATA'     ],
+\ 'bin':     ['XDG_BIN_HOME',    '.local/bin',   ''                  ],
+\ 'runtime': ['XDG_RUNTIME_DIR', '',             ''                  ],
+\}
+
+" <https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html>
+" <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>
+" <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/os/stdpaths.c>
+" <https://github.com/dirs-dev/dirs-sys-rs/blob/v0.3.4/src/lib.rs>
+" <https://github.com/dirs-dev/dirs-rs/blob/d1c9b298df17b7d6ad4c5bc1f42b59888113d182/src/lin.rs>
+" <https://stackoverflow.com/questions/43853548/xdg-basedir-directories-for-windows>
+function! dotutils#xdg_dir(what) abort
+  let [unix_env_var, unix_default_path, windows_path] = s:XDG_DIR_TYPES[a:what]
+  if has('unix')
+    let env_path = getenv(unix_env_var)
+    if env_path =~# '^/'
+      return env_path
+    elseif !empty(unix_default_path)
+      return expand('~/'.unix_default_path)
+    endif
+  elseif has('win32')
+    return expand(windows_path)
+  endif
+  return v:null
+endfunction
