@@ -115,31 +115,32 @@ endif
 
 " Cursor and Scrolling {{{
   set number relativenumber cursorline
-  " remember cursor position
-  function! s:restore_cursor_position() abort
-    " Idea stolen from <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L17-L19>:
-    if index(['gitcommit', 'gitrebase', 'svn', 'hgcommit'], &filetype) >= 0
-      return
+
+  " This little snippet is based on |last-position-jump| from vimdocs and these:
+  " <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim>
+  " <https://github.com/vim/vim/blob/v9.1.1406/runtime/defaults.vim#L100-L112>
+  " <https://stackoverflow.com/questions/7894330/preserve-last-editing-position-in-vim>
+  " <https://github.com/neovim/neovim/issues/16339>
+  function! s:restore_cursor_pos() abort
+    if !exists('b:did_restore_cursor_pos')
+      let b:did_restore_cursor_pos = 1  " Fix for <https://github.com/farmergreg/vim-lastplace/issues/28>
+      if index(['gitcommit', 'gitrebase', 'svn', 'hgcommit', 'xxd'], &filetype) < 0 &&
+      \  index(['quickfix', 'nofile', 'help'], &buftype) < 0 &&
+      \  1 <= line("'\"") && line("'\"") <= line('$')  " Check that the remembered position is valid
+        execute 'normal! g`"zz'
+      endif
     endif
-    " Idea stolen from <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L25-L27>:
-    if index(['quickfix', 'nofile', 'help'], &buftype) >= 0
-      return
-    endif
-    " I guess I could do some intelligent view centering simiarly to the plugin
-    " (<https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim#L47-L70>),
-    " but the truth is that it is complicated to account for stuff like folds,
-    " and I've tried.
-    if 1 <= line("'\"") && line("'\"") <= line('$')
-      execute 'normal! g`"zz'
-    endif
-    silent! .foldopen
   endfunction
-  augroup dotfiles_remember_cursor_position
+
+  augroup dotfiles_remember_cursor_pos
     autocmd!
-    " BufWinEnter is used instead of BufReadPost because apparently the latter
-    " is called before windows are created when starting the editor, so when
-    " opening a file supplied via the command line, `normal! zz` cease to work.
-    autocmd BufWinEnter * unsilent call s:restore_cursor_position()
+    " |BufWinEnter| is used instead of |BufReadPost| because:
+    " 1. It makes `normal! zz` work for files supplied in |argument-list| when
+    "    starting Vim from the command-line.
+    " 2. It is triggered after FileType and after modelines are processed, so
+    "    the actual filetype is known for sure.
+    " 3. If any jumps are made in this autocommand, |'foldopen'| is respected.
+    autocmd BufWinEnter * unsilent call s:restore_cursor_pos()
   augroup END
 " }}}
 
@@ -208,7 +209,7 @@ endif
   nnoremap <C-p> <C-o>
 
   " Execute a macro on every line in a Visual selection. These were taken from
-  " <https://github.com/neovim/neovim/blob/d7e0d46ffa8f9f1eaf27f8b7ee32ef9a21cb9b84/runtime/lua/vim/_defaults.lua#L115-L130>
+  " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua#L115-L130>
   xnoremap <silent><expr> @ (mode() ==# 'V' ? ':normal! @<C-R>=reg_recorded()<CR><CR>' : 'Q')
   " I'm not mapping `Q`, as it is used for opening the quickfix list.
   "xnoremap <silent><expr> Q (mode() ==# 'V' ? ':normal! @'.getcharstr().'<CR>' : '@')
@@ -427,7 +428,7 @@ endif
   xnoremap <expr> gs (visualmode() ==# 'V' ? ':s/' : ':s/\%V')
 
   " Repeat the last substitution and keep the flags.
-  " Taken from <https://github.com/neovim/neovim/blob/d7e0d46ffa8f9f1eaf27f8b7ee32ef9a21cb9b84/runtime/lua/vim/_defaults.lua#L108-L113>
+  " Taken from <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua#L108-L113>
   nnoremap & :&&<CR>
 
 " }}}
