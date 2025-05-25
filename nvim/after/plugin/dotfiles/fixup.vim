@@ -17,16 +17,23 @@ augroup dotfiles_session
   autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
 augroup END
 
+" This is super cringe, I know.
+let s:eunuch_script = filter(dotutils#list_loaded_scripts(), 'v:val.name =~# "/vim-eunuch/plugin/eunuch\.vim$"')
+if !empty(s:eunuch_script)
+  let s:Delete        = function('<SNR>'.s:eunuch_script[0].sid.'_Delete')
+  let s:DeleteError   = function('<SNR>'.s:eunuch_script[0].sid.'_DeleteError')
+  " Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead of |:bdelete|
+  " <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L109-L119>
+  command! -bar -bang Delete
+  \ let s:delete_file = expand('%:p')
+  \|execute 'ConfirmBdelete<bang>'
+  \|if !bufloaded(s:delete_file) && s:Delete(s:delete_file)
+  \|  echoerr s:DeleteError(s:delete_file)
+  \|endif
+  \|unlet! s:delete_file
+endif
 
-" Overrides <https://github.com/tpope/vim-eunuch/blob/7fb5aef524808d6ba67d6d986d15a2e291194edf/plugin/eunuch.vim#L74-L80>.
-command! -bar -bang Delete
-\ let s:l_file = expand('%:p')
-\|execute 'ConfirmBdelete<bang>'
-\|if !bufloaded(s:l_file) && dotutils#eunuch_fcall('delete', s:l_file)
-\|  echoerr 'Failed to delete "'.s:l_file.'"'
-\|endif |
-\|unlet! s:l_file
-command! -bar -bang Del Delete<bang>
+execute dotutils#cmd_alias('Del', 'Delete')
 
 " This command must be added in `after/plugin/` because Vim 9+ and Nvim 0.11+
 " define it by default without a bang, so I get startup errors otherwise.

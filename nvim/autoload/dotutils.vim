@@ -293,12 +293,6 @@ function! dotutils#do_confirm() abort
   endif
 endfunction
 
-" Copied from <https://github.com/tpope/vim-eunuch/blob/7fb5aef524808d6ba67d6d986d15a2e291194edf/plugin/eunuch.vim#L26-L32>.
-function! dotutils#eunuch_fcall(fn, path, ...) abort
-  let fn = get(get(g:, 'io_' . matchstr(a:path, '^\a\a\+\ze:'), {}), a:fn, a:fn)
-  return call(fn, [a:path] + a:000)
-endfunction
-
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
 function! dotutils#url_encode(str, allowed_chars) abort
   " iconv trick to convert utf-8 bytes to 8bits indiviual char.
@@ -354,4 +348,21 @@ function! dotutils#xdg_dir(what) abort
     return expand(windows_path)
   endif
   return v:null
+endfunction
+
+" Polyfill for |getscriptinfo()|, which was added only relatively recently, in
+" patch 9.0.0244. See also |scriptnames-dictionary|.
+function! dotutils#list_loaded_scripts() abort
+  if exists('*getscriptinfo') | return getscriptinfo() | endif
+
+  let lines = ''
+  redir => lines | silent scriptnames | redir END
+
+  let scripts = []
+  for line in split(lines, "\n")
+    let groups = matchlist(line, '\v^\s*(\d+):\s*(.*)\s*$')
+    if empty(groups) | continue | endif
+    call add(scripts, { 'name': fnamemodify(groups[2], ':p'), 'sid': str2nr(groups[1], 10) })
+  endfor
+  return scripts
 endfunction
