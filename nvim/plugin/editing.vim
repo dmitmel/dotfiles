@@ -421,8 +421,40 @@ endif
     set inccommand=nosplit
   endif
 
+  " This operator was written mostly by referencing example code in |:map-operator|.
+  function! s:substitute_operator(type) abort
+    if empty(a:type)
+      let s:substitute_operator_view = winsaveview()
+      let &opfunc = expand('<SID>').'substitute_operator'
+      return 'g@'
+    endif
+
+    let cmd = ''
+    if a:type ==# 'line' && line("'[") == line('.') && line("']") == line('.')
+      let cmd = ":\<C-u>.s/"
+    elseif a:type ==# 'line' && line("'[") == 1 && line("']") == line('$')
+      let cmd = ":\<C-u>%s/"
+    elseif a:type ==# 'line'
+      silent exe "normal! '[V']:" | let cmd = ':s/'
+    elseif a:type ==# 'block'
+      silent exe "normal! `[\<C-V>`]" | let cmd = ':s/%V'
+    elseif a:type ==# 'char'
+      silent exe "normal! `[v`]:s/" | let cmd = ':s/%V'
+    else
+      throw 'unrecognized argument to '.expand('<sfile>')': '.a:type
+    endif
+
+    if exists('s:substitute_operator_view')
+      call winrestview(s:substitute_operator_view)
+      unlet s:substitute_operator_view
+    endif
+    call feedkeys(cmd, 'n')  " 'n' - don't remap keys
+  endfunction
+
   " The mnemonic is [g]o [s]ubstitute.
-  nnoremap gs :<C-u>%s/
+  nnoremap <expr> gs  <SID>substitute_operator('')
+  " Substitute in the current line (`gsae` will substitute in the entire file).
+  nnoremap <expr> gss <SID>substitute_operator('') . '_'
   " Substitute inside a Visual selection.
   xnoremap <expr> gs (visualmode() ==# 'V' ? ':s/' : ':s/\%V')
 
