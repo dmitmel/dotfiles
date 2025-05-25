@@ -125,14 +125,9 @@ endif
     if !exists('b:did_restore_cursor_pos')
       let b:did_restore_cursor_pos = 1  " Fix for <https://github.com/farmergreg/vim-lastplace/issues/28>
       if index(['gitcommit', 'gitrebase', 'svn', 'hgcommit', 'xxd'], &filetype) < 0 &&
-      \  index(['quickfix', 'nofile', 'help'], &buftype) < 0 &&
+      \  index(['quickfix', 'nofile', 'help', 'terminal'], &buftype) < 0 &&
       \  1 <= line("'\"") && line("'\"") <= line('$')  " Check that the remembered position is valid
-        " Jump to the last recorded cursor position and open folds under cursor.
-        execute 'normal! g`"zv'
-        " This will center the screen on the current line, like `zz`, but with
-        " the added bonus that it won't scroll past the last line in the file.
-        " Also, `j` scrolls in terms of screen rows, so folds are respected.
-        if winheight(0) >= 2 | execute 'normal! '.(winheight(0)/2).'jg`"' | endif
+        execute 'normal! g`"zvzz'
       endif
     endif
   endfunction
