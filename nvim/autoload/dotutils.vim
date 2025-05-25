@@ -18,25 +18,6 @@ function! dotutils#cmd_alias(lhs, rhs) abort
   \             a:lhs, string(a:rhs), string(a:lhs))
 endfunction
 
-function! dotutils#ftplugin_set(name, value) abort
-  call dotutils#ftplugin_undo_set(a:name)
-  if a:name =~# '^&[a-z]\+$'
-    " The caller has to `:execute` this line, so that `verbose set {option}?`
-    " displays an appropriate location.
-    return 'let &l:' . a:name[1:] . ' = ' . json_encode(a:value)
-  else
-    " This validates the correctness of variable names for us.
-    let b:{a:name} = a:value
-    return ''
-  endif
-endfunction
-
-function! dotutils#ftplugin_undo_set(name) abort
-  let b:undo_ftplugin =
-  \ (exists('b:undo_ftplugin') ? (b:undo_ftplugin . " | ") : '') .
-  \ (a:name =~# '^&[a-z]\+$' ? ('setlocal ' . a:name[1:] . '<') : ('unlet! b:' . a:name))
-endfunction
-
 " Essentially, implements
 " <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/src/workspace.ts#L810-L844>.
 " Alternatively, nvim's implementation can be used:

@@ -1,1 +1,1 @@
-exe dotutils#ftplugin_set('&commentstring', '#%s')
+exe dotfiles#ft#set('&commentstring', '#%s')

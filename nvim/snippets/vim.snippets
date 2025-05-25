@@ -37,9 +37,15 @@ snippet luablock lua <<EOF
 	lua <<EOF
 	$0
 	EOF
-snippet setft set a variable or option in an ftplugin
-	exe dotutils#ftplugin_set('${1:var}', '${2:value}')
-snippet undosetft undo changing of an option in an ftplugin
-	call dotutils#ftplugin_undo_set('${1:var}')
+snippet ftopt set an option in an ftplugin
+	exe dotfiles#ft#set('&${1:option}', '${2:value}')
+snippet ftvar set a variable in an ftplugin
+	call dotfiles#ft#set('${1:var}', '${2:value}')
+snippet ftundo undo a command in an ftplugin
+	call dotfiles#ft#undo('$1')
+snippet ftundoset undo changing of an option or a variable in an ftplugin
+	call dotfiles#ft#undo_set('${1:var}')
+snippet ftundomap undo a mapping in an ftplugin
+	call dotfiles#ft#undo_map('${1:mode}', ${2:...})
 snippet cabbrev define a command alias
 	execute dotutils#cmd_alias('${1:lhs}', '${2:rhs}')

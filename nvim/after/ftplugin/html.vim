@@ -1,1 +1,1 @@
-call dotutils#ftplugin_set('runfileprg', ':Open')
+call dotfiles#ft#set('runfileprg', ':Open')

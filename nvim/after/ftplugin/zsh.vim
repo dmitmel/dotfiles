@@ -1,2 +1,2 @@
 setlocal keywordprg<
-call dotutils#ftplugin_undo_set('&keywordprg')
+call dotfiles#ft#undo_set('&keywordprg')

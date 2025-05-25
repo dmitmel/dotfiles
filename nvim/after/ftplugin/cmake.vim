@@ -1,4 +1,4 @@
 setlocal iskeyword+=-
-call dotutils#ftplugin_undo_set('&iskeyword')
-exe dotutils#ftplugin_set('&comments', ':#')
-exe dotutils#ftplugin_set('&commentstring', '#%s')
+call dotfiles#ft#undo_set('&iskeyword')
+exe dotfiles#ft#set('&comments', ':#')
+exe dotfiles#ft#set('&commentstring', '#%s')

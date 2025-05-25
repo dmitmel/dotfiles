@@ -1,2 +1,2 @@
-exe dotutils#ftplugin_set('&expandtab', 0)
-exe dotutils#ftplugin_set('&foldenable', 0)
+exe dotfiles#ft#set('&expandtab', 0)
+exe dotfiles#ft#set('&foldenable', 0)

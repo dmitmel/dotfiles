@@ -1,3 +1,3 @@
 setlocal matchpairs-=<:>
-call dotutils#ftplugin_undo_set('&matchpairs')
-call dotutils#ftplugin_set('runfileprg', 'node -- %')
+call dotfiles#ft#undo_set('&matchpairs')
+call dotfiles#ft#set('runfileprg', 'node -- %')

@@ -29,5 +29,9 @@ function! s:open_help_online()
 endfunction
 
 command! -bar -buffer OpenHelpOnline call s:open_help_online()
+call dotfiles#ft#undo('silent! delcommand OpenHelpOnline')
 
-let b:undo_ftplugin = get(b:, 'undo_ftplugin', '') . "\n silent! delcommand OpenHelpOnline"
+nmap <buffer> gd <C-]>
+nmap <buffer> gD <C-]>
+nmap <buffer> gr :<C-u>helpgrep <C-r><C-w><CR>
+call dotfiles#ft#undo_map('n', ['gd', 'gD', 'gr'])

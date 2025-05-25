@@ -17,8 +17,5 @@ if exists('g:qf_mapping_ack_style')
 
   nmap <buffer> <CR> <CR>zv
 
-  let b:undo_ftplugin = get(b:, 'undo_ftplugin', '')
-  for s:key in ['<Esc>', 'q', '(', ')', '<Plug>dotfiles_qf_height', '<C-p>', '<C-n>', '<CR>']
-    let b:undo_ftplugin .= ' | silent! nunmap <buffer> ' . s:key
-  endfor
+  call dotfiles#ft#undo_map('n', ['<Esc>', 'q', '(', ')', '<Plug>dotfiles_qf_height', '<C-p>', '<C-n>', '<CR>'])
 endif

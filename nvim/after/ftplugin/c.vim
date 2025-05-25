@@ -1,4 +1,4 @@
-exe dotutils#ftplugin_set('&commentstring', '//%s')
+exe dotfiles#ft#set('&commentstring', '//%s')
 
 function! s:patch_c_comments() abort
   " The regex matches a comma not preceded by a backslash.
@@ -15,11 +15,11 @@ function! s:patch_c_comments() abort
   endif
   call insert(comments, ':///<,://!<,:///,://!', idx)
 
-  exe dotutils#ftplugin_set('&comments', join(comments, ','))
+  exe dotfiles#ft#set('&comments', join(comments, ','))
 endfunction
 call s:patch_c_comments()
 
-call dotutils#ftplugin_set('indent_motion_exclude_lines', join([
+call dotfiles#ft#set('indent_motion_exclude_lines', join([
 \ '^\s*#\s*\%(if\|ifdef\|ifndef\|elif\|else\|endif\)\>',
 \ '^\s*\I\i*\s*:\s*$',
 \ ], '\|'))

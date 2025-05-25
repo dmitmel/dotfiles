@@ -1,1 +1,1 @@
-exe dotutils#ftplugin_set('&expandtab', 0)
+exe dotfiles#ft#set('&expandtab', 0)
