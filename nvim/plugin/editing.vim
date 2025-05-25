@@ -117,7 +117,7 @@ endif
   set number relativenumber cursorline
 
   " This little snippet is based on |last-position-jump| from vimdocs and these:
-  " <https://github.com/farmergreg/vim-lastplace/blob/d522829d810f3254ca09da368a896c962d4a3d61/plugin/vim-lastplace.vim>
+  " <https://github.com/farmergreg/vim-lastplace/blob/e58cb0df716d3c88605ae49db5c4741db8b48aa9/plugin/vim-lastplace.vim>
   " <https://github.com/vim/vim/blob/v9.1.1406/runtime/defaults.vim#L100-L112>
   " <https://stackoverflow.com/questions/7894330/preserve-last-editing-position-in-vim>
   " <https://github.com/neovim/neovim/issues/16339>
@@ -127,7 +127,12 @@ endif
       if index(['gitcommit', 'gitrebase', 'svn', 'hgcommit', 'xxd'], &filetype) < 0 &&
       \  index(['quickfix', 'nofile', 'help'], &buftype) < 0 &&
       \  1 <= line("'\"") && line("'\"") <= line('$')  " Check that the remembered position is valid
-        execute 'normal! g`"zz'
+        " Jump to the last recorded cursor position and open folds under cursor.
+        execute 'normal! g`"zv'
+        " This will center the screen on the current line, like `zz`, but with
+        " the added bonus that it won't scroll past the last line in the file.
+        " Also, `j` scrolls in terms of screen rows, so folds are respected.
+        if winheight(0) >= 2 | execute 'normal! '.(winheight(0)/2).'jg`"' | endif
       endif
     endif
   endfunction
@@ -139,7 +144,6 @@ endif
     "    starting Vim from the command-line.
     " 2. It is triggered after FileType and after modelines are processed, so
     "    the actual filetype is known for sure.
-    " 3. If any jumps are made in this autocommand, |'foldopen'| is respected.
     autocmd BufWinEnter * unsilent call s:restore_cursor_pos()
   augroup END
 " }}}
