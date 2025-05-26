@@ -116,3 +116,5 @@ endif
 
 filetype plugin indent on
 syntax enable
+
+let g:dotfiles_fixup_plugins_ready = 1  " see ./after/plugin/dotfiles/fixup.vim

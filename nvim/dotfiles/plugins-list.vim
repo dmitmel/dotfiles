@@ -90,8 +90,6 @@ exe dotplug#define_plug_here()
 " }}}
 
 " UI {{{
-  " Closes buffers the way you would expect - that is, without closing windows.
-  Plug 'https://github.com/moll/vim-bbye'
   " Debugging utility for colorschemes. Prints the hlgroups, synstack and (most
   " importantly) the chain of hlgroup links with `:HLT` or `<leader>hlt`.
   Plug 'https://github.com/gerw/vim-HiLinkTrace', { 'if': !has('nvim-0.9.0') }

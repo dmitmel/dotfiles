@@ -1,3 +1,11 @@
+" For some reason, Lazy.nvim causes this script to be sourced the first time
+" when `require('lazy').setup(...)` gets called, and then it is sourced the
+" second time as part of the normal loading procedure. I guess this has
+" something to do with its `performance.rtp.disabled_plugins` feature.
+if !exists('g:dotfiles_fixup_plugins_ready')
+  finish
+endif
+
 if exists('g:loaded_fzf_vim')
   " This command only works with Ultisnips, which I don't use, and gets in the
   " way when tab-completing nvim-snippy commands.
@@ -18,15 +26,15 @@ augroup dotfiles_session
 augroup END
 
 " This is super cringe, I know.
-let s:eunuch_script = filter(dotutils#list_loaded_scripts(), 'v:val.name =~# "/vim-eunuch/plugin/eunuch\.vim$"')
-if !empty(s:eunuch_script)
-  let s:Delete        = function('<SNR>'.s:eunuch_script[0].sid.'_Delete')
-  let s:DeleteError   = function('<SNR>'.s:eunuch_script[0].sid.'_DeleteError')
+let [s:eunuch_script] = filter(dotutils#list_loaded_scripts(), 'v:val.name =~# "/plugin/eunuch\.vim$"')
+if exists('s:eunuch_script')  " If an exception was thrown on the previous line, the variable will be undefined
+  let s:Delete        = function('<SNR>' . s:eunuch_script.sid . '_Delete')
+  let s:DeleteError   = function('<SNR>' . s:eunuch_script.sid . '_DeleteError')
   " Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead of |:bdelete|
   " <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L109-L119>
   command! -bar -bang Delete
   \ let s:delete_file = expand('%:p')
-  \|execute 'ConfirmBdelete<bang>'
+  \|execute 'Bdelete<bang>'
   \|if !bufloaded(s:delete_file) && s:Delete(s:delete_file)
   \|  echoerr s:DeleteError(s:delete_file)
   \|endif

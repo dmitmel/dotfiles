@@ -267,32 +267,6 @@ function! dotutils#keepwinview(cmd) abort
   endtry
 endfunction
 
-" non-0 = can proceed
-" 0     = action cancelled
-" 1     = file written, safe to proceed
-" 2     = ignore unsaved changes, proceed forcibly
-function! dotutils#do_confirm() abort
-  if &confirm && &modified
-    let fname = expand('%')
-    if empty(fname)
-      " <https://github.com/neovim/neovim/blob/47f99d66440ae8be26b34531989ac61edc1ad9fe/src/nvim/ex_docmd.c#L9327-L9337>
-      let fname = 'Untitled'
-    endif
-    " <https://github.com/neovim/neovim/blob/a282a177d3320db25fa8f854cbcdbe0bc6abde7f/src/nvim/ex_cmds2.c#L1400>
-    let answer = confirm("Save changes to \"".fname."\"?", "&Yes\n&No\n&Cancel")
-    if answer ==# 1      " Yes
-      write
-      return 1
-    elseif answer ==# 2  " No
-      return 2
-    else                 " Cancel/Other
-      return 0
-    endif
-  else
-    return 1
-  endif
-endfunction
-
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
 function! dotutils#url_encode(str, allowed_chars) abort
   " iconv trick to convert utf-8 bytes to 8bits indiviual char.
@@ -318,6 +292,16 @@ function! dotutils#file_size_fmt(bytes) abort
   " remove trailing zeros
   let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
   return number_str . unit
+endfunction
+
+function! dotutils#is_terminal_running(buf) abort
+  if has('nvim')
+    return jobwait([getbufvar(a:buf, '&channel')], 0)[0] == -1
+  elseif has('terminal')
+    return term_getstatus(a:buf) =~# '\<running\>'
+  else
+    return 0
+  endif
 endfunction
 
 let s:XDG_DIR_TYPES = {

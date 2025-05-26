@@ -113,23 +113,24 @@ let &history = max([&history, 10000])
   " ask for confirmation when closing unsaved buffers
   set confirm
 
-  function! s:ConfirmBbye(bang, cmd) abort
-    let result = a:bang ? 2 : dotutils#do_confirm()
-    if result
-      return a:cmd . (result == 2 ? '!' : '')
+  command! -bar -bang -complete=buffer -nargs=? Bdelete  exe dotfiles#bufclose#cmd('bdelete<bang>',  <q-args>)
+  command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
+
+  function! s:close_buffer() abort
+    if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' || &previewwindow
+      close
     else
-      return ''
+      Bdelete
     endif
   endfunction
-  command! -bar -bang ConfirmBdelete  execute s:ConfirmBbye(<bang>0, 'Bdelete')
-  command! -bar -bang ConfirmBwipeout execute s:ConfirmBbye(<bang>0, 'Bwipeout')
 
-  " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist
-  " switching because when these lists are loaded, they also create (but not
-  " load) buffers for all of the mentioned files, and should a buffer be
-  " deleted entirely, switching to that buffer starts to fail with E92.
-  nnoremap <silent> <BS>  :<C-u>ConfirmBdelete<CR>
-  nnoremap <silent> <Del> :<C-u>ConfirmBdelete<bar>quit<CR>
+  " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist switching
+  " because when these lists are loaded, they also create (but not load) buffers
+  " for all of the mentioned files, and jumping to an entry in the list whose
+  " buffer was wiped out fails with |E92|.
+  nnoremap <silent> <BS>  :<C-u>call <SID>close_buffer()<CR>
+  " Delete the buffer, but also close the window (that is, if it's not the last one).
+  nnoremap <silent> <Del> :<C-u>bdelete<CR>
 
 " }}}
 
