@@ -157,3 +157,5 @@ if command_exists vscodium && ! command_exists code; then
 fi
 
 ':q'() { exit; }
+
+alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'

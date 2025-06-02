@@ -1,8 +1,31 @@
 set disassembly-flavor intel
 set print asm-demangle on
+set print pretty on
+set debuginfod enabled on
+skip -gfile /usr/src/debug/gcc/*
+skip -gfile /usr/src/debug/gcc/*/*
+skip -gfile /usr/src/debug/gcc/*/*/*
+skip -gfile /usr/src/debug/gcc/*/*/*/*
+skip -gfile /usr/src/debug/gcc/*/*/*/*/*
 
 python
 import os
+
+# TODO:
+# <https://yairgadelov.me/using-svd-file-in-gdb-for-cortex-m-debugging/>
+# <https://www.reddit.com/r/embedded/comments/j1fkad/how_to_use_svd_files_in_armnoneeabigdb/>
+# <https://github.com/pengi/arm_gdb>
+# <https://github.com/ccalmels/gdb-dashboard-svd>
+if 'GDB_LOAD_SVD' in os.environ:
+    from cmdebug.svd_gdb import LoadSVD
+    from cmdebug.dwt_gdb import DWT
+    DWT()
+    LoadSVD()
+    gdb.execute('svd_load ' + os.environ['GDB_LOAD_SVD'])
+
 if 'GDB_OUTPUT_TTY' in os.environ:
     gdb.execute('tty ' + os.environ['GDB_OUTPUT_TTY'])
+
+if 'DOTFILES_GDB_DASHBOARD' in os.environ:
+    gdb.execute('source /usr/share/gdb-dashboard/.gdbinit')
 end

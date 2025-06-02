@@ -219,3 +219,16 @@ nvim-startuptime() {
 vim-startuptime() {
   "$EDITOR" =(vim --startuptime /dev/stdout --not-a-term -c 'qall!')
 }
+
+allow-ptrace() {
+  local program
+  if ! program="$(command_locate "$1")"; then
+    printf "$0: command not found: %s\n" "$1"
+    return 1
+  fi
+  shift
+  # <https://wiki.archlinux.org/title/Capabilities#Running_a_program_with_temporary_capabilities>
+  sudo -E capsh \
+    --caps="cap_setpcap,cap_setuid,cap_setgid+ep cap_sys_ptrace+eip" \
+    --keep=1 --user="$USER" --addamb="cap_sys_ptrace" --shell="$program" -- "$@"
+}
