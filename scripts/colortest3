@@ -1,7 +1,0 @@
-#!/bin/sh
-
-set -eu
-
-script_dir="$(dirname "$0")"
-
-exec awk -v OPT_COLOR_CODES=1 -f "${script_dir}/../script-resources/colortest.awk"

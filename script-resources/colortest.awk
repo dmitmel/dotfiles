@@ -15,10 +15,10 @@ BEGIN {
 }
 
 function print_color(color, idx) {
-  if (OPT_COLOR_CODES) {
-    printf "\033[1;30;48;5;%sm %02X \033[0m", color, idx;
-  } else {
+  if (NO_COLOR_CODES) {
     printf "\033[48;5;%sm  \033[0m", color;
+  } else {
+    printf "\033[1;30;48;5;%sm %02X \033[0m", color, idx;
   }
 }
 
