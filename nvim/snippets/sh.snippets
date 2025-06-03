@@ -2,3 +2,11 @@ snippet ! Basic script template
 	#!/usr/bin/env bash
 	set -euo pipefail
 	$0
+snippet if if block
+	if ${1:condition}; then
+		$0
+	fi
+snippet for for loop
+	for ${1:item} in ${2:list}; do
+		$0
+	done

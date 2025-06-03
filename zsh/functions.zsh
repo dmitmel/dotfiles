@@ -4,7 +4,7 @@ count() { print -r -- "$#"; }
 
 bytecount() { wc -c "$@" | numfmt --to=iec-i --suffix=B; }
 
-mkcd() { mkdir -p "$@" && cd "${@[-1]}"; }
+mkcd() { mkdir -p -- "$@" && cd -- "${@[-1]}"; }
 
 viscd() {
   setopt local_options err_return
@@ -231,4 +231,29 @@ allow-ptrace() {
   sudo -E capsh \
     --caps="cap_setpcap,cap_setuid,cap_setgid+ep cap_sys_ptrace+eip" \
     --keep=1 --user="$USER" --addamb="cap_sys_ptrace" --shell="$program" -- "$@"
+}
+
+j() {
+  local selected
+  if selected=( $(z -l | fzf --with-nth=2.. --tac --tiebreak=index --query="$*") ); then
+    cd -- "${selected[2]}"
+  fi
+}
+
+d() {
+  local selected
+  if selected=( $(builtin dirs -p | fzf --tiebreak=index --query="$*") ); then
+    cd -- "${selected[2]}"
+  fi
+}
+
+fzf-man() {
+  local selected
+  if selected="$(man -k . | fzf --tiebreak=begin --query="$*")"; then
+    if [[ $selected =~ '^[[:space:]]*([^[:space:]]+)[[:space:]]*\(([[:alnum:]]+)\)' ]]; then
+      printf "%s %s\n" "${match[2]} ${match[1]}"
+      return 0
+    fi
+  fi
+  return 1
 }

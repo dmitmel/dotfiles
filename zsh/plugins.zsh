@@ -83,8 +83,6 @@ fi; unset rustup_bin
   # <https://github.com/wting/autojump>
   # <https://github.com/ajeetdsouza/zoxide>
 
-  # export _FASD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/fasd_db.txt"
-
   ZSHZ_CASE=smart
   ZSHZ_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/zshz_db.txt"
   ZSHZ_UNCOMMON=1
@@ -98,16 +96,6 @@ fi; unset rustup_bin
 
   _plugin zsh-z 'agkozak/zsh-z' \
     after_load='plugin-cfg-path fpath prepend ""'
-
-  j() {
-    local _dir
-    if _dir="$(
-      z -l | sed 's/^[0-9]* *//g' |
-      fzf --tac --tiebreak=index --layout=reverse --height=40% --query="$*"
-    )"; then
-      cd -- "$_dir"
-    fi
-  }
 
 # }}}
 

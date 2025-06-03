@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-set -eu
-# https://superuser.com/a/207474
-apropos . | fzf --height=40% --reverse --no-multi --tiebreak=begin --query="$*" | sed -n 's/^\([^ ]\+\) \?(\([^)]\+\)).*$/\2 \1/p'

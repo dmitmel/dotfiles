@@ -7,18 +7,11 @@
 # _fzf_history_widget {{{
   # taken from https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh
   _fzf_history_widget() {
-    setopt local_options pipe_fail
     local selected
-    selected=(
-      $(fc -rl 1 |
-        fzf --height=40% --reverse --nth=2.. --tiebreak=index --query="$LBUFFER")
-    )
-    local fzf_ret="$?"
-    if (( ${#selected} )); then
+    if selected=( $(fc -rl 1 | fzf --nth=2.. --scheme=history --query="$LBUFFER") ); then
       zle vi-fetch-history -n "${selected[1]}"
     fi
     zle reset-prompt
-    return "$fzf_ret"
   }
 
   zle -N _fzf_history_widget
@@ -68,7 +61,7 @@
     # try to fill in a placeholder if there're any, otherwise pick a snippet
     if ! _palette_fill_in_placeholder; then
       local selected
-      if selected="$(_palette_parse_tldr_pages | fzf --height 40% --reverse --ansi)"
+      if selected="$(_palette_parse_tldr_pages | fzf --ansi)"
       then
         # paste selected snippet without its description
         zle -U "${selected%%$PALETTE_SNIPPET_COMMENT*}"
@@ -191,12 +184,13 @@
       break
     done
 
-    zle push-line
-    local manpage=""
-    manpage="$(fzf-search-manpage "$cmd_name")"
-    BUFFER="man $manpage"
-    zle redisplay
-    zle accept-line
+    local manpage
+    if manpage="$(fzf-man "$cmd_name")"; then
+      zle push-line
+      BUFFER="man $manpage"
+      zle redisplay
+      zle accept-line
+    fi
   }
   zle -N find-man-page _widget_find_man_page
   # bind to F1
