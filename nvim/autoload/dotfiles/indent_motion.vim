@@ -1,14 +1,19 @@
-function! dotfiles#indent_motion#get(direction) abort
-  let offset = dotfiles#indent_motion#find_line(a:direction) - line('.')
-  return offset > 0 ? (offset . '+') : offset < 0 ? (-offset . '-') : '_'
+function! dotfiles#indent_motion#run(up) abort
+  if mode(1) ==# 'no'  " Check if in the Operator mode without a |forced-motion|
+    normal! V
+  endif
+  normal! m'
+  let line = dotfiles#indent_motion#find_line(a:up)
+  let col = len(matchstr(getline(line), '^\s*')) + 1
+  call cursor(line, col)
 endfunction
 
 " Based on <https://github.com/kana/vim-textobj-indent/blob/deb76867c302f933c8f21753806cbf2d8461b548/autoload/textobj/indent.vim>
 " A motion for moving over enclosing indentation blocks. Primarily intended
 " for reverse-engineering CrossCode.
-function! dotfiles#indent_motion#find_line(direction) abort
-  if a:direction != 1 && a:direction != -1 | throw 'direction must be 1 or -1' | endif
-  let Nextnonblank = a:direction < 0 ? function('prevnonblank') : function('nextnonblank')
+function! dotfiles#indent_motion#find_line(up) abort
+  let Nextnonblank = a:up ? function('prevnonblank') : function('nextnonblank')
+  let step = a:up ? -1 : 1
 
   let cursor_line = line('.')
   let start_line = Nextnonblank(cursor_line)
@@ -24,7 +29,7 @@ function! dotfiles#indent_motion#find_line(direction) abort
 
   let current_line = start_line
   while 1
-    let current_line = Nextnonblank(current_line + a:direction)
+    let current_line = Nextnonblank(current_line + step)
     let current_indent = indent(current_line)
     if current_line <= 0 || current_indent < 0 | return start_line | endif
     if !IgnoreLine(current_line) | break | endif
@@ -37,7 +42,7 @@ function! dotfiles#indent_motion#find_line(direction) abort
   while 1
     let next_line = current_line
     while 1
-      let next_line = Nextnonblank(next_line + a:direction)
+      let next_line = Nextnonblank(next_line + step)
       let next_indent = indent(next_line)
       if next_line <= 0 || next_indent < 0 | return current_line | endif
       if !IgnoreLine(next_line) | break | endif
@@ -45,7 +50,7 @@ function! dotfiles#indent_motion#find_line(direction) abort
 
     if next_indent < start_indent
       return current_line
-    elseif current_line + a:direction != next_line
+    elseif current_line + step != next_line
       if current_indent > 0 && next_indent == 0
         return next_line
       elseif start_indent == 0 && current_indent == 0

@@ -2,6 +2,69 @@
 " <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
 let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
 
+" HACK: This has to be one of my coolest hacks. The |<Cmd>| pseudo-key can be
+" emulated in older versions of Vim simply by prepending code to the mapping to
+" re-enter the previous mode. I create a mapping called `<SID>:` that should be
+" used in place of |<Cmd>|, which appropriately handles execution of the command
+" depending on the current mode. It is defined with |<SID>| and not |<Plug>| to
+" allow using it from non-recursive mappings -- see |:map-script|. The only
+" downside of my hack is that it is tricky to make it work well in the Insert
+" mode, but that is addressed by the function `s:Cmd(...)`, which can be used in
+" an <expr> mapping and works in ALL modes.
+if s:has_cmd_mappings
+  noremap  <SID>: <Cmd>
+  inoremap <SID>: <Cmd>
+  function! s:Cmd(cmd) abort
+    return "\<Cmd>" . a:cmd . "\<CR>"
+  endfunction
+else
+  " <C-u> is still needed in the Normal mode to erase the entered |count|.
+  nnoremap <SID>: :<C-u>
+  " Strangely enough, the Operator mode Just Works(tm). Even the information
+  " about the |forced-motion| is preserved after doing `:` in the Operator mode,
+  " see <https://github.com/vim/vim/issues/3490> and
+  " <https://github.com/vim/vim/commit/5976f8ff00efcb3e155a89346e44f2ad43d2405a>.
+  onoremap <SID>: :<C-u>
+  " The main culprit: the Visual mode.
+  xnoremap <SID>: :<C-u>exe'norm!gv'<bar>
+  " It gets a lil bit tricky in the Select mode because we first need to switch
+  " to the Visual mode with <C-g>, then re-enter it in the command-line and go
+  " back to the Select mode from Visual with <C-g>.
+  snoremap <SID>: <C-g>:<C-u>exe"norm!gv<C-g>"<bar>
+  " NOTE: <C-o> causes the statusline to flicker! `s:Cmd` is better suited for
+  " mappings that must work in the Insert mode!!! |i_CTRL-R_=| is required to
+  " execute code or normal-mode commands, and theoretically, it is possible
+  " to replace this mapping with something like `<C-r>=execute(input())<CR>`,
+  " but in practice that makes it too slow.
+  inoremap <SID>: <C-o>:<C-u>
+
+  let s:cmd_payload = {
+  \ 'n':                          ":\<C-u>call".expand('<SID>')."exec_cmd()\<CR>",
+  \ 'v':             ":\<C-u>exe'norm!gv'|call".expand('<SID>')."exec_cmd()\<CR>",
+  \ 's': "\<C-g>:\<C-u>exe'norm!gv\<C-g>'|call".expand('<SID>')."exec_cmd()\<CR>",
+  \ 'i':                              "\<C-r>=".expand('<SID>')."exec_cmd()\<CR>",
+  \ 't':  "\<C-\>\<C-n>:\<C-u>startinsert|call".expand('<SID>')."exec_cmd()\<CR>",
+  \ }
+
+  for s:alias in ['Vv', "\<C-v>v", 'Ss', "\<C-s>s", 'Ri', 'ci']
+    let s:cmd_payload[s:alias[0]] = s:cmd_payload[s:alias[1]]
+  endfor
+
+  " Execute the provided command as-is after evaluating an <expr> mapping.
+  function! s:Cmd(cmd) abort
+    let s:queued_cmd = a:cmd
+    return s:cmd_payload[mode()]
+  endfunction
+
+  " Note that this function is not marked with |abort|, both |:execute| and
+  " |:unlet| should be allowed to fail
+  function! s:exec_cmd()
+    execute s:queued_cmd
+    unlet   s:queued_cmd
+    return  ''
+  endfunction
+endif
+
 " allow moving cursor just after the last chraracter of the line
 set virtualedit=onemore
 
@@ -93,11 +156,8 @@ endif
 
   " NOTE: This is my very own custom Vim motion!!!
   " <https://vim.fandom.com/wiki/Creating_new_text_objects>
-  noremap <expr> ( dotfiles#indent_motion#get(-1)
-  noremap <expr> ) dotfiles#indent_motion#get(1)
-  " <expr> mappings in Operator mode are not dot-repeatable.
-  onoremap <silent> ( :<C-u>exe 'normal! V' . dotfiles#indent_motion#get(-1)<CR>
-  onoremap <silent> ) :<C-u>exe 'normal! V' . dotfiles#indent_motion#get(1)<CR>
+  noremap <script><silent> ( <SID>:call dotfiles#indent_motion#run(1)<CR>
+  noremap <script><silent> ) <SID>:call dotfiles#indent_motion#run(0)<CR>
   " Don't pollute the Select mode.
   sunmap (
   sunmap )
@@ -222,29 +282,16 @@ endif
   xnoremap <leader>dp :diffput<CR>
   xnoremap <leader>dl :Linediff<CR>
 
-  function! s:insert_to_normal_map(rhs) abort
-    if s:has_cmd_mappings
-      return '<Cmd>normal!'.a:rhs.'<CR>'
-    else
-      " This is super cringe, but it works.
-      return '<C-r>=execute("normal!'.(a:rhs[0] ==# '<' ? '<bslash><lt>'.a:rhs[1:] : a:rhs).'")<CR>'
-    endif
-  endfunction
-
   " Horizontal scroll (these mappings work in Normal, Visual and Select modes)
   " Alt+hjkl and Alt+Arrow  - scroll one column/row
   " Alt+Shift+hjkl          - scroll half a page
-  for s:key in ['h', 'H', 'l', 'L', 'Left', 'Right']
-    let s:rhs = 'z'.(len(s:key) > 1 ? '<'.s:key.'>' : s:key)
-    execute 'noremap <M-'.s:key.'> '.s:rhs
-    execute 'ounmap <M-'.s:key.'>'
-    execute 'inoremap <silent> <M-'.s:key.'> '.s:insert_to_normal_map(s:rhs)
-  endfor
-  " HACK: The first letter is the rhs of the mapping, the rest is the lhs. Do a backflip! :crazy:
-  for s:key in ['ej', 'yk', 'dJ', 'uK', 'eDown', 'yUp']
-    execute 'noremap <M-'.s:key[1:].'> <C-'.s:key[0].'>'
-    execute 'ounmap <M-'.s:key[1:].'>'
-    execute 'inoremap <silent> <M-'.s:key[1:].'> '.s:insert_to_normal_map('<C-'.s:key[0].'>')
+  for [s:lhs, s:rhs] in items({
+  \ 'h': 'zh', 'H': 'zH', 'l': 'zl', 'L': 'zL', 'Left': 'z<Left>', 'Right': 'z<Right>',
+  \ 'j': '<C-e>', 'k': '<C-y>', 'J': '<C-d>', 'K': '<C-u>', 'Down': '<C-e>', 'Up': '<C-y>' })
+    let s:lhs = '<M-' . s:lhs . '>'
+    execute 'noremap' s:lhs s:rhs
+    execute 'ounmap' s:lhs
+    execute 'inoremap <silent><expr>' s:lhs '<SID>Cmd("normal! '.s:rhs.'")'
   endfor
 
   " Helpers to apply A/I to every line selected in Visual mode.
@@ -257,16 +304,10 @@ endif
 
   " My final attempt at untangling the mess that are the <Up> and <Down> keys.
   function! s:arrow_mapping(rhs) abort
-    if get(b:, 'pencil_wrap_mode', 0) == 0
-      return a:rhs   " No wrapping enabled
-    elseif s:has_cmd_mappings
-      return "\<Cmd>normal! g" . a:rhs . "\<CR>"  " This does not make the statusline flicker
-    else
-      return "\<C-o>g" . a:rhs
-    endif
+    return get(b:, 'pencil_wrap_mode', 0) != 0 ? s:Cmd('normal! g' . a:rhs) : a:rhs
   endfunction
-  inoremap <silent><expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("<Up>")
-  inoremap <silent><expr> <Plug>dotfiles<Down> <SID>arrow_mapping("<Down>")
+  inoremap <silent><expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("\<Up>")
+  inoremap <silent><expr> <Plug>dotfiles<Down> <SID>arrow_mapping("\<Down>")
 
   if empty(maparg('<Up>', 'i'))
     imap <Up>   <Plug>dotfiles<Up>
@@ -304,18 +345,8 @@ endif
 
   " \ is the inverse of / -- if the latter highlights search results, the
   " former executes :nohlsearch to turn the highlighting off.
-  if s:has_cmd_mappings
-    " Everything's easier when you have <Cmd> -- these work instantly, silently
-    " and without flicker.
-    nnoremap \ <Cmd>noh<CR>
-    xnoremap \ <Cmd>noh<CR>
-  else
-    " In legacy Vim's, situation's a bit more complex. Normal mode is trivial:
-    nnoremap <silent> \ :<C-u>noh<CR>
-    " But Visual mode is where the flicker issue appears. `normal! gv` instead
-    " of just `gv` at the end adresses the flicker problem.
-    xnoremap <silent> \ :<C-u>noh<Bar>norm!gv<CR>
-  endif
+  nnoremap <script><silent> \ <SID>:nohlsearch<CR>
+  xnoremap <script><silent> \ <SID>:nohlsearch<CR>
 
   let g:indexed_search_center = 1
 
@@ -331,25 +362,32 @@ endif
 
   " The following section is based on
   " <https://github.com/henrik/vim-indexed-search/blob/5af020bba084b699d0453f242d7d76711d64b1e3/plugin/indexed-search.vim#L94-L152>.
-  function! s:search_mapping(lhs)
-    return a:lhs
-    \ . (&foldopen =~# '\<all\>\|\<search\>' ? 'zv' : '')
-    \ . (get(g:, 'indexed_search_center', 0) ? 'zz' : '')
-    \ . (s:has_cmd_mappings ? "\<Cmd>" : ":\<C-u>")
-    \ . s:show_search_count_cmd . "\<CR>"
-    \ . ((!s:has_cmd_mappings && mode() =~# "^[vV\<C-v>]") ? 'gv' : '')
+  function! s:after_search()
+    if &foldopen =~# '\<all\>\|\<search\>'
+      normal! zv
+    endif
+    if get(g:, 'indexed_search_center', 0)
+      normal! zz
+    endif
+    execute s:show_search_count_cmd
+    return ''
   endfunction
 
-  cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? <SID>search_mapping('') : '')
+  noremap  <silent><script> <SID>after_search <SID>:call<SID>after_search()<CR>
+  inoremap <silent>         <SID>after_search     <C-r>=<SID>after_search()<CR>
 
-  noremap <silent><expr> *  <SID>search_mapping('*')
-  noremap <silent><expr> #  <SID>search_mapping('#')
-  noremap <silent><expr> g* <SID>search_mapping('g*')
-  noremap <silent><expr> g# <SID>search_mapping('g#')
-  noremap <silent><expr> n  <SID>search_mapping('Nn'[v:searchforward])
-  noremap <silent><expr> N  <SID>search_mapping('nN'[v:searchforward])
+  " This mapping needs to be recursive, so that abbreviations in cmdline are
+  " expanded when <CR> is pressed.
+  cmap <expr> <CR> "\<CR>" . (getcmdtype() =~# '[/?]' ? "<SID>after_search" : '')
+
+  noremap <script>       *   *<SID>after_search
+  noremap <script>       #   #<SID>after_search
+  noremap <script>       g*  g*<SID>after_search
+  noremap <script>       g#  g#<SID>after_search
+  noremap <script><expr> n  'Nn'[v:searchforward] . "<SID>after_search"
+  noremap <script><expr> N  'nN'[v:searchforward] . "<SID>after_search"
   for s:key in ['*', '#', 'g*', 'g#', 'n', 'N']
-  " Remove those from the Select and Operator modes.
+    " Remove those from the Select and Operator modes.
     exe 'sunmap' s:key
     exe 'ounmap' s:key
   endfor
@@ -379,11 +417,12 @@ endif
       let @" = tmp
     endtry
   endfunction
+  " These must be recursive to display the number of results after the search.
   xmap * :<C-u>call <SID>VisualStarSearch()<CR>/<CR>
   xmap # :<C-u>call <SID>VisualStarSearch()<CR>?<CR>
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
-  command! -nargs=+ Search let @/ = escape(<q-args>, '/') | normal! /<C-r>/<CR>
+  command! -nargs=+ Search        let @/ =       escape(<q-args>, '/') | normal! /<C-r>/<CR>
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
   command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal! /<C-r>/<CR>
 
@@ -435,13 +474,13 @@ endif
     elseif a:type ==# 'line' && line("'[") == 1 && line("']") == line('$')
       let cmd = ":\<C-u>%s/"
     elseif a:type ==# 'line'
-      silent exe "normal! '[V']:" | let cmd = ':s/'
+      silent exe "normal! '[V']" | let cmd = ':s/'
     elseif a:type ==# 'block'
-      silent exe "normal! `[\<C-V>`]" | let cmd = ':s/%V'
+      silent exe "normal! `[\<C-v>`]" | let cmd = ':s/%V'
     elseif a:type ==# 'char'
-      silent exe "normal! `[v`]:s/" | let cmd = ':s/%V'
+      silent exe "normal! `[v`]" | let cmd = ':s/%V'
     else
-      throw 'unrecognized argument to '.expand('<sfile>')': '.a:type
+      throw 'unrecognized argument: '.a:type
     endif
 
     if exists('s:substitute_operator_view')
@@ -456,7 +495,7 @@ endif
   " Substitute in the current line (`gsae` will substitute in the entire file).
   nnoremap <expr> gss <SID>substitute_operator('') . '_'
   " Substitute inside a Visual selection.
-  xnoremap <expr> gs (visualmode() ==# 'V' ? ':s/' : ':s/\%V')
+  xnoremap <expr> gs (mode() ==# 'V' ? ':s/' : ':s/\%V')
 
   " Repeat the last substitution and keep the flags.
   " Taken from <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua#L108-L113>
