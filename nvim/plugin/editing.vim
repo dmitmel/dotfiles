@@ -228,21 +228,17 @@ endif
       let pos = getcurpos()
       exe (a:up ? '-' : '+') . s:comment_out_cmd
       call setpos('.', pos)
-      call repeat#set("\<Plug>dotfiles_copy_and_comment_" . (a:up ? 'above' : 'below'), v:count)
     endfunction
 
-    nnoremap <Plug>dotfiles_copy_and_comment_above :<C-u>call <SID>copy_and_comment_out(1)<CR>
-    nnoremap <Plug>dotfiles_copy_and_comment_below :<C-u>call <SID>copy_and_comment_out(0)<CR>
-
     " Mappings for quick prototyping: duplicate this line and comment it out.
-    nmap <silent> <leader>[ <Plug>dotfiles_copy_and_comment_below
-    nmap <silent> <leader>] <Plug>dotfiles_copy_and_comment_above
+    nnoremap <silent> <leader>[ :<C-u>call <SID>copy_and_comment_out(0)<Bar>silent! call repeat#set('<leader>[')<CR>
+    nnoremap <silent> <leader>] :<C-u>call <SID>copy_and_comment_out(1)<Bar>silent! call repeat#set('<leader>]')<CR>
   endif
 
   " A dead-simple implementation of the `[d` and `]d` mappings of LineJuggler
   " for duplicating lines back and forth.
-  nnoremap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><CR>
-  nnoremap <silent> ]d :<C-u>copy+<C-r>=v:count<CR><CR>
+  nnoremap <silent> [d :<C-u>copy-<C-r>=v:count+1<CR><Bar>silent! call repeat#set('[d')<CR>
+  nnoremap <silent> ]d :<C-u>copy+<C-r>=v:count  <CR><Bar>silent! call repeat#set(']d')<CR>
 
   " ,c is easier to type than "+ because it doesn't require pressing Shift
   " c stands for clipboard
@@ -269,9 +265,8 @@ endif
 
   " Execute a macro on every line in a Visual selection. These were taken from
   " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua#L115-L130>
-  xnoremap <silent><expr> @ (mode() ==# 'V' ? ':normal! @<C-R>=reg_recorded()<CR><CR>' : 'Q')
-  " I'm not mapping `Q`, as it is used for opening the quickfix list.
-  "xnoremap <silent><expr> Q (mode() ==# 'V' ? ':normal! @'.getcharstr().'<CR>' : '@')
+  xnoremap <silent><expr> @ (mode() ==# 'V' ? ':normal! @<C-r>=reg_recorded()<CR><CR>' : '@')
+  xnoremap <silent><expr> Q (mode() ==# 'V' ? ':normal! @'.getcharstr().'<CR>' : 'Q')
 
   " normal mode
   nnoremap <leader>dg :.diffget<CR>
@@ -295,8 +290,8 @@ endif
   endfor
 
   " Helpers to apply A/I to every line selected in Visual mode.
-  xnoremap A :normal! A
-  xnoremap I :normal! I
+  xnoremap <expr> A (mode() ==# 'V' ? ':normal! A' : 'A')
+  xnoremap <expr> I (mode() ==# 'V' ? ':normal! I' : 'I')
 
   " Break undo on CTRL-W andd CTRL-U in the Insert mode.
   inoremap <C-u> <C-g>u<C-u>
