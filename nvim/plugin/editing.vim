@@ -135,23 +135,41 @@ endif
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
-  let g:indentLine_bufTypeExclude = ['terminal']
-  let g:indentLine_bufNameExclude = ['^$', '^term://.*$']
+  let g:indentLine_bufTypeExclude = ['terminal', 'nofile']
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
+  let g:indent_blankline_show_current_context = v:true
 
-  if !dotplug#has('indentLine') && has('nvim-0.5.0')
-    lua require('dotfiles.sane_indentline').setup()
+  if dotplug#has('indentLine')
+    " Nothing here, no further configuration is necessary for this plugin.
+  elseif has('nvim-0.5.0')
+    lua dotfiles.sane_indentline.setup()
+
     function! s:indent_lines_set(global, status) abort
       let dict = a:global ? g: : b:
       let status = a:status is# 'toggle' ? !get(dict, 'indentLine_enabled', 1) : a:status
       let dict['indentLine_enabled'] = status
       redraw!
     endfunction
+
     command! -bar -bang IndentLinesEnable  call s:indent_lines_set(<bang>0, 1)
     command! -bar -bang IndentLinesDisable call s:indent_lines_set(<bang>0, 0)
     command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
-    exe dotutils#cmd_alias('IL', 'IndentLinesToggle')
+    execute dotutils#cmd_alias('IL', 'IndentLinesToggle')
+
+    "
+  elseif has('patch-8.2.5066') || has('nvim-0.8.0')
+    " <https://www.reddit.com/r/neovim/comments/17aponn/i_feel_like_leadmultispace_deserves_more_attention/>
+    " <https://github.com/gravndal/shiftwidth_leadmultispace.nvim/blob/6f524bb6b2e21215d0c35553d09d826c65f97062/plugin/shiftwidth_leadmultispace.lua>
+    function! s:update_leadmultispace() abort
+      exe "setlocal listchars+=leadmultispace:\u2502" . repeat('\ ', shiftwidth() - 1)
+    endfunction
+
+    augroup dotfiles_indent
+      autocmd!
+      autocmd OptionSet shiftwidth,tabstop call s:update_leadmultispace()
+      autocmd BufEnter *                   call s:update_leadmultispace()
+    augroup END
   endif
 
   " NOTE: This is my very own custom Vim motion!!!
@@ -607,6 +625,8 @@ endif
   let g:closetag_xhtml_filetypes = 'xhtml,xslt'
   let g:closetag_filenames = ''
   let g:closetag_xhtml_filenames = ''
+
+  let g:linediff_buffer_type = 'scratch'
 
 " }}}
 

@@ -82,24 +82,32 @@ function! s:setup() abort
   " For some reason I added the `noncombine` attribute to `NonText` when I
   " committed my IndentLine plugin a while ago. No idea why.
   call Hi('NonText',       { 'fg': 0x3 })
-  " The idea of using the `nocombine` attribute was taken from
-  " <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L221>.
-  call Hi('IndentLine', { 'fg': 0x2, 'attr': nocombine })
-  hi! link IndentBlanklineChar               IndentLine
-  hi! link IndentBlanklineSpaceChar          Whitespace
-  hi! link IndentBlanklineSpaceCharBlankline Whitespace
-  hi! link IndentBlanklineContextChar        Label
+  " `nocombine` is necessary for indentation because:
+  " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/72>
+  call Hi('IblIndent',     { 'fg': 0x2, 'attr': nocombine })
+  hi! link IndentLine        IblIndent
+  call Hi('IblSpace',      { 'fg': 0x3, 'attr': nocombine })
+  call Hi('IblScope',      { 'fg': 0x3, 'attr': nocombine })
 
-  let g:indent_blankline_char_highlight_list = []
+  let rainbow_indent_opacity = get(g:, 'dotfiles_rainbow_indent_opacity', 0)
+  let indent_scope_opacity = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
+
+  if indent_scope_opacity != 0
+    exe 'hi IblScope guifg=' . s:mix_colors(colors[0x2], colors[0xD], indent_scope_opacity)
+  endif
+
+  let g:indent_blankline_char_highlight_list    = []
+  let g:indent_blankline_context_highlight_list = []
   for color in range(7)
-    exe 'hi clear IndentLineRainbow' . color
-    if get(g:, 'dotfiles_rainbow_indent_opacity', 0) !=# 0
-      call add(g:indent_blankline_char_highlight_list, 'IndentLineRainbow' . color)
-      exe 'hi IndentLineRainbow' . color
-      \ 'ctermfg=' . colors[0x2].cterm
-      \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], g:dotfiles_rainbow_indent_opacity)
-      \     'gui=' . nocombine
-      \   'cterm=' . nocombine
+    exe 'hi clear IblIndent' . color
+    exe 'hi clear IblScope'  . color
+    if rainbow_indent_opacity != 0
+      call add(g:indent_blankline_char_highlight_list,    'IblIndent' . color)
+      call add(g:indent_blankline_context_highlight_list, 'IblScope' . color)
+      exe 'hi IblIndent' . color
+      \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], rainbow_indent_opacity)
+      exe 'hi IblScope' . color
+      \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], indent_scope_opacity)
     endif
   endfor
 

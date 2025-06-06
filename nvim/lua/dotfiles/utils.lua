@@ -48,16 +48,6 @@ function M.check_type(name, value, expected_type, optional)
   end
 end
 
---- Taken from <https://github.com/lukas-reineke/indent-blankline.nvim/blob/0a98fa8dacafe22df0c44658f9de3968dc284d20/lua/indent_blankline/utils.lua#L231-L235>.
-function M.first_non_nil(...)
-  for i = 1, select('#', ...) do
-    local val = select(i, ...)
-    if val ~= nil then
-      return val
-    end
-  end
-end
-
 function M.is_nil(val)
   return val == nil or val == vim.NIL
 end
