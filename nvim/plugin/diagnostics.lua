@@ -77,21 +77,6 @@ utils.augroup('dotfiles_diagnostics'):autocmd(
   { desc = 'redraw the statusline on diagnostics updates' }
 )
 
--- NOTE: the patches below are unused
-do
-  return
-end
-
-vim.cmd('hi def link DiagnosticFloatWin NormalFloat')
-vim_diagnostic._open_float_orig = vim_diagnostic._open_float_orig or vim_diagnostic.open_float
-function vim_diagnostic.open_float(...) ---@diagnostic disable-line: duplicate-set-field
-  local function patch_float(bufnr, winid, ...)
-    vim.fn.win_execute(winid, 'setlocal winhl+=NormalFloat:DiagnosticFloatWin')
-    return bufnr, winid, ...
-  end
-  return patch_float(vim_diagnostic._open_float_orig(...))
-end
-
 local handlers = vim_diagnostic.handlers
 ---@diagnostic disable-next-line: inject-field
 handlers.signs._old_show = handlers.signs._old_show or handlers.signs.show
@@ -99,6 +84,7 @@ function handlers.signs.show(namespace, bufnr, diagnostics, opts)
   handlers.signs._old_show(namespace, bufnr, diagnostics, opts)
 
   local culhl = opts.signs.culhl ---@diagnostic disable-line: undefined-field
+  if not culhl then return end
 
   if not vim.api.nvim_buf_is_loaded(bufnr) or culhl == nil then return end
 
@@ -119,55 +105,4 @@ function handlers.signs.show(namespace, bufnr, diagnostics, opts)
       vim.api.nvim_buf_set_extmark(bufnr, sign_ns, row, col, details)
     end
   end
-end
-
-local diagnostic_patch_lsp_client_id = nil
-
-vim_diagnostic._old_set = vim_diagnostic._old_set or vim_diagnostic.set
----@diagnostic disable-next-line: duplicate-set-field
-function vim_diagnostic.set(namespace, bufnr, diagnostics, opts)
-  local lsp = require('vim.lsp')
-  local lsp_extras = require('dotfiles.lsp_extras')
-
-  -- <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/lsp/diagnostic.lua#L73-L112>
-  if diagnostic_patch_lsp_client_id ~= nil then
-    local client = lsp.get_client_by_id(diagnostic_patch_lsp_client_id)
-    local position_encoding = client and client.offset_encoding or 'utf-16'
-
-    local lines_request = {} ---@type table<integer, string>
-    for _, vim_diag in ipairs(diagnostics) do
-      local lsp_diag = vim_diag.user_data.lsp ---@type lsp.Diagnostic?
-      if lsp_diag then
-        lines_request[lsp_diag.range.start.line] = ''
-        lines_request[lsp_diag.range['end'].line] = ''
-      end
-    end
-
-    local ok = lsp_extras.get_buf_lines_batch(bufnr, lines_request)
-    if ok then
-      for _, vim_diag in ipairs(diagnostics) do
-        local lsp_diag = vim_diag.user_data.lsp ---@type lsp.Diagnostic?
-        if lsp_diag then
-          local start, end_ = lsp_diag.range.start, lsp_diag.range['end']
-          vim_diag.col =
-            vim.str_byteindex(lines_request[start.line], position_encoding, start.character, false)
-          vim_diag.end_col =
-            vim.str_byteindex(lines_request[end_.line], position_encoding, end_.character, false)
-        end
-      end
-    end
-  end
-  return vim_diagnostic._old_set(namespace, bufnr, diagnostics, opts)
-end
-
-lsp.handlers['textDocument/diagnostic'] = function(error, params, ctx)
-  diagnostic_patch_lsp_client_id = ctx.client_id
-  lsp.diagnostic.on_diagnostic(error, params, ctx)
-  diagnostic_patch_lsp_client_id = nil
-end
-
-lsp.handlers['textDocument/publishDiagnostics'] = function(error, params, ctx)
-  diagnostic_patch_lsp_client_id = ctx.client_id
-  lsp.diagnostic.on_publish_diagnostics(error, params, ctx)
-  diagnostic_patch_lsp_client_id = nil
 end

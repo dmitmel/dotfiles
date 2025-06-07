@@ -35,99 +35,6 @@ function M.find_vscode_server(opts)
   return vim.list_extend({ opts.npm_exe }, opts.args)
 end
 
-M._scratch_buf = nil
-
-function M._get_scratch_buf()
-  if M._scratch_buf and vim.api.nvim_buf_is_valid(M._scratch_buf) then
-    return M._scratch_buf
-  else
-    M._scratch_buf = vim.api.nvim_create_buf(--[[ listed ]] false, --[[ scratch ]] true)
-    return M._scratch_buf
-  end
-end
-
-local function clear_scratch_buf(bufnr)
-  -- Sometimes this can fail. Notably, when the Neovim process is under debug.
-  local ok, err = pcall(vim.api.nvim_buf_set_lines, bufnr, 0, -1, false, {})
-  if not ok then vim.notify(err, vim.log.levels.ERROR) end
-end
-
--- TODO: use my get_buf_lines_batch in util.locations_to_items
--- TODO: Snacks.picker.util.lines
--- TODO: delete this
-
---- Rerwite of <https://github.com/neovim/neovim/blob/v0.6.0/runtime/lua/vim/lsp/util.lua#L150-L221>
---- and <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L1489-L1558>.
----@param bufnr number
----@param out_lines table<number, string>
----@return boolean
-function M.get_buf_lines_batch(bufnr, out_lines)
-  local function get_the_lines(real_bufnr)
-    for linenr, _ in pairs(out_lines) do
-      -- Not batching `nvim_buf_get_lines` calls is not as slow as you might
-      -- think: my experience with contributing to cmp-buffer suggests that
-      -- performing line requests in small chunks lowers memory usage and
-      -- doesn't hurt performance much. Tested on the CC source code (185k
-      -- lines): requesting it all line-by-line is about 2-3 times slower than
-      -- requesting the entire buffer at once, and we are talking about
-      -- hundreds of thousands of lines here, whereas the most common use-case
-      -- of `get_buf_lines_batch` is `locations_to_items`, which will generate
-      -- disjoint ranges of lines. As such, batching line numbers into joined
-      -- ranges to then pass them to `nvim_buf_get_lines` just complicates the
-      -- code and is not worth it (but, apparently, is worth writing a ten-line
-      -- comment about...). NOTE: Non-strict index mode is used here
-      -- deliberately, some language servers may return invalid line numbers,
-      -- case in point: rust_analyzer, when jumping to the definition of a
-      -- module.
-      out_lines[linenr] = vim.api.nvim_buf_get_lines(real_bufnr, linenr, linenr + 1, false)[1] or ''
-    end
-  end
-
-  local ok = true
-
-  if vim.api.nvim_buf_is_loaded(bufnr) then
-    get_the_lines(bufnr)
-  elseif not vim.uri_from_bufnr(bufnr):match('^file:') then
-    -- The server sent back a non-file URI, it must be loaded by a
-    -- `BufReadCmd` autocommand. This branch will be inherently slow.
-    vim.fn.bufload(bufnr)
-    get_the_lines(bufnr)
-  else
-    -- Now comes the HACK branch. The original implementation opens the file
-    -- with libUV and tries to heuristically find the requested lines, but the
-    -- thing is that Vim's buffer loading handles much more than that: UTF-16
-    -- decoding, BOM detection, line ending detection and so on, of which the
-    -- last one was what I was particularly interested in. So, by making Vim
-    -- load the buffer, I ensure that the behavior of handling loaded and
-    -- unloaded buffers lines up exactly.
-
-    local scratch_buf = M._get_scratch_buf()
-
-    local bo = vim.bo[scratch_buf]
-    bo.buflisted = false
-    bo.buftype = 'nofile'
-    clear_scratch_buf(scratch_buf)
-
-    local message
-    vim.api.nvim_buf_call(scratch_buf, function()
-      ok, message = pcall(
-        vim.cmd, ---@diagnostic disable-line: param-type-mismatch
-        'noautocmd keepalt silent 0read ' .. vim.fn.fnameescape(vim.api.nvim_buf_get_name(bufnr))
-      )
-    end)
-
-    if not ok then
-      vim.notify(message, vim.log.levels.WARN)
-    else
-      get_the_lines(scratch_buf)
-    end
-
-    clear_scratch_buf(scratch_buf)
-  end
-
-  return ok
-end
-
 function M.cancel_last_jump()
   if M._cancel_jump_cb ~= nil then
     M._cancel_jump_cb()
@@ -160,11 +67,14 @@ function M.jump(method, list_type, opts)
   end
 
   M._cancel_jump_cb = lsp.buf_request_all(0, method, make_params, function(responses)
+    M._cancel_jump_cb = nil
+
     local items = {} ---@type vim.quickfix.entry[]
     local clients = {} ---@type vim.lsp.Client[]
     for client_id, r in vim.spairs(responses) do
       local client = lsp.get_client_by_id(client_id) or {}
       if r.err then
+        -- lsp.log.error(r.err.code, r.err.message)
         local client_name = client.name or ('id=' .. client_id)
         local message = ('[LSP][%s] %s: %s'):format(client_name, r.err.code, r.err.message)
         vim.notify(message, vim.log.levels.ERROR)

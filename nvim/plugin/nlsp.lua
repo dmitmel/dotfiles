@@ -47,8 +47,14 @@ map('n', '<space>K', function() --
   lsp.buf.hover({ max_width = 80, max_height = 24, border = utils.border_styles.hpad })
 end, { desc = 'lsp.buf.hover()' })
 
+vim.cmd('hi def link DiagnosticFloat NormalFloat')
+vim.cmd('hi def link DiagnosticFloatBorder FloatBorder')
+local diagnostic_float_winhl =
+  'setlocal winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder'
+
 map('n', '<A-d>', function() --
-  vim.diagnostic.open_float({ max_width = 80, max_height = 8 })
+  local _, winid = vim.diagnostic.open_float({ max_width = 80, max_height = 8 })
+  if winid then vim.fn.win_execute(winid, diagnostic_float_winhl) end
 end, { desc = 'vim.diagnostic.open_float()' })
 
 map('n', '<space>d', function() --
