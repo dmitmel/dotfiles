@@ -9,13 +9,15 @@
   "editor.fontFamily": "Fira Mono",
   "editor.lineNumbers": "relative",
   "files.trimTrailingWhitespace": true,
-  "editor.renderFinalNewline": "off",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "editor.formatOnSave": true,
+  "editor.renderWhitespace": "trailing",
+  "editor.renderFinalNewline": "off",
+  "editor.renderLineHighlight": "all",
 
   // Syntax highlighting
-  "workbench.colorTheme": "Catppuccin Mocha",
+  "workbench.colorTheme": "GitHub Dark Dimmed",
   "catppuccin.italicComments": false,
   "catppuccin.italicKeywords": false,
   "editor.bracketPairColorization.enabled": false,
@@ -57,7 +59,8 @@
   "vim.vimrc.path": "/home/dmitmel/dotfiles/vscode/config.vim",
   "vim.leader": ",",
   "extensions.experimental.affinity": {
-    "vscodevim.vim": 1
+    "vscodevim.vim": 1,
+    "asvetliakov.vscode-neovim": 1
   },
 
   // Features that I don't need
@@ -82,6 +85,7 @@
     "panel": "never"
   },
   "github.copilot.editor.enableAutoCompletions": false,
+  "github.copilot.editor.enableCodeActions": false,
   "github.copilot.enable": {
     "*": false
   },

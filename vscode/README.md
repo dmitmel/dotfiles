@@ -1,1 +1,1 @@
-### Link this directory to `~/.config/VSCodium/User`
+### Link this directory to `~/.config/Code/User`

@@ -48,6 +48,10 @@
     "when": "editorTextFocus && vim.active",
     "args": { "after": ["<C-v>"] }
   },
+  {
+    "key": "ctrl+,",
+    "command": "workbench.action.openSettingsJson"
+  },
 
   {
     "key": "escape",

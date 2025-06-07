@@ -2,6 +2,11 @@ set nocompatible
 set cpoptions&vim
 set encoding=utf-8
 
+if exists('g:vscode')
+  syntax off
+  finish
+endif
+
 " Sensible defaults:
 " <https://github.com/tpope/vim-sensible/blob/master/plugin/sensible.vim>
 " <https://github.com/sheerun/vimrc/blob/master/plugin/vimrc.vim>

@@ -154,6 +154,7 @@ alias mpv='mpv --player-operation-mode=pseudo-gui'
 alias o='open'
 
 if command_exists vscodium && ! command_exists code; then
+  # Use a function instead of an alias, so that we still get the completions.
   code() { vscodium "$@"; }
 fi
 

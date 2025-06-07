@@ -119,6 +119,7 @@ nnoremap <leader>h <C-w>s<C-w>k<C-o>
 nnoremap <leader>ga git.stage
 nnoremap <leader>gd git.openChange
 nnoremap <leader>gs workbench.scm.focus
+nnoremap <leader>gw :vscode extension.openInGitHub<CR>
 nnoremap [c workbench.action.editor.previousChange
 nnoremap ]c workbench.action.editor.nextChange
 
