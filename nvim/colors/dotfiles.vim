@@ -37,17 +37,17 @@ endfunction
 
 function! s:setup() abort
   let ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
-  let colors = g:dotfiles#colorscheme#base16_colors
+  let base16 = g:dotfiles#colorscheme#base16_colors
 
   let lookup = {}
-  for color in range(len(colors))
-    let lookup[color] = colors[color]
+  for color in range(len(base16))
+    let lookup[color] = base16[color]
   endfor
   let lookup['fg'] = { 'gui': 'fg', 'cterm': 'fg' }
   let lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
   let lookup['']   = { 'gui': 'NONE', 'cterm': 'NONE' }
 
-  function! Hi(group, def) closure   " NOTE: no `abort`
+  function! Hi(group, def) closure abort
     let fg = lookup[get(a:def, 'fg', '')]
     let bg = lookup[get(a:def, 'bg', '')]
     let sp = lookup[get(a:def, 'sp', '')]
@@ -58,7 +58,7 @@ function! s:setup() abort
     \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
   endfunction
 
-  function! HiClear(group) closure   " NOTE: no `abort`
+  function! HiClear(group) closure abort
     exe 'hi clear' a:group
     exe 'hi link' a:group 'NONE'
   endfunction
@@ -74,13 +74,10 @@ function! s:setup() abort
   call Hi('Underlined',    { 'fg': 0xD, 'attr': 'underline' })
   call Hi('Strikethrough', { 'attr': strikethrough          })
   call Hi('Title',         { 'fg': 0xD })
-  hi! link Directory Title
+  hi! link Directory         Title
   call Hi('Conceal',       { 'fg': 0xC })
-  hi! link SpecialKey Special
-  call Hi('MatchParen',    { 'fg': 'fg', 'bg': 0x3 })
-
-  " For some reason I added the `noncombine` attribute to `NonText` when I
-  " committed my IndentLine plugin a while ago. No idea why.
+  hi! link SpecialKey        Special
+  call Hi('MatchParen',    { 'attr': 'bold,underline' })
   call Hi('NonText',       { 'fg': 0x3 })
   " `nocombine` is necessary for indentation because:
   " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/72>
@@ -93,7 +90,7 @@ function! s:setup() abort
   let indent_scope_opacity = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
 
   if indent_scope_opacity != 0
-    exe 'hi IblScope guifg=' . s:mix_colors(colors[0x2], colors[0xD], indent_scope_opacity)
+    exe 'hi IblScope guifg=' . s:mix_colors(base16[0x2], base16[0xD], indent_scope_opacity)
   endif
 
   let g:indent_blankline_char_highlight_list    = []
@@ -105,9 +102,9 @@ function! s:setup() abort
       call add(g:indent_blankline_char_highlight_list,    'IblIndent' . color)
       call add(g:indent_blankline_context_highlight_list, 'IblScope' . color)
       exe 'hi IblIndent' . color
-      \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], rainbow_indent_opacity)
+      \   'guifg=' . s:mix_colors(base16[0x0], base16[8 + color], rainbow_indent_opacity)
       exe 'hi IblScope' . color
-      \   'guifg=' . s:mix_colors(colors[0x0], colors[8 + color], indent_scope_opacity)
+      \   'guifg=' . s:mix_colors(base16[0x0], base16[8 + color], indent_scope_opacity)
     endif
   endfor
 
@@ -141,6 +138,7 @@ function! s:setup() abort
   hi! link Tag             Function
   call Hi('Type',        { 'fg': 0xA })
   hi! link Typedef         Type
+  call HiClear('Ignore')
 
   " }}}
 
@@ -230,14 +228,16 @@ function! s:setup() abort
     hi! link @property                 Identifier
     call HiClear('@variable')
     hi! link @variable.builtin         Special
-    hi! link @variable.member          Identifier
-    hi! link @variable.parameter       Identifier
+    hi! link @variable.member          Variable
+    hi! link @variable.parameter       Variable
+    hi! link @variable.declaration     Variable
     hi! link @constant                 Constant
     hi! link @constant.builtin         Special
     hi! link @constant.macro           Define
     call HiClear('@markup')
     hi! link @markup.heading           Title
     hi! link @markup.raw               String
+    call HiClear('@markup.raw.block')
     hi! link @markup.math              Special
     hi! link @markup.environment       Macro
     hi! link @markup.environment.name  Type
@@ -282,7 +282,7 @@ function! s:setup() abort
     hi! link @macro                    Macro
     hi! link @structure                Structure
     hi! link @lsp.type.class           @type
-    hi! link @lsp.type.comment         @comment
+    call HiClear('@lsp.type.comment')
     hi! link @lsp.type.decorator       @macro
     hi! link @lsp.type.enum            @type
     hi! link @lsp.type.enumMember      @constant
@@ -300,6 +300,7 @@ function! s:setup() abort
     hi! link @lsp.type.variable        @variable
     hi! link @module.builtin.lua       Type
     hi! link @function.builtin.lua     Type
+    hi! link @lsp.typemod.variable.declaration @variable.declaration
 
     call Hi('@comment.todo',    { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
     call Hi('@comment.note',    { 'fg': 0xD, 'bg': 'bg', 'attr': 'reverse,bold' })
@@ -315,22 +316,6 @@ function! s:setup() abort
   call Hi('WarningMsg', { 'fg': 0x9 })
   call Hi('TooLong',    { 'fg': 0x8 })
   call Hi('Debug',      { 'fg': 0x8 })
-
-  call Hi('CocErrorSign',     { 'fg': 'bg', 'bg': 0x8 })
-  call Hi('CocWarningSign',   { 'fg': 'bg', 'bg': 0xA })
-  call Hi('CocInfoSign',      { 'fg': 'bg', 'bg': 0xD })
-  call Hi('CocHintSign',      { 'fg': 'bg', 'bg': 0xD })
-  " The float hlgroups are a fix for changes in
-  " <https://github.com/neoclide/coc.nvim/commit/a34b3ecf6b45908fa5c86afa26874b20fb7851d3> and
-  " <https://github.com/neoclide/coc.nvim/commit/a9a4b4c584a90784f95ba598d1cb6d37fb189e5a>.
-  call Hi('CocErrorFloat',    { 'fg': 0x8 })
-  call Hi('CocWarningFloat',  { 'fg': 0xA })
-  call Hi('CocInfoFloat',     { 'fg': 0xD })
-  call Hi('CocHintFloat',     { 'fg': 0xD })
-  hi! link FgCocErrorFloatBgCocFloating   CocErrorSign
-  hi! link FgCocWarningFloatBgCocFloating CocWarningSign
-  hi! link FgCocInfoFloatBgCocFloating    CocInfoSign
-  hi! link FgCocHintFloatBgCocFloating    CocHintSign
 
   call Hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'attr': 'bold' })
   call Hi('CocSearch',        { 'fg': 0xD })
@@ -351,52 +336,68 @@ function! s:setup() abort
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
-  if has('nvim-0.5.0')
-    let name_prefix = has('nvim-0.6.0') ? 'Diagnostic' : 'LspDiagnostics'
-    let severities_colors = [0x8, 0xA, 0xD, 0xD]
+  for [severity, color] in items({ 'Error': 0x8, 'Warn': 0xA, 'Info': 0xD, 'Hint': 0xD, 'Ok': 0xB })
+    call Hi('Diagnostic'.severity, { 'fg': color })
+    call Hi('DiagnosticFloating'.severity, { 'fg': color })
+    " call Hi('DiagnosticSign'.severity, { 'fg': 'bg', 'bg': color })
+    call Hi('DiagnosticUnderline'.severity, { 'attr': 'underline' })
 
-    for severity in range(4)
-      let severity_color = [0x8, 0xA, 0xD, 0xD][severity]
-      if has('nvim-0.6.0')
-        let severity_name = ['Error', 'Warn', 'Info', 'Hint'][severity]
-        let default_hl_name = name_prefix . severity_name
-      else
-        let severity_name = ['Error', 'Warning', 'Information', 'Hint'][severity]
-        let default_hl_name = name_prefix.'Default'.severity_name
-      endif
+    exe 'hi clear DiagnosticLine'.severity
+    exe 'hi DiagnosticLine'.severity 'guibg='.s:mix_colors(base16[0x0], base16[color], 0.1)
 
-      call Hi(default_hl_name, { 'fg': 'bg', 'bg': severity_color })
-      call Hi(name_prefix.'Underline'.severity_name, { 'attr': 'underline' })
-      exe 'hi! link' name_prefix.'Floating'.severity_name default_hl_name
-      exe 'hi! link' name_prefix.'Sign'.severity_name default_hl_name
+    let linenr_attrs = 'guibg=' . s:mix_colors(base16[0x0], base16[color], 0.1)
+    \               . ' guifg=' . base16[color].gui
+    \             . ' ctermfg=' . base16[0x1].cterm
+    \             . ' ctermbg=' . base16[color].cterm
 
-      if get(g:, 'dotfiles_lsp_diagnostics_gui_style')
-        let severity_color = colors[severity_color]
-        exe 'hi' name_prefix.'Line'.severity_name
-        \ 'guibg=' s:mix_colors(colors[0x0], severity_color, 0.1)
-        exe 'hi' name_prefix.'VirtualText'.severity_name
-        \ 'ctermfg=bg'
-        \ 'ctermbg=' . severity_color.cterm
-        \ 'guifg=' . severity_color.gui
-        \ 'gui=bold'
-      else
-        exe 'hi! link' name_prefix.'VirtualText'.severity_name default_hl_name
-      endif
-    endfor
+    exe 'hi clear DiagnosticLineNr'.severity
+    exe 'hi DiagnosticLineNr'.severity linenr_attrs
 
-    call Hi(name_prefix.'UnderlineUnnecessary', { 'fg': 0x3 })
-    call Hi(name_prefix.'UnderlineDeprecated',  { 'attr': strikethrough })
+    exe 'hi clear DiagnosticSign'.severity
+    exe 'hi DiagnosticSign'.severity linenr_attrs 'cterm=bold' 'gui=bold'
 
-    hi! link LspHover Search
-    " <https://github.com/neovim/neovim/pull/15018>
-    call Hi('LspSignatureActiveParameter', { 'attr': 'underline' })
-  endif
+    exe 'hi clear DiagnosticVirtualText'.severity
+    " NOTE: in regular Vim, even when `termguicolors` mode is used, it still
+    " uses `cterm` attributes instead of `gui` ones. Well, tough shit!
+    exe 'hi DiagnosticVirtualText'.severity
+    \ 'ctermfg=bg' 'ctermbg='.(base16[color].cterm) 'guifg='.(base16[color].gui) 'gui=bold'
 
-  call Hi('FoldColumn', { 'fg': 0xC, 'bg': 0x1 })
-  call Hi('Folded',     { 'fg': 0x3, 'bg': 0x1 })
+    if severity == 'Ok'
+      continue  " This one is actually an undocumented addition to vim.diagnostic
+    endif
 
-  call Hi('IncSearch', { 'fg': 0x1, 'bg': 0x9 })
-  call Hi('Search',    { 'fg': 0x1, 'bg': 0xA })
+    " Translate the name of the severity into ye olde language
+    let coc_severity = severity == 'Warn' ? 'Warning' : severity
+    exe 'hi! link' 'Coc'.coc_severity.'Float' 'DiagnosticFloating'.severity
+    exe 'hi! link' 'Coc'.coc_severity.'Line' 'DiagnosticLine'.severity
+    exe 'hi! link' 'Coc'.coc_severity.'Sign' 'DiagnosticSign'.severity
+    exe 'hi! link' 'Coc'.coc_severity.'Underline' 'DiagnosticUnderline'.severity
+    exe 'hi! link' 'Coc'.coc_severity.'VirtualText' 'DiagnosticVirtualText'.severity
+
+    " Translate once more into an even more ancient tongue
+    let qf_severity = coc_severity == 'Hint' ? 'Note' : coc_severity
+
+    " The second quickfix list setup. Requires a bunch of weird tricks with
+    " reverse video to look nice. This is needed because highlighting of the
+    " current qflist item with the QuickFixLine hlgroup is handled as a special
+    " case (see <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/screen.c#L2391-L2394>),
+    " and, unfortunately, QuickFixLine overrides the background colors set by
+    " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
+    call Hi('qf'.qf_severity, { 'fg': color, 'attr': 'reverse,bold' })
+  endfor
+
+  call Hi('DiagnosticUnnecessary',       { 'fg': 0x3 })
+  call Hi('DiagnosticDeprecated',        { 'attr': strikethrough })
+  hi! link DiagnosticUnderlineUnnecessary  DiagnosticUnnecessary
+  hi! link DiagnosticUnderlineDeprecated   DiagnosticDeprecated
+  hi! link CocUnusedHighlight              DiagnosticUnnecessary
+  hi! link CocDeprecatedHighlight          DiagnosticDeprecated
+
+  hi! link LspReferenceText Visual
+  call Hi('LspSignatureActiveParameter', { 'attr': 'underline' })
+
+  call Hi('IncSearch', { 'fg': 0x9, 'bg': 0x1, 'attr': 'reverse' })
+  call Hi('Search',    { 'fg': 0xA, 'bg': 0x1, 'attr': 'reverse' })
   hi! link Substitute    Search
   hi! link CurSearch     Search
 
@@ -406,58 +407,109 @@ function! s:setup() abort
   call Hi('Visual',   { 'bg': 0x2 })
   call Hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
 
-  " call Hi('Cursor',       { 'bg': 'fg' })
-  call Hi('CursorLine',   {            'bg': 0x1 })
-  hi! link CursorColumn     CursorLine
-  call Hi('ColorColumn',  {            'bg': 0x1 })
-  call Hi('LineNr',       { 'fg': 0x3, 'bg': 0x1 })
-  call Hi('CursorLineNr', { 'fg': 0x4, 'bg': 0x1 })
-  " call Hi('QuickFixLine', {            'bg': 0x2                 })
-  " call Hi('qfError',      { 'fg': 0x8, 'bg': 0x1, 'attr': 'bold' })
-  " call Hi('qfWarning',    { 'fg': 0xA, 'bg': 0x1, 'attr': 'bold' })
-  " call Hi('qfInfo',       { 'fg': 0xD, 'bg': 0x1, 'attr': 'bold' })
-  " call Hi('qfNote',       { 'fg': 0xD, 'bg': 0x1, 'attr': 'bold' })
-  " The secondary quickfix list setup. Requires a bunch of weird tricks with
-  " reverse video to look nice. This is needed because highlighting of the
-  " current qflist item with the QuickFixLine hlgroup is handled as a special
-  " case (see <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/screen.c#L2391-L2394>),
-  " and, unfortunately, QuickFixLine overrides the background colors set by
-  " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
-  call Hi('QuickFixLine', { 'fg': 0xE, 'attr': 'underline', 'sp': 0xE })
-  call Hi('qfError',      { 'fg': 0x8, 'attr': 'reverse,bold' })
-  call Hi('qfWarning',    { 'fg': 0xA, 'attr': 'reverse,bold' })
-  call Hi('qfInfo',       { 'fg': 0xD, 'attr': 'reverse,bold' })
-  call Hi('qfNote',       { 'fg': 0xD, 'attr': 'reverse,bold' })
+  call Hi('Cursor',         { 'bg': 'fg', 'fg': 'bg' })
+  call Hi('CursorLine',     { 'bg': 0x1  })
+  hi! link CursorColumn       CursorLine
+  call Hi('ColorColumn',    { 'bg': 0x1  })
+  call Hi('LineNr',         { 'fg': 0x3  })
+  call Hi('CursorLineNr',   { 'fg': 0x4, 'bg': 0x1 })
+  hi! link SignColumn         LineNr
+  call Hi('CursorLineSign', { 'bg': 0x1            })
+  call Hi('Folded',         { 'fg': 0x3, 'bg': 0x1 })
+  call Hi('FoldColumn',     { 'fg': 0xC            })
+  call Hi('CursorLineFold', { 'fg': 0xC, 'bg': 0x1 })
+  call Hi('QuickFixLine',   { 'fg': 0xE, 'attr': 'underline', 'sp': 0xE })
   call HiClear('qfText')
 
-  call Hi('SignColumn',   { 'fg': 0x3,  'bg': 0x1 })
-  call Hi('StatusLine',   { 'fg': 0x4,  'bg': 0x1 })
-  call Hi('StatusLineNC', { 'fg': 0x3,  'bg': 0x1 })
-  call Hi('VertSplit',    { 'fg': 0x2,  'bg': 0x2 })
-  hi! link WinSeparator     VertSplit
+  call Hi('StatusLine',   { 'fg': 0x5, 'bg': 0x1 })
+  call Hi('StatusLineNC', { 'fg': 0x4, 'bg': 0x1 })
+  call Hi('WinSeparator', { 'fg': 0x2 })
+  hi! link MsgSeparator     WinSeparator
+  hi! link VertSplit        WinSeparator
   hi! link TabLine          StatusLine
   hi! link TabLineFill      StatusLine
   call Hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
   call Hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
-  hi! link FloatBorder      NormalFloat
+  call Hi('FloatBorder',  { 'fg': 0x2,  'bg': 0x1 })
   hi! link CocFloating      NormalFloat
+  call Hi('WinBar',       { 'fg': 0x6, 'bg': 0x2 })
+  call Hi('WinBarNC',     { 'fg': 0x5, 'bg': 0x1 })
+  hi! link BqfPreviewRange  Search
+  hi! link BqfPreviewTitle  Label
+  hi! link BqfPreviewBorder WinSeparator
 
-  hi! link Pmenu                     NormalFloat
-  call Hi('PmenuSel',              { 'fg': 'bg', 'bg': 0xD })
-  hi! link PmenuThumb                Cursor
-  hi! link CocMenuSel                PmenuSel
-  call Hi('CocPumSearch',          { 'fg': 0xA })
-  call Hi('CocPumDetail',          { 'fg': 0x4 })
-  hi! link CocPumShortcut            CocPumDetail
-  call Hi('CmpItemAbbrDefault',    { 'fg': 0x5 })
-  call Hi('CmpItemAbbrMatch',      { 'fg': 0xA })
-  call Hi('CmpItemAbbrMatchFuzzy', { 'fg': 0xE })
-  call Hi('CmpItemKind',           { 'fg': 0xD })
-  call Hi('CmpItemMenu',           { 'fg': 0x4 })
-  call Hi('CmpItemAbbrDeprecated', { 'attr': strikethrough })
+  hi! link Pmenu                      NormalFloat
+  call Hi('PmenuSel',               { 'fg': 'bg', 'bg': 0xD })
+  hi! link PmenuSbar                  Pmenu
+  call Hi('PmenuThumb',             { 'bg': 0x5 })
+  call Hi('PmenuKind',              { 'fg': 0xD })
+  call Hi('PmenuExtra',             { 'fg': 0x4 })
+  call Hi('PmenuMatch',             { 'fg': 0xA })
+  hi! link PmenuMatchSel              PmenuSel
+  hi! link CocMenuSel                 PmenuSel
+  hi! link CocPumSearch               PmenuMatch
+  hi! link CocPumDetail               PmenuExtra
+  hi! link CocPumShortcut             CocPumDetail
+  hi! link CocListSearch              PmenuMatch
+  hi! link BlinkCmpKind               PmenuKind
+  hi! link BlinkCmpLabelMatch         PmenuMatch
+  hi! link BlinkCmpLabelDeprecated    DiagnosticDeprecated
+  " Based on: <https://github.com/neoclide/coc.nvim/blob/a9ab3e4885bc8ed0aa38c5a8ee5953b0a7bc9bd3/plugin/coc.vim#L614-L649>
+  " List of all CompletionItemKinds: <https://github.com/Saghen/blink.cmp/blob/7856f05dd48ea7f2c68ad3cba40202f8a9369b9e/lua/blink/cmp/types.lua#L20-L45>
+  hi! link BlinkCmpKindText           Comment
+  hi! link BlinkCmpKindMethod         Function
+  hi! link BlinkCmpKindFunction       Function
+  hi! link BlinkCmpKindConstructor    Type
+  hi! link BlinkCmpKindField          Identifier
+  hi! link BlinkCmpKindVariable       Variable
+  hi! link BlinkCmpKindClass          Type
+  hi! link BlinkCmpKindInterface      Type
+  hi! link BlinkCmpKindModule         Identifier
+  hi! link BlinkCmpKindProperty       Identifier
+  hi! link BlinkCmpKindUnit           Constant
+  hi! link BlinkCmpKindValue          Constant
+  hi! link BlinkCmpKindEnum           Type
+  hi! link BlinkCmpKindKeyword        Keyword
+  hi! link BlinkCmpKindSnippet        Special
+  hi! link BlinkCmpKindColor          Special
+  hi! link BlinkCmpKindFile           String
+  hi! link BlinkCmpKindReference      Constant
+  hi! link BlinkCmpKindFolder         Directory
+  hi! link BlinkCmpKindEnumMember     Identifier
+  hi! link BlinkCmpKindConstant       Constant
+  hi! link BlinkCmpKindStruct         Type
+  hi! link BlinkCmpKindEvent          Function
+  hi! link BlinkCmpKindOperator       Operator
+  hi! link BlinkCmpKindTypeParameter  Identifier
 
-  hi! link ctrlsfMatch     Search
-  hi! link ctrlsfLnumMatch ctrlsfMatch
+  hi! link FzfLuaBorder         WinSeparator
+  hi! link FzfLuaSearch         Search
+  call Hi('FzfLuaPathColNr',  { 'fg': 0xE })
+  call Hi('FzfLuaPathLineNr', { 'fg': 0xB })
+  hi! link FzfLuaBufNr          Number
+  hi! link FzfLuaBufFlagCur     Conditional
+  hi! link FzfLuaBufFlagAlt     Special
+  hi! link FzfLuaBufId          Number
+  call Hi('FzfLuaTabTitle',   { 'fg': 0xD, 'attr': 'bold' })
+  call Hi('FzfLuaTabMarker',  { 'fg': 0x9, 'attr': 'bold' })
+  hi! link FzfLuaHeaderBind     SpecialKey
+  hi! link FzfLuaHeaderText     Function
+
+  hi! link SnacksNormal                   Normal
+  hi! link SnacksPicker                   Normal
+  hi! link SnacksInputNormal              NormalFloat
+  hi! link SnacksPickerInput              NormalFloat
+  hi! link SnacksPickerBorder             WinSeparator
+  call Hi('SnacksPickerListCursorLine', { 'bg': 0x1, 'attr': 'bold' })
+  hi! link SnacksPickerMatch              PmenuMatch
+  call Hi('SnacksPickerPrompt',         { 'fg': 0xD, 'attr': 'bold' })
+  call Hi('SnacksPickerInputSearch',    { 'fg': 0xE, 'attr': 'bold' })
+  hi! link SnacksPickerDir                Directory
+  hi! link SnacksPickerBufFlags           Special
+  call Hi('SnacksPickerRow',            { 'fg': 0xB })
+  call Hi('SnacksPickerCol',            { 'fg': 0xE })
+  hi! link SnacksPickerDiagnosticCode     PmenuExtra
+  hi! link SnacksPickerDiagnosticSource   PmenuExtra
 
   if $TERM ==# 'xterm-kitty'
     call Hi('SpellBad',   { 'attr': 'undercurl', 'sp': 0x8 })
@@ -471,9 +523,10 @@ function! s:setup() abort
     call Hi('SpellRare',  { 'fg': 'bg', 'bg': 0xE })
   endif
 
-  call Hi('Sneak',  { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
+  call Hi('Sneak', { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
   hi! link SneakScope Visual
   hi! link SneakLabel Sneak
+  call Hi('SneakCurrent', { 'fg': 'bg', 'bg': 0xE, 'attr': 'bold' })
 
   " checkhealth UI
   call Hi('healthSuccess', { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
@@ -481,11 +534,11 @@ function! s:setup() abort
   call Hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'attr': 'bold' })
 
   " Vimspector
-  call Hi('vimspectorBP',         { 'fg': 'bg', 'bg': 0x8, 'attr': 'bold' })
-  call Hi('vimspectorBPCond',     { 'fg': 'bg', 'bg': 0x9, 'attr': 'bold' })
-  call Hi('vimspectorBPLog',      { 'fg': 'bg', 'bg': 0xA, 'attr': 'bold' })
-  call Hi('vimspectorBPDisabled', { 'fg': 'bg', 'bg': 0xF, 'attr': 'bold' })
-  call Hi('vimspectorPC',         { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
+  call Hi('vimspectorBP',         { 'fg': 0x8 })
+  call Hi('vimspectorBPCond',     { 'fg': 0x9 })
+  call Hi('vimspectorBPLog',      { 'fg': 0xA })
+  call Hi('vimspectorBPDisabled', { 'fg': 0x4 })
+  call Hi('vimspectorPC',         { 'fg': 0xB })
   hi! link vimspectorPCBP          vimspectorPC
   hi! link vimspectorCurrentThread vimspectorPC
   hi! link vimspectorCurrentFrame  vimspectorPC
@@ -504,9 +557,16 @@ function! s:setup() abort
   hi! link CocSemTypeKeyword Keyword
   hi! link CocSemTypeModKeywordDocumentation Special
   hi! link CocSemTypeModifier StorageClass
-  hi! link CocSemModDeprecated Strikethrough
+  hi! link CocSemModDeprecated DiagnosticDeprecated
 
-  " hi! link CocSemTypeComment Comment  " Messes with TODOs in comments
+  if has('nvim')
+    " Semantic highlighting of comments messes with the my highlights of TODOs and such
+    call HiClear('CocSemTypeComment')
+  else
+    " Unfortunately, I cannot disable a single type of semantic token in regular Vim.
+    hi! link CocSemTypeComment Comment
+  endif
+
   hi! link CocSemTypeOperator Operator
   hi! link CocSemTypeString String
   hi! link CocSemTypeBoolean Boolean
@@ -548,20 +608,17 @@ function! s:setup() abort
 
   " Integrated terminal {{{
   if has('nvim')
-    if nocombine !=# 'NONE'
-      call Hi('TermCursor', { 'fg': 'bg', 'bg': 'fg', 'attr': nocombine })
-    else
-      call Hi('TermCursor', { 'attr': 'reverse' })
-    endif
+    " call Hi('TermCursor', { 'fg': 'bg', 'bg': 'fg' })
+    call Hi('TermCursor', { 'attr': 'reverse' })
     call HiClear('TermCursorNC')
     for color in range(16)
-      let g:terminal_color_{color} = colors[ansi_colors[color]].gui
+      let g:terminal_color_{color} = base16[ansi_colors[color]].gui
     endfor
   elseif has('terminal') && (has('gui_running') || &termguicolors)
     call Hi('Terminal', { 'fg': 'fg', 'bg': 'bg' })
     let g:terminal_ansi_colors = []
     for color in range(16)
-      call add(g:terminal_ansi_colors, colors[ansi_colors[color]].gui)
+      call add(g:terminal_ansi_colors, base16[ansi_colors[color]].gui)
     endfor
   endif
   " }}}
@@ -586,17 +643,23 @@ function! s:setup() abort
 
   " Diff {{{
   " diff mode
-  call Hi('DiffAdd',     { 'fg': 0xB, 'bg': 0x1 })
-  call Hi('DiffDelete',  { 'fg': 0x8, 'bg': 0x1 })
-  call Hi('DiffText',    { 'fg': 0xE, 'bg': 0x1 })
-  call Hi('DiffChange',  { 'fg': 0x3, 'bg': 0x1 })
+  for [diff_hl, color] in items({ 'Add': 0xB, 'Delete': 0x8, 'Text': 0xE, 'Change': 0x3 })
+    exe 'hi clear Diff'.diff_hl
+    exe 'hi Diff'.diff_hl
+    \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(base16[0x0], base16[color], 0.32) : 'NONE')
+    \ 'guibg=' s:mix_colors(base16[0x0], base16[color], diff_hl ==# 'Text' ? 0.16 : 0.08)
+    \ 'guisp=' base16[0x3].gui
+    \ 'ctermfg=' . base16[color].cterm
+    \ 'ctermbg=' . base16[0x1].cterm
+  endfor
   " diff file
   call Hi('diffAdded',   { 'fg': 0xB })
   call Hi('diffRemoved', { 'fg': 0x8 })
   call Hi('diffChanged', { 'fg': 0xE })
   hi! link diffNewFile     diffAdded
-  hi! link diffFile        diffRemoved
-  hi! link diffIndexLine   Bold
+  hi! link diffOldFile     diffRemoved
+  hi! link diffFile        Structure
+  hi! link diffIndexLine   Label
   hi! link diffLine        Title
   hi! link diffSubname     Include
   " }}}
@@ -629,19 +692,23 @@ function! s:setup() abort
   call Hi('gitcommitDiscardedFile', { 'fg': 0x8, 'attr': 'bold' })
   call Hi('gitcommitSelectedFile',  { 'fg': 0xB, 'attr': 'bold' })
 
-  hi! link GitGutterAdd          DiffAdd
-  hi! link GitGutterDelete       DiffDelete
-  hi! link GitGutterChange       DiffText
+  hi! link GitGutterAdd          diffAdded
+  hi! link GitGutterDelete       diffRemoved
+  hi! link GitGutterChange       diffChanged
   hi! link GitGutterChangeDelete GitGutterDelete
-  hi! link SignifySignAdd        DiffAdd
-  hi! link SignifySignChange     DiffText
-  hi! link SignifySignDelete     DiffDelete
-  hi! link GitSignsAdd           DiffAdd
-  hi! link GitSignsDelete        DiffDelete
+  hi! link SignifySignAdd        diffAdded
+  hi! link SignifySignChange     diffChanged
+  hi! link SignifySignDelete     diffRemoved
+  hi! link GitSignsAdd           diffAdded
+  hi! link GitSignsDelete        diffRemoved
   hi! link GitSignsTopDelete     GitSignsDelete
-  hi! link GitSignsChange        DiffText
+  hi! link GitSignsChange        diffChanged
   hi! link GitSignsChangeDelete  GitSignsChange
   hi! link GitSignsUntracked     GitSignsAdd
+
+  call Hi('fugitiveStagedHeading',   { 'fg': 0xB, 'attr': 'bold' })
+  call Hi('fugitiveUnstagedHeading', { 'fg': 0xA, 'attr': 'bold' })
+  hi! link fugitiveUntrackedHeading fugitiveUnstagedHeading
   " }}}
 
   " Vim scripts {{{
@@ -659,6 +726,7 @@ function! s:setup() abort
   hi! link vimSynKeyRegion  vimString
   hi! link vimSyncLines     vimSynOption
   hi! link vimCommentString vimComment
+  hi! link vimGroupName     vimGroup
   " }}}
 
   " C {{{
@@ -743,6 +811,8 @@ function! s:setup() abort
   hi! link jsxComponentName    Type
   hi! link jsxTagName          xmlTagName
   hi! link jsxAttrib           xmlAttrib
+  hi! link jsFuncArgs          Variable
+  hi! link jsVariableDef       Variable
   " }}}
 
   " JSON {{{

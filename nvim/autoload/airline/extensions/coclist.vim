@@ -67,7 +67,6 @@ function! s:get_section(key) abort
   return '%(' . spc . text . spc . '%)'
 endfunction
 
-" TODO: Is recoloring of the section A based on `b:list_status.mode` possible?
 function! airline#extensions#coclist#part_mode() abort
   if get(w:, 'airline_active', 1)
     " <https://github.com/vim-airline/vim-airline/blob/49cdcb7b3ea76ee19c737885c0ab19e64e564169/autoload/airline/parts.vim#L55-L57>

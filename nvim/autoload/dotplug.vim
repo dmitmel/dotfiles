@@ -26,7 +26,7 @@ function! dotplug#(repo, ...) abort
 endfunction
 
 function! dotplug#define_plug_here() abort
-  return 'command! -nargs=+ -bar Plug call dotplug#(<args>)'
+  return 'command! -nargs=+ Plug call dotplug#(<args>)'
 endfunction
 
 function! s:loader_mapping(lhs, plugin) abort
@@ -55,11 +55,11 @@ let g:dotplug#repo = 'folke/lazy.nvim'
 let g:dotplug#plugins_dir = get(g:, 'dotplug#plugins_dir', stdpath('data') . '/lazy')
 
 function! dotplug#has(name) abort
-  return luaeval('dotplug.find_plugin(_A) ~= nil', a:name)
+  return v:lua.require'dotplug'.has(a:name)
 endfunction
 
 function! dotplug#plugin_dir(name) abort
-  return luaeval('dotplug.find_plugin(_A).dir', a:name)
+  return v:lua.require'dotplug'.plugin_dir(a:name)
 endfunction
 
 function! dotplug#auto_install() abort
@@ -69,32 +69,30 @@ function! dotplug#auto_install() abort
     execute '!git clone --filter=blob:none --branch=stable -c advice.detachedHead=false --progress'
       \ shellescape(lazyrepo, 1) shellescape(lazypath, 1)
   endif
-  execute 'set runtimepath^='.lazypath
+  call luaeval('vim.opt.runtimepath:prepend(_A)', lazypath)
 endfunction
 
 function! dotplug#begin() abort
-  lua _G.LazyNvim = require('lazy')
-  lua _G.dotplug = require('dotplug')
   exe dotplug#define_plug_here()
 endfunction
 
 function! s:dotplug_impl(repo, spec) abort
-  call v:lua.dotplug.vimplug(a:repo, a:spec)
+  call v:lua.require'dotplug'.vimplug(a:repo, a:spec)
 endfunction
 
 function! dotplug#load(...) abort
-  call v:lua.dotplug.load(a:000)
+  call v:lua.require'dotplug'.load(a:000)
 endfunction
 
 function! dotplug#end() abort
-  call v:lua.dotplug.end_setup()
+  call v:lua.require'dotplug'.end_setup()
 endfunction
 
 function! dotplug#check_sync() abort
 endfunction
 
 function! dotplug#complete_plugin_names(arg_lead, cmd_line, cursor_pos) abort
-  return v:lua.dotplug.plugin_names_completion()
+  return v:lua.require'dotplug'.plugin_names_completion()
 endfunction
 
 
@@ -132,8 +130,8 @@ endfunction
 function! dotplug#begin() abort
   let g:plug_url_format = g:dotplug#url_format
   call plug#begin(g:dotplug#plugins_dir)
-  silent! delcommand PlugUpgrade
-  exe dotplug#define_plug_here()
+  delcommand PlugUpgrade
+  delcommand Plug
 endfunction
 
 function! s:dotplug_impl(repo, spec) abort
@@ -141,6 +139,9 @@ function! s:dotplug_impl(repo, spec) abort
     " If `{ 'on': [] }` is passed to vim-plug, then the plugin will be
     " installed, but won't get loaded until the first invocation of `plug#load`
     let a:spec.on = get(a:spec, 'on', [])
+  endif
+  if has_key(a:spec, 'version') && !has_key(a:spec, 'tag')
+    let a:spec.tag = a:spec.version
   endif
   if get(a:spec, 'if', 1)
     call plug#(a:repo, a:spec)
@@ -191,15 +192,10 @@ function! dotplug#check_sync() abort
     let need_clean = {}
   endif
 
-  if !empty(need_install) || !empty(need_clean)
-    enew
-    only
-    call append(0, repeat(['PLEASE, RESTART THE EDITOR ONCE PLUGIN INSTALLATION FINISHES!!!'], 5))
-    if !empty(need_install)
-      PlugInstall --sync
-    elseif !empty(need_clean)
-      PlugClean
-    endif
+  if !empty(need_install)
+    PlugInstall --sync
+  elseif !empty(need_clean)
+    PlugClean
   endif
 endfunction
 
@@ -212,5 +208,5 @@ endfunction
 
 
 else
-  throw "Invalid plugin manager choice:" string(dotplug#implementation)
-end   " }}}
+  echoerr "Invalid plugin manager choice:" string(dotplug#implementation)
+endif   " }}}

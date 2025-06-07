@@ -14,21 +14,27 @@ if !exists('g:dotfiles_boot_reltime')
   let g:dotfiles_boot_localtime = localtime()
 endif
 
-if has('nvim')
-  " Get rid of all default mappings defined here:
-  " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/_defaults.lua>
-  mapclear
-endif
-
 let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
 let g:dotfiles_dir = expand('<sfile>:p:h:h')
 
+" 0 - no IDE features
+" 1 - use coc.nvim as the IDE backend
+" 2 - use the Neovim v0.5+ LSP client (needs at least Neovim v0.11 though)
 let g:vim_ide = get(g:, 'vim_ide', 0)
 
 " Make sure everybody knows that comma is the leader!
 let g:mapleader = ','
 " Use Nvim's new filetype detection system if it is available.
 let g:do_filetype_lua = has('nvim-0.7.0')
+
+" Modern versions of Vim and Neovim ship with built-in EditorConfig integration.
+" <https://github.com/neovim/neovim/issues/3988>
+" <https://github.com/vim/vim/issues/2286>
+if has('nvim-0.9')
+  let g:editorconfig = v:true
+elseif !has('nvim')
+  packadd editorconfig
+endif
 
 function! s:remove(list, element) abort
   let i = index(a:list, a:element)
@@ -46,43 +52,20 @@ function! s:configure_runtimepath() abort
   let &runtimepath = join(rtp, ',')
 endfunction
 
-function! s:start_self_debug_server(port) abort
-  let osv_dir = g:dotplug#plugins_dir . '/one-small-step-for-vimkind'
-  if !isdirectory(osv_dir)
-    return
-  endif
-  let rtp = &runtimepath
-  try
-    lua <<EOF
-    local osv_dir = vim.fn.eval('l:osv_dir')
-    vim.opt.runtimepath:prepend(osv_dir)
-    local osv = require('osv')
-    osv.launch({ blocking = true, host = '127.0.0.1', port = vim.fn.eval('a:port') })
-EOF
-  catch
-    call nvim_echo([ ['Error in ' . v:throwpoint . "\n" . v:exception, 'ErrorMsg'] ], v:true, {})
-  finally
-    let &runtimepath = rtp
-  endtry
-endfunction
-
 call s:configure_runtimepath()
 
-if has('nvim') && get(g:, 'dotfiles_debug_self_on_port', 0)
-  call s:start_self_debug_server(g:dotfiles_debug_self_on_port)
+let s:osv_port = str2nr($NVIM_DEBUG_LUA, 10)
+let s:osv_dir = g:dotplug#plugins_dir . '/one-small-step-for-vimkind'
+if s:osv_port != 0 && has('nvim') && isdirectory(s:osv_dir)
+  call luaeval('vim.opt.runtimepath:prepend(_A)', s:osv_dir)
+  lua require('osv').launch({ blocking = true, host = '127.0.0.1', port = vim.fn.eval('s:osv_port') })
+  " This is Vimscript, so execution will continue even if there was an error
+  " thrown on the previous line, so no try-finally block is necessary.
+  call luaeval('vim.opt.runtimepath:remove(_A)', s:osv_dir)
 endif
 
-if empty($_COLORSCHEME_TERMINAL) && has('termguicolors')
+if has('termguicolors')
   set termguicolors
-endif
-
-if has('nvim-0.2.1') || has('lua')
-  lua _G.dotfiles = _G.dotfiles or {}
-  if has('nvim')
-    lua dotfiles.is_nvim = true
-  else
-    lua dotfiles.is_nvim = false
-  endif
 endif
 
 " I want to load the colorscheme as early as possible, so that if any part of
@@ -91,11 +74,15 @@ colorscheme dotfiles
 
 if has('nvim-0.5.0')
   " Preload the Lua utilities.
-  lua require('dotfiles')
+  lua _G.dotfiles = require('dotfiles')
+  lua _G.dotutils = require('dotfiles.utils')
 endif
 
 call dotplug#auto_install()
 call dotplug#begin()
+if has('nvim-0.5.0')
+  lua _G.dotplug = require('dotplug')
+endif
 
 runtime! dotfiles/plugins-list.vim
 if has('nvim-0.5.0')
@@ -103,16 +90,12 @@ if has('nvim-0.5.0')
 endif
 
 call dotplug#end()
-call s:configure_runtimepath()
+call s:configure_runtimepath()  " Fixup the runtimepath after lazy.nvim.
 
 augroup dotfiles_init
   autocmd!
   autocmd VimEnter * call dotplug#check_sync()
 augroup END
-
-if has('nvim-0.5.0')
-  lua require('dotfiles.rplugin_bridge')
-endif
 
 filetype plugin indent on
 syntax enable

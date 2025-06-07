@@ -1,32 +1,41 @@
-" order of EOL detection
+" Order of EOL detection.
 set fileformats=unix,dos,mac
 
 set wildignore+=.git,.svn,.hg,.DS_Store,*~
 
-" arguably one of the most useful mappings
-nnoremap <silent><expr> <CR> empty(&buftype) ? ":call \<SID>write_this_and_write_all()\<CR>" : "\<CR>"
-function s:write_this_and_write_all() abort
-  " The `abort` in this function is necessary because it will prevent a second
-  " attempt of writing from :wall from occuring had the first :write failed.
-  try
-    write
-    wall
-  catch /^Vim(\%(write\|wall\)):/
-    echohl ErrorMsg
-    echomsg v:exception
-    echohl None
-  endtry
-endfunction
+" Definitely one of my most useful mappings. Writes the current buffer and all
+" other modified buffers to the disk. With regards to the implementation, I
+" shold point out three major things:
+"
+" 1. In some buftypes <CR> has different Normal-mode behavior, for instance in
+"    the quickfix list it opens the selected entry -- this is accounted for by
+"    the <expr> condition. Note that this is not of concern if a plugin defines
+"    a buffer-local mapping on <CR> because that will simply shadow and override
+"    my global mapping, this matters only where the different behavior is a
+"    implemented in Vim itself.
+"
+" 2. The useful payload after the buftype check is a bit convoluted, but that is
+"    just a hack to ensure that |:wall| is not executed if |:write| fails or
+"    gets cancelled (see |'confirm'|). This can't be done within a function or a
+"    try-endtry block because then the stack trace is always displayed (I want a
+"    one-line error message as if |:write| was typed in by hand).
+"
+" 3. The |:write| before |:wall| is executed so that the current buffer is
+"    ALWAYS written, regardless of whether it was modified or not. This is
+"    useful to kick off a build or to run on-save actions such as code
+"    formatting.
+"
+nnoremap <silent><expr> <CR> (!empty(&buftype) && &buftype !=# 'acwrite') ? "\<CR>" :
+\ ":\<C-u>let v:errmsg=''<bar>write<bar>if empty(v:errmsg) && !&modified<bar>wall<bar>endif\<CR>"
 
-" Automatically read the file if it has been changed by another process and on
-" :checktime
+" Automatically reload the file if it was changed outside of Vim.
 set autoread
 
 " Persistent undo history
 set undofile
 augroup dotfiles_undo_persistance
   autocmd!
-  autocmd BufWritePre * if &l:undofile !=# &g:undofile | setlocal undofile< | endif
+  autocmd BufWritePre * if &l:undofile != &g:undofile | setlocal undofile< | endif
   autocmd BufWritePre /tmp/*,/var/tmp/*,/private/tmp/* setlocal noundofile
 augroup END
 
@@ -244,25 +253,30 @@ set nofixendofline
     call setpos('.', pos)
   endfunction
 
-  let g:format_on_save_ignore = {}
+  let g:format_on_save = {}
   function! Format() abort
-    let file = expand('<afile>')
-    if get(g:format_on_save_ignore, &filetype, 0) || file =~# s:url_regex
-      return
-    endif
-    if exists(':LspFormatSync')
-      LspFormatSync
-    elseif exists(':CocFormat')
-      CocFormat
+    if expand('<afile>') !~# s:url_regex && !&binary && &modifiable && &buftype !=# 'nofile' &&
+    \  get(g:format_on_save, &filetype, 1) && get(b:, 'format_on_save', 1) &&
+    \  !get(s:, 'noformat', 0)
+      call FixWhitespace()
+      if exists(':LspEslintFixAll')
+        LspEslintFixAll!
+      endif
+      if exists(':LspFormat')
+        LspFormat!
+      elseif exists(':CocFormat')
+        CocFormat
+      endif
     endif
   endfunction
 
-  command -bar Format        call Format()
-  command -bar FormatIgnore  let g:format_on_save_ignore[&filetype] = 1
+  command -bar Format call Format()
+  command -bar FormatIgnore let g:format_on_save[&filetype] = 0
+  command -nargs=* -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
+  execute dotutils#cmd_alias('nof', 'NoFormat')
 
   augroup dotfiles_on_save
     autocmd!
-    autocmd BufWritePre * call FixWhitespace()
     autocmd BufWritePre * call Format()
     autocmd BufWritePre * call CreateParentDir()
   augroup END
@@ -271,14 +285,11 @@ set nofixendofline
 
 augroup dotfiles_zip
   autocmd!
-  " GeoGebra files
-  autocmd BufReadCmd *.ggb    call zip#Browse(expand('<amatch>'))
-  " Packed Crosscode mods
-  autocmd BufReadCmd *.ccmod  call zip#Browse(expand('<amatch>'))
-  " Firefox extensions
-  autocmd BufReadCmd *.xpi    call zip#Browse(expand('<amatch>'))
-  " Python wheels
-  autocmd BufReadCmd *.whl    call zip#Browse(expand('<amatch>'))
+  " ggb - GeoGebra files
+  " ccmod - packed Crosscode mods
+  " xpi - Firefox extensions
+  " whl - Python wheels
+  autocmd BufReadCmd *.ggb,*.ccmod,*.xpi,*.whl call zip#Browse(expand('<amatch>'))
 augroup END
 
 

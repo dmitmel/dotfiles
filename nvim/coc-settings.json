@@ -6,7 +6,7 @@
   "diagnostic.enableMessage": "jump",
   "diagnostic.errorSign": "XX",
   "diagnostic.warningSign": "!!",
-  "diagnostic.infoSign": ">>",
+  "diagnostic.infoSign": "##",
   "diagnostic.hintSign": ">>",
   // Note that the real priorities range from signPriority to signPriority+4
   // <https://github.com/neoclide/coc.nvim/blob/70f11e074f45bc1bed1c17e3b0c2cf687f5582b6/src/diagnostic/buffer.ts#L257>
@@ -28,9 +28,14 @@
   "tsserver.useLocalTsdk": true,
   "tsserver.useSyntaxServer": "never",
   "tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.suggest.completeFunctionCalls": true,
+  "javascript.suggest.completeFunctionCalls": true,
 
   "eslint.autoFixOnSave": true,
   "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
 
   // See <https://github.com/dmitmel/eslint-config-dmitmel/blob/master/prettier.config.js>
   "prettier.printWidth": 100,
@@ -53,6 +58,12 @@
   "emmet.includeLanguages": { "jinja": "html" },
   "emmet.excludeLanguages": ["markdown", "javascriptreact", "typescriptreact"],
 
+  "css.validate": true,
+  "scss.validate": true,
+  "less.validate": true,
+
+  "pyright.completion.snippetSupport": true,
+
   "python.formatting.provider": "ruff",
   "python.linting.ruffEnabled": true,
 
@@ -61,16 +72,19 @@
   "python.analysis.diagnosticMode": "workspace",
   // "python.analysis.typeCheckingMode": "strict",
 
+  // <https://rust-analyzer.github.io/book/configuration>
   "rust-analyzer.diagnostics.enable": false,
+  "rust-analyzer.completion.callable.snippets": "add_parentheses",
   "rust-analyzer.completion.autoimport.enable": false,
 
+  "json.validate.enable": true,
   "json.schemas": [
     {
-      "fileMatch": ["*.json.patch"],
+      "fileMatch": ["**/assets/**/*.json.patch"],
       "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
     },
     {
-      "fileMatch": ["*/snippets/*.json"],
+      "fileMatch": ["**/snippets/*.json"],
       "url": "https://raw.githubusercontent.com/Yash-Singh1/vscode-snippets-json-schema/main/schema.json"
     },
     {

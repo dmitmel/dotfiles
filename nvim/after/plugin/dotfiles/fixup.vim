@@ -25,22 +25,10 @@ augroup dotfiles_session
   autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
 augroup END
 
-" This is super cringe, I know.
-let [s:eunuch_script] = filter(dotutils#list_loaded_scripts(), 'v:val.name =~# "/plugin/eunuch\.vim$"')
-if exists('s:eunuch_script')  " If an exception was thrown on the previous line, the variable will be undefined
-  let s:Delete        = function('<SNR>' . s:eunuch_script.sid . '_Delete')
-  let s:DeleteError   = function('<SNR>' . s:eunuch_script.sid . '_DeleteError')
-  " Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead of |:bdelete|
-  " <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L109-L119>
-  command! -bar -bang Delete
-  \ let s:delete_file = expand('%:p')
-  \|execute 'Bdelete<bang>'
-  \|if !bufloaded(s:delete_file) && s:Delete(s:delete_file)
-  \|  echoerr s:DeleteError(s:delete_file)
-  \|endif
-  \|unlet! s:delete_file
-endif
-
+" Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead
+" of |:bdelete|. The code in |eunuch-:Unlink| is close enough to parasitise on.
+" <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L109-L119>
+command! -bar -bang Delete try | Unlink<bang> | Bdelete<bang> | endtry
 execute dotutils#cmd_alias('Del', 'Delete')
 
 " This command must be added in `after/plugin/` because Vim 9+ and Nvim 0.11+

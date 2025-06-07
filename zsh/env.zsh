@@ -38,7 +38,7 @@ export HOMEBREW_NO_INSTALL_UPGRADE=1
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 
 # https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515
-export FZF_DEFAULT_OPTS="--color=16 --height=40% --reverse"
+export FZF_DEFAULT_OPTS="--color=16 --height=40% --reverse --bind=change:first"
 
 # <https://github.com/sharkdp/bat#8-bit-themes>
 export BAT_THEME="base16-256"

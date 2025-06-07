@@ -9,7 +9,7 @@ command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
 if dotplug#has('lazy.nvim')
   nnoremap <leader>l :<C-u>Lazy<CR>
 else
-  nnoremap <leader>l :<C-u>PlugDiff<CR>
+  nnoremap <leader>l :<C-u>PlugStatus<CR>
 endif
 
 set wildmenu   " Enable completion in the command-line mode.
@@ -91,7 +91,7 @@ set mouse=a
 set mousemodel=extend
 
 " Crank up the command-line history size to the maximum!
-let &history = max([&history, 10000])
+set history=10000
 
 
 " Buffers {{{
@@ -100,6 +100,19 @@ let &history = max([&history, 10000])
 
   " open diffs in vertical splits by default
   set diffopt+=vertical
+  " The character used for filling deleted lines in diffs, will create a
+  " crossed-out pattern. Idea taken from <https://github.com/sindrets/diffview.nvim#tips-and-faq>.
+  set fillchars+=diff:╱
+  if has('nvim')
+    " This is a Neovim-only feature -- `msgsep` defines the border above the
+    " output of shell commands issued with `:!`.
+    set fillchars+=msgsep:▔
+  else
+    " Mirror the slick UI of Neovim in plain Vim.
+    set fillchars+=vert:│
+    set fillchars+=fold:·
+    set fillchars+=foldsep:│
+  endif
 
   " Don't print filename and cursor position when switching between files.
   set shortmess+=F
@@ -117,7 +130,8 @@ let &history = max([&history, 10000])
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
   function! s:close_buffer() abort
-    if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' || &previewwindow
+    if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' ||
+    \  &previewwindow || &filetype ==# 'fugitive'
       close
     else
       Bdelete
@@ -154,18 +168,21 @@ let &history = max([&history, 10000])
   nnoremap <C-\> <C-w>p
   xnoremap <C-\> <C-w>p
 
-  " Don't automatically make all windows the same size. Breaks the `:sbuffer`
-  " command used for the preview window in CocList. TODO: investigate.
-  " set noequalalways
-
-  nnoremap <silent> <A-BS> :<C-u>quit<CR>
+  nnoremap <silent> <M-Backspace> :<C-u>quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
-  nnoremap <leader>v <C-W>v<C-O>
+  nnoremap <leader>v :<C-u>vsplit<bar>normal!<C-o><CR>
 
-  " Open just the current buffer in a new tab.
+  " Make a split on the Z-axis or, more simply, open just the current buffer in a new tab.
   nnoremap <leader>t :<C-u>tab split<CR>
   nnoremap <leader>T :<C-u>tabclose<CR>
+
+  if exists('*nvim_win_get_config')
+    " Close floating windows with <Esc> in Neovim. This mapping was originally
+    " intended for LSP floats (check the presence of `w:lsp_floating_bufnr` to
+    " detect those), but I think that generalizing it might be useful.
+    nnoremap <expr> <Esc> !empty(nvim_win_get_config(0).relative) ? "\<C-w>c" : "\<Esc>"
+  endif
 
 " }}}
 
@@ -175,33 +192,23 @@ let &history = max([&history, 10000])
   " Always show the statusline/tabline (even if there is only one window/tab).
   set laststatus=2 showtabline=2
 
-  function! s:on_airline_toggled(is_on)
-    let &g:showmode = !a:is_on
-    let &g:ruler = !a:is_on
-  endfunction
-  augroup dotfiles_airline
-    autocmd!
-    autocmd User AirlineToggledOff call s:on_airline_toggled(0)
-    autocmd User AirlineToggledOn  call s:on_airline_toggled(1)
-  augroup END
-  call s:on_airline_toggled(0)
+  let g:airline_symbols = extend(get(g:, 'airline_symbols', {}), {
+  \ 'readonly': 'RO',
+  \ 'whitespace': '',
+  \ 'colnr': ' :',
+  \ 'linenr': ' :',
+  \ 'maxlinenr': '',
+  \ 'branch': '',
+  \ 'notexists': ' [?]',
+  \ 'executable': '',
+  \ })
 
-  let g:airline_theme = 'dotfiles'
-  let g:airline_symbols = {
-    \ 'readonly': 'RO',
-    \ 'whitespace': '',
-    \ 'colnr': ' :',
-    \ 'linenr': ' :',
-    \ 'maxlinenr': ' ',
-    \ 'branch': '',
-    \ 'notexists': ' [?]',
-    \ }
-  let g:airline_mode_map = {
+  let g:airline_mode_map = extend(get(g:, 'airline_mode_map', {}), {
   \ 'ic': 'INSERT COMPL',
   \ 'ix': 'INSERT COMPL',
   \ 'Rc': 'REPLACE COMP',
   \ 'Rx': 'REPLACE COMP',
-  \ }
+  \ })
 
   " <https://github.com/vim-airline/vim-airline/issues/1779>
   let g:airline_highlighting_cache = 1
@@ -219,29 +226,16 @@ let &history = max([&history, 10000])
   " so I decided to keep the optimization because I don't use those maps anyway.
   let g:airline#extensions#tabline#buffer_idx_mode = 0
 
-  let g:airline_extensions = [
-    \ 'quickfix',
-    \ 'fzf',
-    \ 'term',
-    \ 'whitespace',
-    \ 'wordcount',
-    \ 'tabline',
-    \ 'hunks',
-    \ 'dotfiles_tweaks',
-    \ 'filesize',
-    \ ]
-  if dotplug#has('vim-fugitive')
-    call extend(g:airline_extensions, ['branch', 'fugitiveline'])
-  endif
-  if dotplug#has('coc.nvim')
-    call extend(g:airline_extensions, ['coc', 'coclist'])
-  endif
-  if dotplug#has('vim-obsession')
-    call extend(g:airline_extensions, ['obsession'])
-  endif
-  if get(g:, 'dotfiles_use_nvimlsp', 0)
-    call extend(g:airline_extensions, ['dotfiles_nvimlsp'])
-  endif
+  " NOTE: `fzf` must come BEFORE `term`!
+  let s:ext = ['quickfix', 'fzf', 'term', 'whitespace', 'wordcount', 'filesize', 'tabline']
+  let s:has_hunks_provider = dotplug#has('vim-gitgutter') || dotplug#has('vim-signify') || dotplug#has('gitsigns.nvim')
+  if s:has_hunks_provider              | call add(s:ext, 'hunks')                       | endif
+  if dotplug#has('vim-fugitive')       | call extend(s:ext, ['branch', 'fugitiveline']) | endif
+  if dotplug#has('coc.nvim')           | call extend(s:ext, ['coc', 'coclist'])         | endif
+  if has('nvim-0.5') && g:vim_ide == 2 | call add(s:ext, 'nvimlsp')                     | endif
+  if dotplug#has('snacks.nvim')        | call add(s:ext, 'snacks_picker')               | endif
+  if dotplug#has('fzf-lua')            | call insert(s:ext, 'fzf_lua')                  | endif
+  let g:airline_extensions = s:ext
 
   let g:airline_detect_iminsert = 1
   let g:airline#extensions#tabline#left_sep = ' '
@@ -250,15 +244,28 @@ let &history = max([&history, 10000])
   " be done because airline by default hides all terminal buffers.
   let g:airline#extensions#tabline#ignore_bufadd_pat = '\_$.'
 
+  augroup dotfiles_airline
+    autocmd!
+    " `showmode` shows the current mode in the cmdline area, `ruler` shows a
+    " very primitive statusline with the current column and line number.
+    autocmd User AirlineToggledOff set   showmode   ruler
+    autocmd User AirlineToggledOn  set noshowmode noruler
+  augroup END
+
 " }}}
 
 
 " FZF {{{
-  let g:fzf_command_prefix = ''
-
-  command! -bar -bang Manpages call dotfiles#fzf#manpage_search(<bang>0)
-  command! -bar -bang CListFuzzy call dotfiles#fzf#qflist_fuzzy(0, <bang>0)
-  command! -bar -bang LListFuzzy call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
+  if dotplug#has('fzf-lua')
+    command! -bar Manpages    FzfLua manpages
+    command! -bar Registers   FzfLua registers
+    command! -bar Cfzf cclose|FzfLua quickfix
+    command! -bar Lfzf lclose|FzfLua loclist
+  else
+    command! -bar -bang Manpages call dotfiles#fzf#manpage_search(<bang>0)
+    command! -bar -bang Cfzf     call dotfiles#fzf#qflist_fuzzy(0, <bang>0)
+    command! -bar -bang Lfzf     call dotfiles#fzf#qflist_fuzzy(1, <bang>0)
+  endif
 
   nnoremap <silent> <F1>      :<C-u>Helptags<CR>
   nnoremap <silent> <leader>f :<C-u>Files<CR>
@@ -266,10 +273,42 @@ let &history = max([&history, 10000])
   nnoremap <silent> <leader>m :<C-u>Manpages<CR>
   nnoremap <silent> <C-/>     :<C-u>Lines<CR>
 
-  " <https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515>
-  let $FZF_DEFAULT_OPTS = '--color=16'
-  let g:fzf_layout = { 'down': '~40%' }
-  let g:fzf_preview_window = ['right:noborder', 'ctrl-/']
+  let $FZF_DEFAULT_OPTS = ''
+    " Never show the separator between the prompt and the list
+  let $FZF_DEFAULT_OPTS .= ' --no-separator'
+  " Display the available/filtered/selected items numbers to the right of the prompt
+  let $FZF_DEFAULT_OPTS .= ' --info=inline-right'
+  " Set the scrollbar character.
+  let $FZF_DEFAULT_OPTS .= ' --scrollbar=┃█'
+  " The character used for gaps between multiline items. IMO the default '┈' is too distracting.
+  let $FZF_DEFAULT_OPTS .= ' --gap-line=-'
+  " Jump to the first entry whenever the query changes, taken from fzf(1).
+  let $FZF_DEFAULT_OPTS .= ' --bind=change:first'
+  " Highlight the current line similarly to how Vim highlights CursorLine.
+  let $FZF_DEFAULT_OPTS .= ' --highlight-line'
+
+  let g:fzf_layout = { 'down': '~40%', 'tmux': '60%,80%' }
+  let g:fzf_vim = { 'preview_window': ['right:60%:border-left', 'ctrl-/'] }
+
+  let g:fzf_colors = {
+  \ 'fg':        ['fg', 'Normal'],
+  \ 'bg':        ['bg', 'Normal'],
+  \ 'hl':        ['fg', 'String'],
+  \ 'fg+':       ['fg', 'CursorLine', 'Label'],
+  \ 'bg+':       ['bg', 'CursorLine'],
+  \ 'hl+':       ['fg', 'String'],
+  \ 'gutter':    ['bg', 'LineNr', 'Normal'],
+  \ 'pointer':   ['fg', 'Identifier'],
+  \ 'marker':    ['fg', 'Keyword'],
+  \ 'border':    ['fg', 'WinSeparator'],
+  \ 'separator': ['fg', 'WinSeparator'],
+  \ 'scrollbar': ['fg', 'WinSeparator'],
+  \ 'header':    ['fg', 'Normal'],
+  \ 'info':      ['fg', 'PmenuExtra'],
+  \ 'spinner':   ['fg', 'String'],
+  \ 'query':     ['fg', 'Normal'],
+  \ 'prompt':    ['fg', 'Title'],
+  \ }
 
   function! s:FilesPlugins(bang, arg) abort
     let fzf_cmd = 'Files' . (a:bang ? '!' : '')
@@ -293,18 +332,79 @@ let &history = max([&history, 10000])
 " }}}
 
 
+if dotplug#has('snacks.nvim') " {{{
+  function! SnacksPick(...) abort
+    call luaeval('dotfiles.snacks_picker(_A, { '.join(a:000[1:], ' ').' })', get(a:000, 0, 'pickers'))
+  endfunction
+
+  function! SnacksPickerComplete(arg_lead, cmd_line, cursor_pos) abort
+    return join(luaeval('vim.tbl_keys(Snacks.picker.sources)'), "\n")
+  endfunction
+
+  command! -nargs=* -complete=custom,SnacksPickerComplete SnacksPick call SnacksPick(<f-args>)
+
+  if !dotplug#has('fzf-lua')
+    " Command definitions in fzf.vim:
+    " <https://github.com/junegunn/fzf.vim/blob/dc71692255b62d1f67dc55c8e51ab1aa467b1d46/plugin/fzf.vim#L47-L69>
+    command! -bar Helptags SnacksPick help
+    command! -bar Manpages SnacksPick man
+    command! -bar Lines    SnacksPick grep_buffers
+    command! -bar BLines   SnacksPick lines
+    command! -bar Buffers  SnacksPick buffers
+    command! -bar Colors   SnacksPick colorschemes
+    command! -bar Marks    SnacksPick marks
+    command! -bar Commands SnacksPick commands
+    command! -bar Maps     SnacksPick keymaps
+
+    command! -bar Cfzf cclose|SnacksPick qflist
+    command! -bar Lfzf lclose|SnacksPick loclist
+
+    command! -nargs=* Grep call v:lua.dotfiles.snacks_picker('grep', { 'search': <q-args> })
+
+    " Based on:
+    " <https://github.com/junegunn/fzf.vim/blob/dc71692255b62d1f67dc55c8e51ab1aa467b1d46/autoload/fzf/vim.vim#L414-L423>
+    " <https://github.com/junegunn/fzf.vim/blob/dc71692255b62d1f67dc55c8e51ab1aa467b1d46/autoload/fzf/vim.vim#L403-L410>
+    function! s:pick_files(arg) abort
+      let slash = (has('win32') && !&shellslash) ? '\' : '/'
+      if empty(a:arg)
+        let dir = getcwd()
+      elseif isdirectory(a:arg)
+        let dir = a:arg
+      else
+        throw 'not a directory: ' . a:arg
+      endif
+      let short = pathshorten(fnamemodify(dir, ':~:.'))
+      let short = empty(short) ? '.' : short
+      let short .= dotutils#ends_with(short, slash) ? '' : slash
+      call v:lua.dotfiles.snacks_picker('files', { 'dirs': [dir], 'prompt': short })
+    endfunction
+    command! -nargs=? -complete=dir Files call s:pick_files(<q-args>)
+  endif
+endif " }}}
+
+
 " quickfix/location list {{{
+
+  " vim-unimpaired provides these mappings, but they do not wrap around the
+  " start/end of the lists.
   nmap [q <Plug>(qf_qf_previous)
   nmap ]q <Plug>(qf_qf_next)
   nmap [l <Plug>(qf_loc_previous)
   nmap ]l <Plug>(qf_loc_next)
-  nmap Q <Plug>(qf_qf_toggle)
-  " Jump to the currently selected error in the qflist again
+  " Go to the quickfix list, or close the current list.
+  nmap <expr> Q     get(b:, 'qf_isLoc', 0) ? "\<Plug>(qf_loc_toggle)" : "\<Plug>(qf_qf_toggle)"
+  " Go to the location list, or close the current list.
+  nmap <expr> <C-q> get(b:, 'qf_isLoc', 1) ? "\<Plug>(qf_loc_toggle)" : "\<Plug>(qf_qf_toggle)"
+  " Jump again to the exact location of the currently selected error.
   nnoremap <leader>q :<C-u>cc<CR>zv
+  " Pick and jump using fzf!
+  nnoremap <expr> <leader>z ":\<C-u>" . (get(b:, 'qf_isLoc', 0) ? 'L' : 'C') . "fzf\<CR>"
+
+  " Enable nice mappings, like `o` to open and come back, `p` to preview and so on and so on.
   let g:qf_mapping_ack_style = 1
-  " Pick and jump using fzf
-  nnoremap <leader>z :<C-u>CListFuzzy<CR>
+  " Filter entries based on both the file path and the text (see |:Keep| and |:Reject|).
   let g:qf_bufname_or_text = 2
+
 " }}}
 
 

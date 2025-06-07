@@ -1,12 +1,28 @@
 -- See the complementary code in ../autoload/dotplug.vim
 
-local M = require('dotfiles.autoload')('dotplug', {}, _G.dotplug)
-local lazy = require('lazy')
-local utils = require('dotfiles.utils')
-
+local M = require('dotfiles.autoload')('dotplug', _G.dotplug)
 _G.dotplug = M
 
-M.DEBUG_LOAD_ORDER = false
+if vim.g['dotplug#implementation'] ~= 'lazy.nvim' then
+  -- Divert the public API to the Vimscript code
+
+  ---@type fun(name: string): boolean
+  function M.has(name) return vim.call('dotplug#has', name) end
+
+  ---@type fun(name: string): string
+  function M.plugin_dir(name) return vim.call('dotplug#plugin_dir', name) end
+
+  ---@type fun(names: string[])
+  function M.load(names) return vim.fn['dotplug#load'](unpack(names)) end
+
+  ---@type fun(repo: string, old_spec: VimplugSpec)
+  function M.vimplug(repo, old_spec) return vim.call(repo, old_spec) end
+
+  return M
+end
+
+local utils = require('dotfiles.utils')
+local lazy = require('lazy')
 
 ---@type LazyConfig
 M.lazy_config = {
@@ -14,15 +30,24 @@ M.lazy_config = {
   git = {
     url_format = vim.g['dotplug#url_format'],
   },
-  spec = {},
+  spec = {
+    { import = 'dotfiles.plugins' },
+  },
   performance = {
     reset_packpath = false,
-    rtp = {
-      reset = false,
-    },
+    rtp = { reset = false },
   },
   install = {
-    colorscheme = { 'dotfiles', 'habamax' },
+    missing = utils.is_truthy(vim.g['dotplug#autoinstall']),
+    colorscheme = { 'default' },
+  },
+  change_detection = {
+    enabled = false,
+  },
+  ui = {
+    backdrop = 100,
+    -- border = 'none',
+    border = utils.border_styles.outset,
   },
 }
 
@@ -31,19 +56,23 @@ M.lazy_config = {
 function M.find_plugin(name)
   utils.check_type('name', name, 'string')
   for _, spec in pairs(lazy.plugins()) do
-    if spec.name == name then
-      return spec
-    end
+    if spec.name == name then return spec end
   end
   return nil
 end
 
+---@param name string
+---@return boolean
+function M.has(name) return M.find_plugin(name) ~= nil end
+
+---@param name string
+---@return string
+function M.plugin_dir(name) return M.find_plugin(name).dir end
+
 ---@param names string[]
 function M.load(names)
   utils.check_type('names', names, utils.is_list(names), 'list')
-  if vim.tbl_isempty(names) then
-    error('expected one or more plugin names')
-  end
+  if vim.tbl_isempty(names) then error('expected one or more plugin names') end
   lazy.load({ plugins = names, wait = true })
 end
 
@@ -69,18 +98,19 @@ end
 ---@class VimplugSpec
 ---@field branch?   string           = |LazyPluginSpec.branch|
 ---@field tag?      string           = |LazyPluginSpec.tag|
----@field commit?   string           = |LazyPluginSpec.tag|
+---@field commit?   string           = |LazyPluginSpec.commit|
+---@field version?  string           = |LazyPluginSpec.version|
 ---@field rtp?      string           unsupported
 ---@field dir?      string           unsupported
 ---@field as?       string           = |LazyPluginSpec.name|
 ---@field do?       string|function  = |LazyPluginSpec.build|
 ---@field on?       string|string[]  unsupported
 ---@field for?      string|string[]  unsupported
----@field frozen?   number|boolean   = |LazyPluginSpec.pin|
+---@field frozen?   integer|boolean  = |LazyPluginSpec.pin|
 ---@field requires? string|string[]  = |LazyPluginSpec.dependencies|
----@field priority? number           = |LazyPluginSpec.priority|
----@field if?       number|boolean   = |LazyPluginSpec.enabled|
----@field lazy?     number|boolean   = |LazyPluginSpec.lazy|
+---@field priority? integer          = |LazyPluginSpec.priority|
+---@field if?       integer|boolean  = |LazyPluginSpec.enabled|
+---@field lazy?     integer|boolean  = |LazyPluginSpec.lazy|
 ---@field setup?    string           = |LazyPluginSpec.config|
 
 ---@param repo string
@@ -105,7 +135,7 @@ function M.vimplug(repo, old_spec)
         error(string.format('%s: expected string or function, got %s', key, type(value)))
       end
       spec.build = value
-    elseif key == 'branch' or key == 'tag' or key == 'commit' then
+    elseif key == 'branch' or key == 'tag' or key == 'commit' or key == 'version' then
       utils.check_type('key', value, 'string')
       spec[key] = value --[[@as any]]
     elseif key == 'as' then
@@ -121,8 +151,8 @@ function M.vimplug(repo, old_spec)
       if type(value) == 'string' then
         spec.dependencies = { value }
       elseif
-          utils.is_list(value)
-          and not vim.tbl_contains(value, function(elem) return type(elem) ~= 'string' end)
+        utils.is_list(value)
+        and not vim.tbl_contains(value, function(elem) return type(elem) ~= 'string' end)
       then
         spec.dependencies = value
       else
@@ -144,8 +174,8 @@ end
 
 function M.end_setup()
   -- HACK: We have to poke the internals a little bit.
-  local Config = require('lazy.core.config')
-  local Loader = require('lazy.core.loader')
+  local LazyConfig = require('lazy.core.config')
+  local LazyLoader = require('lazy.core.loader')
 
   -- Starting from v4.0.0, lazy.nvim performs the startup sequence by itself,
   -- including the sourcing of all Vimscript and Lua files in the `plugin`,
@@ -154,12 +184,16 @@ function M.end_setup()
   -- scripts. However, this also introduces incompatibilities with my dotfiles
   -- because it messes up the script loading order, so I will use lazy.nvim
   -- only as a plugin manager, and fall back to Vim's built-in plugin loader.
-  local old_loadplugins = vim.go.loadplugins
+  local old_loadplugins = vim.o.loadplugins
   -- Stub out this function so that lazy.nvim does not perform sourcing.
-  local old_packadd = Loader.packadd
-  Loader.packadd = function(path)
-    if M.DEBUG_LOAD_ORDER then
-      print(path)
+  local old_packadd = LazyLoader.packadd
+
+  local let_lazy_do_its_thing = utils.is_truthy(vim.g['dotplug#use_lazynvim_plugin_loader'])
+
+  if not let_lazy_do_its_thing then
+    local debug_load_order = utils.is_truthy(vim.g['dotplug#debug_load_order'])
+    LazyLoader.packadd = function(path)
+      if debug_load_order then print(path) end
     end
   end
 
@@ -167,12 +201,14 @@ function M.end_setup()
 
   -- lazy.nvim automatically installs the missing plugins for us, but does not
   -- clean up the unused plugins by itself.
-  if not vim.tbl_isempty(Config.to_clean) then
+  if utils.is_truthy(vim.g['dotplug#autoclean']) and not vim.tbl_isempty(LazyConfig.to_clean) then
     lazy.clean({ wait = true })
   end
 
-  Loader.packadd = old_packadd
-  vim.go.loadplugins = old_loadplugins
+  if not let_lazy_do_its_thing then
+    LazyLoader.packadd = old_packadd
+    vim.o.loadplugins = old_loadplugins
+  end
 end
 
 return M

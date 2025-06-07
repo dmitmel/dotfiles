@@ -83,7 +83,7 @@ endif
 set nrformats-=octal
 
 if has('nvim-0.5.0') || has('patch-9.0.1921')
-  " set jumpoptions+=stack  " NOTE: this fills the jumplist with irrelevant and annoying jumps.
+  set jumpoptions+=stack
 endif
 if has('nvim-0.10.2')
   set jumpoptions-=clean
@@ -131,7 +131,7 @@ endif
   command! -nargs=? -bar IndentTabs  call s:indent_cmd(1, <q-args>, <q-mods>)
   command! -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
 
-  let g:indentLine_char = "\u2502"
+  let g:indentLine_char = '│'
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
@@ -185,7 +185,7 @@ endif
 
 " Invisible characters {{{
   set list
-  let &listchars = "tab:\u2192 ,extends:>,precedes:<,eol:\u00ac,trail:\u00b7,nbsp:+"
+  let &listchars = "tab:→ ,extends:>,precedes:<,eol:¬,trail:·,nbsp:␣"
   let &showbreak = '>'
   set display+=uhex
 " }}}
@@ -223,7 +223,7 @@ endif
 
 
 " Wrapping {{{
-  set nowrap colorcolumn=81,101,121 textwidth=79
+  set nowrap textwidth=80 colorcolumn=+1 "colorcolumn=81,101,121
 " }}}
 
 
@@ -311,7 +311,7 @@ endif
   xnoremap <expr> A (mode() ==# 'V' ? ':normal! A' : 'A')
   xnoremap <expr> I (mode() ==# 'V' ? ':normal! I' : 'I')
 
-  " Break undo on CTRL-W andd CTRL-U in the Insert mode.
+  " Break undo on CTRL-W and CTRL-U in the Insert mode.
   inoremap <C-u> <C-g>u<C-u>
   inoremap <C-w> <C-g>u<C-w>
 
@@ -329,6 +329,19 @@ endif
     imap <Down> <Plug>dotfiles<Down>
   endif
 
+  " Make <BS> and others work in the Select mode as expected. Otherwise, if <BS>
+  " is pressed when a snippet placeholder is selected, the placeholder will be
+  " deleted, but the editor will return to Normal mode, instead of Insert.
+  " CTRL-G switches from Select mode to Visual, preserving the selected range.
+  " Afterwards, `c` deletes the selected text and goes back into Insert mode.
+  snoremap <silent> <BS>  <C-g>"_c
+  snoremap <silent> <DEL> <C-g>"_c
+  snoremap <silent> <C-h> <C-g>"_c
+  snoremap          <C-r> <C-g>"_c<C-r>
+  " Prevent coc.nvim from defining these for us:
+  " <https://github.com/neoclide/coc.nvim/blob/c6cd3ed431a2fb4367971229198f1f1e40257bce/autoload/coc/snippet.vim#L23-L26>
+  let g:coc_selectmode_mapping = 0
+
 " }}}
 
 
@@ -340,7 +353,7 @@ endif
   nnoremap <leader>kk :<C-u>set keymap&<CR>
   nnoremap <leader>kr :<C-u>set keymap=russian-jcuken-custom<CR>
   nnoremap <leader>ku :<C-u>set keymap=ukrainian-jcuken-custom<CR>
-  imap     <A-k>      <C-o><leader>k
+  " imap     <A-k>      <C-o><leader>k
 
   nnoremap <C-o> :<C-u>DotfilesSwapKeymaps<CR>
   command! -nargs=0 DotfilesSwapKeymaps let [b:dotfiles_prev_keymap, &keymap] = [&keymap, get(b:, 'dotfiles_prev_keymap', '')]
@@ -556,12 +569,16 @@ endif
 " }}}
 
 
-" plugins {{{
+" Plugins {{{
 
   let g:delimitMate_expand_space = 1
   let g:delimitMate_expand_cr = 1
   " This conflicts with my <CR> mapping: <https://github.com/tpope/vim-eunuch/commit/c70b0ed50b5c0d806df012526104fc5342753749>
   let g:eunuch_no_maps = 1
+
+  if !dotplug#has('delimitMate')
+    inoremap <Plug>delimitMateCR <CR>
+  endif
 
   let g:matchup_delim_noskips = 2
   let g:matchup_delim_nomids = 1
@@ -569,6 +586,20 @@ endif
   \ 'html': { 'tagnameonly': 1, 'nolists': 1 },
   \ 'xml': { 'tagnameonly': 1 },
   \ }
+
+  augroup dotfiles_matchup
+    autocmd!
+    if has('nvim-0.11.0')
+      " Since Neovim 0.11 the highlight groups in the statusline are now
+      " combined with the statusline background, TODO
+      " <https://github.com/neovim/neovim/commit/e049c6e4c08a141c94218672e770f86f91c27a11>
+      autocmd User MatchupOffscreenEnter
+      \ if exists('w:matchup_statusline') && &l:statusline is# w:matchup_statusline
+      \|  let w:matchup_statusline = substitute(w:matchup_statusline, '%\@1<!%#Normal#', '%#StatusLine#', 'g')
+      \|  let &l:statusline = w:matchup_statusline
+      \|endif
+    endif
+  augroup END
 
   let g:surround_{char2nr('*')} = "**\r**"
   let g:surround_{char2nr('~')} = "~~\r~~"
@@ -660,12 +691,16 @@ endif
 
   let g:c_no_bracket_error = 1
   let g:c_no_curly_error = 1
+  let g:c_gnu = 1
+  let g:cpp_attributes_highlight = 1
+  let g:cpp_member_highlight = 1
 
   let g:lua_version = 5
   let g:lua_subversion = 1
 
   let g:vim_json_conceal = 0
   let g:javascript_plugin_jsdoc = 1
+  let g:vim_jsx_pretty_disable_js = 1
 
 " }}}
 

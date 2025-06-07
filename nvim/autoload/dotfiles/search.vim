@@ -1,16 +1,16 @@
 if exists('*searchcount')
   if has('timers')
     let s:show_count_timer = -1
-    function! dotfiles#search#show_count(opts) abort
+    function! dotfiles#search#show_count_async(opts) abort
       call timer_stop(s:show_count_timer)
       let a:opts.cursor_pos = get(a:opts, 'cursor_pos', getcurpos()[1:3])
       let s:show_count_timer = timer_start(
       \ get(g:, 'indexed_search_debounce_time', 300),
-      \ { timer -> timer == s:show_count_timer ? dotfiles#search#show_count_nowait(a:opts) : 0 })
+      \ { timer -> timer == s:show_count_timer ? dotfiles#search#show_count(a:opts) : 0 })
     endfunction
   else
-    function! dotfiles#search#show_count(opts) abort
-      return dotfiles#search#show_count_nowait(a:opts)
+    function! dotfiles#search#show_count_async(opts) abort
+      return dotfiles#search#show_count(a:opts)
     endfunction
   endif
 
@@ -18,7 +18,7 @@ if exists('*searchcount')
   " which uses the recently-added `searchcount()` function.
   " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
   " <https://github.com/vim/vim/commit/e8f5ec0d30b629d7166f0ad03434065d8bc822df>
-  function! dotfiles#search#show_count_nowait(opts) abort
+  function! dotfiles#search#show_count(opts) abort
     let no_limits = get(a:opts, 'no_limits', 0)
     let result = searchcount({
     \ 'recompute': 1,

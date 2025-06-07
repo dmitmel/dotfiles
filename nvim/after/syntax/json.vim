@@ -3,6 +3,7 @@
 
 if hlexists('jsonCommentTodo')
   syn clear jsonCommentTodo
+  hi def link jsonCommentTodo Todo
 endif
 execute 'syn match jsonCommentTodo contained' dotfiles#todo_comments#get_pattern()
 

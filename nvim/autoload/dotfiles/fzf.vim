@@ -26,10 +26,10 @@ function! dotfiles#fzf#hlgroup_to_ansi(group) abort
   let bg = synIDattr(id, 'bg#')
   " let sp = synIDattr(id, 'sp#')
   if !empty(fg)
-    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(fg, '3'))
+    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(fg,'3'))
   endif
   if !empty(bg)
-    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(bg, '4'))
+    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(bg,'4'))
   endif
   " Sets the underline color, but is non-standard.
   " if !empty(sp)
@@ -119,18 +119,6 @@ function! dotfiles#fzf#hlgroup_to_fzf_color(group, group_attr) abort
   return join(attrs, ':')
 endfunction
 
-function! dotfiles#fzf#hlgroup_ansi_wrap(group, text) abort
-  let cmd = dotfiles#fzf#hlgroup_to_ansi(a:group)
-  if !empty(cmd)
-    return cmd . a:text . "\e[m"
-  else
-    return a:text
-  endif
-endfunction
-
-let s:ansi_wrap = function('dotfiles#fzf#hlgroup_ansi_wrap')
-let s:to_ansi = function('dotfiles#fzf#hlgroup_to_ansi')
-
 let g:dotfiles#fzf#manpage_search_actions = {
 \ 'ctrl-t': 'tab',
 \ 'ctrl-x': '',
@@ -140,8 +128,9 @@ let g:dotfiles#fzf#manpage_search_actions = {
 function! dotfiles#fzf#manpage_search(fullscreen) abort
   call s:delete_manpages_script()
   let s:manpages_script = tempname()
-  call writefile(['/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf(qq('. s:ansi_wrap('Label', '%-50s')
-  \ .'\t%s\n), sprintf("%s(%s)", $1, $2), $3)'], s:manpages_script)
+  call writefile([
+  \ '/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf(qq(%-50s\t%s\n), sprintf("%s(%s)", $1, $2), $3)'
+  \ ], s:manpages_script)
   let results = fzf#run(fzf#wrap('manpages', {
   \ 'source': 'man -k . | perl -n ' . fzf#shellescape(s:manpages_script),
   \ 'sink*': function('s:manpage_search_sink'),
@@ -154,7 +143,7 @@ endfunction
 function! s:delete_manpages_script() abort
   if exists('s:manpages_script')
     silent! call delete(s:manpages_script)
-    unlet! s:manpages_script
+    unlet s:manpages_script
   endif
 endfunction
 
@@ -180,12 +169,13 @@ function! dotfiles#fzf#qflist_fuzzy(is_loclist, fullscreen) abort
   let initial_winid = win_getid()
   let list = a:is_loclist ? getloclist(initial_winid, get_list_opts) : getqflist(get_list_opts)
 
-  let hl_path  = hlexists('qfFileName') ? s:to_ansi('qfFileName') : s:to_ansi('Directory')
-  let hl_range = hlexists('qfLineNr')   ? s:to_ansi('qfLineNr')   : s:to_ansi('LineNr')
-  let hl_error = hlexists('qfError')    ? s:to_ansi('qfError')    : s:to_ansi('Error')
-  let hl_warn  = hlexists('qfWarning')  ? s:to_ansi('qfWarning')  : ''
-  let hl_info  = hlexists('qfInfo')     ? s:to_ansi('qfInfo')     : ''
-  let hl_note  = hlexists('qfNote')     ? s:to_ansi('qfNote')     : ''
+  let l:to_ansi = function('dotfiles#fzf#hlgroup_to_ansi')
+  let hl_path  = hlexists('qfFileName') ? l:to_ansi('qfFileName') : l:to_ansi('Directory')
+  let hl_range = hlexists('qfLineNr')   ? l:to_ansi('qfLineNr')   : l:to_ansi('LineNr')
+  let hl_error = hlexists('qfError')    ? l:to_ansi('qfError')    : l:to_ansi('Error')
+  let hl_warn  = hlexists('qfWarning')  ? l:to_ansi('qfWarning')  : ''
+  let hl_info  = hlexists('qfInfo')     ? l:to_ansi('qfInfo')     : ''
+  let hl_note  = hlexists('qfNote')     ? l:to_ansi('qfNote')     : ''
   let type_lookup = {
   \ 'e': hl_error . 'error',   'E': hl_error . 'error',
   \ 'w': hl_warn  . 'warning', 'W': hl_warn  . 'warning',
@@ -194,11 +184,7 @@ function! dotfiles#fzf#qflist_fuzzy(is_loclist, fullscreen) abort
   let formatted_items = map(copy(list.items), function('s:qflist_format_error', [hl_path, hl_range, type_lookup]))
 
   " Can't close the list window just yet - we'd have nowhere to return.
-  if a:is_loclist
-    lopen 1
-  else
-    copen 1
-  endif
+  execute (a:is_loclist ? 'l' : 'c') . 'open 1'
 
   let results = fzf#run(fzf#wrap('qflist_fuzzy', fzf#vim#with_preview({
   \ 'source': formatted_items,
@@ -298,15 +284,10 @@ function! s:qflist_fuzzy_handler(is_loclist, initial_winid, list, lines) abort
     let new_list = a:is_loclist ? getloclist(0, get_list_opts) : getqflist(get_list_opts)
     let list_still_exists = new_list.id == a:list.id
     if list_still_exists
-      if a:is_loclist
-        execute new_list.nr . 'lhistory'
-        execute (item_idx + 1) . 'll'
-        lclose
-      else
-        execute new_list.nr . 'chistory'
-        execute (item_idx + 1) . 'cc'
-        cclose
-      endif
+      let lc = a:is_loclist ? 'l' : 'c'
+      execute new_list.nr . lc . 'history'
+      execute (item_idx + 1) . lc . lc
+      execute lc . 'close'
       normal! zv
     endif
   endif

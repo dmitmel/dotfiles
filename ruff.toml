@@ -1,0 +1,43 @@
+line-length = 100
+indent-width = 2
+
+[format]
+indent-style = "space"
+quote-style = "double"
+preview = true
+
+[lint]
+
+# <https://beta.ruff.rs/docs/rules/>
+select = [
+  "E",   # pycodestyle (errors)
+  "W",   # pycodestyle (warnings)
+  "F",   # pyflakes
+  "Q",   # flake8-quotes
+  "ANN", # flake8-annotations
+  "N",   # pep8-naming
+  "I",   # isort
+  # "COM", # flake8-commas
+  "S",   # flake8-bandit
+  "B",   # flake8-bugbear
+  "PLC", # pylint (convention)
+  "PLE", # pylint (errors)
+  "PLW", # pylint (warnings)
+]
+
+ignore = [
+  "E402",     # module level import not at top of file
+  "E501",     # line too long
+  "S101",     # use of `assert` detected
+  "S311",     # standard PRNGs are not suitable for cryptography
+  "ANN401",   # dynamically typed expressions are disallowed
+  "PLW0603",  # using the global statement is discouraged
+  "PLW2901",  # outer loop variable overwritten by inner loop target
+  "B905",     # `zip()` without an explicit `strict` parameter
+  "E731",     # use `def` instead of assigning `lambda` to a variable
+]
+
+[lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"

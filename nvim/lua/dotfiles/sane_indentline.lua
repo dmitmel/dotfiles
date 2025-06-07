@@ -7,11 +7,11 @@
 --- <https://github.com/Yggdroot/indentLine/blob/5617a1cf7d315e6e6f84d825c85e3b669d220bfa/after/plugin/indentLine.vim>
 ---
 --- TODO: remove compat with Yggdroot/indentLine and lukas-reineke/indent-blankline.nvim
-local self = require('dotfiles.autoload')('dotfiles.sane_indentline')
+local self, module = require('dotfiles.autoload')('dotfiles.sane_indentline', {})
 
 local utils = require('dotfiles.utils')
 
-self.ns_id = vim.api.nvim_create_namespace(self.__module.name)
+self.ns_id = vim.api.nvim_create_namespace(module.name)
 
 self.scope_data = nil ---@type dotfiles.sane_indentline.scope_data
 
@@ -56,7 +56,7 @@ function self.decoration_provider.on_start(_, tick)
   ---@type table<integer, boolean>
   self.bufs_excluded = {}
 
-  local visible_wins = utils.tbl_to_set(vim.api.nvim_tabpage_list_wins(0))
+  local visible_wins = utils.list_to_set(vim.api.nvim_tabpage_list_wins(0))
   for winid in pairs(self.wins_info) do
     -- Sweep the cache from time to time.
     if not visible_wins[winid] then self.wins_info[winid] = nil end
@@ -102,7 +102,7 @@ function self.decoration_provider.on_start(_, tick)
   self.show_on_folded_lines = utils.is_truthy(opt('show_foldtext', nil, false))
   self.show_scope = utils.is_truthy(opt('show_current_context', nil, false))
 
-  local to_set = utils.tbl_to_set
+  local to_set = utils.list_to_set
   self.disable_with_nolist = utils.is_truthy(opt('disable_with_nolist', nil, false))
   ---@type table<string, boolean>
   self.filetypes_include = to_set(opt('filetype', 'fileType', {}))
@@ -116,7 +116,7 @@ end
 -- <https://github.com/neovim/neovim/pull/26833>
 -- <https://github.com/neovim/neovim/commit/dc48a98f9ac614dc94739637c967aa29e064807e>
 -- <https://github.com/neovim/neovim/commit/444f37fe510f4c28c59bade40d7ba152a5ee8f7c>
-local has_correct_botline_reporting = vim.fn.has('nvim-0.10.0') ~= 0
+local has_correct_botline_reporting = utils.has('nvim-0.10.0')
 
 function self.decoration_provider.on_win(_, winid, bufnr, toprow, botrow)
   -- NOTE: the toprow and botrow values, passed to this handler, correspond to
@@ -383,9 +383,9 @@ local reusable_spaces_extmark = {
 }
 
 -- <https://github.com/neovim/neovim/commit/bbd5c6363c25e8fbbfb962f8f6c5ea1800d431ca>
-local has_virt_text_repeat_linebreak = vim.fn.has('nvim-0.10.0') ~= 0
+local has_virt_text_repeat_linebreak = utils.has('nvim-0.10.0')
 -- <https://github.com/neovim/neovim/commit/245ac6f263b6017c050f885212ee80e5738d3b9f>
-local has_virtcol2col = vim.fn.exists('*virtcol2col') ~= 0
+local has_virtcol2col = utils.exists('*virtcol2col')
 
 function self.decoration_provider.on_line(_, winid, bufnr, row)
   local info = self.wins_info[winid]

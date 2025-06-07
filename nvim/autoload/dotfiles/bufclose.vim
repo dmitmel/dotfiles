@@ -40,7 +40,7 @@ function! dotfiles#bufclose#cmd(cmd, name) abort
     endif
   endif
 
-  " Now, let's get to business. To preserve the layout we want to find all
+  " Now, let's get down to business. To preserve the layout we want to find all
   " windows which display the given buffer, hide it in every one of them by
   " switching to some other buffer, and then safely execute |:bd| or |:bw| on
   " the original buffer.

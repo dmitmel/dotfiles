@@ -18,25 +18,6 @@ function! dotutils#cmd_alias(lhs, rhs) abort
   \             a:lhs, string(a:rhs), string(a:lhs))
 endfunction
 
-" Essentially, implements
-" <https://github.com/neoclide/coc.nvim/blob/3de26740c2d893191564dac4785002e3ebe01c3a/src/workspace.ts#L810-L844>.
-" Alternatively, nvim's implementation can be used:
-" <https://github.com/neovim/neovim/blob/v0.5.0/runtime/lua/vim/lsp/util.lua#L966-L991>.
-function! dotutils#jump_to_file(path) abort
-  let path = fnamemodify(a:path, ':p')
-  " NOTE 1: bufname('') returns the short name, but we need a full one.
-  " NOTE 2: When trying to :edit a file when it is already opened in the
-  " current buffer, Vim will attempt to write it and reload the buffer.
-  " Honestly, I was surprised to know that this wasn't the case when switching
-  " to another buffer, even though another buffer is modified, but it's fine,
-  " since :edit handles a ton of edge-cases for us, for instance, opening a
-  " previously unlisted buffer.
-  if getbufinfo('')[0].name != path
-    silent! normal! m'
-    edit `=path`
-  endif
-endfunction
-
 function! dotutils#open_scratch_preview_win(opts) abort
   let result = {}
 
@@ -115,7 +96,7 @@ function! dotutils#open_uri(uri, ...) abort
     " The implementation of `vim.ui.open` received more improvements over time,
     " but still, as of Nvim 0.11.0, it does not support nearly all environments
     " that the Netrw code does, so for now I prefer not to rely on it.
-    call luaeval('vim.ui.open(_A):wait()', a:uri)
+    call luaeval('vim.ui.open(_A):wait(3000)', a:uri)
   elseif has('vim9script') && !has('nvim') && has('patch-9.1.1054')
     " Vim 9 has simply decoupled the `Open` function from Netrw at some point
     " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
@@ -135,7 +116,7 @@ function! dotutils#open_uri(uri, ...) abort
       " For now, while Nvim ships with both `vim.ui.open` and `netrw#Open`, I'm
       " going to rely on the later. Also, interesting fact, the current usage
       " of this function in the netrw bundled with Nvim 0.11.0 is incorrect:
-      " <https://github.com/neovim/neovim/blob/44f1dbee0da3c516541434774b44f74a627b8e3f/runtime/pack/dist/opt/netrw/autoload/netrw.vim#L5148-L5149>
+      " <https://github.com/neovim/neovim/blob/v0.11.0/runtime/pack/dist/opt/netrw/autoload/netrw.vim#L5148-L5149>
       " `escape()` is unnecessary here. It has since been removed:
       " <https://github.com/vim/vim/commit/2328a39a54fbd75576769193d7ff1ed2769e2ff9>.
       call netrw#Open(a:uri)
@@ -158,12 +139,14 @@ function! dotutils#open_uri(uri, ...) abort
   endif
 endfunction
 
+let s:netrw_GX_exists = 1
+
 function! dotutils#url_under_cursor() abort
   if has('nvim-0.10.0')
     " The Lua URL finder is better than Netrw's default one. It relies on
     " Treesitter though. The `vim.treesitter.highlighter` API was added in Nvim
     " 0.9, but we already checked for version 0.10.
-    if luaeval('vim.treesitter.highlighter and vim.treesitter.highlighter.active[_A] ~= nil', bufnr())
+    if luaeval("vim.tbl_get(vim, 'treesitter', 'highlighter', 'active', _A) ~= nil", bufnr('%'))
       " <https://github.com/neovim/neovim/commit/9762c5e3406cab8152d8dd161c0178965d841676>
       let url = luaeval('vim.ui._get_urls and vim.ui._get_urls()[1]')
       if !empty(url) | return url | endif
@@ -172,18 +155,25 @@ function! dotutils#url_under_cursor() abort
       if !empty(url) | return url | endif
     endif
   endif
-  try
-    " Actually, some code was added to the Netrw code to add your own helpers
-    " for getting the URL, particularly in markdown:
-    " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>.
-    return netrw#GX()
-  catch /^Vim\%((\a\+)\)\=:E117:.*\<netrw#GX\>/
-    " This function was finally removed in Netrw v176
-    " <https://github.com/vim/vim/commit/ec961b05dcc1efb0a234f6d0b31a0945517e75d2>.
-    " As a last effort let's rely on a copy of code from the latest Vim 9
-    " <https://github.com/vim/vim/blob/23984602327600b7ef28dcedc772949d5c66b57f/runtime/plugin/openPlugin.vim#L24>
-    return matchstr(expand("<cWORD>"), '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}\ze[^A-Za-z0-9/]*$')
-  endtry
+
+  if s:netrw_GX_exists
+    try
+      " Actually, some code was added to the Netrw code to add your own helpers
+      " for getting the URL, particularly in markdown:
+      " <https://github.com/vim/vim/commit/3d7e567ea7392e43a90a6ffb3cd49b71a7b59d1a>.
+      let url = netrw#GX()
+      " Direct `return netrw#GX()` does not work if Vim is too old.
+      return url
+    catch /^Vim\%((\a\+)\)\=:E117:.*:\s*netrw#GX$/
+      " This function was finally removed in Netrw v176.
+      " <https://github.com/vim/vim/commit/ec961b05dcc1efb0a234f6d0b31a0945517e75d2>.
+      let s:netrw_GX_exists = 0
+    endtry
+  endif
+
+  " As a last ditch effort let's rely on a snippet from the latest Vim 9.
+  " <https://github.com/vim/vim/blob/v9.1.1406/runtime/plugin/openPlugin.vim#L24>
+  return matchstr(expand("<cWORD>"), '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}\ze[^A-Za-z0-9/]*$')
 endfunction
 
 function! dotutils#reveal_file(path) abort
@@ -207,38 +197,9 @@ function! dotutils#reveal_file(path) abort
   endif
 endfunction
 
-function! dotutils#push_qf_list(opts) abort
-  let loclist_window = get(a:opts, 'dotfiles_loclist_window', 0)
-  let action = get(a:opts, 'dotfiles_action', ' ')
-  let auto_open = get(a:opts, 'dotfiles_auto_open', 1)
-  if loclist_window
-    call setloclist(loclist_window, [], action, a:opts)
-    if auto_open | call qf#OpenLoclist() | endif
-  else
-    call setqflist([], action, a:opts)
-    if auto_open | call qf#OpenQuickfix() | endif
-  endif
+function! dotutils#list_runtime_paths() abort
+  return exists('*nvim_list_runtime_paths') ? nvim_list_runtime_paths() : split(&runtimepath, ',')
 endfunction
-
-" Essentially a part of <https://github.com/romainl/vim-qf/blob/65f115c350934517382ae45198a74232a9069c2a/autoload/qf.vim#L86-L108>.
-function! dotutils#readjust_qf_list_height() abort
-  let max_height = get(g:, 'qf_max_height', 10) < 1 ? 10 : get(g:, 'qf_max_height', 10)
-  if get(b:, 'qf_isLoc', 0)
-    execute 'lclose|' . (get(g:, 'qf_auto_resize', 1) ? min([max_height, len(getloclist(0))]) : '') . 'lwindow'
-  else
-    execute 'cclose|' . (get(g:, 'qf_auto_resize', 1) ? min([max_height, len(getqflist())]) : '') . 'cwindow'
-  endif
-endfunction
-
-if has('*nvim_list_runtime_paths')
-  function! dotutils#list_runtime_paths() abort
-    return nvim_list_runtime_paths()
-  endfunction
-else
-  function! dotutils#list_runtime_paths() abort
-    return split(&runtimepath, ',')
-  endfunction
-endif
 
 function! dotutils#literal_regex(pat) abort
   let pat = escape(a:pat, '\')
@@ -256,15 +217,6 @@ function! dotutils#escape_and_wrap_regex(pat) abort
   let pat = escape(pat, '/')
   let pat .= pat[-1] ==# '\' ? '\' : ''
   return '/'.pat.'/'
-endfunction
-
-function! dotutils#keepwinview(cmd) abort
-  let view = winsaveview()
-  try
-    execute a:cmd
-  finally
-    call winrestview(view)
-  endtry
 endfunction
 
 " Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
@@ -338,12 +290,8 @@ endfunction
 " patch 9.0.0244. See also |scriptnames-dictionary|.
 function! dotutils#list_loaded_scripts() abort
   if exists('*getscriptinfo') | return getscriptinfo() | endif
-
-  let lines = ''
-  redir => lines | silent scriptnames | redir END
-
   let scripts = []
-  for line in split(lines, "\n")
+  for line in split(execute('scriptnames'), "\n")
     let groups = matchlist(line, '\v^\s*(\d+):\s*(.*)\s*$')
     if empty(groups) | continue | endif
     call add(scripts, { 'name': fnamemodify(groups[2], ':p'), 'sid': str2nr(groups[1], 10) })

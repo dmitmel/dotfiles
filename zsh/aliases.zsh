@@ -53,6 +53,8 @@ if command_exists hub; then
   alias git='hub'
   alias gw='git browse'
   alias gci='git ci-status --verbose'
+else
+  alias gw='gh browse'
 fi
 
 # make these utils more verbose
@@ -80,6 +82,8 @@ alias du='du -h'
 alias df='df -h'
 alias free='free -h'
 
+alias ip='ip -color -human-readable'
+
 if command_exists apt && command_exists apt-get; then
   apt_get_message="use 'apt' instead of 'apt-get'
 if you really want to use 'apt-get', type '\\apt-get'"
@@ -92,8 +96,6 @@ alias edit="$EDITOR"
 alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
   alias es="e -S"
-  alias ec="e --cmd 'let dotfiles_use_nvimlsp = 1'"
-  alias ecs="e --cmd 'let dotfiles_use_nvimlsp = 1' -S"
 fi
 
 # -a = --archive
@@ -154,7 +156,5 @@ alias o='open'
 if command_exists vscodium && ! command_exists code; then
   code() { vscodium "$@"; }
 fi
-
-':q'() { exit; }
 
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'

@@ -6,6 +6,9 @@ exe dotplug#define_plug_here()
 " Files {{{
   " Useful filesystem command wrappers: `:Rename`, `:Delete`, `:Chmod` etc.
   Plug 'https://github.com/tpope/vim-eunuch'
+  " Modelines have caused several arbitrary code execution vulnerabilities over
+  " the years, see <https://security.stackexchange.com/a/157739>.
+  Plug 'https://github.com/ypcrts/securemodelines'
 " }}}
 
 " Editing {{{
@@ -17,7 +20,7 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/Raimondi/delimitMate'
   " A library which allows plugins to create mappings repeatable with the dot
   " command.
-  Plug 'https://github.com/tpope/vim-repeat', { 'priority': 100 }
+  Plug 'https://github.com/tpope/vim-repeat'
   " For commenting out code. I prefer this one to tpope's vim-commentary
   " because it handles embedded languages (e.g.: JS within HTML), places
   " comment markers on empty lines when multiple paragraphs of code are
@@ -97,8 +100,11 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/vim-airline/vim-airline'
   " Automatically re-saves sessions created with `:mksession`.
   Plug 'https://github.com/tpope/vim-obsession'
-  " Various nifty utilities for quickfix and location lists.
+  " Various nifty utilities for quickfix and location lists. This plugin is
+  " responsible for auto-opening the lists after commands like :grep and :make.
   Plug 'https://github.com/romainl/vim-qf'
+  " More niceties for quickfix/loclists: file preview, filtering with FZF etc.
+  Plug 'https://github.com/kevinhwang91/nvim-bqf', { 'if': has('nvim-0.6.1') }
 " }}}
 
 " Git {{{
@@ -128,9 +134,14 @@ exe dotplug#define_plug_here()
   " The core library for integration calling fzf from Vim (also handles
   " installation of fzf when it's not already available on the system).
   Plug 'https://github.com/junegunn/fzf', { 'do': './install --bin' }
-  " All of the end-user commands for using fzf on everything: `:Files`,
-  " `:Buffers`, `:Helptags`, `:Commands` and so on.
-  Plug 'https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' }
+  if g:vim_ide == 2
+    Plug 'https://github.com/folke/snacks.nvim', { 'if': has('nvim-0.9.4') }
+    Plug 'https://github.com/ibhagwan/fzf-lua', { 'if': has('nvim-0.9.0'), 'requires': 'fzf' }
+  else
+    " All of the end-user commands for using fzf on everything: `:Files`,
+    " `:Buffers`, `:Helptags`, `:Commands` and so on.
+    Plug 'https://github.com/junegunn/fzf.vim', { 'requires': 'fzf' }
+  endif
 " }}}
 
 " Language packs {{{
@@ -147,6 +158,7 @@ exe dotplug#define_plug_here()
 
   " I like these much better than Vim's and Nvim's default ones:
   Plug 'https://github.com/tbastos/vim-lua'
+  Plug 'https://github.com/raymond-w-ko/vim-lua-indent'
   Plug 'https://github.com/plasticboy/vim-markdown'
   Plug 'https://github.com/vim-python/python-syntax'
   " (this one highlights function invocations which the default one does not do)
@@ -159,7 +171,8 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/pangloss/vim-javascript'
   " TypeScript evolves faster than Vim updates are released, so I include this
   " plugin instead of relying on its copy upstreamed into Vim. Great username btw.
-  Plug 'https://github.com/HerringtonDarkholme/yats.vim' " , { 'if': !has('nvim-0.4.0') && !has('patch-8.1.1486') }
+  Plug 'https://github.com/HerringtonDarkholme/yats.vim'
+  "     \ { 'if': !has('nvim-0.4.0') && !has('patch-8.1.1486') }
   " For some reason, `$VIMRUNTIME` includes support only for TSX out of the
   " box, but not for JSX. By default, JSX filetype is just an alias for JS.
   Plug 'https://github.com/MaxMEllon/vim-jsx-pretty'
@@ -174,34 +187,19 @@ exe dotplug#define_plug_here()
   " I actually got so used to this one since it was included with vim-polyglot,
   " while the `$VIMRUNTIME` just uses plain `dosini` for systemd configs.
   Plug 'https://github.com/wgwoods/vim-systemd-syntax'
-  " <https://github.com/vim/vim/commit/6e649224926bbc1df6a4fdfa7a96b4acb1f8bee0>
-  " <https://github.com/neovim/neovim/commit/f6a9f0bfcaeb256bac1b1c8273e6c40750664967>
+  Plug 'https://github.com/tpope/vim-git'
   Plug 'https://github.com/chr4/nginx.vim', { 'if': !has('nvim-0.6.0') && !has('patch-8.2.3474') }
 
   " Some niche languages that were not included with Vim until recently:
-  " <https://github.com/neovim/neovim/commit/79d492a4218ee6b4da5becbebb712a0f1f65d0f5>
   Plug 'https://github.com/tikhomirov/vim-glsl', { 'if': !has('nvim-0.11.0') && !has('patch-9.1.0610') }
-  " <https://github.com/neovim/neovim/commit/0ba77f2f31c9de42f1e7a8435e6322d3f0a04fa5>
   Plug 'https://github.com/cespare/vim-toml', { 'if': !has('nvim-0.6.0') && !has('patch-8.2.3520') }
-  " <https://github.com/neovim/neovim/commit/3e47e529b0354dbd665202bbc4f485a5160206bf>
   Plug 'https://github.com/cakebaker/scss-syntax.vim', { 'if': !has('nvim-0.5.0') && !has('patch-8.1.2397') }
 
-  " The Lua reference manual[1] and luv documentation[2] are now shipped with Nvim, see:
-  " <https://github.com/neovim/neovim/commit/e6680ea7c3912d38f2ef967e053be741624633ad>
-  " <https://github.com/neovim/neovim/commit/33ddca6fa0534df2605699070fdd1e5c6e4a7bcf>
-  " [1]: <https://www.lua.org/manual/5.1/>
-  " [2]: <https://github.com/luvit/luv/blob/master/docs.md>
-  if g:vim_ide && has('nvim-0.4.0') && !has('nvim-0.8.0')
-    Plug 'https://github.com/bfredl/luarefvim'
-    Plug 'https://github.com/nanotee/luv-vimdocs', { 'branch': 'main' }
-  endif
-
-  if has('nvim-0.5.0') && !has('nvim-0.7.0')
-    " An alternative and optimized filetype detection system. No longer
-    " required as it was integrated into the Neovim core in v0.7.0:
-    " <https://github.com/neovim/neovim/commit/3fd454bd4a6ceb1989d15cf2d3d5e11d7a253b2d>
-    Plug 'https://github.com/nathom/filetype.nvim', { 'branch': 'main' }
-  endif
+  " An alternative optimized filetype detection system. No longer required as it
+  " was integrated into the Neovim core in v0.7.0:
+  " <https://github.com/neovim/neovim/commit/3fd454bd4a6ceb1989d15cf2d3d5e11d7a253b2d>
+  Plug 'https://github.com/nathom/filetype.nvim', {
+        \ 'branch': 'main', 'if': has('nvim-0.5.0') && !has('nvim-0.7.0') }
 " }}}
 
 " Programming {{{
@@ -212,38 +210,30 @@ exe dotplug#define_plug_here()
     Plug 'https://github.com/rafcamlet/nvim-luapad', { 'if': has('nvim-0.5.0') }
     " A debugger for Lua scripts running in Neovim itself.
     Plug 'https://github.com/jbyuki/one-small-step-for-vimkind', { 'if': has('nvim-0.7.0') }
-    " The built-in LSP client has been introduced in nvim 0.5.0, see
-    " <https://github.com/neovim/neovim/commit/a5ac2f45ff84a688a09479f357a9909d5b914294>.
-    if has('nvim-0.5.0') && get(g:, 'dotfiles_use_nvimlsp', 0)
-      " Collection of pre-made Language Server configs for Neovim's built-in
-      " LSP client. Only defines stuff like names of executables of the
-      " Servers, default settings and initializationOptions, workspace root
-      " dir patterns etc. Might get rid of this soon.
+    " The old and trusty coc.nvim. For Vim/Neovim version requirements, see [1].
+    " [1]: <https://github.com/neoclide/coc.nvim/blob/a9ab3e4885bc8ed0aa38c5a8ee5953b0a7bc9bd3/plugin/coc.vim#L11-L15>
+    Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release',
+          \ 'if': g:vim_ide == 1 && (has('patch-9.0.0438') || has('nvim-0.8.0')) }
+    " A client for the Debug Adapter Protocol (and a perfect candidate for lazy-loading!).
+    Plug 'https://github.com/puremourning/vimspector', { 'lazy': v:true,
+          \ 'if': has('nvim') ? has('nvim-0.4.3') : (v:version >= 802 && has('python3')) }
+    if g:vim_ide == 2 && has('nvim-0.11')
+      " The snippet engine. Also handles the loading of snippet files.
+      Plug 'https://github.com/L3MON4D3/LuaSnip', { 'version': 'v2.*', 'do': 'make install_jsregexp' }
+      " The autocompletion engine. Super fast!
+      Plug 'https://github.com/saghen/blink.cmp', { 'version': 'v1.1.*', 'requires': 'LuaSnip' }
+      " Used for setting up non-LSP formatters (but makes improvements to LSP formatting as well).
+      Plug 'https://github.com/stevearc/conform.nvim'
+      " Shows LSP and non-LSP notifications and progress messages in a nice and unobtrusive UI.
+      Plug 'https://github.com/j-hui/fidget.nvim'
+      " A bag of configs for Language Servers.
       Plug 'https://github.com/neovim/nvim-lspconfig'
-      " The current snippet expansion plugin. Doesn't contain any snippet
-      " libraries of its own.
-      Plug 'https://github.com/dcampos/nvim-snippy'
-      " The current completion plugin.
-      Plug 'https://github.com/hrsh7th/nvim-cmp', { 'branch': 'main' }
-      " The following plugins are actually completion sources for nvim-cmp:
-      " The built-in Language Server client.
-      Plug 'https://github.com/hrsh7th/cmp-nvim-lsp', { 'branch': 'main' }
-      " Words from buffers (as I like to call them, the "dumb completions").
-      Plug 'https://github.com/hrsh7th/cmp-buffer', { 'branch': 'main' }
-      " File paths.
-      Plug 'https://github.com/hrsh7th/cmp-path', { 'branch': 'main' }
-      " Snippets registered in the snippet engine.
-      Plug 'https://github.com/dcampos/cmp-snippy'
-    else
-      Plug 'https://github.com/neoclide/coc.nvim', { 'branch': 'release', 'if': has('nvim-0.7.0') }
+      " Provides JSON and YAML schemas.
+      Plug 'https://github.com/b0o/SchemaStore.nvim'
+      " Manages global and local settings for Language Servers.
+      Plug 'https://github.com/folke/neoconf.nvim'
     endif
-    if has('nvim') ? has('nvim-0.4.3') : (v:version >=# 802 && has('python3'))
-      " A client for the Debug Adapter Protocol.
-      Plug 'https://github.com/puremourning/vimspector', { 'lazy': v:true }
-    endif
-    " if has('nvim') || v:version >= 801
-    "   " Real-time preview of Markdown files in the browser (as the name implies).
-    "   Plug 'https://github.com/iamcco/markdown-preview.nvim', { 'do': 'yarn --cwd=app install --frozen-lockfile' }
-    " endif
   endif
 " }}}
+
+delcommand Plug

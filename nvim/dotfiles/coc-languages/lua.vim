@@ -8,30 +8,31 @@ function! s:find_server() abort
 endfunction
 
 if has('nvim-0.2.1')
-  let s:extra_settings = luaeval("require('dotfiles.lsp.nvim_lua_dev').lua_ls_settings_for_vim()")
+  let g:coc_user_config['Lua'] = luaeval("dotfiles.nvim_lua_dev.make_lua_ls_settings()")
 endif
 
-let g:coc_user_config['Lua'] = {
-\ 'telemetry': { 'enable': v:false },
-\ 'runtime': { 'path': s:extra_settings.package_path, 'version': 'LuaJIT' },
-\ 'workspace': { 'library': s:extra_settings.libraries },
-\ 'diagnostics': {
-\   'globals': ['vim'],
-\   'disable': ['empty-block'],
-\   'libraryFiles': 'Opened',
-\ },
-\ 'completion': {
-\   'workspaceWord': v:false,
-\   'showWord': 'Disable',
-\   'callSnippet': 'Replace',
-\ },
-\}
-
 let s:data_path = dotutils#xdg_dir('cache') . '/lua-language-server'
-let g:coc_user_config['languageserver.sumneko_lua'] = {
+let g:coc_user_config['languageserver.lua_ls'] = {
+\ 'enable': v:true,
 \ 'filetypes': ['lua'],
 \ 'command': s:find_server(),
 \ 'args': ['--logpath='.s:data_path.'/log', '--metapath='.s:data_path.'/meta'],
 \ 'rootPatterns': ['.luarc.json', '.vim/', '.git/', '.hg/'],
-\ 'settings': { 'Lua': g:coc_user_config['Lua'] },
-\}
+\ 'settings': { 'Lua': get(g:coc_user_config, 'Lua', {}) },
+\ }
+
+let g:coc_user_config['languageserver.emmylua_ls'] = {
+\ 'enable': v:false,
+\ 'filetypes': ['lua'],
+\ 'command': 'emmylua_ls',
+\ 'args': ['--log-path='.s:data_path.'/log', '--resources-path='.s:data_path.'/meta'],
+\ 'rootPatterns': ['.luarc.json', '.emmyrc.json', '.vim/', '.git/', '.hg/'],
+\ 'settings': { 'Lua': get(g:coc_user_config, 'Lua', {}) },
+\ 'disabledFeatures': ['formatting', 'documentFormatting', 'documentRangeFormatting', 'documentOnTypeFormatting'],
+\ }
+
+let g:coc_user_config['languageserver.efm'] = {
+\ 'command': 'efm-langserver',
+\ 'args': ['-c', expand('<sfile>:p:h:h:h').'/efm-langserver-config.json'],
+\ 'filetypes': ['lua'],
+\ }

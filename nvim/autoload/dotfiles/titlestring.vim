@@ -19,8 +19,10 @@ function! dotfiles#titlestring#terminal() abort
 endfunction
 
 function! dotfiles#titlestring#get() abort
-  if &filetype ==# 'fzf'
-    let str = "FZF %{exists('b:fzf') ? get(b:fzf, 'name', '') : ''}"
+  if get(w:, 'snacks_layout', 0)
+    let str = "%{v:lua.dotfiles.snacks_picker_info('title')} picker"
+  elseif &filetype ==# 'fzf' || exists('w:fzf_lua_win') || exists('w:fzf_lua_preview')
+    let str = "FZF%{exists('b:fzf') ? ' ' . get(b:fzf, 'name', '') : ''}"
   elseif &buftype ==# 'terminal'
     return '%{dotfiles#titlestring#terminal()} (%{v:progname})'
   elseif &buftype ==# 'help'

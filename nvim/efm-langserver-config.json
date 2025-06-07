@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/mattn/efm-langserver/refs/heads/master/schema.json",
+  "version": 2,
+  "languages": {
+    "lua": [
+      {
+        "format-command": "stylua --search-parent-directories --stdin-filepath=${INPUT} -",
+        "format-stdin": true
+      }
+    ]
+  }
+}
