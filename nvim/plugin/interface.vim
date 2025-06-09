@@ -432,19 +432,6 @@ if exists('*api_info')
 endif
 
 
-" uptime {{{
-  function! Uptime() abort
-    let time = float2nr(localtime() - g:dotfiles_boot_localtime)
-    let d = time / 60 / 60 / 24
-    let h = time / 60 / 60 % 24
-    let m = time / 60 % 60
-    let s = time % 60
-    return (d > 0 ? printf('%dd ', d) : '') . printf('%02d:%02d:%02d', h, m, s)
-  endfunction
-  command! -bar Uptime echo Uptime()
-" }}}
-
-
 augroup dotfiles_terminal
   autocmd!
   autocmd WinEnter * if &buftype == 'terminal' | startinsert | endif
