@@ -105,17 +105,35 @@ function M.setup(servers)
       config.capabilities = blink_cmp.get_lsp_capabilities(config.capabilities)
     end
 
-    -- lspconfig's launcher does not support `root_markers`, this is a feature
-    -- introduced in |vim.lsp|.
-    if config.root_markers and not config.root_dir then
-      vim.list_extend(config.root_markers, { '.vim', '.git', '.hg', '.projections.json' });
+    local root_markers = config.root_markers
+    local root_dir = config.root_dir
+    if root_markers and not root_dir then
+      -- lspconfig's launcher does not support `root_markers`, this is a feature
+      -- introduced by |vim.lsp|.
+      vim.list_extend(root_markers, { '.vim', '.git', '.hg', '.projections.json' });
       (config --[[@as lspconfig.Config]]).root_dir = function(buf_path)
-        local path = vim.fs.root(buf_path, config.root_markers)
+        return vim.fs.root(buf_path, root_markers)
+      end
+    elseif type(root_dir) == 'function' then
+      -- lspconfig also uses a different signature for `root_dir`, and its
+      -- `root_dir` is ran within an asynchronous coroutine, unlike |vim.lsp|'s
+      -- `root_dir`, which receives a callback.
+      (config --[[@as lspconfig.Config]]).root_dir = function(filename, bufnr)
+        local dir_cb, await = utils.async()
+        root_dir(bufnr, dir_cb)
+        local path = await()
+        if vim.in_fast_event() then -- Re-enter the main loop of Neovim if necessary.
+          local cb, await = utils.async()
+          vim.schedule(cb)
+          await()
+        end
         return path
       end
     end
+
     -- Translate this property into lspconfig's terms as well.
     (config --[[@as lspconfig.Config]]).single_file_support = not config.workspace_required
+
     -- HACK: Make lspconfig recognize the config exactly as it was supplied by me.
     if LspConfigs[name] ~= nil then LspConfigs[name] = nil end
     LspConfigs[name] = { default_config = config }
