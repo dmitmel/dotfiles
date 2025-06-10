@@ -209,8 +209,6 @@ end
 ---@return dotfiles.augroup
 function M.augroup(name, opts) return require('dotfiles.augroup').create(name, opts) end
 
-function M.pack(...) return { n = select('#', ...), ... } end
-
 ---@generic F: function
 ---@param callback F
 ---@return F
@@ -219,10 +217,11 @@ function M.schedule_once_per_frame(callback)
   return function(...)
     if not scheduled then
       scheduled = true
-      local args = M.pack(...)
+      local args = { ... }
+      local args_len = select('#', ...)
       vim.schedule(function()
         scheduled = false
-        callback(unpack(args, 1, args.n))
+        callback(unpack(args, 1, args_len))
       end)
     end
   end
@@ -244,27 +243,25 @@ end
 --- Helper for turning callback-based APIs into asynchronous functions. Based on
 --- <https://github.com/gregorias/coerce.nvim/blob/4ea7e31b95209105899ee6360c2a3a30e09d361d/lua/coerce/coroutine.lua>
 --- and <https://gregorias.github.io/posts/using-coroutines-in-neovim-lua/>.
----@return fun(...) async_callback
----@return fun():... await
-function M.async()
+---@param fn fun(callback: fun(...))
+---@return ...
+function M.await(fn)
   local co = assert(coroutine.running(), 'needs to be called within a coroutine')
   local results = nil
 
   local function async_callback(...)
-    results = M.pack(...)
+    results = { n = select('#', ...), ... }
     if coroutine.status(co) == 'suspended' then
       local ok, err = coroutine.resume(co)
       if not ok then error(debug.traceback(co, err)) end
     end
   end
 
-  local function await()
-    if not results then coroutine.yield() end
-    assert(results, 'async callback did not get called')
-    return unpack(results, 1, results.n)
-  end
+  fn(async_callback)
 
-  return async_callback, await
+  if not results then coroutine.yield() end
+  assert(results, 'async callback did not get called')
+  return unpack(results, 1, results.n)
 end
 
 return M
