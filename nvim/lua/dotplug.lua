@@ -1,6 +1,6 @@
 -- See the complementary code in ../autoload/dotplug.vim
 
-local M = require('dotfiles.autoload')('dotplug', _G.dotplug)
+local M, module = require('dotfiles.autoload')('dotplug', _G.dotplug)
 _G.dotplug = M
 
 if vim.g['dotplug#implementation'] ~= 'lazy.nvim' then
@@ -42,7 +42,8 @@ M.lazy_config = {
     colorscheme = { 'default' },
   },
   change_detection = {
-    enabled = false,
+    enabled = false, -- I will do that myself.
+    notify = false,
   },
   ui = {
     backdrop = 100,
@@ -209,6 +210,19 @@ function M.end_setup()
     LazyLoader.packadd = old_packadd
     vim.o.loadplugins = old_loadplugins
   end
+
+  vim.api.nvim_create_autocmd('BufWritePost', {
+    group = vim.api.nvim_create_augroup(module.name, { clear = true }),
+    pattern = vim.fn.escape(utils.script_relative('../lua/dotfiles/plugins'), '*?,{}[]\\')
+      .. '/*.lua',
+    callback = utils.schedule_once_per_frame(function(event)
+      local message = ("Reloading lazy.nvim config because '%s' got changed"):format(
+        vim.fn.fnamemodify(event.match, ':~:.')
+      )
+      utils.echo(message)
+      require('lazy.manage.reloader').reload()
+    end),
+  })
 end
 
 return M
