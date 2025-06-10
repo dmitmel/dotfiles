@@ -18,6 +18,8 @@ if dotplug.has('nvim-bqf') then
       nexthist = '<C-n>',
       openc = '<CR>',
       open = 'o',
+      pscrollup = '<C-u>',
+      pscrolldown = '<C-d>',
     },
 
     ---@diagnostic disable-next-line: missing-fields
@@ -465,7 +467,7 @@ local snacks_config = {
           -- normal. These two only work in the Normal mode.
           ['<c-u>'] = { 'list_scroll_up', mode = { 'n' } },
           ['<c-d>'] = { 'list_scroll_down', mode = { 'n' } },
-          -- ['<F1>'] = { 'toggle_help_list', mode = { 'n', 'i' } },
+          ['<F1>'] = { 'toggle_help_list', mode = { 'n', 'i' } },
         },
 
         wo = { virtualedit = 'none' },

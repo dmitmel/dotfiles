@@ -1,9 +1,7 @@
 exe dotfiles#ft#set('&colorcolumn', '')
 
-nnoremap <silent><buffer> <Esc> :<C-u>close<CR>
-nnoremap <silent><buffer>   q   :<C-u>close<CR>
-
-call dotfiles#ft#undo_map('n', ['<Esc>', 'q'])
+nnoremap <buffer> q <C-w>c
+call dotfiles#ft#undo_map('n', ['q'])
 
 " <https://github.com/romainl/vim-qf/blob/4fe7e33a514874692d6897edd1acaaa46d9fb646/after/ftplugin/qf.vim#L48-L94>
 if exists('g:qf_mapping_ack_style')

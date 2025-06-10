@@ -129,9 +129,19 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bdelete  exe dotfiles#bufclose#cmd('bdelete<bang>',  <q-args>)
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
+  function! s:is_floating() abort
+    if exists('*win_gettype')
+      return win_gettype() ==# 'popup'
+    elseif exists('*nvim_win_get_config')
+      return nvim_win_get_config(0).relative !=# ''
+    else
+      return 0
+    endif
+  endfunction
+
   function! s:close_buffer() abort
     if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' ||
-    \  &previewwindow || &filetype ==# 'fugitive'
+    \  &previewwindow || &filetype ==# 'fugitive' || s:is_floating()
       close
     else
       Bdelete
@@ -176,13 +186,6 @@ set history=10000
   " Make a split on the Z-axis or, more simply, open just the current buffer in a new tab.
   nnoremap <leader>t :<C-u>tab split<CR>
   nnoremap <leader>T :<C-u>tabclose<CR>
-
-  if exists('*nvim_win_get_config')
-    " Close floating windows with <Esc> in Neovim. This mapping was originally
-    " intended for LSP floats (check the presence of `w:lsp_floating_bufnr` to
-    " detect those), but I think that generalizing it might be useful.
-    nnoremap <expr> <Esc> !empty(nvim_win_get_config(0).relative) ? "\<C-w>c" : "\<Esc>"
-  endif
 
 " }}}
 
