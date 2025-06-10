@@ -10,7 +10,8 @@ return {
   config = function()
     -- vim.g._ts_force_sync_parsing = true
 
-    local cfg = {
+    ---@diagnostic disable-next-line: missing-fields
+    require('nvim-treesitter.configs').setup({
       ensure_installed = {
         'c',
         'lua',
@@ -34,11 +35,9 @@ return {
       },
 
       highlight = {
-        enable = false,
+        enable = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
       },
-    }
-
-    require('nvim-treesitter.configs').setup(cfg)
+    })
 
     local ts_utils = require('nvim-treesitter.ts_utils')
     local ns_id = vim.api.nvim_create_namespace('dotfiles_link_under_cursor')

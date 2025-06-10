@@ -106,7 +106,7 @@ if dotplug.has('fzf-lua') then
         },
       },
 
-      treesitter = { enabled = utils.is_truthy(vim.g.dotfiles_treesitter_highlighter_enabled) },
+      treesitter = { enabled = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting) },
 
       ---@param params { winid: integer, bufnr: integer }
       on_create = function(params)
@@ -205,8 +205,18 @@ if dotplug.has('fzf-lua') then
 
     previewers = {
       builtin = {
-        treesitter = { enabled = utils.is_truthy(vim.g.dotfiles_treesitter_highlighter_enabled) },
         title_fnamemodify = function(s) return vim.fn.fnamemodify(s, ':~:.') end,
+        treesitter = {
+          -- This will either return `true` to enable treesitter in previews for
+          -- all filetypes, or a list of allowed filetypes.
+          enabled = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting) or {
+            -- NOTE: Treesitter is too slow for the `help` filetype, which
+            -- really bugs me when searching the manual with <F1>. For `query`
+            -- the regex syntax highlighting sucks, so Treesitter is a must-have,
+            -- and they are usually pretty small anyway and can be parsed quickly.
+            'query',
+          },
+        },
       },
     },
 

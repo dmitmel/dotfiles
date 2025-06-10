@@ -644,8 +644,10 @@ endif
   \ }
 
   if has('nvim-0.9.0')
-    nmap <silent> <leader>hlt <Cmd>Inspect<CR>
     command HLT Inspect
+    nmap <leader>hlt <Cmd>Inspect<CR>
+    " Toggle treesitter highlighting in the buffer.
+    nmap <leader>ht <Cmd>lua vim.treesitter[vim.b.ts_highlight and 'stop' or 'start']()<CR>
   else
     " Workaround for a select-mode mapping definition in:
     " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>

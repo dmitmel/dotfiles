@@ -100,10 +100,20 @@ require('blink.cmp').setup({
       },
     },
 
-    documentation = { auto_show = false },
+    documentation = {
+      auto_show = false,
+      -- TODO: disabling treesitter disables ALL highlighting here. Why?
+      -- <https://github.com/saghen/blink.cmp/blob/cb5e346d9e0efa7a3eee7fd4da0b690c48d2a98e/lua/blink/cmp/lib/window/docs.lua>
+      treesitter_highlighting = true or utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
+    },
   },
 
-  signature = { enabled = true },
+  signature = {
+    enabled = true,
+    window = {
+      treesitter_highlighting = true or utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
+    },
+  },
 
   snippets = {
     preset = dotplug.has('LuaSnip') and 'luasnip' or 'default',
