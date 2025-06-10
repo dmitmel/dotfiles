@@ -86,6 +86,11 @@ function! s:setup() abort
   call Hi('IblSpace',      { 'fg': 0x3, 'attr': nocombine })
   call Hi('IblScope',      { 'fg': 0x3, 'attr': nocombine })
 
+  if get(g:, 'dotfiles_highlight_url_under_cursor', 0)
+    call Hi('Underlined',       { 'fg': 0xD                      })
+    call Hi('ReallyUnderlined', { 'fg': 0xD, 'attr': 'underline' })
+  endif
+
   let rainbow_indent_opacity = get(g:, 'dotfiles_rainbow_indent_opacity', 0)
   let indent_scope_opacity = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
 

@@ -233,6 +233,9 @@ exe dotplug#define_plug_here()
       " Manages global and local settings for Language Servers.
       Plug 'https://github.com/folke/neoconf.nvim'
     endif
+    " The new parsing and syntax highlighting system for Neovim.
+    Plug 'https://github.com/nvim-treesitter/nvim-treesitter', {
+          \ 'do': ':TSUpdate', 'if': has('nvim-0.9.0') }
   endif
 " }}}
 

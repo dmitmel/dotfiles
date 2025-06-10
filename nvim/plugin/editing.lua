@@ -68,3 +68,94 @@ function vim.treesitter.start(bufnr, lang) ---@diagnostic disable-line: duplicat
   -- No exit route was taken -- we can start Treesitter.
   return vim.treesitter._really_start(bufnr, lang)
 end
+
+if dotplug.has('nvim-treesitter') then
+  -- vim.g._ts_force_sync_parsing = true
+
+  ---@diagnostic disable-next-line: missing-fields
+  require('nvim-treesitter.configs').setup({
+    ensure_installed = {
+      'c',
+      'lua',
+      'vim',
+      'vimdoc',
+      'query',
+      'regex',
+      'markdown',
+      'markdown_inline',
+      'comment',
+      'cpp',
+      'asm',
+      'cmake',
+      'css',
+      'html',
+      'javascript',
+      'typescript',
+      'tsx',
+      'python',
+    },
+
+    highlight = {
+      enable = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
+    },
+  })
+
+  local clear_underlined_urls ---@type function|nil
+
+  local function highlight_url_under_cursor()
+    if clear_underlined_urls ~= nil then
+      clear_underlined_urls()
+      clear_underlined_urls = nil
+    end
+
+    local winnr = vim.api.nvim_get_current_win()
+    local bufnr = vim.api.nvim_win_get_buf(winnr)
+    local line, col = unpack(vim.api.nvim_win_get_cursor(winnr))
+    local row = line - 1
+
+    -- Terminology of Treesitter, as far as I understand it:
+    -- 1. highlighter -- applies queries to the document to find what to highlight
+    -- 2. language tree -- a tree with the root language of the document and injected languages
+    -- 3. tree -- the structure representing the abstract syntax tree
+    -- 4. matches -- results of applying queries to the tree
+    -- 5. captures -- nodes of the tree collected in a match, which can be highlighted together
+
+    local buf_highlighter = vim.treesitter.highlighter.active[bufnr]
+    if not buf_highlighter then return end
+
+    local cur_range = { row, col, row, col + 1 }
+    local lang_tree = buf_highlighter.tree:language_for_range(cur_range)
+    local query = vim.treesitter.query.get(lang_tree:lang(), 'highlights')
+    if not query then return end
+
+    local tree = lang_tree:tree_for_range(cur_range)
+    if not tree then return end
+
+    local ns_id = vim.api.nvim_create_namespace('dotfiles_url_under_cursor')
+    local extmarks = {} ---@type integer[]
+
+    for id, node, metadata, match in query:iter_captures(tree:root(), bufnr, row, row + 1) do
+      local name = query.captures[id]
+      if vim.treesitter.node_contains(node, cur_range) and name:match('[._]url$') then
+        local start_row, start_col, end_row, end_col = node:range()
+        extmarks[#extmarks + 1] = vim.api.nvim_buf_set_extmark(bufnr, ns_id, start_row, start_col, {
+          end_row = end_row,
+          end_col = end_col,
+          hl_group = 'ReallyUnderlined',
+        })
+      end
+    end
+
+    clear_underlined_urls = function()
+      for _, id in ipairs(extmarks) do
+        vim.api.nvim_buf_del_extmark(bufnr, ns_id, id)
+      end
+    end
+  end
+
+  if utils.has('nvim-0.10.0') and utils.is_truthy(vim.g.dotfiles_highlight_url_under_cursor) then
+    utils
+      .augroup('dotfiles_url_under_cursor')
+      :autocmd({ 'CursorMoved', 'CursorMovedI', 'WinEnter' }, highlight_url_under_cursor)
+  end
+end
