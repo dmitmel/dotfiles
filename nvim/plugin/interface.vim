@@ -161,13 +161,6 @@ set history=10000
 
 " Windows {{{
 
-  " Smooth horizontal scrolling, basically.
-  set sidescroll=1
-
-  " When `wrap` is on and the last line doesn't fit on the screen, display it
-  " partially with @@@ at the end.
-  set display+=lastline
-
   for s:key in ['h', 'j', 'k', 'l']
     for s:mode in ['n', 'x']
       execute s:mode.'noremap <C-'.s:key.'> <C-w>'.s:key

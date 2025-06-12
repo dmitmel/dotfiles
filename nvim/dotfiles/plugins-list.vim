@@ -48,9 +48,6 @@ exe dotplug#define_plug_here()
   " Also adds many more useful (URL and XML encoding/decoding of selection, for
   " instance) and useless utilities.
   Plug 'https://github.com/tpope/vim-unimpaired'
-  " Sets up quite a few defaults for straightforward prose writing in Vim. Just
-  " read its README for the set of features.
-  Plug 'https://github.com/reedes/vim-pencil'
   " Adds an operator `cx` for swapping two text selections. Occasionally VERY
   " useful, especially during refactoring for changing the order of arguments
   " in a function.

@@ -223,7 +223,37 @@ endif
 
 
 " Wrapping {{{
-  set nowrap textwidth=80 colorcolumn=+1 "colorcolumn=81,101,121
+  set nowrap          " By default, don't wrap lines longer than the window width permits, use horizontal scroll.
+  set textwidth=80    " I use `textwidth` only for wrapping prose with `gw`, code wrapping is
+  set colorcolumn=+1  " handled by formatters. Additionally, highlight the column at `textwidth+1`.
+  set linebreak       " When wrapping, break lines only on `breakat` characters (also called "soft wrapping").
+  set breakindent     " The wrapped text will be offset to the right with the width of the indent.
+  set sidescroll=1    " Basically, smooth horizontal scrolling.
+
+  " If the last line is wrapped, but does not fit into the window completely, display @@@ at the end.
+  set display+=lastline
+  " Same, but for the first line, if it does not fit completely, draw it partially and show <<< at the start.
+  if exists('+smoothscroll') | set smoothscroll | endif
+
+  " Swap `[hjkl]` and `g[hjkl]` keys when `wrap` is on.
+  for s:key in ['j', 'k', '0', '$', '<Up>', '<Down>', '<Home>', '<End>']
+    exe printf('noremap <expr>  %s &wrap ? "g%s" : "%s"', s:key, s:key, s:key)
+    exe printf('noremap <expr> g%s &wrap ? "%s" : "g%s"', s:key, s:key, s:key)
+    exe 'sunmap  '.s:key
+    exe 'sunmap g'.s:key
+  endfor
+
+  " My final attempt at untangling the mess that are the <Up> and <Down> keys.
+  for s:key in ['<Up>', '<Down>']
+    " `./completion.vim` might remap <Up> and <Down> before `./editing.vim` runs,
+    " so make the wrapped <Up/Down> keys available as <Plug>dotfiles<Up/Down>,
+    " which `./completion.vim` can use.
+    exe printf('inoremap <silent><expr> <Plug>dotfiles%s &wrap ? <SID>Cmd("normal! g%s") : "%s"',
+          \ s:key, s:key, s:key)
+    if empty(maparg(s:key, 'i'))
+      exe 'imap' s:key '<Plug>dotfiles'.s:key
+    endif
+  endfor
 " }}}
 
 
@@ -314,20 +344,6 @@ endif
   " Break undo on CTRL-W and CTRL-U in the Insert mode.
   inoremap <C-u> <C-g>u<C-u>
   inoremap <C-w> <C-g>u<C-w>
-
-  " My final attempt at untangling the mess that are the <Up> and <Down> keys.
-  function! s:arrow_mapping(rhs) abort
-    return get(b:, 'pencil_wrap_mode', 0) != 0 ? s:Cmd('normal! g' . a:rhs) : a:rhs
-  endfunction
-  inoremap <silent><expr> <Plug>dotfiles<Up>   <SID>arrow_mapping("\<Up>")
-  inoremap <silent><expr> <Plug>dotfiles<Down> <SID>arrow_mapping("\<Down>")
-
-  if empty(maparg('<Up>', 'i'))
-    imap <Up>   <Plug>dotfiles<Up>
-  endif
-  if empty(maparg('<Down>', 'i'))
-    imap <Down> <Plug>dotfiles<Down>
-  endif
 
   " Make <BS> and others work in the Select mode as expected. Otherwise, if <BS>
   " is pressed when a snippet placeholder is selected, the placeholder will be
@@ -543,6 +559,7 @@ endif
     endif
   endfunction
   command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
+  execute dotutils#cmd_alias('Sp', 'SpellCheck!')
 
 " }}}
 
@@ -604,17 +621,13 @@ endif
   let g:surround_{char2nr('*')} = "**\r**"
   let g:surround_{char2nr('~')} = "~~\r~~"
 
-  let g:pencil#wrapModeDefault = 'soft'
-  let g:pencil#conceallevel = 0
-  let g:pencil#cursorwrap = 0
-
   xmap <leader>a <Plug>(LiveEasyAlign)
   nmap <leader>a <Plug>(LiveEasyAlign)
 
   let g:sneak#prompt = 'sneak> '
   for s:key in ['f', 'F', 't', 'T']
-    exe 'map '.s:key.' <Plug>Sneak_'.s:key
-    exe 'sunmap '.s:key
+    exe 'map' s:key '<Plug>Sneak_'.s:key
+    exe 'sunmap' s:key
   endfor
 
   " Remove the mappings that I won't use
