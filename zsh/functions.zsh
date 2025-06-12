@@ -233,6 +233,18 @@ allow-ptrace() {
     --keep=1 --user="$USER" --addamb="cap_sys_ptrace" --shell="$program" -- "$@"
 }
 
+check-ssd-health() {
+  sudo smartctl -l devstat "$1" | grep --color=always 'Percentage Used Endurance Indicator\|$'
+}
+
+scan-local-network() {
+  local subnets=( $(command ip -4 route | awk '$1 ~ /\// { print $1 }') )
+  # <https://nmap.org/book/reduce-scantime.html>
+  # -sn -- just a ping scan, without scanning ports
+  # -n  -- disable DNS resolution of scanned hosts
+  nmap -sn -n "${subnets[@]}" --stats-every 1s
+}
+
 j() {
   local selected
   if selected=( $(z -l | fzf --with-nth=2.. --tac --tiebreak=index --query="$*") ); then
