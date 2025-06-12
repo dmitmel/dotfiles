@@ -110,30 +110,22 @@ function self.decoration_provider.on_start(_, tick)
   self.filetypes_exclude = to_set(opt('filetype_exclude', 'fileTypeExclude', {}))
   ---@type table<string, boolean>
   self.buftype_exclude = to_set(opt('buftype_exclude', 'bufTypeExclude', {}))
+  ---@type string[]
   self.bufname_exclude = opt('bufname_exclude', 'bufNameExclude', {})
 end
 
 -- <https://github.com/neovim/neovim/pull/26833>
 -- <https://github.com/neovim/neovim/commit/dc48a98f9ac614dc94739637c967aa29e064807e>
 -- <https://github.com/neovim/neovim/commit/444f37fe510f4c28c59bade40d7ba152a5ee8f7c>
-local has_correct_botline_reporting = utils.has('nvim-0.10.0')
+local has_correct_botrow_reporting = utils.has('nvim-0.10.0')
 
 function self.decoration_provider.on_win(_, winid, bufnr, toprow, botrow)
-  -- NOTE: the toprow and botrow values, passed to this handler, correspond to
-  -- the window's entire viewport (the first and last visible lines), and not
-  -- the region that will be redrawn. The information in `botrow` is unreliable
-  -- though, see <https://github.com/neovim/neovim/pull/26833#issuecomment-1873869653>.
-  local botline = has_correct_botline_reporting and (botrow + 1)
-    or math.min(botrow - 1, vim.api.nvim_buf_line_count(bufnr))
-  local topline = toprow + 1
-
   -- Check if we've already encountered this buffer and explicitly rejected it.
   if self.bufs_excluded[bufnr] then return false end
   if self.disable_with_nolist and not vim.wo[winid].list then return false end
-
   local current_win = vim.api.nvim_get_current_win()
 
-  -- Actually, a little thing I discovered: nvim_win_call() and nvim_buf_call()
+  -- A little thing I've discovered: |nvim_win_call()| and |nvim_buf_call()|
   -- return the value that was returned by the callback. Nice!
   return vim.api.nvim_win_call(winid, function()
     if self.bufs_excluded[bufnr] == nil then
@@ -149,6 +141,21 @@ function self.decoration_provider.on_win(_, winid, bufnr, toprow, botrow)
         self.bufs_excluded[bufnr] = false
       end
     end
+
+    -- NOTE: The range represented by `toprow` and `botrow` (end-inclusive and
+    -- zero-indexed) corresponds to the window's entire viewport (the first and
+    -- last visible lines), and not the region that will be redrawn. The
+    -- information in `botrow` used to be unreliable though, which was fixed by
+    -- <https://github.com/neovim/neovim/pull/26833#issuecomment-1873869653>.
+    -- NOTE: Additionally, the value for `botrow` is obtained the same way as
+    -- `botline` in the dictionary returned by `getwininfo()`, which actually is
+    -- the last **completely displayed** line (as opposed to a wrapped line that
+    -- does not fit into the window and continues in the off-screen area).
+    -- Therefore, `botrow + 1` would be either the last partially visible line,
+    -- or, when the last line is fully visible, the line number just below it.
+    local botline = has_correct_botrow_reporting and botrow
+      or vim.api.nvim_eval('getwininfo(' .. winid .. ')[0].botline')
+    local topline = toprow + 1
 
     self.update_win_info(winid, bufnr, topline, botline)
     if winid == current_win then self.update_scope(winid) end
@@ -286,8 +293,8 @@ function self.update_scope(winid)
   local level = math.floor((indent - 1) / win_info.shiftwidth)
 
   if self.is_in_scope(winid, win_info.bufnr, cursor_line, level) then
-    self.scope_data.first_line = self.expand_scope(winid, level, self.scope_data.first_line, true)
-    self.scope_data.last_line = self.expand_scope(winid, level, self.scope_data.last_line, false)
+    self.scope_data.first_line = self.expand_scope(level, self.scope_data.first_line, true)
+    self.scope_data.last_line = self.expand_scope(level, self.scope_data.last_line, false)
     return
   end
 
@@ -296,8 +303,8 @@ function self.update_scope(winid)
     winid = winid,
     bufnr = win_info.bufnr,
     level = level,
-    first_line = self.expand_scope(winid, level, cursor_line, true),
-    last_line = self.expand_scope(winid, level, cursor_line, false),
+    first_line = self.expand_scope(level, cursor_line, true),
+    last_line = self.expand_scope(level, cursor_line, false),
   }
 
   local old_scope = self.scope_data
@@ -321,14 +328,20 @@ function self.is_in_scope(winid, bufnr, line, indent_level)
     and (scope.first_line <= line and line <= scope.last_line)
 end
 
----@param winid integer
 ---@param scope_level integer
 ---@param line integer
 ---@param up boolean
 ---@return integer
-function self.expand_scope(winid, scope_level, line, up)
-  local win_info = self.wins_info[winid]
+function self.expand_scope(scope_level, line, up)
+  local win_info = self.wins_info[vim.api.nvim_get_current_win()]
   local step = up and -1 or 1
+
+  -- Expand the search radius by one line up and down. This is necessary to draw
+  -- the scope correctly when the last line is only partially displayed (due to
+  -- wrapping), but also helps with performance when scrolling the buffer by
+  -- holding j/l or <C-u>/<C-d>.
+  local min_line = math.max(1, win_info.topline - 1)
+  local max_line = math.min(win_info.botline + 1, vim.api.nvim_buf_line_count(0))
 
   while true do
     if not win_info.no_folds then
@@ -354,8 +367,8 @@ function self.expand_scope(winid, scope_level, line, up)
     end
 
     line = line + step
-    if line <= 0 or line < win_info.topline or line > win_info.botline then
-      return up and win_info.topline or win_info.botline -- reached the top or the bottom of the buffer
+    if line < min_line or line > max_line then
+      return up and min_line or max_line -- reached the top or the bottom of the buffer
     end
 
     local indent = self.get_blankline_indent(line)
@@ -371,7 +384,6 @@ local reusable_extmark = {
   ephemeral = true,
   hl_mode = 'combine',
   virt_text = { { '', '' } },
-  virt_text_pos = 'overlay',
   virt_text_win_col = -1,
 }
 
@@ -413,10 +425,8 @@ function self.decoration_provider.on_line(_, winid, bufnr, row)
   end
 
   local col = info.view.leftcol
-  if info.list and info.listchars.precedes ~= nil and info.view.leftcol > 0 then
-    col = col + shiftwidth
-  end
-  if not self.show_first_indent_level then col = col + 1 end
+    + ((info.list and info.listchars.precedes ~= nil and info.view.leftcol > 0) and 1 or 0)
+    + ((not self.show_first_indent_level) and 1 or 0)
 
   local max_col = math.min(indent, self.max_indent_level * shiftwidth)
   while col < max_col do
