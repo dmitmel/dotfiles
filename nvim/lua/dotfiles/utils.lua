@@ -1,3 +1,6 @@
+-- TODO: Make a PR to neovim for vim.regex improvements:
+-- match() matchend() matchlist() matchstr() matchstrpos() split() substitute()
+
 local M = require('dotfiles.autoload')('dotfiles.utils', _G.dotutils)
 _G.dotutils = M
 
@@ -194,14 +197,18 @@ function M.get_inmemory_buf_size(bufnr)
   return vim.api.nvim_buf_get_offset(bufnr, vim.api.nvim_buf_line_count(bufnr))
 end
 
+---@param chunks string|[string,string?][]
+---@param hl_group? string
 function M.echo(chunks, hl_group)
-  if type(chunks) == 'string' then chunks = { chunks, hl_group } end
-  return vim.api.nvim_echo(chunks, false, {})
+  if type(chunks) == 'string' then chunks = { { chunks, hl_group } } end
+  vim.api.nvim_echo(chunks, false, {})
 end
 
+---@param chunks string|[string,string?][]
+---@param hl_group? string
 function M.echomsg(chunks, hl_group)
   if type(chunks) == 'string' then chunks = { { chunks, hl_group } } end
-  return vim.api.nvim_echo(chunks, true, {})
+  vim.api.nvim_echo(chunks, true, {})
 end
 
 ---@param name string

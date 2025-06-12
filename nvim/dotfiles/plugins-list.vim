@@ -215,10 +215,6 @@ exe dotplug#define_plug_here()
     Plug 'https://github.com/puremourning/vimspector', { 'lazy': v:true,
           \ 'if': has('nvim') ? has('nvim-0.4.3') : (v:version >= 802 && has('python3')) }
     if g:vim_ide == 2 && has('nvim-0.11')
-      " The snippet engine. Also handles the loading of snippet files.
-      Plug 'https://github.com/L3MON4D3/LuaSnip', { 'version': 'v2.*', 'do': 'make install_jsregexp' }
-      " The autocompletion engine. Super fast!
-      Plug 'https://github.com/saghen/blink.cmp', { 'version': 'v1.1.*', 'requires': 'LuaSnip' }
       " Used for setting up non-LSP formatters (but makes improvements to LSP formatting as well).
       Plug 'https://github.com/stevearc/conform.nvim'
       " Shows LSP and non-LSP notifications and progress messages in a nice and unobtrusive UI.

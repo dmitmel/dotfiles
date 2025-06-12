@@ -1,19 +1,4 @@
--- TODO: Make a PR to neovim for vim.regex improvements:
--- match() matchend() matchlist() matchstr() matchstrpos() split() substitute()
-
 local utils = require('dotfiles.utils')
-
-if not dotplug.has('blink.cmp') then return end
-
-if dotplug.has('LuaSnip') then
-  require('luasnip.loaders.from_snipmate').lazy_load()
-  utils.augroup('dotfiles_snippets'):autocmd({ 'InsertEnter', 'InsertLeave' }, function()
-    local LuaSnip = require('luasnip')
-    if LuaSnip.get_active_snip() ~= nil and not LuaSnip.in_snippet() then
-      LuaSnip.unlink_current()
-    end
-  end)
-end
 
 ---@param distance number
 ---@return fun(cmp: blink.cmp.API): boolean
@@ -39,7 +24,8 @@ end
 
 -- NOTE: <https://www.youtube.com/watch?v=wCllU4YkxBk&t=107s>
 -- Default configuration: <https://cmp.saghen.dev/configuration/reference.html>
-require('blink.cmp').setup({
+---@type blink.cmp.Config
+local blink_cmp_config = {
   enabled = function()
     local recording_macro = vim.fn.reg_recording() ~= ''
     local in_replace_mode = vim.api.nvim_get_mode().mode:match('^R')
@@ -91,8 +77,8 @@ require('blink.cmp').setup({
     },
 
     menu = {
-      min_width = vim.o.pumwidth,
-      max_height = vim.o.pumheight,
+      min_width = 15,
+      max_height = 20,
       draw = {
         -- By default `label` and `label_description` are put in the same
         -- column, which causes the label description to be right-aligned.
@@ -116,7 +102,7 @@ require('blink.cmp').setup({
   },
 
   snippets = {
-    preset = dotplug.has('LuaSnip') and 'luasnip' or 'default',
+    preset = 'luasnip',
     score_offset = 0, -- base penalty for ALL snippets
   },
 
@@ -191,4 +177,35 @@ require('blink.cmp').setup({
     implementation = 'prefer_rust_with_warning',
     sorts = { 'score', 'sort_text' },
   },
-})
+}
+
+---@type LazySpec
+return {
+  'https://github.com/saghen/blink.cmp',
+  version = 'v1.*',
+  enabled = vim.g.vim_ide == 2 and utils.has('nvim-0.10'),
+
+  dependencies = {
+    {
+      'https://github.com/L3MON4D3/LuaSnip',
+      version = 'v2.*',
+      build = 'make install_jsregexp',
+      enabled = utils.has('nvim-0.7'),
+
+      config = function(_, opts)
+        local luasnip = require('luasnip')
+        luasnip.setup(opts)
+
+        require('luasnip.loaders.from_snipmate').lazy_load()
+
+        utils.augroup('dotfiles_snippets'):autocmd({ 'InsertEnter', 'InsertLeave' }, function()
+          if luasnip.get_active_snip() ~= nil and not luasnip.in_snippet() then
+            luasnip.unlink_current()
+          end
+        end)
+      end,
+    },
+  },
+
+  opts = blink_cmp_config,
+}

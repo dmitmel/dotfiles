@@ -215,13 +215,10 @@ function M.end_setup()
     group = vim.api.nvim_create_augroup(module.name, { clear = true }),
     pattern = vim.fn.escape(utils.script_relative('../lua/dotfiles/plugins'), '*?,{}[]\\')
       .. '/*.lua',
-    callback = utils.schedule_once_per_frame(function(event)
-      local message = ("Reloading lazy.nvim config because '%s' got changed"):format(
-        vim.fn.fnamemodify(event.match, ':~:.')
-      )
-      utils.echo(message)
-      require('lazy.manage.reloader').reload()
-    end),
+    -- Do schedule() beforehand so that if multiple files get changed, reload is called just once.
+    callback = utils.schedule_once_per_frame(
+      function() require('lazy.manage.reloader').reload() end
+    ),
   })
 end
 
