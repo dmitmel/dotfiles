@@ -49,12 +49,15 @@ end, { desc = 'lsp.buf.hover()' })
 
 vim.cmd('hi def link DiagnosticFloat NormalFloat')
 vim.cmd('hi def link DiagnosticFloatBorder FloatBorder')
-local diagnostic_float_winhl =
-  'setlocal winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder'
 
-map('n', '<A-d>', function() --
-  local _, winid = vim.diagnostic.open_float({ max_width = 80, max_height = 8 })
-  if winid then vim.fn.win_execute(winid, diagnostic_float_winhl) end
+map('n', '<A-d>', function()
+  local _, winid = vim.diagnostic.open_float({ scope = 'line' })
+  if winid then
+    vim.api.nvim_win_call(winid, function()
+      -- Right now this is the easiest way of modifying `winhl`. Change my mind.
+      vim.cmd('setlocal winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder')
+    end)
+  end
 end, { desc = 'vim.diagnostic.open_float()' })
 
 map('n', '<space>d', function() --
@@ -230,7 +233,7 @@ if dotplug.has('conform.nvim') then
   end)())
 end
 
-if dotplug.has('neoconf.nvim') then
+if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
   local neoconf_util = require('neoconf.util')
   local neoconf_config = require('neoconf.config')
 
@@ -281,7 +284,7 @@ if dotplug.has('fidget.nvim') then
     },
     notification = {
       window = {
-        align = 'top',
+        align = 'bottom',
       },
     },
   })
@@ -324,4 +327,41 @@ if dotplug.has('fidget.nvim') then
     fidget.progress.load_config(message)
     fidget.notify(fidget.progress.format_progress(message))
   end)
+end
+
+lsp.util._old_open_floating_preview = lsp.util._old_open_floating_preview
+  or lsp.util.open_floating_preview
+--- This patch updates positions of the floating windows created by
+--- `vim.lsp.util.open_floating_preview()` when the parent window is scrolled,
+--- effectively "anchoring" them to the cursor.
+---@diagnostic disable-next-line: duplicate-set-field
+function lsp.util.open_floating_preview(contents, syntax, opts)
+  local parent_win = vim.api.nvim_get_current_win()
+  local float_buf, float_win = lsp.util._old_open_floating_preview(contents, syntax, opts)
+
+  local augroup = utils.augroup('dotfiles_lsp_float_scroll', { clear = false })
+
+  -- This event is also triggered when a window is resized, so having an
+  -- autocommand for |WinResized| is redundant.
+  local autocmd_id = augroup:autocmd('WinScrolled', function()
+    if not vim.api.nvim_win_is_valid(float_win) or not vim.api.nvim_win_is_valid(parent_win) then
+      return true -- delete this autocommand
+    end
+    -- `v:event` is a dictionary containing all affected windows, see |WinScrolled-event|.
+    if vim.v.event[tostring(parent_win)] ~= nil then
+      vim.api.nvim_win_call(parent_win, function()
+        local width = vim.api.nvim_win_get_width(float_win)
+        local height = vim.api.nvim_win_get_height(float_win)
+        -- This function needs too be called within `parent_win`.
+        local float_opts = lsp.util.make_floating_popup_options(width, height, opts)
+        vim.api.nvim_win_set_config(float_win, float_opts)
+      end)
+    end
+  end)
+
+  augroup:autocmd('WinClosed', tostring(float_win), function() --
+    vim.api.nvim_del_autocmd(autocmd_id)
+  end, { once = true })
+
+  return float_buf, float_win
 end

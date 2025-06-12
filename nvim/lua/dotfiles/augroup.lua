@@ -1,10 +1,8 @@
 ---@class dotfiles.augroup
 ---@field id integer
 ---@field name string
-local augroup = {}
+local augroup = require('dotfiles.autoload')('dotfiles.augroup', {})
 augroup.__index = augroup
-
-augroup = require('dotfiles.autoload')('dotfiles.augroup', augroup)
 
 local utils = require('dotfiles.utils')
 
@@ -19,7 +17,7 @@ function augroup.create(name, opts)
   local self = setmetatable({}, augroup)
   opts = opts or {}
   opts.clear = utils.if_nil(opts.clear, true)
-  self.id = vim.api.nvim_create_augroup(name, { clear = true })
+  self.id = vim.api.nvim_create_augroup(name, opts)
   self.name = name
   return self
 end
@@ -44,7 +42,7 @@ end
 ---@param callback dotfiles.autocmd_callback
 ---@param opts? vim.api.keyset.create_autocmd
 ---@return integer id
----@overload fun(self, event: string[]|string, callback: dotfiles.autocmd_callback, opts?: vim.api.keyset.create_autocmd): self
+---@overload fun(self, event: string[]|string, callback: dotfiles.autocmd_callback, opts?: vim.api.keyset.create_autocmd): integer
 function augroup:autocmd(event, pattern, callback, opts)
   if opts == nil and (callback == nil or type(callback) == 'table') then
     -- Handle the short form without a pattern.

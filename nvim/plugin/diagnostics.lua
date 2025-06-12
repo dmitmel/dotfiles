@@ -27,6 +27,8 @@ vim_diagnostic.config({
     prefix = '',
     border = utils.border_styles.hpad,
     severity_sort = false,
+    max_width = 80,
+    max_height = 8,
 
     suffix = function(diagnostic)
       local meta = {}
