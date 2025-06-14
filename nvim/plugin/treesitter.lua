@@ -74,25 +74,34 @@ if dotplug.has('nvim-treesitter') then
 
   ---@diagnostic disable-next-line: missing-fields
   require('nvim-treesitter.configs').setup({
+    -- NOTE: Keep this list sorted, please.
     ensure_installed = {
       'c',
-      'lua',
-      'vim',
-      'vimdoc',
-      'query',
-      'regex',
-      'markdown',
-      'markdown_inline',
+      'cmake',
       'comment',
       'cpp',
-      'asm',
-      'cmake',
       'css',
       'html',
       'javascript',
-      'typescript',
-      'tsx',
+      'jsdoc',
+      'json',
+      'jsonc',
+      'lua',
+      'luadoc',
+      'luap',
+      'markdown',
+      'markdown_inline',
+      'printf',
       'python',
+      'query',
+      'regex',
+      'toml',
+      'tsx',
+      'typescript',
+      'vim',
+      'vimdoc',
+      'xml',
+      'yaml',
     },
 
     highlight = {
@@ -156,6 +165,9 @@ if dotplug.has('nvim-treesitter') then
   if utils.has('nvim-0.10.0') and utils.is_truthy(vim.g.dotfiles_highlight_url_under_cursor) then
     utils
       .augroup('dotfiles_url_under_cursor')
-      :autocmd({ 'CursorMoved', 'CursorMovedI', 'WinEnter' }, highlight_url_under_cursor)
+      :autocmd(
+        { 'CursorMoved', 'CursorMovedI', 'WinEnter', 'BufEnter' },
+        highlight_url_under_cursor
+      )
   end
 end
