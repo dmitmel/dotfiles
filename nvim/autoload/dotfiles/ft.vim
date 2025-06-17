@@ -1,7 +1,7 @@
 " Utilities for my ftplugins.
 
 function! dotfiles#ft#undo(...) abort
-  let b:undo_ftplugin = (exists('b:undo_ftplugin') ? (b:undo_ftplugin . " | ") : '') . join(a:000, ' | ')
+  let b:undo_ftplugin = (exists('b:undo_ftplugin') ? (b:undo_ftplugin . ' | ') : '') . join(a:000, ' | ')
 endfunction
 
 function! dotfiles#ft#undo_set(name) abort

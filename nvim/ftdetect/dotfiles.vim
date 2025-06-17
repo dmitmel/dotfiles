@@ -1,3 +1,5 @@
+" vint: -ProhibitAutocmdWithNoGroup
+
 " Not sure if it fits here. Typescript's stock library declaration files (for
 " the base language, ECMAScript editions, DOM etc) use mixed line endings for
 " some unknown reason.

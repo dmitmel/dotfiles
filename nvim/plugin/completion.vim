@@ -117,7 +117,7 @@ let g:coc_default_semantic_highlight_groups = 0
 " <https://github.com/neoclide/coc.nvim/blob/76ba8a29bf1342848b78a638065c93b38eaffdf3/src/diagnostic/manager.ts#L138-L149>
 function! s:patch_coc_signs() abort
   for s:severity in ['Error', 'Warn', 'Info', 'Hint']
-    call sign_define('Coc' . (s:severity == 'Warn' ? 'Warning' : s:severity), {
+    call sign_define('Coc' . (s:severity ==# 'Warn' ? 'Warning' : s:severity), {
     \ 'texthl': 'DiagnosticSign'.s:severity,
     \ 'linehl': 'DiagnosticLine'.s:severity,
     \ 'numhl':  'DiagnosticLineNr'.s:severity,

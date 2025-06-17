@@ -367,12 +367,12 @@ function! s:setup() abort
     exe 'hi DiagnosticVirtualText'.severity
     \ 'ctermfg=bg' 'ctermbg='.(base16[color].cterm) 'guifg='.(base16[color].gui) 'gui=bold'
 
-    if severity == 'Ok'
+    if severity ==# 'Ok'
       continue  " This one is actually an undocumented addition to vim.diagnostic
     endif
 
     " Translate the name of the severity into ye olde language
-    let coc_severity = severity == 'Warn' ? 'Warning' : severity
+    let coc_severity = severity ==# 'Warn' ? 'Warning' : severity
     exe 'hi! link' 'Coc'.coc_severity.'Float' 'DiagnosticFloating'.severity
     exe 'hi! link' 'Coc'.coc_severity.'Line' 'DiagnosticLine'.severity
     exe 'hi! link' 'Coc'.coc_severity.'Sign' 'DiagnosticSign'.severity
@@ -380,7 +380,7 @@ function! s:setup() abort
     exe 'hi! link' 'Coc'.coc_severity.'VirtualText' 'DiagnosticVirtualText'.severity
 
     " Translate once more into an even more ancient tongue
-    let qf_severity = coc_severity == 'Hint' ? 'Note' : coc_severity
+    let qf_severity = coc_severity ==# 'Hint' ? 'Note' : coc_severity
 
     " The second quickfix list setup. Requires a bunch of weird tricks with
     " reverse video to look nice. This is needed because highlighting of the

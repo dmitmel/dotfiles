@@ -185,7 +185,7 @@ endif
 
 " Invisible characters {{{
   set list
-  let &listchars = "tab:→ ,extends:>,precedes:<,eol:¬,trail:·,nbsp:␣"
+  let &listchars = 'tab:→ ,extends:>,precedes:<,eol:¬,trail:·,nbsp:␣'
   let &showbreak = '>'
   set display+=uhex
 " }}}
@@ -520,7 +520,7 @@ endif
     elseif a:type ==# 'block'
       silent exe "normal! `[\<C-v>`]" | let cmd = ':s/%V'
     elseif a:type ==# 'char'
-      silent exe "normal! `[v`]" | let cmd = ':s/%V'
+      silent exe 'normal! `[v`]' | let cmd = ':s/%V'
     else
       throw 'unrecognized argument: '.a:type
     endif
@@ -737,15 +737,15 @@ endif
   command! -nargs=+ -complete=command Timeit try | echo reltimefloat(dotfiles#sandboxed_execute#timeit(<q-args>)) | catch | echoerr v:exception | endtry
 
   function! Hex(n) abort
-    return printf("%x", a:n)
+    return printf('%x', a:n)
   endfunction
 
   function! Bin(n) abort
-    return printf("%b", a:n)
+    return printf('%b', a:n)
   endfunction
 
   function! Oct(n) abort
-    return printf("%o", a:n)
+    return printf('%o', a:n)
   endfunction
 
 " }}}

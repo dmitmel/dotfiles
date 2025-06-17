@@ -9,7 +9,7 @@ let g:signify_priority = g:gitgutter_sign_priority
 let g:gitgutter_sign_added                   = '+'
 let g:gitgutter_sign_modified                = '~'
 let g:gitgutter_sign_removed                 = '_'
-let g:gitgutter_sign_removed_first_line      = "‾"
+let g:gitgutter_sign_removed_first_line      = '‾'
 let g:gitgutter_sign_removed_above_and_below = g:gitgutter_sign_removed . g:gitgutter_sign_removed_first_line
 let g:gitgutter_sign_modified_removed        = g:gitgutter_sign_modified . g:gitgutter_sign_removed
 " Mirror the look of gitgutter here.

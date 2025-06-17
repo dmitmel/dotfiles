@@ -79,8 +79,8 @@ let g:dotutils#use_lua_for_open_uri = get(g:, 'dotutils#use_lua_for_open_uri', 0
 
 " Opens the URI with a system viewer program.
 function! dotutils#open_uri(uri, ...) abort
-  if a:0 > 1 | throw "Too many arguments" | endif
-  if empty(a:uri) | throw "The uri must not be empty" | endif
+  if a:0 > 1 | throw 'Too many arguments' | endif
+  if empty(a:uri) | throw 'The uri must not be empty' | endif
   let opts = get(a:000, 0, {})
   " So, for the longest time I've been using Netrw's internal function
   " `netrw#BrowseX` for opening URLs in the browser, but as of Nvim 0.10 and
@@ -173,11 +173,11 @@ function! dotutils#url_under_cursor() abort
 
   " As a last ditch effort let's rely on a snippet from the latest Vim 9.
   " <https://github.com/vim/vim/blob/v9.1.1406/runtime/plugin/openPlugin.vim#L24>
-  return matchstr(expand("<cWORD>"), '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}\ze[^A-Za-z0-9/]*$')
+  return matchstr(expand('<cWORD>'), '\%(\%(http\|ftp\|irc\)s\?\|file\)://\S\{-}\ze[^A-Za-z0-9/]*$')
 endfunction
 
 function! dotutils#reveal_file(path) abort
-  if empty(a:path) | throw "The path must not be empty" | endif
+  if empty(a:path) | throw 'The path must not be empty' | endif
   let path = fnamemodify(a:path, ':p')
   if has('macunix')
     call system('open -R ' . shellescape(path, 0))

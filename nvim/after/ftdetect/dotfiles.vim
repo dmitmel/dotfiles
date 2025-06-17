@@ -1,3 +1,4 @@
+" vint: -ProhibitAutocmdWithNoGroup
 if get(g:, 'do_filetype_lua', 0) | finish | endif
 
 autocmd BufNewFile,BufRead *

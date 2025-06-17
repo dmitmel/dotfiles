@@ -8,7 +8,7 @@ function! s:find_server() abort
 endfunction
 
 if has('nvim-0.2.1')
-  let g:coc_user_config['Lua'] = luaeval("dotfiles.nvim_lua_dev.make_lua_ls_settings()")
+  let g:coc_user_config['Lua'] = luaeval('dotfiles.nvim_lua_dev.make_lua_ls_settings()')
 endif
 
 let s:data_path = dotutils#xdg_dir('cache') . '/lua-language-server'
