@@ -13,12 +13,8 @@
 " Creating the dictionaries for those takes more time than constructing a `:hi`
 " command string.
 
-if !has('lambda')
-  echoerr 'My colorscheme requires closures, they were added in patch 7.4.2120.'
-endif
-
 set background=dark
-hi clear
+highlight clear
 if exists('syntax_on')
   syntax reset
 endif
@@ -35,67 +31,66 @@ function! s:mix_colors(color1, color2, factor) abort
   return printf('#%02x%02x%02x', r, g, b)
 endfunction
 
-function! s:setup() abort
-  let ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
+let s:NONE = { 'gui': 'NONE', 'cterm': 'NONE' }
+function! s:Hi(group, def) abort
+  let fg = get(a:def, 'fg', s:NONE)
+  let bg = get(a:def, 'bg', s:NONE)
+  let sp = get(a:def, 'sp', s:NONE)
+  let attr = get(a:def, 'attr', 'NONE')
+  exe 'hi' a:group
+  \ 'guifg='.(fg.gui) 'ctermfg='.(fg.cterm)
+  \ 'guibg='.(bg.gui) 'ctermbg='.(bg.cterm)
+  \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
+endfunction
+
+function! s:HiClear(group) abort
+  exe 'hi clear' a:group
+  exe 'hi link' a:group 'NONE'
+endfunction
+
+function! s:setup() " NOTE: not abort
+  let Hi      = function('s:Hi')
+  let HiClear = function('s:HiClear')
+
   let base16 = g:dotfiles#colorscheme#base16_colors
-
-  let lookup = {}
-  for color in range(len(base16))
-    let lookup[color] = base16[color]
-  endfor
-  let lookup['fg'] = { 'gui': 'fg', 'cterm': 'fg' }
-  let lookup['bg'] = { 'gui': 'bg', 'cterm': 'bg' }
-  let lookup['']   = { 'gui': 'NONE', 'cterm': 'NONE' }
-
-  function! Hi(group, def) closure abort
-    let fg = lookup[get(a:def, 'fg', '')]
-    let bg = lookup[get(a:def, 'bg', '')]
-    let sp = lookup[get(a:def, 'sp', '')]
-    let attr = get(a:def, 'attr', 'NONE')
-    exe 'hi' a:group
-    \ 'guifg='.(fg.gui) 'ctermfg='.(fg.cterm)
-    \ 'guibg='.(bg.gui) 'ctermbg='.(bg.cterm)
-    \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
-  endfunction
-
-  function! HiClear(group) closure abort
-    exe 'hi clear' a:group
-    exe 'hi link' a:group 'NONE'
-  endfunction
+  let [red, orange, yellow, green, cyan, blue, magenta, brown] = base16[8:15]
+  let gray = base16[0:7]
+  let fg = base16[5]
+  let bg = base16[0]
 
   let nocombine     = has('patch-8.0.0914') ? 'nocombine'     : 'NONE'
   let strikethrough = has('patch-8.0.1038') ? 'strikethrough' : 'NONE'
 
   " General syntax highlighting {{{
 
-  call Hi('Normal',        { 'fg': 0x5, 'bg': 0x0 })
-  call Hi('Italic',        { 'fg': 0xE, 'attr': 'italic'    })
-  call Hi('Bold',          { 'fg': 0xA, 'attr': 'bold'      })
-  call Hi('Underlined',    { 'fg': 0xD, 'attr': 'underline' })
-  call Hi('Strikethrough', { 'attr': strikethrough          })
-  call Hi('Title',         { 'fg': 0xD })
+  call Hi('Normal',        { 'fg': fg, 'bg': bg })
+  call Hi('Italic',        { 'fg': magenta, 'attr': 'italic' })
+  call Hi('Bold',          { 'fg': yellow, 'attr': 'bold' })
+  call Hi('Underlined',    { 'fg': blue, 'attr': 'underline' })
+  call Hi('Strikethrough', { 'attr': strikethrough })
+  call Hi('Title',         { 'fg': blue })
   hi! link Directory         Title
-  call Hi('Conceal',       { 'fg': 0xC })
+  call Hi('Conceal',       { 'fg': cyan })
   hi! link SpecialKey        Special
-  call Hi('MatchParen',    { 'attr': 'bold,underline' })
-  call Hi('NonText',       { 'fg': 0x3 })
+  call Hi('MatchParen',    { 'fg': orange, 'bg': gray[2], 'attr': 'bold' })
+  call Hi('NonText',       { 'fg': gray[3] })
   " `nocombine` is necessary for indentation because:
   " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/72>
-  call Hi('IblIndent',     { 'fg': 0x2, 'attr': nocombine })
+  call Hi('IblIndent',     { 'fg': gray[2], 'attr': nocombine })
   hi! link IndentLine        IblIndent
-  call Hi('IblSpace',      { 'fg': 0x3, 'attr': nocombine })
-  call Hi('IblScope',      { 'fg': 0x3, 'attr': nocombine })
+  call Hi('IblSpace',      { 'fg': gray[3], 'attr': nocombine })
+  call Hi('IblScope',      { 'fg': gray[3], 'attr': nocombine })
 
   if get(g:, 'dotfiles_highlight_url_under_cursor', 0)
-    call Hi('Underlined',       { 'fg': 0xD                      })
-    call Hi('ReallyUnderlined', { 'fg': 0xD, 'attr': 'underline' })
+    call Hi('Underlined',       { 'fg': blue, 'attr': 'underline', 'sp': gray[2] })
+    call Hi('ReallyUnderlined', { 'fg': blue, 'attr': 'underline', 'sp': blue })
   endif
 
   let rainbow_indent_opacity = get(g:, 'dotfiles_rainbow_indent_opacity', 0)
-  let indent_scope_opacity = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
+  let indent_scope_opacity   = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
 
   if indent_scope_opacity != 0
-    exe 'hi IblScope guifg=' . s:mix_colors(base16[0x2], base16[0xD], indent_scope_opacity)
+    exe 'hi IblScope guifg=' . s:mix_colors(gray[2], blue, indent_scope_opacity)
   endif
 
   let g:indent_blankline_char_highlight_list    = []
@@ -106,43 +101,41 @@ function! s:setup() abort
     if rainbow_indent_opacity != 0
       call add(g:indent_blankline_char_highlight_list,    'IblIndent' . color)
       call add(g:indent_blankline_context_highlight_list, 'IblScope' . color)
-      exe 'hi IblIndent' . color
-      \   'guifg=' . s:mix_colors(base16[0x0], base16[8 + color], rainbow_indent_opacity)
-      exe 'hi IblScope' . color
-      \   'guifg=' . s:mix_colors(base16[0x0], base16[8 + color], indent_scope_opacity)
+      exe 'hi IblIndent'.color 'guifg='.s:mix_colors(bg, base16[8 + color], rainbow_indent_opacity)
+      exe 'hi IblScope'.color  'guifg='.s:mix_colors(bg, base16[8 + color], indent_scope_opacity)
     endif
   endfor
 
-  call Hi('Keyword',     { 'fg': 0xE })
+  call Hi('Keyword',     { 'fg': magenta })
   hi! link Statement       Keyword
   hi! link Repeat          Keyword
   hi! link StorageClass    Keyword
   hi! link Exception       Keyword
   hi! link Structure       Keyword
   hi! link Conditional     Keyword
-  call Hi('Constant',    { 'fg': 0x9 })
+  hi! link Include         Keyword
+  call Hi('Constant',    { 'fg': orange })
   hi! link Boolean         Constant
   hi! link Float           Constant
   hi! link Number          Constant
-  call Hi('String',      { 'fg': 0xB })
+  call Hi('String',      { 'fg': green })
   hi! link Character       String
   hi! link Quote           String
   hi! link StringDelimiter String
-  call Hi('Comment',     { 'fg': 0x3 })
+  call Hi('Comment',     { 'fg': gray[3] })
   hi! link SpecialComment  Comment
-  call Hi('Todo',        { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
-  call Hi('Function',    { 'fg': 0xD })
-  call Hi('Identifier',  { 'fg': 0x8 })
+  call Hi('Todo',        { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
+  call Hi('Function',    { 'fg': blue })
+  hi! link Tag             Function
+  call Hi('Identifier',  { 'fg': red })
   hi! link Variable        Identifier
-  hi! link Include         Keyword
-  call Hi('PreProc',     { 'fg': 0xA })
-  call Hi('Label',       { 'fg': 0xA })
+  call Hi('PreProc',     { 'fg': yellow })
+  call Hi('Label',       { 'fg': yellow })
+  call Hi('Special',     { 'fg': cyan })
+  call Hi('Type',        { 'fg': yellow })
+  hi! link Typedef         Type
   call HiClear('Operator')
   call HiClear('Delimiter')
-  call Hi('Special',     { 'fg': 0xC })
-  hi! link Tag             Function
-  call Hi('Type',        { 'fg': 0xA })
-  hi! link Typedef         Type
   call HiClear('Ignore')
 
   " }}}
@@ -150,6 +143,7 @@ function! s:setup() abort
   if has('nvim-0.8.0') " Treesitter {{{
     " Code from gruvbox.nvim was used as a basis for treesitter support:
     " <https://github.com/ellisonleao/gruvbox.nvim/blob/a933d8666dad9363dc6908ae72cfc832299c2f59/lua/gruvbox.lua#L1112-L1245>
+    " TODO: redo this from scratch
 
     call HiClear('@variable')
     hi! link @variable.member Variable
@@ -179,6 +173,7 @@ function! s:setup() abort
     hi! link @preproc                  PreProc
     hi! link @define                   Define
     hi! link @operator                 Operator
+    hi! link @operator.regex           Special
     hi! link @punctuation.delimiter    Delimiter
     hi! link @punctuation.bracket      Delimiter
     hi! link @punctuation.special      Delimiter
@@ -246,11 +241,11 @@ function! s:setup() abort
     hi! link @markup.math              Special
     hi! link @markup.environment       Macro
     hi! link @markup.environment.name  Type
-    hi! link @markup.link              Underlined
-    hi! link @markup.link.label        String
+    hi! link @markup.link              Identifier
+    hi! link @markup.link.url          Underlined
     hi! link @markup.list              Identifier
-    hi! link @markup.list.checked      GruvboxGreen
-    hi! link @markup.list.unchecked    GruvboxGray
+    call Hi('@markup.list.checked',   { 'fg': green   })
+    call Hi('@markup.list.unchecked', { 'fg': gray[3] })
     hi! link @comment.todo             Todo
     hi! link @comment.note             SpecialComment
     hi! link @comment.warning          WarningMsg
@@ -270,13 +265,13 @@ function! s:setup() abort
     hi! link @text.environment.name    Type
     hi! link @text.reference           Constant
     hi! link @text.todo                Todo
-    hi! link @text.todo.checked        GruvboxGreen
-    hi! link @text.todo.unchecked      GruvboxGray
+    call Hi('@text.todo.checked',   { 'fg': green   })
+    call Hi('@text.todo.unchecked', { 'fg': gray[3] })
     hi! link @text.note                SpecialComment
-    call Hi('@text.note.comment',    { 'fg': 0xE, 'attr': 'bold' })
+    call Hi('@text.note.comment',    { 'fg': magenta, 'attr': 'bold' })
     hi! link @text.warning             WarningMsg
     hi! link @text.danger              ErrorMsg
-    call Hi('@text.danger.comment',  { 'fg': 0x8, 'attr': 'bold' })
+    call Hi('@text.danger.comment',  { 'fg': red, 'attr': 'bold' })
     hi! link @text.diff.add            diffAdded
     hi! link @text.diff.delete         diffRemoved
     hi! link @tag                      Tag
@@ -307,30 +302,29 @@ function! s:setup() abort
     hi! link @function.builtin.lua     Type
     hi! link @lsp.typemod.variable.declaration @variable.declaration
 
-    call Hi('@comment.todo',    { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
-    call Hi('@comment.note',    { 'fg': 0xD, 'bg': 'bg', 'attr': 'reverse,bold' })
-    call Hi('@comment.warning', { 'fg': 0xA, 'bg': 'bg', 'attr': 'reverse,bold' })
-    call Hi('@comment.error',   { 'fg': 0x8, 'bg': 'bg', 'attr': 'reverse,bold' })
+    call Hi('@comment.todo',    { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
+    call Hi('@comment.note',    { 'fg': blue,   'bg': bg, 'attr': 'reverse,bold' })
+    call Hi('@comment.warning', { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
+    call Hi('@comment.error',   { 'fg': red,    'bg': bg, 'attr': 'reverse,bold' })
 
   endif " }}}
 
   " User interface {{{
 
-  call Hi('Error',      { 'fg': 0x8, 'bg': 'bg', 'attr': 'reverse' })
-  call Hi('ErrorMsg',   { 'fg': 0x8 })
-  call Hi('WarningMsg', { 'fg': 0x9 })
-  call Hi('TooLong',    { 'fg': 0x8 })
-  call Hi('Debug',      { 'fg': 0x8 })
+  call Hi('Error',      { 'fg': red, 'bg': bg, 'attr': 'reverse' })
+  call Hi('ErrorMsg',   { 'fg': red })
+  call Hi('WarningMsg', { 'fg': orange })
+  call Hi('Debug',      { 'fg': red })
 
-  call Hi('CocSelectedText',  { 'fg': 0xE, 'bg': 0x1, 'attr': 'bold' })
-  call Hi('CocSearch',        { 'fg': 0xD })
-  call Hi('CocVirtualText',   { 'fg': 0x4 })
+  call Hi('CocSelectedText',  { 'fg': magenta, 'bg': gray[1], 'attr': 'bold' })
+  call Hi('CocSearch',        { 'fg': blue })
+  call Hi('CocVirtualText',   { 'fg': gray[4] })
   hi! link CocCodeLens          CocVirtualText
   hi! link CocInlayHint         CocVirtualText
-  call Hi('CocFadeOut',       { 'fg': 0x3 })
+  call Hi('CocFadeOut',       { 'fg': gray[3] })
   hi! link CocDisabled          CocFadeOut
   hi! link CocFloatDividingLine CocFadeOut
-  call Hi('CocUnderline',     { 'attr': 'underline'   })
+  call Hi('CocUnderline',     { 'attr': 'underline' })
   call Hi('CocStrikeThrough', { 'attr': strikethrough })
   hi! link CocMarkdownLink      Underlined
   hi! link CocLink              Underlined
@@ -341,19 +335,19 @@ function! s:setup() abort
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
-  for [severity, color] in items({ 'Error': 0x8, 'Warn': 0xA, 'Info': 0xD, 'Hint': 0xD, 'Ok': 0xB })
+  for [severity, color] in items({
+        \ 'Error': red, 'Warn': yellow, 'Info': blue, 'Hint': blue, 'Ok': green })
     call Hi('Diagnostic'.severity, { 'fg': color })
     call Hi('DiagnosticFloating'.severity, { 'fg': color })
-    " call Hi('DiagnosticSign'.severity, { 'fg': 'bg', 'bg': color })
     call Hi('DiagnosticUnderline'.severity, { 'attr': 'underline' })
 
     exe 'hi clear DiagnosticLine'.severity
-    exe 'hi DiagnosticLine'.severity 'guibg='.s:mix_colors(base16[0x0], base16[color], 0.1)
+    exe 'hi DiagnosticLine'.severity 'guibg='.s:mix_colors(bg, color, 0.1)
 
-    let linenr_attrs = 'guibg=' . s:mix_colors(base16[0x0], base16[color], 0.1)
-    \               . ' guifg=' . base16[color].gui
-    \             . ' ctermfg=' . base16[0x1].cterm
-    \             . ' ctermbg=' . base16[color].cterm
+    let linenr_attrs = 'guibg=' . s:mix_colors(bg, color, 0.1)
+    \               . ' guifg=' . color.gui
+    \             . ' ctermfg=' . gray[1].cterm
+    \             . ' ctermbg=' . color.cterm
 
     exe 'hi clear DiagnosticLineNr'.severity
     exe 'hi DiagnosticLineNr'.severity linenr_attrs
@@ -365,7 +359,7 @@ function! s:setup() abort
     " NOTE: in regular Vim, even when `termguicolors` mode is used, it still
     " uses `cterm` attributes instead of `gui` ones. Well, tough shit!
     exe 'hi DiagnosticVirtualText'.severity
-    \ 'ctermfg=bg' 'ctermbg='.(base16[color].cterm) 'guifg='.(base16[color].gui) 'gui=bold'
+    \ 'ctermfg='.(bg.cterm) 'ctermbg='.(color.cterm) 'guifg='.(color.gui) 'gui=bold'
 
     if severity ==# 'Ok'
       continue  " This one is actually an undocumented addition to vim.diagnostic
@@ -391,7 +385,7 @@ function! s:setup() abort
     call Hi('qf'.qf_severity, { 'fg': color, 'attr': 'reverse,bold' })
   endfor
 
-  call Hi('DiagnosticUnnecessary',       { 'fg': 0x3 })
+  call Hi('DiagnosticUnnecessary',       { 'fg': gray[3] })
   call Hi('DiagnosticDeprecated',        { 'attr': strikethrough })
   hi! link DiagnosticUnderlineUnnecessary  DiagnosticUnnecessary
   hi! link DiagnosticUnderlineDeprecated   DiagnosticDeprecated
@@ -401,55 +395,56 @@ function! s:setup() abort
   hi! link LspReferenceText Visual
   call Hi('LspSignatureActiveParameter', { 'attr': 'underline' })
 
-  call Hi('IncSearch', { 'fg': 0x9, 'bg': 0x1, 'attr': 'reverse' })
-  call Hi('Search',    { 'fg': 0xA, 'bg': 0x1, 'attr': 'reverse' })
+  call Hi('IncSearch', { 'fg': orange, 'bg': bg, 'attr': 'reverse' })
+  call Hi('Search',    { 'fg': yellow, 'bg': bg, 'attr': 'reverse' })
   hi! link Substitute    Search
   hi! link CurSearch     Search
 
-  call Hi('ModeMsg',  { 'fg': 0xB, 'attr': 'bold' })
-  call Hi('Question', { 'fg': 0xB })
+  call Hi('ModeMsg',  { 'fg': green, 'attr': 'bold' })
+  call Hi('Question', { 'fg': green })
   hi! link MoreMsg      Question
-  call Hi('Visual',   { 'bg': 0x2 })
-  call Hi('WildMenu', { 'fg': 0x1, 'bg': 'fg' })
+  call Hi('Visual',   { 'bg': gray[2] })
+  call Hi('WildMenu', { 'fg': gray[1], 'bg': fg })
 
-  call Hi('Cursor',         { 'bg': 'fg', 'fg': 'bg' })
-  call Hi('CursorLine',     { 'bg': 0x1  })
+  call Hi('Cursor',         { 'fg': bg, 'bg': fg })
+  call Hi('CursorLine',     { 'bg': gray[1] })
   hi! link CursorColumn       CursorLine
-  call Hi('ColorColumn',    { 'bg': 0x1  })
-  call Hi('LineNr',         { 'fg': 0x3  })
-  call Hi('CursorLineNr',   { 'fg': 0x4, 'bg': 0x1 })
+  call Hi('ColorColumn',    { 'bg': gray[1] })
+  call Hi('LineNr',         { 'fg': gray[3] })
+  call Hi('CursorLineNr',   { 'fg': gray[4], 'bg': gray[1] })
   hi! link SignColumn         LineNr
-  call Hi('CursorLineSign', { 'bg': 0x1            })
-  call Hi('Folded',         { 'fg': 0x3, 'bg': 0x1 })
-  call Hi('FoldColumn',     { 'fg': 0xC            })
-  call Hi('CursorLineFold', { 'fg': 0xC, 'bg': 0x1 })
-  call Hi('QuickFixLine',   { 'fg': 0xE, 'attr': 'underline', 'sp': 0xE })
+  hi! link CursorLineSign     CursorLineNr
+  call Hi('Folded',         { 'fg': gray[3], 'bg': gray[1] })
+  call Hi('FoldColumn',     { 'fg': gray[2], 'bg': gray[1] })
+  hi! link FoldColumn         WinSeparator
+  call Hi('CursorLineFold', { 'fg': gray[3], 'bg': gray[1] })
+  call Hi('QuickFixLine',   { 'fg': magenta, 'attr': 'underline', 'sp': magenta })
   call HiClear('qfText')
 
-  call Hi('StatusLine',   { 'fg': 0x5, 'bg': 0x1 })
-  call Hi('StatusLineNC', { 'fg': 0x4, 'bg': 0x1 })
-  call Hi('WinSeparator', { 'fg': 0x2 })
+  call Hi('StatusLine',   { 'fg': fg,      'bg': gray[1] })
+  call Hi('StatusLineNC', { 'fg': gray[4], 'bg': gray[1] })
+  call Hi('WinSeparator', { 'fg': gray[2] })
   hi! link MsgSeparator     WinSeparator
   hi! link VertSplit        WinSeparator
   hi! link TabLine          StatusLine
   hi! link TabLineFill      StatusLine
-  call Hi('TabLineSel',   { 'fg': 0xB,  'bg': 0x1 })
-  call Hi('NormalFloat',  { 'fg': 'fg', 'bg': 0x1 })
-  call Hi('FloatBorder',  { 'fg': 0x2,  'bg': 0x1 })
+  call Hi('TabLineSel',   { 'fg': green,   'bg': gray[1] })
+  call Hi('NormalFloat',  { 'fg': fg,      'bg': gray[1] })
+  call Hi('FloatBorder',  { 'fg': gray[2], 'bg': gray[1] })
   hi! link CocFloating      NormalFloat
-  call Hi('WinBar',       { 'fg': 0x6, 'bg': 0x2 })
-  call Hi('WinBarNC',     { 'fg': 0x5, 'bg': 0x1 })
+  call Hi('WinBar',       { 'fg': gray[6], 'bg': gray[2] })
+  call Hi('WinBarNC',     { 'fg': fg,      'bg': gray[1] })
   hi! link BqfPreviewRange  Search
   hi! link BqfPreviewTitle  Label
   hi! link BqfPreviewBorder WinSeparator
 
-  hi! link Pmenu                      NormalFloat
-  call Hi('PmenuSel',               { 'fg': 'bg', 'bg': 0xD })
+  call Hi('Pmenu',                  { 'fg': fg, 'bg': gray[1] })
+  call Hi('PmenuSel',               { 'fg': bg, 'bg': blue })
   hi! link PmenuSbar                  Pmenu
-  call Hi('PmenuThumb',             { 'bg': 0x5 })
-  call Hi('PmenuKind',              { 'fg': 0xD })
-  call Hi('PmenuExtra',             { 'fg': 0x4 })
-  call Hi('PmenuMatch',             { 'fg': 0xA })
+  call Hi('PmenuThumb',             { 'bg': gray[5] })
+  call Hi('PmenuKind',              { 'fg': blue })
+  call Hi('PmenuExtra',             { 'fg': gray[4] })
+  call Hi('PmenuMatch',             { 'fg': yellow })
   hi! link PmenuMatchSel              PmenuSel
   hi! link CocMenuSel                 PmenuSel
   hi! link CocPumSearch               PmenuMatch
@@ -459,6 +454,7 @@ function! s:setup() abort
   hi! link BlinkCmpKind               PmenuKind
   hi! link BlinkCmpLabelMatch         PmenuMatch
   hi! link BlinkCmpLabelDeprecated    DiagnosticDeprecated
+  hi! link BlinkCmpDocSeparator       NonText
   " Based on: <https://github.com/neoclide/coc.nvim/blob/a9ab3e4885bc8ed0aa38c5a8ee5953b0a7bc9bd3/plugin/coc.vim#L614-L649>
   " List of all CompletionItemKinds: <https://github.com/Saghen/blink.cmp/blob/7856f05dd48ea7f2c68ad3cba40202f8a9369b9e/lua/blink/cmp/types.lua#L20-L45>
   hi! link BlinkCmpKindText           Comment
@@ -489,14 +485,14 @@ function! s:setup() abort
 
   hi! link FzfLuaBorder         WinSeparator
   hi! link FzfLuaSearch         Search
-  call Hi('FzfLuaPathColNr',  { 'fg': 0xE })
-  call Hi('FzfLuaPathLineNr', { 'fg': 0xB })
+  call Hi('FzfLuaPathColNr',  { 'fg': magenta })
+  call Hi('FzfLuaPathLineNr', { 'fg': green })
   hi! link FzfLuaBufNr          Number
   hi! link FzfLuaBufFlagCur     Conditional
   hi! link FzfLuaBufFlagAlt     Special
   hi! link FzfLuaBufId          Number
-  call Hi('FzfLuaTabTitle',   { 'fg': 0xD, 'attr': 'bold' })
-  call Hi('FzfLuaTabMarker',  { 'fg': 0x9, 'attr': 'bold' })
+  call Hi('FzfLuaTabTitle',   { 'fg': blue,   'attr': 'bold' })
+  call Hi('FzfLuaTabMarker',  { 'fg': orange, 'attr': 'bold' })
   hi! link FzfLuaHeaderBind     SpecialKey
   hi! link FzfLuaHeaderText     Function
 
@@ -505,45 +501,45 @@ function! s:setup() abort
   hi! link SnacksInputNormal              NormalFloat
   hi! link SnacksPickerInput              NormalFloat
   hi! link SnacksPickerBorder             WinSeparator
-  call Hi('SnacksPickerListCursorLine', { 'bg': 0x1, 'attr': 'bold' })
+  call Hi('SnacksPickerListCursorLine', { 'bg': gray[1], 'attr': 'bold' })
   hi! link SnacksPickerMatch              PmenuMatch
-  call Hi('SnacksPickerPrompt',         { 'fg': 0xD, 'attr': 'bold' })
-  call Hi('SnacksPickerInputSearch',    { 'fg': 0xE, 'attr': 'bold' })
+  call Hi('SnacksPickerPrompt',         { 'fg': blue,    'attr': 'bold' })
+  call Hi('SnacksPickerInputSearch',    { 'fg': magenta, 'attr': 'bold' })
   hi! link SnacksPickerDir                Directory
   hi! link SnacksPickerBufFlags           Special
-  call Hi('SnacksPickerRow',            { 'fg': 0xB })
-  call Hi('SnacksPickerCol',            { 'fg': 0xE })
+  call Hi('SnacksPickerRow',            { 'fg': green })
+  call Hi('SnacksPickerCol',            { 'fg': magenta })
   hi! link SnacksPickerDiagnosticCode     PmenuExtra
   hi! link SnacksPickerDiagnosticSource   PmenuExtra
 
   if $TERM ==# 'xterm-kitty'
-    call Hi('SpellBad',   { 'attr': 'undercurl', 'sp': 0x8 })
-    call Hi('SpellLocal', { 'attr': 'undercurl', 'sp': 0xC })
-    call Hi('SpellCap',   { 'attr': 'undercurl', 'sp': 0xD })
-    call Hi('SpellRare',  { 'attr': 'undercurl', 'sp': 0xE })
+    call Hi('SpellBad',   { 'attr': 'undercurl', 'sp': red })
+    call Hi('SpellLocal', { 'attr': 'undercurl', 'sp': cyan })
+    call Hi('SpellCap',   { 'attr': 'undercurl', 'sp': blue })
+    call Hi('SpellRare',  { 'attr': 'undercurl', 'sp': magenta })
   else
-    call Hi('SpellBad',   { 'fg': 'bg', 'bg': 0x8 })
-    call Hi('SpellLocal', { 'fg': 'bg', 'bg': 0xC })
-    call Hi('SpellCap',   { 'fg': 'bg', 'bg': 0xD })
-    call Hi('SpellRare',  { 'fg': 'bg', 'bg': 0xE })
+    call Hi('SpellBad',   { 'fg': bg, 'bg': red })
+    call Hi('SpellLocal', { 'fg': bg, 'bg': cyan })
+    call Hi('SpellCap',   { 'fg': bg, 'bg': blue })
+    call Hi('SpellRare',  { 'fg': bg, 'bg': magenta })
   endif
 
-  call Hi('Sneak', { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
+  call Hi('Sneak', { 'fg': bg, 'bg': green, 'attr': 'bold' })
   hi! link SneakScope Visual
   hi! link SneakLabel Sneak
-  call Hi('SneakCurrent', { 'fg': 'bg', 'bg': 0xE, 'attr': 'bold' })
+  call Hi('SneakCurrent', { 'fg': bg, 'bg': magenta, 'attr': 'bold' })
 
   " checkhealth UI
-  call Hi('healthSuccess', { 'fg': 'bg', 'bg': 0xB, 'attr': 'bold' })
-  call Hi('healthWarning', { 'fg': 'bg', 'bg': 0xA, 'attr': 'bold' })
-  call Hi('healthError',   { 'fg': 'bg', 'bg': 0x8, 'attr': 'bold' })
+  call Hi('healthSuccess', { 'fg': bg, 'bg': green,  'attr': 'bold' })
+  call Hi('healthWarning', { 'fg': bg, 'bg': yellow, 'attr': 'bold' })
+  call Hi('healthError',   { 'fg': bg, 'bg': red,    'attr': 'bold' })
 
   " Vimspector
-  call Hi('vimspectorBP',         { 'fg': 0x8 })
-  call Hi('vimspectorBPCond',     { 'fg': 0x9 })
-  call Hi('vimspectorBPLog',      { 'fg': 0xA })
-  call Hi('vimspectorBPDisabled', { 'fg': 0x4 })
-  call Hi('vimspectorPC',         { 'fg': 0xB })
+  call Hi('vimspectorBP',         { 'fg': red })
+  call Hi('vimspectorBPCond',     { 'fg': orange })
+  call Hi('vimspectorBPLog',      { 'fg': yellow })
+  call Hi('vimspectorBPDisabled', { 'fg': gray[4] })
+  call Hi('vimspectorPC',         { 'fg': green })
   hi! link vimspectorPCBP          vimspectorPC
   hi! link vimspectorCurrentThread vimspectorPC
   hi! link vimspectorCurrentFrame  vimspectorPC
@@ -612,15 +608,15 @@ function! s:setup() abort
   " }}}
 
   " Integrated terminal {{{
+  let ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
-    " call Hi('TermCursor', { 'fg': 'bg', 'bg': 'fg' })
     call Hi('TermCursor', { 'attr': 'reverse' })
     call HiClear('TermCursorNC')
     for color in range(16)
       let g:terminal_color_{color} = base16[ansi_colors[color]].gui
     endfor
   elseif has('terminal') && (has('gui_running') || &termguicolors)
-    call Hi('Terminal', { 'fg': 'fg', 'bg': 'bg' })
+    call Hi('Terminal', { 'fg': fg, 'bg': bg })
     let g:terminal_ansi_colors = []
     for color in range(16)
       call add(g:terminal_ansi_colors, base16[ansi_colors[color]].gui)
@@ -648,19 +644,19 @@ function! s:setup() abort
 
   " Diff {{{
   " diff mode
-  for [diff_hl, color] in items({ 'Add': 0xB, 'Delete': 0x8, 'Text': 0xE, 'Change': 0x3 })
+  for [diff_hl, color] in items({ 'Add': green, 'Delete': red, 'Text': magenta, 'Change': gray[3] })
     exe 'hi clear Diff'.diff_hl
     exe 'hi Diff'.diff_hl
-    \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(base16[0x0], base16[color], 0.32) : 'NONE')
-    \ 'guibg=' s:mix_colors(base16[0x0], base16[color], diff_hl ==# 'Text' ? 0.16 : 0.08)
-    \ 'guisp=' base16[0x3].gui
-    \ 'ctermfg=' . base16[color].cterm
-    \ 'ctermbg=' . base16[0x1].cterm
+    \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(bg, color, 0.32) : 'NONE')
+    \ 'guibg=' s:mix_colors(bg, color, diff_hl ==# 'Text' ? 0.16 : 0.08)
+    \ 'guisp=' gray[3].gui
+    \ 'ctermfg=' color.cterm
+    \ 'ctermbg=' gray[1].cterm
   endfor
   " diff file
-  call Hi('diffAdded',   { 'fg': 0xB })
-  call Hi('diffRemoved', { 'fg': 0x8 })
-  call Hi('diffChanged', { 'fg': 0xE })
+  call Hi('diffAdded',   { 'fg': green   })
+  call Hi('diffRemoved', { 'fg': red     })
+  call Hi('diffChanged', { 'fg': magenta })
   hi! link diffNewFile     diffAdded
   hi! link diffOldFile     diffRemoved
   hi! link diffFile        Structure
@@ -681,21 +677,21 @@ function! s:setup() abort
   " }}}
 
   " Git {{{
-  hi! link gitCommitOverflow  TooLong
+  hi! link gitCommitOverflow  ErrorMsg
   hi! link gitCommitSummary   String
   hi! link gitCommitComment   Comment
   hi! link gitcommitUntracked Comment
   hi! link gitcommitDiscarded Comment
   hi! link gitcommitSelected  Comment
   hi! link gitcommitHeader    Keyword
-  call Hi('gitcommitSelectedType',  { 'fg': 0xD })
-  call Hi('gitcommitUnmergedType',  { 'fg': 0xD })
-  call Hi('gitcommitDiscardedType', { 'fg': 0xD })
+  call Hi('gitcommitSelectedType',  { 'fg': blue })
+  call Hi('gitcommitUnmergedType',  { 'fg': blue })
+  call Hi('gitcommitDiscardedType', { 'fg': blue })
   hi! link gitcommitBranch Function
-  call Hi('gitcommitUntrackedFile', { 'fg': 0xA, 'attr': 'bold' })
-  call Hi('gitcommitUnmergedFile',  { 'fg': 0x8, 'attr': 'bold' })
-  call Hi('gitcommitDiscardedFile', { 'fg': 0x8, 'attr': 'bold' })
-  call Hi('gitcommitSelectedFile',  { 'fg': 0xB, 'attr': 'bold' })
+  call Hi('gitcommitUntrackedFile', { 'fg': yellow, 'attr': 'bold' })
+  call Hi('gitcommitUnmergedFile',  { 'fg': red,    'attr': 'bold' })
+  call Hi('gitcommitDiscardedFile', { 'fg': red,    'attr': 'bold' })
+  call Hi('gitcommitSelectedFile',  { 'fg': green,  'attr': 'bold' })
 
   hi! link GitGutterAdd          diffAdded
   hi! link GitGutterDelete       diffRemoved
@@ -711,8 +707,8 @@ function! s:setup() abort
   hi! link GitSignsChangeDelete  GitSignsChange
   hi! link GitSignsUntracked     GitSignsAdd
 
-  call Hi('fugitiveStagedHeading',   { 'fg': 0xB, 'attr': 'bold' })
-  call Hi('fugitiveUnstagedHeading', { 'fg': 0xA, 'attr': 'bold' })
+  call Hi('fugitiveStagedHeading',   { 'fg': green,  'attr': 'bold' })
+  call Hi('fugitiveUnstagedHeading', { 'fg': yellow, 'attr': 'bold' })
   hi! link fugitiveUntrackedHeading fugitiveUnstagedHeading
   " }}}
 
@@ -818,6 +814,7 @@ function! s:setup() abort
   hi! link jsxAttrib           xmlAttrib
   hi! link jsFuncArgs          Variable
   hi! link jsVariableDef       Variable
+  hi! link jsDocParam          Identifier
   " }}}
 
   " JSON {{{
@@ -899,7 +896,7 @@ function! s:setup() abort
 
   " Mail {{{
   for color in range(6)
-    call Hi('mailQuoted' . (color + 1), { 'fg': 0x8 + color })
+    call Hi('mailQuoted' . (color + 1), { 'fg': base16[0x8 + color] })
   endfor
   hi! link mailURL   Underlined
   hi! link mailEmail Underlined
