@@ -81,13 +81,27 @@ end
 --- Replacement for |vim.tbl_map()| for which type inference actually works.
 ---@generic T, U
 ---@param list T[]
----@param func fun(x: T): U
+---@param func fun(value: T, index: integer): U
 ---@return U[]
 ---@see vim.tbl_map
 function M.map(list, func)
   local result = {}
   for i, v in ipairs(list) do
-    result[i] = func(v)
+    result[i] = func(v, i)
+  end
+  return result
+end
+
+--- Replacement for |vim.tbl_filter()| for which type inference actually works.
+---@generic T
+---@param list T[]
+---@param func fun(value: T, index: integer): boolean
+---@return T[]
+---@see vim.tbl_filter
+function M.filter(list, func)
+  local result = {}
+  for i, v in ipairs(list) do
+    if func(v, i) then result[#result + 1] = v end
   end
   return result
 end

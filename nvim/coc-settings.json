@@ -30,6 +30,8 @@
   "tsserver.experimental.enableProjectDiagnostics": false,
   "typescript.suggest.completeFunctionCalls": true,
   "javascript.suggest.completeFunctionCalls": true,
+  "javascript.format.enable": false,
+  "typescript.format.enable": false,
 
   "eslint.autoFixOnSave": true,
   "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
@@ -63,9 +65,6 @@
   "less.validate": true,
 
   "pyright.completion.snippetSupport": true,
-
-  "python.formatting.provider": "ruff",
-  "python.linting.ruffEnabled": true,
 
   "python.analysis.autoSearchPaths": true,
   "python.analysis.useLibraryCodeForTypes": true,

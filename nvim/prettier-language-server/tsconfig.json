@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "moduleResolution": "node10",
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "resolveJsonModule": true
+  },
+  "include": ["**/*.js", "**/*.mjs"]
+}

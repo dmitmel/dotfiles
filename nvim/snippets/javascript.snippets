@@ -40,5 +40,13 @@ snippet timeit measure execution time of a section of code
 	$0
 	let elapsedTime${1:Test} = performance.now() - startTime${1:Test};
 	console.log(elapsedTime${1:Test});
-snippet unreachable 
+snippet unreachable
 	throw new Error('unreachable');
+snippet @type JSDoc @type comment
+	/** @type {$1} */$0
+snippet @returns JSDoc @returns comment
+	/** @returns {$1} */$0
+snippet @ JSDoc comment
+	/**
+	 * @$0
+	 */

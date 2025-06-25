@@ -1,0 +1,5 @@
+extends: eslint-config-dmitmel/presets/node
+parserOptions:
+  ecmaVersion: 2018
+rules:
+  no-undefined: off

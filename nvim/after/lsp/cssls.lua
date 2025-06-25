@@ -13,7 +13,9 @@ local config = {
   filetypes = { 'css', 'less', 'sass', 'scss', 'wxss' },
   root_markers = { 'package.json' },
 
-  init_options = { provideFormatter = true },
+  init_options = {
+    provideFormatter = false,
+  },
 }
 
 return config

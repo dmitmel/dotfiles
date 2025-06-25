@@ -15,7 +15,7 @@ local config = {
   filetypes = { 'json', 'jsonc', 'json5' },
 
   init_options = {
-    provideFormatter = true,
+    provideFormatter = false,
   },
 
   settings = {

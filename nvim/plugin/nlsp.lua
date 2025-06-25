@@ -19,15 +19,28 @@ vim.cmd("execute dotutils#cmd_alias('LI', 'LspInfo')")
 local has_conform, conform = pcall(require, 'conform')
 local lsp_format = has_conform and conform.format or lsp.buf.format
 
+local function complete_formatters(arg)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local names = {} ---@type string[]
+  for _, formatter in ipairs(has_conform and conform.list_formatters(bufnr) or {}) do
+    names[#names + 1] = formatter.name
+  end
+  for _, client in ipairs(lsp.get_clients({ method = 'textDocument/formatting' })) do
+    names[#names + 1] = client.name
+  end
+  return utils.filter(names, function(name) return vim.startswith(name, arg) end)
+end
+
 vim.api.nvim_create_user_command('LspFormat', function(cmd) --
   lsp_format({
+    name = #cmd.args > 0 and cmd.args or nil,
     async = not cmd.bang,
     range = cmd.range ~= 0 and {
       start = { cmd.line1, 0 },
       ['end'] = { cmd.line2, vim.fn.col({ cmd.line2, '$' }) - 1 },
     } or nil,
   })
-end, { bar = true, bang = true, range = true })
+end, { bar = true, bang = true, range = true, nargs = '?', complete = complete_formatters })
 
 local map = vim.keymap.set
 
@@ -120,7 +133,7 @@ elseif dotplug.has('snacks.nvim') then
 end
 
 local function lsp_supports(method) ---@param method string
-  return #vim.lsp.get_clients({ bufnr = 0, method = method }) > 0
+  return #lsp.get_clients({ bufnr = 0, method = method }) > 0
 end
 
 -- Create shorthands overriding Vim's default mappings which make sense when a
@@ -156,7 +169,23 @@ vim.keymap.set('n', 'K', function()
   end
 end, { expr = true, remap = true })
 
-if dotplug.has('neoconf.nvim') then
+if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
+  local neoconf_util = require('neoconf.util')
+  local neoconf_config = require('neoconf.config')
+
+  -- Patch neoconf to search for global configs not only in `stdpath("config")`,
+  -- but also in all runtime directories.
+  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/util.lua#L216-L228>
+  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/import.lua>
+  ---@param fn fun(file: string, key:string|nil, pattern:string)
+  function neoconf_util.for_each_global(fn) ---@diagnostic disable-line: duplicate-set-field
+    for _, p in ipairs(neoconf_config.global_patterns) do
+      for _, f in ipairs(vim.api.nvim_get_runtime_file(p.pattern, true)) do
+        fn(f, (type(p.key) == 'function' and p.key(f) or p.key) --[[@as string]], p.pattern)
+      end
+    end
+  end
+
   -- NOTE: neoconf must be initialized BEFORE calling lspconfig.
   require('neoconf').setup({
     import = {
@@ -179,6 +208,7 @@ require('dotfiles.lsp_launcher').setup({
   'eslint',
   vim.fn.executable('vtsls') ~= 0 and 'vtsls' or 'ts_ls',
   'ruff',
+  'prettier',
 })
 
 vim.api.nvim_create_user_command('EslintFixAll', function(cmd)
@@ -201,74 +231,14 @@ vim.api.nvim_create_user_command('EslintFixAll', function(cmd)
   end
 end, { bar = true, bang = true })
 
--- NOTE: this file can be updated with `prettier --support-info > prettier_support_info.json`
-local prettier_support_info =
-  vim.json.decode(utils.read_file(utils.script_relative('../prettier_support_info.json')))
-
 if dotplug.has('conform.nvim') then
-  require('conform').setup((function()
-    ---@type conform.setupOpts
-    local opts = {
-      default_format_opts = {
-        lsp_format = 'fallback',
-      },
-      formatters_by_ft = {
-        lua = { 'stylua' },
-      },
-      formatters = {
-        prettierd = {
-          -- TODO: dynamically derive default options from neoconf
-          env = { PRETTIERD_DEFAULT_CONFIG = utils.script_relative('../../.prettierrc.json') },
-        },
-      },
-    }
-
-    for _, prettier_lang in ipairs(prettier_support_info.languages) do
-      for _, ft in ipairs(prettier_lang.vscodeLanguageIds) do
-        opts.formatters_by_ft[ft] = { 'prettierd', lsp_format = 'fallback' }
-      end
-    end
-
-    return opts
-  end)())
-end
-
-if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
-  local neoconf_util = require('neoconf.util')
-  local neoconf_config = require('neoconf.config')
-
-  -- Patch neoconf to search for global configs not only in `stdpath("config")`,
-  -- but also in all runtime directories.
-  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/util.lua#L216-L228>
-  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/import.lua>
-  ---@param fn fun(file: string, key:string|nil, pattern:string)
-  function neoconf_util.for_each_global(fn) ---@diagnostic disable-line: duplicate-set-field
-    for _, p in ipairs(neoconf_config.global_patterns) do
-      for _, f in ipairs(vim.api.nvim_get_runtime_file(p.pattern, true)) do
-        fn(f, (type(p.key) == 'function' and p.key(f) or p.key) --[[@as string]], p.pattern)
-      end
-    end
-  end
-
-  require('neoconf.plugins').register({
-    name = 'prettier',
-    on_schema = function(schema)
-      for _, opt in ipairs(prettier_support_info.options) do
-        local key = 'prettier.' .. opt.name
-        if opt.type == 'choice' then
-          schema:set(key, {
-            type = 'string',
-            enum = utils.map(opt.choices, function(choice) return { choice.value } end),
-            default = opt.default,
-            description = opt.description,
-          })
-        elseif opt.type == 'boolean' then
-          schema:set(key, { type = opt.type, default = opt.default, description = opt.description })
-        elseif opt.type == 'int' then
-          schema:set(key, { type = 'number', default = opt.default, description = opt.description })
-        end
-      end
-    end,
+  require('conform').setup({
+    default_format_opts = {
+      lsp_format = 'fallback',
+    },
+    formatters_by_ft = {
+      lua = { 'stylua' },
+    },
   })
 end
 

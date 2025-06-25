@@ -16,6 +16,7 @@ local config = {
   init_options = {
     embeddedLanguages = { css = true, javascript = true },
     configurationSection = { 'html', 'css', 'javascript' },
+    provideFormatter = false,
   },
 }
 
