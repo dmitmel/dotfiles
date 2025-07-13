@@ -42,7 +42,7 @@ local has_vim_ui, vim_ui = pcall(require, 'vim.ui')
 if has_vim_ui then
   vim_ui._lua_open = vim_ui._lua_open or vim_ui.open
 
-  function vim_ui.open(path, opt) ---@diagnostic disable-line: duplicate-set-field
+  function vim_ui.open(path, opt)
     if utils.is_truthy(vim.g['dotutils#use_lua_for_open_uri']) and vim_ui._lua_open ~= nil then
       local netrw_cmd = vim.g.netrw_browsex_viewer
       opt = vim.tbl_extend('keep', opt, {
@@ -61,9 +61,7 @@ if has_vim_ui then
     return fake_system
   end
 
-  function vim_ui.select(...) ---@diagnostic disable-line: duplicate-set-field
-    return require('dotfiles.nvim_fzf_select').select(...)
-  end
+  function vim_ui.select(...) return require('dotfiles.ui_select').fzf_select(...) end
 end
 
 if dotplug.has('fzf-lua') then
@@ -263,7 +261,7 @@ local SnacksInput = require('snacks.picker.core.input') ---@class snacks.picker.
 local SnacksPreview = require('snacks.picker.core.preview') ---@class snacks.picker.Preview
 
 SnacksWin._old_redraw = SnacksWin._old_redraw or SnacksWin.redraw
-function SnacksWin:redraw() ---@diagnostic disable-line: duplicate-set-field
+function SnacksWin:redraw()
   if self.first_draw_complete == nil then
     vim.schedule(function() self.first_draw_complete = true end)
     self.first_draw_complete = false
@@ -305,7 +303,7 @@ end
 
 SnacksList._old_update_cursorline = SnacksList._old_update_cursorline
   or SnacksList.update_cursorline
-function SnacksList:update_cursorline() ---@diagnostic disable-line: duplicate-set-field
+function SnacksList:update_cursorline()
   self:_old_update_cursorline()
   if self.win:win_valid() and self.picker.init_opts.source == 'select' then
     local wo = vim.wo[self.win.win]
@@ -317,7 +315,7 @@ function SnacksList:update_cursorline() ---@diagnostic disable-line: duplicate-s
 end
 
 SnacksPreview._old_loc = SnacksPreview._old_loc or SnacksPreview.loc
-function SnacksPreview:loc() ---@diagnostic disable-line: duplicate-set-field
+function SnacksPreview:loc()
   local item = self.item
   if not item then
     self:_old_loc()
@@ -348,7 +346,7 @@ end
 SnacksInput._old_new = SnacksInput._old_new or SnacksInput.new
 ---@param picker snacks.Picker
 ---@return snacks.picker.input
-function SnacksInput.new(picker) ---@diagnostic disable-line: duplicate-set-field
+function SnacksInput.new(picker)
   local self = SnacksInput._old_new(picker)
   local position = picker.opts.layout.layout.position
   if position ~= nil and position ~= 'float' then

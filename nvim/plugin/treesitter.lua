@@ -1,7 +1,7 @@
 local utils = require('dotfiles.utils')
 
 vim.treesitter._really_start = vim.treesitter._really_start or vim.treesitter.start
-function vim.treesitter.start(bufnr, lang) ---@diagnostic disable-line: duplicate-set-field
+function vim.treesitter.start(bufnr, lang)
   -- I really don't like that Treesitter is being shoved in my face without an
   -- option to turn it off, mainly because it is still far from a silver-bullet
   -- solution: as of Neovim 0.11 it is still slower than the old regexp engine
@@ -143,7 +143,7 @@ if dotplug.has('nvim-treesitter') then
     local ns_id = vim.api.nvim_create_namespace('dotfiles_url_under_cursor')
     local extmarks = {} ---@type integer[]
 
-    for id, node, metadata, match in query:iter_captures(tree:root(), bufnr, row, row + 1) do
+    for id, node, _metadata, _match in query:iter_captures(tree:root(), bufnr, row, row + 1) do
       local name = query.captures[id]
       if vim.treesitter.node_contains(node, cur_range) and name:match('[._]url$') then
         local start_row, start_col, end_row, end_col = node:range()

@@ -75,7 +75,7 @@ function M.setup(servers)
   ---@param config dotfiles.lsp.Config
   ---@param opts vim.lsp.start.Opts
   ---@return integer? client_id
-  function lsp.start(config, opts) ---@diagnostic disable-line: duplicate-set-field
+  function lsp.start(config, opts)
     opts.reuse_client = opts.reuse_client or M.reuse_client
     return lsp._old_start(M.patch_lsp_config(config), opts)
   end
@@ -83,11 +83,10 @@ function M.setup(servers)
   lsp._old_start_client = lsp._old_start_client or lsp.start_client
   ---@param config dotfiles.lsp.Config
   ---@return integer? client_id
-  function lsp.start_client(config) ---@diagnostic disable-line: duplicate-set-field
+  function lsp.start_client(config) --
     return lsp._old_start_client(M.patch_lsp_config(config))
   end
 
-  ---@diagnostic disable-next-line: inject-field
   LspManager._old_try_add = LspManager._old_try_add or LspManager.try_add
   function LspManager:try_add(bufnr, ...)
     -- Got this trick from <https://www.reddit.com/r/neovim/comments/z85s1l/comment/iyfrgvb/>

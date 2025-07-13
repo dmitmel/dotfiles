@@ -178,7 +178,7 @@ if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
   -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/util.lua#L216-L228>
   -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/import.lua>
   ---@param fn fun(file: string, key:string|nil, pattern:string)
-  function neoconf_util.for_each_global(fn) ---@diagnostic disable-line: duplicate-set-field
+  function neoconf_util.for_each_global(fn)
     for _, p in ipairs(neoconf_config.global_patterns) do
       for _, f in ipairs(vim.api.nvim_get_runtime_file(p.pattern, true)) do
         fn(f, (type(p.key) == 'function' and p.key(f) or p.key) --[[@as string]], p.pattern)
@@ -304,7 +304,6 @@ lsp.util._old_open_floating_preview = lsp.util._old_open_floating_preview
 --- This patch updates positions of the floating windows created by
 --- `vim.lsp.util.open_floating_preview()` when the parent window is scrolled,
 --- effectively "anchoring" them to the cursor.
----@diagnostic disable-next-line: duplicate-set-field
 function lsp.util.open_floating_preview(contents, syntax, opts)
   local parent_win = vim.api.nvim_get_current_win()
   local float_buf, float_win = lsp.util._old_open_floating_preview(contents, syntax, opts)

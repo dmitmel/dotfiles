@@ -52,12 +52,12 @@ snippet diagline disable a diagnostic on the current line
 	---@diagnostic disable-line: $0
 snippet patchfn monkey-patch a function
 	$1._old_$2 = $1._old_$2 or $1.$2
-	function ${1:table}.${2:method}(${3:...}) ---@diagnostic disable-line: duplicate-set-field
+	function ${1:table}.${2:method}(${3:...})
 		return $1._old_$2($3)$0
 	end
 snippet patchcls monkey-patch a class method
 	$1._old_$2 = $1._old_$2 or $1.$2
-	function ${1:table}:${2:method}(${3:...}) ---@diagnostic disable-line: duplicate-set-field
+	function ${1:table}:${2:method}(${3:...})
 		return self:_old_$2($3)$0
 	end
 snippet patchval monkey-patch a value

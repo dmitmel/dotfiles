@@ -80,7 +80,6 @@ utils.augroup('dotfiles_diagnostics'):autocmd(
 )
 
 local handlers = vim_diagnostic.handlers
----@diagnostic disable-next-line: inject-field
 handlers.signs._old_show = handlers.signs._old_show or handlers.signs.show
 function handlers.signs.show(namespace, bufnr, diagnostics, opts)
   handlers.signs._old_show(namespace, bufnr, diagnostics, opts)

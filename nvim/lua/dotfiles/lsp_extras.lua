@@ -62,7 +62,7 @@ function M.jump(method, list_type, opts)
 
   local function make_params(client) ---@param client vim.lsp.Client
     local params = lsp.util.make_position_params(current_win, client.offset_encoding)
-    params.context = opts.context ---@diagnostic disable-line: inject-field
+    params.context = opts.context
     return params
   end
 

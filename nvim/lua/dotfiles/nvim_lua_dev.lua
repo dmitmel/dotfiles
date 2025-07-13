@@ -27,7 +27,6 @@ M.DEFAULT_LUA_LS_SETTINGS = {
   },
   diagnostics = {
     globals = { 'vim' },
-    disable = { 'empty-block' },
     libraryFiles = 'Opened',
   },
   completion = {
