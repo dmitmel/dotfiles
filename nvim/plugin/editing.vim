@@ -599,16 +599,15 @@ endif
 
   let g:matchup_delim_noskips = 2
   let g:matchup_delim_nomids = 1
-  let g:matchup_matchpref = {
-  \ 'html': { 'tagnameonly': 1, 'nolists': 1 },
-  \ 'xml': { 'tagnameonly': 1 },
-  \ }
 
   augroup dotfiles_matchup
     autocmd!
     if has('nvim-0.11.0')
-      " Since Neovim 0.11 the highlight groups in the statusline are now
-      " combined with the statusline background, TODO
+      " Since Neovim 0.11 the highlight groups in the statusline are now blended
+      " with the background of the statusline instead of the Normal background,
+      " so I have to make the appropriate adjustments to the hlgroups that
+      " matchup uses in its statusline display, otherwise it just starts looking
+      " super ugly.
       " <https://github.com/neovim/neovim/commit/e049c6e4c08a141c94218672e770f86f91c27a11>
       autocmd User MatchupOffscreenEnter
       \ if exists('w:matchup_statusline') && &l:statusline is# w:matchup_statusline
