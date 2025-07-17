@@ -323,7 +323,7 @@ function! s:setup() " NOTE: not abort
   hi! link CocInlayHint         CocVirtualText
   call Hi('CocFadeOut',       { 'fg': gray[3] })
   hi! link CocDisabled          CocFadeOut
-  hi! link CocFloatDividingLine CocFadeOut
+  hi! link CocFloatDividingLine WinSeparator
   call Hi('CocUnderline',     { 'attr': 'underline' })
   call Hi('CocStrikeThrough', { 'attr': strikethrough })
   hi! link CocMarkdownLink      Underlined
@@ -877,21 +877,6 @@ function! s:setup() " NOTE: not abort
   hi! link mkdLinkDef              TypeDef
   hi! link mkdID                   Type
   hi! link mkdRule                 PreProc
-  " }}}
-
-  " Rendered Markdown (dotfiles.lsp.markup) {{{
-  hi! link   cmarkNodeCode              String
-  hi! link   cmarkNodeStrong            Bold
-  hi! link   cmarkNodeEmph              Italic
-  hi! link   cmarkNodeStrikethrough     Strikethrough
-  hi! link   cmarkNodeHeading           Title
-  hi! link   cmarkNodeBlockquote        Comment
-  hi! link   cmarkNodeThematicBreak     PreProc
-  hi! link   cmarkNodeLinkUrl           String
-  hi! link   cmarkNodeLinkText          Underlined
-  hi! link   cmarkNodeLinkTitle         cmarkNodeLinkUrl
-  hi! link   cmarkNodeItem              Identifier
-  hi! link   cmarkTodo                  Todo
   " }}}
 
   " Mail {{{

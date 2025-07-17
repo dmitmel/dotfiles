@@ -49,6 +49,7 @@ end
 -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval/typval.c#L2963-L3012>
 -- <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/eval.c#L678-L711>
 -- See `:help non-zero-arg`.
+---@return boolean
 function M.is_truthy(value)
   local t = type(value)
   if t == 'boolean' then return value end
@@ -189,7 +190,7 @@ end
 function M.read_file(path, opts)
   opts = opts or {}
   local file = assert(io.open(path, opts.binary and 'rb' or 'r'))
-  local data = file:read('*a')
+  local data = assert(file:read('*a'))
   file:close()
   return data
 end
@@ -230,6 +231,8 @@ end
 ---@return dotfiles.augroup
 function M.augroup(name, opts) return require('dotfiles.augroup').create(name, opts) end
 
+function M.pack(...) return { n = select('#', ...), ... } end
+
 ---@generic F: function
 ---@param callback F
 ---@return F
@@ -238,11 +241,10 @@ function M.schedule_once_per_frame(callback)
   return function(...)
     if not scheduled then
       scheduled = true
-      local args = { ... }
-      local args_len = select('#', ...)
+      local args = M.pack(...)
       vim.schedule(function()
         scheduled = false
-        callback(unpack(args, 1, args_len))
+        callback(unpack(args, 1, args.n))
       end)
     end
   end
@@ -252,12 +254,10 @@ end
 ---@param callback F
 ---@return F
 function M.once(callback)
-  local called = false
+  local results
   return function(...)
-    if not called then
-      called = true
-      return callback(...)
-    end
+    results = results or M.pack(callback(...))
+    return unpack(results, 1, results.n)
   end
 end
 
@@ -283,6 +283,55 @@ function M.await(fn)
   if not results then coroutine.yield() end
   assert(results, 'async callback did not get called')
   return unpack(results, 1, results.n)
+end
+
+function M.event()
+  ---@class dotfiles.Event
+  local self = {}
+
+  --- This is private
+  local listeners = {}
+  --- The number of attached listeners. This is exposed for debugging purposes.
+  self.listeners = 0
+
+  ---@param listener fun(...): boolean?
+  ---@param once boolean
+  ---@return function
+  function self:subscribe(listener, once)
+    -- The listener is wrapped in a table to ensure we can tell apart listeners
+    -- which are actually the same function added multiple times.
+    local unique_ref = { listener = listener, once = once }
+    table.insert(listeners, unique_ref)
+    self.listeners = self.listeners + 1
+
+    local function unsubscribe()
+      for i, other_ref in ipairs(listeners) do
+        if other_ref == unique_ref then
+          table.remove(listeners, i)
+          self.listeners = self.listeners - 1
+          return
+        end
+      end
+      error('this listener was already removed')
+    end
+
+    return unsubscribe
+  end
+
+  function self:__call(...)
+    local i = 1
+    while listeners[i] ~= nil do
+      local unsub = listeners[i].listener(...)
+      if unsub or listeners[i].once then
+        table.remove(listeners, i)
+        self.listeners = self.listeners - 1
+      else
+        i = i + 1
+      end
+    end
+  end
+
+  return setmetatable(self, self)
 end
 
 return M

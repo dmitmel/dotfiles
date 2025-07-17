@@ -4,8 +4,6 @@
 local augroup = require('dotfiles.autoload')('dotfiles.augroup', {})
 augroup.__index = augroup
 
-local utils = require('dotfiles.utils')
-
 function augroup.get_global()
   ---@type dotfiles.augroup
   return setmetatable({ id = nil, name = nil }, augroup)
@@ -16,20 +14,18 @@ end
 function augroup.create(name, opts)
   local self = setmetatable({}, augroup)
   opts = opts or {}
-  opts.clear = utils.if_nil(opts.clear, true)
+  if opts.clear == nil then opts.clear = true end
   self.id = vim.api.nvim_create_augroup(name, opts)
   self.name = name
   return self
 end
 
-function augroup:delete()
+function augroup:delete() --
   vim.api.nvim_del_augroup_by_id(self.id)
-  self.id = nil
-  self.name = nil
 end
 
 ---@param opts? vim.api.keyset.clear_autocmds
-function augroup:clear_autocmds(opts)
+function augroup:clear(opts)
   opts = opts or {}
   opts.group = self.id
   vim.api.nvim_clear_autocmds(opts)

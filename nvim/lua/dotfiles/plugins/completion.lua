@@ -80,25 +80,18 @@ local blink_cmp_config = {
       min_width = 15,
       max_height = 20,
       draw = {
-        -- By default `label` and `label_description` are put in the same
-        -- column, which causes the label description to be right-aligned.
-        columns = { { 'kind_icon' }, { 'label' }, { 'label_description' } },
+        columns = { { 'kind_icon' }, { 'label', 'label_description', gap = 1 } },
+        components = { label = { width = { fill = false } } },
       },
     },
 
     documentation = {
       auto_show = false,
-      -- TODO: disabling treesitter disables ALL highlighting here. Why?
-      -- <https://github.com/saghen/blink.cmp/blob/cb5e346d9e0efa7a3eee7fd4da0b690c48d2a98e/lua/blink/cmp/lib/window/docs.lua>
-      treesitter_highlighting = true or utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
     },
   },
 
   signature = {
     enabled = true,
-    window = {
-      treesitter_highlighting = true or utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
-    },
   },
 
   snippets = {

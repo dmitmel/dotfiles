@@ -5,16 +5,11 @@
 -- <https://defold.com/manuals/modules/#hot-reloading-modules>,
 -- <https://github.com/neovim/neovim/commit/2e982f1aad9f1a03562b7a451d642f76b04c37cb/#diff-1acf614023cf9d30aa08ffd8cd145cc1f8e7f704bf615cb48e1c698afc11870c>.
 
----@class dotfiles.autoload.Module
----@field name string
----@field exports any
----@field reload_count integer
-
 local MODULES = {} ---@type table<string, dotfiles.autoload.Module>
 
 ---@generic T
 ---@param name string
----@param exports T
+---@param exports `T`
 ---@param submodules? T
 ---@return T exports
 ---@return dotfiles.autoload.Module module
@@ -29,16 +24,19 @@ local function declare_module(name, exports, submodules)
     error(string.format('module_name: expected table, got %s', type(submodules)))
   end
 
-  local module = rawget(MODULES, name) ---@type dotfiles.autoload.Module|nil
+  local module = rawget(MODULES, name)
   if module == nil then
+    ---@class dotfiles.autoload.Module
     module = {
       name = name,
-      reload_count = 0,
-      exports = exports or {},
+      exports = exports or {}, ---@type table
+      reload_count = 0, ---@type integer
+      reloading = false, ---@type boolean
     }
     rawset(MODULES, name, module)
   else
     module.reload_count = module.reload_count + 1
+    module.reloading = true
   end
 
   if submodules ~= nil and next(submodules) ~= nil then

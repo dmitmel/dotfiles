@@ -29,6 +29,7 @@ vim_diagnostic.config({
     severity_sort = false,
     max_width = 80,
     max_height = 8,
+    offset_x = -1,
 
     suffix = function(diagnostic)
       local meta = {}

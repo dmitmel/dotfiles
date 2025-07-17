@@ -65,13 +65,13 @@ else
   endfunction
 endif
 
-" allow moving cursor just after the last chraracter of the line
+" Allow moving cursor just after the last character of the line.
 set virtualedit=onemore
 
 " Use the three-curly-brace markers ({{{ ... }}}) for folding.
 set foldmethod=marker
 
-" Make the backspace key work everywhere
+" Make the backspace key work everywhere.
 set backspace=indent,eol,start
 
 " Improve the behavior of the <Esc> key in regular Vim.
@@ -134,7 +134,8 @@ endif
   let g:indentLine_char = '│'
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
-  let g:indentLine_fileTypeExclude = ['text', 'help', 'tutor', 'man']
+  let g:indentLine_fileTypeExclude =
+  \ ['text', 'help', 'tutor', 'man', 'fugitive', 'git', 'diff', 'fidget', 'snacks_picker_preview']
   let g:indentLine_bufTypeExclude = ['terminal', 'nofile']
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
@@ -229,6 +230,12 @@ endif
   set linebreak       " When wrapping, break lines only on `breakat` characters (also called "soft wrapping").
   set breakindent     " The wrapped text will be offset to the right with the width of the indent.
   set sidescroll=1    " Basically, smooth horizontal scrolling.
+
+  " <https://github.com/neovim/neovim/commit/f89a275e32110a63e8ee1fc6ca75e0cf09194185>
+  " <https://github.com/neovim/neovim/commit/3d1110674ec330138ad6675f828673ca32575d4b>
+  if has('patch-9.1.0720') || has('patch-8.2.3160')
+    set breakindentopt+=list:-1
+  endif
 
   " If the last line is wrapped, but does not fit into the window completely, display @@@ at the end.
   set display+=lastline
@@ -583,6 +590,11 @@ endif
   " Collapse multiple spaces into one when doing the `J` command.
   set nojoinspaces
 
+  " The pattern used for recognizing lists in text and comments, affects
+  " auto-wrapping and wrapping with `gq` and `gw`. I change it to add support
+  " for unordered lists.
+  let &formatlistpat = '^\s*\d\+[\]:.}]\s\+' . '\|' . '^\s*[-*+]\s\+'
+
 " }}}
 
 
@@ -682,9 +694,14 @@ endif
   " <https://github.com/vigoux/dotfiles/blob/eec3b72d2132a55f5cfeb6902f88b25106a33a36/neovim/.config/nvim/after/ftplugin/rust.vim#L6>
   let g:cargo_makeprg_params = 'build --message-format=short'
 
-  let g:vim_markdown_conceal = 0
-  let g:vim_markdown_conceal_code_blocks = 0
-  let g:vim_markdown_no_default_key_mappings = 0
+  " The old `indentLine` plugin relied on the conceal feature being always
+  " active to show the indentation guides, so it couldn't be used with syntax
+  " concealing in filetypes that have that.
+  if dotplug#has('indentLine')
+    let g:vim_markdown_conceal = 0
+    let g:vim_markdown_conceal_code_blocks = 0
+    let g:vim_json_conceal = 0
+  endif
 
   let g:vala_syntax_folding_enabled = 0
 
@@ -700,6 +717,16 @@ endif
   " <https://github.com/preservim/vim-markdown/blob/8f6cb3a6ca4e3b6bcda0730145a0b700f3481b51/ftplugin/markdown.vim#L770-L779>
   let g:vim_markdown_no_default_key_mappings = 1
   let g:vim_markdown_folding_disabled = 1
+  let g:vim_markdown_fenced_languages = [
+  \ 'c++=cpp',
+  \ 'viml=vim',
+  \ 'bash=sh',
+  \ 'ini=dosini',
+  \ 'js=javascript',
+  \ 'ts=typescript',
+  \ 'objective-c=objc',
+  \ 'objective-cpp=objcpp',
+  \]
 
   let g:java_highlight_all = 1
 
@@ -712,7 +739,6 @@ endif
   let g:lua_version = 5
   let g:lua_subversion = 1
 
-  let g:vim_json_conceal = 0
   let g:javascript_plugin_jsdoc = 1
   let g:vim_jsx_pretty_disable_js = 1
 

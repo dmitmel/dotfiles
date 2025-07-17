@@ -48,25 +48,36 @@ map({ 'n', 'x' }, '<space>f', function() --
   lsp_format({ async = false })
 end, { desc = 'lsp.buf.format()' })
 
+-- A new table with floating options has to be created every time because the
+-- functions that will be using it mutate its contents.
+local function floating_preview_opts()
+  return {
+    offset_x = -1,
+    max_width = 80,
+    max_height = 24,
+    border = utils.border_styles.hpad,
+  }
+end
+
 map('n', '<F2>', lsp.buf.rename, { desc = 'lsp.buf.rename()' })
 map({ 'n', 'x' }, '<A-CR>', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
 map({ 'n', 'x' }, '<space>a', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
-map('n', '<space>s', lsp.buf.signature_help, { desc = 'lsp.buf.signature_help()' })
-map('i', '<F1>', lsp.buf.signature_help, { desc = 'lsp.buf.signature_help()' })
+local function signature_help() lsp.buf.signature_help(floating_preview_opts()) end
+map('n', '<space>s', signature_help, { desc = 'lsp.buf.signature_help()' })
+map('i', '<F1>', signature_help, { desc = 'lsp.buf.signature_help()' })
 map('n', '<space>o', lsp.buf.document_symbol, { desc = 'lsp.buf.document_symbol()' })
 map('n', '<space>w', lsp.buf.workspace_symbol, { desc = 'lsp.buf.workspace_symbol()' })
-
-map('n', '<space>K', function() --
-  lsp.buf.hover({ max_width = 80, max_height = 24, border = utils.border_styles.hpad })
-end, { desc = 'lsp.buf.hover()' })
+map('n', '<space>K', function() lsp_extras.hover(floating_preview_opts()) end, {
+  desc = 'lsp.buf.hover()',
+})
 
 vim.cmd('hi def link DiagnosticFloat NormalFloat')
 vim.cmd('hi def link DiagnosticFloatBorder FloatBorder')
 
 map('n', '<A-d>', function()
-  local _, winid = vim.diagnostic.open_float({ scope = 'line' })
-  if winid then
-    vim.api.nvim_win_call(winid, function()
+  local _, float_win = vim.diagnostic.open_float({ scope = 'line' })
+  if float_win then
+    vim.api.nvim_win_call(float_win, function()
       -- Right now this is the easiest way of modifying `winhl`. Change my mind.
       vim.cmd('setlocal winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder')
     end)
@@ -277,12 +288,12 @@ if dotplug.has('fidget.nvim') then
       args.data.request, args.data.request_id, args.data.client_id
     if NOISY_LSP_REQUESTS[request.method] then return end
 
-    -- TODO: Handle canceled requests correctly.
+    -- TODO: Handle cancelled requests correctly.
     local request_status_to_message = {
       pending = 'Requesting',
       error = 'Error',
       complete = 'Completed',
-      cancel = 'Canceled',
+      cancel = 'Cancelled',
     }
 
     ---@type ProgressMessage
@@ -294,6 +305,7 @@ if dotplug.has('fidget.nvim') then
       done = request.type ~= 'pending',
       token = ('%s:%s'):format(client_id, request_id),
     }
+
     fidget.progress.load_config(message)
     fidget.notify(fidget.progress.format_progress(message))
   end)
@@ -306,13 +318,14 @@ lsp.util._old_open_floating_preview = lsp.util._old_open_floating_preview
 --- effectively "anchoring" them to the cursor.
 function lsp.util.open_floating_preview(contents, syntax, opts)
   local parent_win = vim.api.nvim_get_current_win()
+  local parent_buf = vim.api.nvim_get_current_buf()
   local float_buf, float_win = lsp.util._old_open_floating_preview(contents, syntax, opts)
 
-  local augroup = utils.augroup('dotfiles_lsp_float_scroll', { clear = false })
+  local augroup = utils.augroup('dotfiles.lsp_float_scroll_' .. float_win, { clear = true })
 
   -- This event is also triggered when a window is resized, so having an
   -- autocommand for |WinResized| is redundant.
-  local autocmd_id = augroup:autocmd('WinScrolled', function()
+  augroup:autocmd('WinScrolled', function()
     if not vim.api.nvim_win_is_valid(float_win) or not vim.api.nvim_win_is_valid(parent_win) then
       return true -- delete this autocommand
     end
@@ -328,9 +341,101 @@ function lsp.util.open_floating_preview(contents, syntax, opts)
     end
   end)
 
+  -- This is a fix for <https://github.com/neovim/neovim/issues/34945> which was
+  -- introduced briefly only in version v0.11.3, but my fix also makes the
+  -- floating window close instantly. The `nested` flag is necessary to fire the
+  -- `WinClosed` event to do the cleanup.
+  augroup:autocmd('BufEnter', function(event)
+    if event.buf ~= float_buf and event.buf ~= parent_buf then
+      pcall(vim.api.nvim_win_close, float_win, true)
+    end
+  end, { nested = true })
+
   augroup:autocmd('WinClosed', tostring(float_win), function() --
-    vim.api.nvim_del_autocmd(autocmd_id)
+    augroup:delete()
   end, { once = true })
 
   return float_buf, float_win
+end
+
+vim.api.nvim_create_user_command('LspHoverDebug', function()
+  local function make_params(client) ---@param client vim.lsp.Client
+    return lsp.util.make_position_params(0, client.offset_encoding)
+  end
+  local responses = assert(lsp.buf_request_sync(0, 'textDocument/hover', make_params --[[@as any]]))
+  for client_id, res in pairs(responses) do
+    local client = lsp.get_client_by_id(client_id)
+    if res.result and not res.error and client then
+      print(client.name or client_id, vim.inspect(res.result))
+    end
+  end
+end, { bar = true })
+
+--- A complete replacement of this function using my own markdown renderer.
+---@param bufnr integer
+---@param contents string[]
+---@param opts? vim.lsp.util.open_floating_preview.Opts
+---@see dotfiles.markdown.renderer
+function lsp.util.stylize_markdown(bufnr, contents, opts)
+  opts = opts or {}
+
+  local renderer = require('dotfiles.markdown').renderer.new()
+  renderer:parse_markdown_section(table.concat(contents, '\n'))
+  local lines = renderer:get_lines()
+
+  local width = lsp.util._make_floating_popup_size(lines, opts)
+  if opts.wrap_at then
+    width = math.min(width, opts.wrap_at)
+  elseif vim.wo.wrap then
+    width = math.min(width, vim.api.nvim_win_get_width(0))
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  renderer:highlight_markdown(bufnr, width)
+  renderer:highlight_code_blocks(bufnr)
+end
+
+--- Replacement for <https://github.com/saghen/blink.cmp/blob/v1.3.1/lua/blink/cmp/lib/window/docs.lua>
+---@param opts blink.cmp.RenderDetailAndDocumentationOpts
+require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(opts)
+  local details = opts.detail
+  if type(details) ~= 'table' then details = { details } end
+
+  local renderer = require('dotfiles.markdown').renderer.new()
+
+  local seen_details = {}
+  for _, v in ipairs(details) do
+    if #v > 0 and not seen_details[v] then
+      seen_details[v] = true
+      renderer:parse_plaintext_section(v, vim.bo.filetype)
+    end
+  end
+
+  if opts.documentation then
+    local separator_line = renderer.linenr + 1
+    renderer:parse_documentation_sections(opts.documentation)
+    if renderer.lines[separator_line] == '' then
+      renderer.lines_separators[separator_line] = true
+    end
+  end
+
+  vim.api.nvim_buf_set_lines(opts.bufnr, 0, -1, true, renderer:get_lines())
+  vim.bo[opts.bufnr].modified = false
+
+  if opts.use_treesitter_highlighting then
+    renderer:highlight_markdown(opts.bufnr, opts.max_width)
+    -- HACK: This is a really dumb fix for a bug that happens when the
+    -- documentation window is first opened: a buffer is prepared with the text
+    -- before the popup window is created, and the code for opening a floating
+    -- window sets the `filetype` of the buffer[1], which causes `syntax clear`
+    -- to be run and resets the code block regions my highlighter has defined.
+    -- To fix this, I didn't come up with anything better than just delaying
+    -- the creation of `syntax` regions with `vim.schedule()`.
+    -- [1]: <https://github.com/Saghen/blink.cmp/blob/v1.3.1/lua/blink/cmp/lib/window/init.lua#L136>
+    if #vim.fn.win_findbuf(opts.bufnr) == 0 then
+      vim.schedule(function() renderer:highlight_code_blocks(opts.bufnr) end)
+    else
+      renderer:highlight_code_blocks(opts.bufnr)
+    end
+  end
 end

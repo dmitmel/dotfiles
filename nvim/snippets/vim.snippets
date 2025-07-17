@@ -44,7 +44,7 @@ snippet ftvar set a variable in an ftplugin
 snippet ftundo undo a command in an ftplugin
 	call dotfiles#ft#undo('$1')
 snippet ftundoset undo changing of an option or a variable in an ftplugin
-	call dotfiles#ft#undo_set('${1:var}')
+	call dotfiles#ft#undo_set('&${1:var}')
 snippet ftundomap undo a mapping in an ftplugin
 	call dotfiles#ft#undo_map('${1:mode}', ${2:...})
 snippet cabbrev define a command alias
