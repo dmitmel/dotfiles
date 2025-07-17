@@ -256,6 +256,16 @@ function! dotutils#is_terminal_running(buf) abort
   endif
 endfunction
 
+function! dotutils#is_floating_window(id) abort
+  if exists('*win_gettype')
+    return win_gettype(a:id) ==# 'popup'
+  elseif exists('*nvim_win_get_config')
+    return !empty(nvim_win_get_config(a:id).relative)
+  else
+    return 0
+  endif
+endfunction
+
 let s:XDG_DIR_TYPES = {
 \ 'data':    ['XDG_DATA_HOME',   '.local/share', '$LOCALAPPDATA'     ],
 \ 'config':  ['XDG_CONFIG_HOME', '.config',      '$LOCALAPPDATA'     ],

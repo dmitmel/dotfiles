@@ -128,10 +128,10 @@ endfunction
 function! s:patch_coc_float_win() abort
   " Bring back the <Esc> key for doing normal-mode edits.
   " <https://github.com/neoclide/coc.nvim/blob/67b94293b8303d8b62f1ff0b43681630906c4377/autoload/coc/dialog.vim#L152-L154>
-  iunmap <Esc>
+  imap <buffer> <Esc> <Esc>
   " Make <C-c> close the window immediately.
-  imap <buffer><silent> <C-c> <Esc><Esc>
-  nmap <buffer><silent> <C-c> <Esc>
+  imap <buffer> <C-c> <Esc><Esc>
+  nmap <buffer> <C-c> <Esc>
 endfunction
 
 augroup dotfiles_coc

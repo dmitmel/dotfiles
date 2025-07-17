@@ -129,19 +129,9 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bdelete  exe dotfiles#bufclose#cmd('bdelete<bang>',  <q-args>)
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
-  function! s:is_floating() abort
-    if exists('*win_gettype')
-      return win_gettype() ==# 'popup'
-    elseif exists('*nvim_win_get_config')
-      return nvim_win_get_config(0).relative !=# ''
-    else
-      return 0
-    endif
-  endfunction
-
   function! s:close_buffer() abort
     if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' ||
-    \  &previewwindow || &filetype ==# 'fugitive' || s:is_floating()
+    \  &previewwindow || dotutils#is_floating_window(0)
       close
     else
       Bdelete
@@ -152,9 +142,9 @@ set history=10000
   " because when these lists are loaded, they also create (but not load) buffers
   " for all of the mentioned files, and jumping to an entry in the list whose
   " buffer was wiped out fails with |E92|.
-  nnoremap <silent> <BS>  :<C-u>call <SID>close_buffer()<CR>
+  nnoremap <silent> <BS> :<C-u>call <SID>close_buffer()<CR>
   " Delete the buffer, but also close the window (that is, if it's not the last one).
-  nnoremap <silent> <Del> :<C-u>bdelete<CR>
+  nnoremap <silent> <M-BS> :<C-u>bdelete<CR>
 
 " }}}
 
@@ -171,14 +161,28 @@ set history=10000
   nnoremap <C-\> <C-w>p
   xnoremap <C-\> <C-w>p
 
-  nnoremap <silent> <M-Backspace> :<C-u>quit<CR>
+  nnoremap <silent> <Del> :<C-u>quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
-  nnoremap <leader>v :<C-u>vsplit<bar>normal!<C-o><CR>
+  nnoremap <silent> <leader>v :<C-u>vsplit<bar>normal!<C-o><CR>
 
   " Make a split on the Z-axis or, more simply, open just the current buffer in a new tab.
   nnoremap <leader>t :<C-u>tab split<CR>
   nnoremap <leader>T :<C-u>tabclose<CR>
+
+  function! s:close_floating_popup(rhs) abort
+    if dotutils#is_floating_window(0)
+      return "\<C-w>c"
+    elseif exists('b:lsp_floating_preview') && nvim_win_is_valid(b:lsp_floating_preview)
+      " Can't close a window within an |<expr>| mapping because of textlock.
+      return "\<Cmd>call nvim_win_close(b:lsp_floating_preview, v:false)\<CR>"
+    else
+      return a:rhs
+    endif
+  endfunction
+
+  nnoremap <expr> <Esc> <SID>close_floating_popup("\<Esc>")
+  nnoremap <expr>   q   <SID>close_floating_popup("q")
 
 " }}}
 
@@ -388,11 +392,9 @@ endif " }}}
   nmap [l <Plug>(qf_loc_previous)
   nmap ]l <Plug>(qf_loc_next)
   " Go to the quickfix list, or close the current list.
-  nmap <expr> Q     get(b:, 'qf_isLoc', 0) ? "\<Plug>(qf_loc_toggle)" : "\<Plug>(qf_qf_toggle)"
+  nmap <expr>   Q   get(b:, 'qf_isLoc', 0) ? "\<Plug>(qf_loc_toggle)" : "\<Plug>(qf_qf_toggle)"
   " Go to the location list, or close the current list.
   nmap <expr> <C-q> get(b:, 'qf_isLoc', 1) ? "\<Plug>(qf_loc_toggle)" : "\<Plug>(qf_qf_toggle)"
-  " Jump again to the exact location of the currently selected error.
-  nnoremap <leader>q :<C-u>cc<CR>zv
   " Pick and jump using fzf!
   nnoremap <expr> <leader>z ":\<C-u>" . (get(b:, 'qf_isLoc', 0) ? 'L' : 'C') . "fzf\<CR>"
 
