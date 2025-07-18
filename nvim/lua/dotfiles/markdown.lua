@@ -189,15 +189,13 @@ function renderer:push_syntax(syntax)
   syn.start_row, syn.start_col = self:current_pos()
   syn.end_row, syn.end_col = -1, -1
   table.insert(self.syntaxes_stack, syn)
+  table.insert(self.syntaxes_ranges, syn)
 end
 
----@return string
 function renderer:pop_syntax()
   ---@type dotfiles.markdown.syntax
   local syn = table.remove(self.syntaxes_stack)
   syn.end_row, syn.end_col = self:current_pos()
-  table.insert(self.syntaxes_ranges, syn)
-  return syn.syntax
 end
 
 ---@param name string
@@ -208,6 +206,7 @@ function renderer:push_hlgroup(name, extmark)
   hl.start_row, hl.start_col = self:current_pos()
   hl.end_row, hl.end_col = -1, -1
   table.insert(self.hlgroups_stack, hl)
+  table.insert(self.hlgroups_ranges, hl)
 end
 
 ---@param text string
@@ -223,7 +222,6 @@ function renderer:pop_hlgroup()
   ---@type dotfiles.markdown.hlgroup
   local hl = table.remove(self.hlgroups_stack)
   hl.end_row, hl.end_col = self:current_pos()
-  table.insert(self.hlgroups_ranges, hl)
 end
 
 -- A rough re-implementation of <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/src/markdown/index.ts#L36-L75>.
@@ -278,7 +276,7 @@ function renderer:parse_markdown_section(section_text)
   local parser = ffi.gc(lib.cmark_parser_new(options), lib.cmark_parser_free)
   local parser_extensions = {}
   for _, ext_name in ipairs({
-    -- 'table', -- Nah, too much effort to implement.
+    'table', -- Too much effort to implement tables properly, with line wrapping and shit.
     'autolink', -- Why not? The extension doesn't add new node types.
     'strikethrough', -- Vim can do it, see help for |strikethrough|
     -- 'tagfilter', -- Unnecessary, we aren't rendering HTML
@@ -559,7 +557,7 @@ function renderer:parse_markdown_section(section_text)
         table.insert(seen_link_nodes, link_obj)
       end
       if lib.cmark_node_get_type(node) == lib.CMARK_NODE_IMAGE then
-        self:push_text_with_hl('IMG', 'Error') -- TODO: render images with snacks.nvim
+        self:push_text_with_hl('[IMG]', 'Error') -- TODO: render images with snacks.nvim
       end
       self:push_hlgroup('dotmarkLinkText', { url = link_obj.url })
     elseif event == lib.CMARK_EVENT_EXIT then
@@ -631,6 +629,22 @@ function renderer:parse_markdown_section(section_text)
       self:push_text(ffi.string(lib.cmark_node_get_on_enter(node)))
     elseif event == lib.CMARK_EVENT_EXIT then
       self:push_text(ffi.string(lib.cmark_node_get_on_exit(node)))
+    end
+  end
+
+  -- Only bare-bones support is provided for tables, they are just inserted
+  -- verbatim as a markdown code block, preserving the original formatting.
+  handlers[tonumber(lib_ext.CMARK_NODE_TABLE)] = function(node, event)
+    if event == lib.CMARK_EVENT_ENTER then
+      handle_block_node(lib.CMARK_EVENT_ENTER)
+      local start_line = lib.cmark_node_get_start_line(node)
+      local end_line = lib.cmark_node_get_end_line(node)
+      self:push_syntax('markdown')
+      local lines = vim.split(section_text, '\n', { plain = true })
+      self:push_text(table.concat(vim.list_slice(lines, start_line, end_line), '\n'))
+      self:pop_syntax()
+      handle_block_node(lib.CMARK_EVENT_EXIT)
+      return false
     end
   end
 
