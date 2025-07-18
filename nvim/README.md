@@ -9,3 +9,11 @@ How (Neo)Vim configs are sorted:
 - `after/` - customizations of scripts in `$VIMRUNTIME` and plugins. This folder will be put at the very end of `&runtimepath`.
   - `lsp/` - **Language Server definitions should go here**, so that they are overlayed on top of those in [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig).
   - `plugin/` - scripts that are deferred until `$VIMRUNTIME` and plugins are loaded. Do not abuse `VimEnter` for the purpose of patching other scripts, use this folder for this!
+
+Sign priorities:
+
+| Kind        | Priority |
+| ----------- | -------- |
+| git signs   | 3        |
+| diagnostics | 4-8      |
+| vimspector  | 9        |

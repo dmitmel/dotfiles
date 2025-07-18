@@ -538,11 +538,12 @@ function! s:setup() " NOTE: not abort
   call Hi('vimspectorBP',         { 'fg': red })
   call Hi('vimspectorBPCond',     { 'fg': orange })
   call Hi('vimspectorBPLog',      { 'fg': yellow })
-  call Hi('vimspectorBPDisabled', { 'fg': gray[4] })
-  call Hi('vimspectorPC',         { 'fg': green })
-  hi! link vimspectorPCBP          vimspectorPC
-  hi! link vimspectorCurrentThread vimspectorPC
-  hi! link vimspectorCurrentFrame  vimspectorPC
+  call Hi('vimspectorBPDisabled', { 'fg': gray[3] })
+  exe 'hi clear vimspectorPCLine'
+  exe 'hi clear vimspectorPC'
+  let line_bg = s:mix_colors(bg, green, 0.1)
+  exe 'hi vimspectorPCLine guibg=' line_bg
+  exe 'hi vimspectorPC guibg=' line_bg 'guifg=' green.gui 'ctermfg=' green.cterm
 
   " }}}
 

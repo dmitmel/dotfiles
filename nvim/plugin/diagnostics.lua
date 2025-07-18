@@ -62,7 +62,7 @@ vim_diagnostic.config({
   },
 
   signs = {
-    priority = 10, -- De-conflict with vim-signify.
+    priority = 8,
     text = {
       [Severity.ERROR] = 'XX',
       [Severity.WARN] = '!!',

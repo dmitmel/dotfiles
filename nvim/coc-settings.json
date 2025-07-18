@@ -9,8 +9,8 @@
   "diagnostic.infoSign": "##",
   "diagnostic.hintSign": ">>",
   // Note that the real priorities range from signPriority to signPriority+4
-  // <https://github.com/neoclide/coc.nvim/blob/70f11e074f45bc1bed1c17e3b0c2cf687f5582b6/src/diagnostic/buffer.ts#L257>
-  "diagnostic.signPriority": 20,
+  // <https://github.com/neoclide/coc.nvim/blob/95fcd6d2edf695117625669a7a67cc3c02a1106a/src/diagnostic/buffer.ts#L481>
+  "diagnostic.signPriority": 4,
   "suggest.enableFloat": false,
   "suggest.noselect": true,
   "coc.preferences.maxFileSize": "1MB",

@@ -1,27 +1,15 @@
 if !dotplug#has('vimspector') | finish | endif
 
-" <https://github.com/puremourning/vimspector/blob/ebeebc121423a5ab9a31c996f9881880b658c644/README.md#changing-the-default-signs>
-let s:vimspector_signs = {
-\ 'BP':            { 'prio': 30,  'text': '● ', 'numhl': 0 },
-\ 'BPCond':        { 'prio': 30,  'text': '◆ ', 'numhl': 0 },
-\ 'BPLog':         { 'prio': 30,  'text': '◆ ', 'numhl': 0 },
-\ 'BPDisabled':    { 'prio': 30,  'text': '● ', 'numhl': 0 },
-\ 'PC':            { 'prio': 200, 'text': ' ➤', 'numhl': 1 },
-\ 'PCBP':          { 'prio': 200, 'text': '●➤', 'numhl': 1 },
-\ 'CurrentThread': { 'prio': 200, 'text': '➤ ', 'numhl': 1 },
-\ 'CurrentFrame':  { 'prio': 200, 'text': '➤ ', 'numhl': 1 },
-\}
-
-let g:vimspector_sign_priority = {}
-for [s:sign_name, s:sign_conf] in items(s:vimspector_signs)
-  let s:sign_name = 'vimspector'.s:sign_name
-  let g:vimspector_sign_priority[s:sign_name] = s:sign_conf.prio
-  call sign_define(s:sign_name, {
-  \ 'text':   get(s:sign_conf, 'text', ''),
-  \ 'texthl': get(s:sign_conf, 'texthl', 1) ? s:sign_name : '',
-  \ 'numhl':  get(s:sign_conf, 'numhl',  0) ? s:sign_name : '',
-  \})
-endfor
+" <https://github.com/puremourning/vimspector/blob/5e24df822e278ee79abfc8c7110089a5322d1a3c/README.md#changing-the-default-signs>
+sign define vimspectorBP            text=●  texthl=vimspectorBP
+sign define vimspectorBPCond        text=◆  texthl=vimspectorBPCond
+sign define vimspectorBPLog         text=◆  texthl=vimspectorBPLog
+sign define vimspectorBPDisabled    text=●  texthl=vimspectorBPDisabled
+sign define vimspectorPC            text==> linehl=vimspectorPCLine texthl=vimspectorPC numhl=vimspectorPC
+sign define vimspectorPCBP          text=●> linehl=vimspectorPCLine texthl=vimspectorPC numhl=vimspectorPC
+sign define vimspectorNonActivePC           linehl=CursorLine
+sign define vimspectorCurrentThread text=>  linehl=vimspectorPCLine texthl=vimspectorPC numhl=vimspectorPC
+sign define vimspectorCurrentFrame  text=>  linehl=vimspectorPCLine texthl=vimspectorPC numhl=vimspectorPC
 
 augroup dotfiles_vimspector
   autocmd!
