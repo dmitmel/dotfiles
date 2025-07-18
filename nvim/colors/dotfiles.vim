@@ -70,8 +70,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Strikethrough', { 'attr': strikethrough })
   call Hi('Title',         { 'fg': blue })
   hi! link Directory         Title
-  call Hi('Conceal',       { 'fg': cyan })
-  hi! link SpecialKey        Special
+  call Hi('Conceal',       { 'fg': gray[4] })
   call Hi('MatchParen',    { 'fg': orange, 'bg': gray[2], 'attr': 'bold' })
   call Hi('NonText',       { 'fg': gray[3] })
   " `nocombine` is necessary for indentation because:
@@ -80,6 +79,9 @@ function! s:setup() " NOTE: not abort
   hi! link IndentLine        IblIndent
   call Hi('IblSpace',      { 'fg': gray[3], 'attr': nocombine })
   call Hi('IblScope',      { 'fg': gray[3], 'attr': nocombine })
+  call Hi('Added',         { 'fg': green   })
+  call Hi('Removed',       { 'fg': red     })
+  call Hi('Changed',       { 'fg': magenta })
 
   if get(g:, 'dotfiles_highlight_url_under_cursor', 0)
     call Hi('Underlined',       { 'fg': blue, 'attr': 'underline', 'sp': gray[2] })
@@ -123,7 +125,6 @@ function! s:setup() " NOTE: not abort
   hi! link Quote           String
   hi! link StringDelimiter String
   call Hi('Comment',     { 'fg': gray[3] })
-  hi! link SpecialComment  Comment
   call Hi('Todo',        { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
   call Hi('Function',    { 'fg': blue })
   hi! link Tag             Function
@@ -132,6 +133,8 @@ function! s:setup() " NOTE: not abort
   call Hi('PreProc',     { 'fg': yellow })
   call Hi('Label',       { 'fg': yellow })
   call Hi('Special',     { 'fg': cyan })
+  hi! link SpecialKey      Special
+  hi! link SpecialComment  Special
   call Hi('Type',        { 'fg': yellow })
   hi! link Typedef         Type
   call HiClear('Operator')
@@ -141,171 +144,49 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   if has('nvim-0.8.0') " Treesitter {{{
-    " Code from gruvbox.nvim was used as a basis for treesitter support:
-    " <https://github.com/ellisonleao/gruvbox.nvim/blob/a933d8666dad9363dc6908ae72cfc832299c2f59/lua/gruvbox.lua#L1112-L1245>
-    " TODO: redo this from scratch
 
     call HiClear('@variable')
-    hi! link @variable.member Variable
-    hi! link @variable.builtin Variable
-    call HiClear('@module')
+    hi! link @variable.builtin      Special
+    hi! link @variable.member       Variable
+    hi! link @variable.parameter    Variable
+    hi! link @variable.declaration  Variable
 
-    call Hi('@text.strong',          { 'attr': 'bold'        })
-    call Hi('@text.emphasis',        { 'attr': 'italic'      })
-    call Hi('@text.underline',       { 'attr': 'underline'   })
-    call Hi('@text.strike',          { 'attr': strikethrough })
-    call Hi('@markup.strong',        { 'attr': 'bold'        })
-    call Hi('@markup.italic',        { 'attr': 'italic'      })
-    call Hi('@markup.underline',     { 'attr': 'underline'   })
-    call Hi('@markup.strikethrough', { 'attr': strikethrough })
+    hi! link @module                Identifier
+    hi! link @module.builtin        PreProc
+    " hi! link @function.builtin      PreProc
+    hi! link @type.builtin          Type
 
-    hi! link @text.strong          Bold
-    hi! link @text.emphasis        Italic
-    hi! link @text.underline       Underlined
-    hi! link @text.strikethrough   Strikethrough
-    hi! link @markup.strong        Bold
-    hi! link @markup.italic        Italic
-    hi! link @markup.underline     Underlined
-    hi! link @markup.strikethrough Strikethrough
-
-    hi! link @comment                  Comment
-    call HiClear('@none')
-    hi! link @preproc                  PreProc
-    hi! link @define                   Define
-    hi! link @operator                 Operator
-    hi! link @operator.regex           Special
-    hi! link @punctuation.delimiter    Delimiter
-    hi! link @punctuation.bracket      Delimiter
-    hi! link @punctuation.special      Delimiter
-    hi! link @string                   String
-    hi! link @string.regex             String
-    hi! link @string.regexp            String
-    hi! link @string.escape            SpecialChar
-    hi! link @string.special           SpecialChar
-    hi! link @string.special.path      Underlined
-    hi! link @string.special.symbol    Identifier
-    hi! link @string.special.url       Underlined
-    hi! link @character                Character
-    hi! link @character.special        SpecialChar
-    hi! link @boolean                  Boolean
-    hi! link @number                   Number
-    hi! link @number.float             Float
-    hi! link @float                    Float
-    hi! link @function                 Function
-    hi! link @function.builtin         Special
-    hi! link @function.call            Function
-    hi! link @function.macro           Macro
-    hi! link @function.method          Function
-    hi! link @method                   Function
-    hi! link @method.call              Function
-    hi! link @constructor              Type
-    hi! link @parameter                Identifier
-    hi! link @keyword                  Keyword
-    hi! link @keyword.conditional      Conditional
-    hi! link @keyword.debug            Debug
-    hi! link @keyword.directive        PreProc
-    hi! link @keyword.directive.define Define
-    hi! link @keyword.exception        Exception
-    hi! link @keyword.function         Keyword
-    hi! link @keyword.import           Include
-    hi! link @keyword.operator         Keyword
-    hi! link @keyword.repeat           Repeat
-    hi! link @keyword.return           Keyword
-    hi! link @keyword.storage          StorageClass
-    hi! link @conditional              Conditional
-    hi! link @repeat                   Repeat
-    hi! link @debug                    Debug
-    hi! link @label                    Label
-    hi! link @include                  Include
-    hi! link @exception                Exception
-    hi! link @type                     Type
-    hi! link @type.builtin             Type
-    hi! link @type.definition          Typedef
-    hi! link @type.qualifier           Type
-    hi! link @storageclass             StorageClass
-    hi! link @attribute                PreProc
-    hi! link @field                    Identifier
-    hi! link @property                 Identifier
-    call HiClear('@variable')
-    hi! link @variable.builtin         Special
-    hi! link @variable.member          Variable
-    hi! link @variable.parameter       Variable
-    hi! link @variable.declaration     Variable
-    hi! link @constant                 Constant
-    hi! link @constant.builtin         Special
-    hi! link @constant.macro           Define
-    call HiClear('@markup')
-    hi! link @markup.heading           Title
-    hi! link @markup.raw               String
-    call HiClear('@markup.raw.block')
-    hi! link @markup.math              Special
-    hi! link @markup.environment       Macro
-    hi! link @markup.environment.name  Type
-    hi! link @markup.link              Identifier
-    hi! link @markup.link.url          Underlined
-    hi! link @markup.list              Identifier
-    call Hi('@markup.list.checked',   { 'fg': green   })
-    call Hi('@markup.list.unchecked', { 'fg': gray[3] })
-    hi! link @comment.todo             Todo
-    hi! link @comment.note             SpecialComment
-    hi! link @comment.warning          WarningMsg
-    hi! link @comment.error            ErrorMsg
-    hi! link @diff.plus                diffAdded
-    hi! link @diff.minus               diffRemoved
-    hi! link @diff.delta               diffChanged
-    call HiClear('@module')
-    call HiClear('@namespace')
-    hi! link @symbol                   Identifier
-    call HiClear('@text')
-    hi! link @text.title               Title
-    hi! link @text.literal             String
-    hi! link @text.uri                 Underlined
-    hi! link @text.math                Special
-    hi! link @text.environment         Macro
-    hi! link @text.environment.name    Type
-    hi! link @text.reference           Constant
-    hi! link @text.todo                Todo
-    call Hi('@text.todo.checked',   { 'fg': green   })
-    call Hi('@text.todo.unchecked', { 'fg': gray[3] })
-    hi! link @text.note                SpecialComment
-    call Hi('@text.note.comment',    { 'fg': magenta, 'attr': 'bold' })
-    hi! link @text.warning             WarningMsg
-    hi! link @text.danger              ErrorMsg
-    call Hi('@text.danger.comment',  { 'fg': red, 'attr': 'bold' })
-    hi! link @text.diff.add            diffAdded
-    hi! link @text.diff.delete         diffRemoved
-    hi! link @tag                      Tag
-    hi! link @tag.builtin              Tag
-    hi! link @tag.attribute            Identifier
-    hi! link @tag.delimiter            Comment
-    hi! link @punctuation              Delimiter
-    hi! link @macro                    Macro
-    hi! link @structure                Structure
-    hi! link @lsp.type.class           @type
     call HiClear('@lsp.type.comment')
-    hi! link @lsp.type.decorator       @macro
-    hi! link @lsp.type.enum            @type
-    hi! link @lsp.type.enumMember      @constant
-    hi! link @lsp.type.function        @function
-    hi! link @lsp.type.interface       @constructor
-    hi! link @lsp.type.macro           @macro
-    hi! link @lsp.type.method          @method
-    hi! link @lsp.type.modifier.java   @keyword.type.java
-    hi! link @lsp.type.namespace       @namespace
-    hi! link @lsp.type.parameter       @parameter
-    hi! link @lsp.type.property        @property
-    hi! link @lsp.type.struct          @type
-    hi! link @lsp.type.type            @type
-    hi! link @lsp.type.typeParameter   @type.definition
-    hi! link @lsp.type.variable        @variable
-    hi! link @module.builtin.lua       Type
-    hi! link @function.builtin.lua     Type
-    hi! link @lsp.typemod.variable.declaration @variable.declaration
+    hi! link @lsp.typemod.variable.declaration    @variable.declaration
+    hi! link @lsp.typemod.function.defaultLibrary PreProc
+    hi! link @lsp.typemod.variable.defaultLibrary PreProc
+    hi! link @lsp.typemod.variable.global         PreProc
+    hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
-    call Hi('@comment.todo',    { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
-    call Hi('@comment.note',    { 'fg': blue,   'bg': bg, 'attr': 'reverse,bold' })
-    call Hi('@comment.warning', { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
-    call Hi('@comment.error',   { 'fg': red,    'bg': bg, 'attr': 'reverse,bold' })
+    hi! link @markup.raw String
+    call HiClear('@markup.raw.block')
+
+    hi! link @markup.link           Identifier
+    hi! link @markup.link.url       Underlined
+    hi! link @markup.link.label     String
+    hi! link @markup.list           Identifier
+
+    hi! link @markup.strong         Bold
+    hi! link @markup.italic         Italic
+    hi! link @markup.strikethrough  Strikethrough
+    hi! link @markup.underline      Underlined
+
+    hi! link @keyword.directive     PreProc
+    hi! link @tag.delimiter         Comment
+    hi! link @tag.attribute         Identifier
+    hi! link @constant.macro        Macro
+    hi! link @operator.regex        Special
+    hi! link @constructor           Type
+
+    hi! link @comment.todo Todo
+    for [kind, color] in items({ 'note': blue, 'warning': yellow, 'error': red })
+      call Hi('@comment.' . kind, { 'fg': color, 'bg': bg, 'attr': 'reverse,bold' })
+    endfor
 
   endif " }}}
 
@@ -399,6 +280,10 @@ function! s:setup() " NOTE: not abort
   call Hi('Search',    { 'fg': yellow, 'bg': bg, 'attr': 'reverse' })
   hi! link Substitute    Search
   hi! link CurSearch     Search
+
+  " call Hi('CurSearch', { 'fg': yellow, 'bg': bg,      'attr': 'reverse' })
+  " call Hi('Search',    { 'fg': yellow, 'bg': gray[7], 'attr': 'reverse' })
+  " exe 'hi Search guifg='.s:mix_colors(gray[0], yellow, 0.33) 'ctermbg='.(bg.cterm)
 
   call Hi('ModeMsg',  { 'fg': green, 'attr': 'bold' })
   call Hi('Question', { 'fg': green })
@@ -655,11 +540,11 @@ function! s:setup() " NOTE: not abort
     \ 'ctermbg=' gray[1].cterm
   endfor
   " diff file
-  call Hi('diffAdded',   { 'fg': green   })
-  call Hi('diffRemoved', { 'fg': red     })
-  call Hi('diffChanged', { 'fg': magenta })
-  hi! link diffNewFile     diffAdded
-  hi! link diffOldFile     diffRemoved
+  hi! link diffAdded       Added
+  hi! link diffRemoved     Removed
+  hi! link diffChanged     Changed
+  hi! link diffNewFile     Added
+  hi! link diffOldFile     Removed
   hi! link diffFile        Structure
   hi! link diffIndexLine   Label
   hi! link diffLine        Title
@@ -694,17 +579,17 @@ function! s:setup() " NOTE: not abort
   call Hi('gitcommitDiscardedFile', { 'fg': red,    'attr': 'bold' })
   call Hi('gitcommitSelectedFile',  { 'fg': green,  'attr': 'bold' })
 
-  hi! link GitGutterAdd          diffAdded
-  hi! link GitGutterDelete       diffRemoved
-  hi! link GitGutterChange       diffChanged
+  hi! link GitGutterAdd          Added
+  hi! link GitGutterDelete       Removed
+  hi! link GitGutterChange       Changed
   hi! link GitGutterChangeDelete GitGutterDelete
-  hi! link SignifySignAdd        diffAdded
-  hi! link SignifySignChange     diffChanged
-  hi! link SignifySignDelete     diffRemoved
-  hi! link GitSignsAdd           diffAdded
-  hi! link GitSignsDelete        diffRemoved
+  hi! link SignifySignAdd        Added
+  hi! link SignifySignChange     Changed
+  hi! link SignifySignDelete     Removed
+  hi! link GitSignsAdd           Added
+  hi! link GitSignsDelete        Removed
   hi! link GitSignsTopDelete     GitSignsDelete
-  hi! link GitSignsChange        diffChanged
+  hi! link GitSignsChange        Changed
   hi! link GitSignsChangeDelete  GitSignsChange
   hi! link GitSignsUntracked     GitSignsAdd
 
@@ -912,20 +797,21 @@ function! s:setup() " NOTE: not abort
 
   " Lua {{{
   hi! link luaFuncCall       Function
+  hi! link luaFuncName       Function
+  call HiClear('luaFuncId')
   hi! link luaBraces         Delimiter
-  hi! link luaFuncKeyword    Keyword
-  hi! link luaFunction       luaFuncKeyword
+  hi! link luaFunction       Keyword
   hi! link luaSymbolOperator Operator
   hi! link luaOperator       Keyword
   hi! link luaLocal          StorageClass
-  hi! link luaSpecialTable   Type
+  hi! link luaSpecialTable   PreProc
+  hi! link luaSpecialValue   PreProc
+  hi! link luaErrHand        PreProc
+  hi! link luaFunc           PreProc
   hi! link luaFuncArgName    Variable
   hi! link luaBuiltIn        Variable
-  hi! link luaTable          Delimiter
-  hi! link luaFunc           Function
   hi! link luaStringLongTag  luaStringLong
   hi! link luaIn             luaOperator
-  hi! link luaErrHand        luaFuncCall
   hi! link luaDocTag         Special
   " }}}
 
