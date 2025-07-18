@@ -5,7 +5,6 @@ if dotplug.has('nvim-bqf') then
   vim.g.qf_mapping_ack_style = nil -- the mappings will be added by bqf
   vim.g.qf_auto_resize = false -- auto-resizing will be done by bqf
 
-  ---@diagnostic disable-next-line: missing-fields
   require('bqf').setup({
     auto_enable = true,
     auto_resize_height = true,
@@ -18,8 +17,8 @@ if dotplug.has('nvim-bqf') then
       nexthist = '<C-n>',
       openc = '<CR>',
       open = 'o',
-      pscrollup = '<C-u>',
-      pscrolldown = '<C-d>',
+      pscrollup = '<S-Up>',
+      pscrolldown = '<S-Down>',
     },
 
     ---@diagnostic disable-next-line: missing-fields
@@ -28,11 +27,21 @@ if dotplug.has('nvim-bqf') then
       win_vheight = 13,
       delay_syntax = 0,
       border = 'single',
+      winblend = 0,
 
-      should_preview_cb = function(bufnr, qwinid)
-        return utils.get_inmemory_buf_size(bufnr) <= 100 * 1000 -- 100 kB
-          and not vim.api.nvim_buf_get_name(bufnr):match('^fugitive://')
-          and not vim.bo[bufnr].binary
+      ---@param bufnr integer
+      ---@return boolean
+      should_preview_cb = function(bufnr)
+        local path = vim.api.nvim_buf_get_name(bufnr)
+        if path:match('^fugitive://') then
+          return false
+        elseif not vim.api.nvim_buf_is_loaded(bufnr) then
+          local size = vim.fn.getfsize(path)
+          -- `-2` is returned when the size is too big to be represented as a
+          -- number in Vimscript.
+          if size > 1000 * 1000 or size == -2 then return false end
+        end
+        return true
       end,
     },
   })

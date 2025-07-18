@@ -3,6 +3,21 @@ exe dotfiles#ft#set('&colorcolumn', '')
 nnoremap <buffer> q <C-w>c
 call dotfiles#ft#undo_map('n', ['q'])
 
+if b:qf_isLoc
+  " Transfers the contents of a loclist into the quickfix list.
+  nnoremap <silent> <A-q> :<C-u>call <SID>loc2qf()<CR>
+  function! s:loc2qf() abort
+    let info = getloclist(0, { 'items': 1, 'title': 1, 'quickfixtextfunc': 1 })
+    let info.idx = getloclist(0, { 'idx': 0 }).idx  " Select the same item that was selected
+    let info.nr = '$'  " Push to the end of the quickfix list stack
+    call setqflist([], ' ', info)
+    lclose
+    call qf#OpenQuickfix()
+  endfunction
+else
+  nnoremap <silent> <A-q> <Nop>
+endif
+
 " <https://github.com/romainl/vim-qf/blob/4fe7e33a514874692d6897edd1acaaa46d9fb646/after/ftplugin/qf.vim#L48-L94>
 if exists('g:qf_mapping_ack_style')
   nmap <buffer> ( <Plug>(qf_previous_file)
