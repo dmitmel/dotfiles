@@ -146,6 +146,23 @@ set history=10000
   " Delete the buffer, but also close the window (that is, if it's not the last one).
   nnoremap <silent> <M-BS> :<C-u>bdelete<CR>
 
+  augroup dotfiles_special_buffers
+    autocmd!
+    " How Neovim creates |:checkhealth| buffers:
+    " <https://github.com/neovim/neovim/blob/master/runtime/lua/vim/health.lua>
+    " <https://github.com/neovim/neovim/blob/master/runtime/ftplugin/checkhealth.lua>
+    " <https://github.com/neovim/neovim/blob/master/runtime/ftplugin/checkhealth.vim>
+    autocmd FileType checkhealth setlocal bufhidden=wipe
+    " Customizations for the manpage viewer.
+    " <https://github.com/neovim/neovim/blob/v0.11.1/runtime/lua/man.lua#L397-L405>
+    autocmd FileType man if !empty(&buftype) | setlocal bufhidden=delete | endif
+    " For `help` buffers it is important to check `buftype` because Vimdoc files
+    " may be opened for editing as regular files, in which case having
+    " `colorcolumn` and `signcolumn` enabled actually makes sense.
+    autocmd FileType help if &buftype ==# 'help' | setlocal signcolumn=no colorcolumn= | endif
+    autocmd FileType netrw,gitsigns-blame setlocal signcolumn=no colorcolumn= nolist
+  augroup END
+
 " }}}
 
 

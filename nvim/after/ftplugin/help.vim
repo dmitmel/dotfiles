@@ -1,7 +1,3 @@
-if &buftype ==# 'help'
-  setlocal signcolumn& colorcolumn=
-endif
-
 function! s:open_help_online()
   let tagstack = gettagstack()
   if tagstack.length < 1
