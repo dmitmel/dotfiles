@@ -249,19 +249,20 @@ async function formattingHandler(params) {
       options.rangeEnd = document.offsetAt(params.range.end);
     }
 
-    let formatted = await prettier.module.format(document.getText(), options);
-    return makeMinimalEdit(document, formatted);
-  } catch (error) {
-    // What happens if an error is thrown in an LSP request handler by default:
-    // <https://github.com/microsoft/vscode-languageserver-node/blob/release/server/9.0.1/jsonrpc/src/common/connection.ts#L886-L893>
-    let message;
-    if (error instanceof SyntaxError) {
-      message = error.message; // Prettier throws SyntaxErrors if parsing fails.
-    } else if (error instanceof Error) {
-      message = `${error.name}: ${error.message}\n${error.stack}`;
-    } else {
-      message = String(error);
+    let code = document.getText();
+    try {
+      code = await prettier.module.format(code, options);
+    } catch (error) {
+      // Prettier throws SyntaxErrors if parsing fails.
+      if (error instanceof SyntaxError) return [];
+      throw error;
     }
+    return makeMinimalEdit(document, code);
+  } catch (error) {
+    // This will hopefully display any kind of error thrown inside the callback.
+    // The default error handler does not add stack traces of errors:
+    // <https://github.com/microsoft/vscode-languageserver-node/blob/release/server/9.0.1/jsonrpc/src/common/connection.ts#L886-L893>
+    let message = String((error instanceof Error && error.stack) || error);
     throw new LS.ResponseError(LS.ErrorCodes.InternalError, message);
   }
 }
