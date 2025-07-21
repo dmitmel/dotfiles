@@ -36,6 +36,12 @@ elseif !has('nvim')
   packadd editorconfig
 endif
 
+if has('nvim-0.11.3')
+  " This fix must be present:
+  " <https://github.com/neovim/neovim/commit/adf31505d862f740b49e22225f739f37093f9f03>
+  autocmd! nvim.swapfile
+endif
+
 function! s:remove(list, element) abort
   let i = index(a:list, a:element)
   if i >= 0

@@ -787,6 +787,7 @@ function renderer:highlight_code_blocks(bufnr)
   vim.api.nvim_buf_call(bufnr, function()
     vim.cmd.syntax('clear')
     vim.cmd.syntax({ 'match', 'dotmarkTodo', vim.call('dotfiles#todo_comments#get_pattern') })
+    vim.b.dotfiles_lsp_markdown = true
     for _, range in ipairs(self.syntaxes_ranges) do
       add_syntax_region(range)
     end

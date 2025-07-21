@@ -178,11 +178,10 @@ function! dotutils#reveal_file(path) abort
     call system('open -R ' . shellescape(path, 0))
   elseif has('unix') && executable('dbus-send')
     " <http://www.freedesktop.org/wiki/Specifications/file-manager-interface/>
-    let cmd = 'dbus-send --print-reply --reply-timeout=1000 --dest=org.freedesktop.FileManager1'
-    let cmd .= ' /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems'
-    let url = 'file://' . dotutils#url_encode(path, '/')
-    let cmd .= ' array:string:' . shellescape(url, 0) . " string:''"
-    let output = system(cmd)
+    let output = system([ 'dbus-send',
+    \ '--print-reply', '--reply-timeout=1000', '--dest=org.freedesktop.FileManager1',
+    \ '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
+    \ 'array:string:' . ('file://' . dotutils#url_encode(path,'/')), "string:''" ])
     if v:shell_error
       echoerr output
     endif

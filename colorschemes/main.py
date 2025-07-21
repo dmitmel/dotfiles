@@ -385,7 +385,7 @@ class ThemeGeneratorLua(ThemeGenerator):
     output.write("theme.base16_name = {}\n".format(json.dumps(theme.base16_name)))
     output.write("theme.is_dark = {}\n".format("true" if theme.is_dark else "false"))
     output.write(
-      "---@type table<number, { gui: number, cterm: number, r: number, g: number, b: number }>\n"
+      "---@type table<integer, { gui: integer, cterm: integer, r: integer, g: integer, b: integer }>\n"
     )
     output.write("local colors = {\n")
     for index, (gui_color, cterm_color) in enumerate(
@@ -409,13 +409,13 @@ class ThemeGeneratorLua(ThemeGenerator):
     output.write("theme.selection_bg = colors[{}]\n".format(BASE16_SELECTION_BG_COLOR_IDX))
     output.write("theme.selection_fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
     output.write("theme.link_color = colors[{}]\n".format(BASE16_LINK_COLOR_IDX))
-    output.write("---@type table<number, number>\n")
+    output.write("---@type table<integer, integer>\n")
     output.write(
       "theme.ansi_to_base16_mapping = {{{}}}\n".format(
         ", ".join("0x{:0X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
       )
     )
-    output.write("---@type table<number, number>\n")
+    output.write("---@type table<integer, integer>\n")
     output.write(
       "theme.base16_to_ansi_mapping = {{{}}}\n".format(
         ", ".join("0x{:02X}".format(i) for i in BASE16_TO_ANSI_MAPPING)

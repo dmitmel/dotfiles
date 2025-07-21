@@ -1,7 +1,7 @@
 local theme = {}
 theme.base16_name = "eighties"
 theme.is_dark = true
----@type table<number, { gui: number, cterm: number, r: number, g: number, b: number }>
+---@type table<integer, { gui: integer, cterm: integer, r: integer, g: integer, b: integer }>
 local colors = {
   [ 0] = { gui = 0x2d2d2d, cterm =  0, r = 0x2d, g = 0x2d, b = 0x2d },
   [ 1] = { gui = 0x393939, cterm = 18, r = 0x39, g = 0x39, b = 0x39 },
@@ -52,8 +52,8 @@ theme.cursor_fg = colors[0]
 theme.selection_bg = colors[2]
 theme.selection_fg = colors[5]
 theme.link_color = colors[12]
----@type table<number, number>
+---@type table<integer, integer>
 theme.ansi_to_base16_mapping = {0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5, 0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7, 0x9, 0xF, 0x1, 0x2, 0x4, 0x6}
----@type table<number, number>
+---@type table<integer, integer>
 theme.base16_to_ansi_mapping = {0x00, 0x12, 0x13, 0x08, 0x14, 0x07, 0x15, 0x0F, 0x01, 0x10, 0x03, 0x02, 0x06, 0x04, 0x05, 0x11}
 return theme

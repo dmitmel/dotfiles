@@ -47,8 +47,7 @@ M.lazy_config = {
   },
   ui = {
     backdrop = 100,
-    -- border = 'none',
-    border = utils.border_styles.outset,
+    border = utils.is_truthy(vim.g.neovide) and 'none' or utils.border_styles.outset,
   },
 }
 

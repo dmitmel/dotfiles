@@ -26,9 +26,9 @@ nnoremap <leader>gg :<C-u>G
 nnoremap <leader>g  :<C-u>Git<space>
 nnoremap <leader>gs :<C-u>vertical Git<CR>
 nnoremap <leader>gS :<C-u>tab Git<CR>
-nnoremap <leader>gd :<C-u>Gdiffsplit<CR>
-nnoremap <leader>gD :<C-u>tab Gdiffsplit<CR>
-nnoremap <leader>gb :<C-u>Git blame<CR>
+nnoremap <leader>gd :<C-u>Gdiffsplit<bar>normal!zvzz<CR>
+nnoremap <leader>gD :<C-u>tab Gdiffsplit<bar>normal!zvzz<CR>
+nnoremap <leader>gb :<C-u>Git blame<bar>normal!zvzz<CR>
 nnoremap <leader>gw :<C-u>GBrowse<CR>
 nnoremap <leader>gW :<C-u>.GBrowse<CR>
 xnoremap <leader>gw :GBrowse<CR>
@@ -45,6 +45,8 @@ if dotplug#has('gitsigns.nvim')
   nnoremap <silent><expr> ]c &diff ? ']c' : "\<Cmd>Gitsigns next_hunk\<CR>"
   onoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
   xnoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
+
+  nnoremap <leader>gb :<C-u>exe'Gitsigns blame'<bar>normal!zvzz<CR>
 endif
 
 let g:fugitive_browse_handlers = get(g:, 'fugitive_browse_handlers', [])

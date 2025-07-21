@@ -187,6 +187,9 @@ set history=10000
   nnoremap <leader>t :<C-u>tab split<CR>
   nnoremap <leader>T :<C-u>tabclose<CR>
 
+  nnoremap <C-t> :<C-u>tab split<CR>
+  nnoremap <A-t> :<C-u>tabclose<CR>
+
   function! s:close_floating_popup(rhs) abort
     if dotutils#is_floating_window(0)
       return "\<C-w>c"
@@ -327,22 +330,16 @@ set history=10000
   \ 'prompt':    ['fg', 'Title'],
   \ }
 
-  function! s:FilesPlugins(bang, arg) abort
-    let fzf_cmd = 'Files' . (a:bang ? '!' : '')
-    if empty(a:arg)
-      execute fzf_cmd fnameescape(g:dotplug#plugins_dir)
-    elseif dotplug#has(a:arg)
-      execute fzf_cmd fnameescape(dotplug#plugin_dir(a:arg))
-    else
-      echohl WarningMsg
-      echomsg 'Plugin not found: ' . string(a:arg)
-      echohl None
-    endif
-  endfunction
-
   command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
-  command! -bar -bang -nargs=* -complete=custom,dotplug#complete_plugin_names FilesPlugins
-  \ call s:FilesPlugins(<bang>0, <q-args>)
+
+  command! -bar -bang -nargs=? -complete=custom,dotplug#complete_plugin_names FilesPlugins
+  \ if empty(<q-args>)
+  \|  exe 'Files<bang>' fnameescape(g:dotplug#plugins_dir)
+  \|elseif dotplug#has(<q-args>)
+  \|  exe 'Files<bang>' fnameescape(dotplug#plugin_dir(<q-args>))
+  \|else
+  \|  echoerr 'Plugin not found: ' . string(<q-args>)
+  \|endif
 
   nnoremap <silent> <leader>P :<C-u>FilesPlugins<CR>
   nnoremap <silent> <leader>R :<C-u>FilesRuntime<CR>
@@ -449,7 +446,7 @@ endif
 
 augroup dotfiles_terminal
   autocmd!
-  autocmd WinEnter * if &buftype == 'terminal' | startinsert | endif
+  " autocmd WinEnter * if &buftype == 'terminal' | startinsert | endif
 
   let s:fix_terminal_win = 'setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no'
   if has('patch-8.2.3227') || has('nvim-0.7.0')  " `virtualedit` used to be a global-only option
@@ -467,4 +464,21 @@ augroup END
 
 if has('nvim')
   exe dotutils#cmd_alias('term', 'split<Bar>term')
+endif
+
+if exists('*nvim_get_proc_children')
+  function! s:all_proc_children(pid, arr) abort
+    call add(a:arr, a:pid)
+    call map(nvim_get_proc_children(a:pid), 's:all_proc_children(v:val, a:arr)')
+    return a:arr
+  endfunction
+
+  let s:ps_columns = ['user', 'pid', 'pcpu', 'pmem', 'rss', 'etime', 'cmd']
+  command! -bar Process execute
+  \ '!ps --forest --format' join(s:ps_columns, ',') join(s:all_proc_children(getpid(), []), ' ')
+  \ '| numfmt --header=1 --field='.(index(s:ps_columns, 'rss') + 1).' --to=iec --from-unit=1024'
+  \ '| column --table'
+  \          '--table-columns-limit='.len(s:ps_columns)
+  \          '--table-truncate='.(index(s:ps_columns, 'cmd') + 1)
+  \          '--output-width='.(&columns - 1)
 endif

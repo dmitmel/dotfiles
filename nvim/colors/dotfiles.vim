@@ -323,6 +323,11 @@ function! s:setup() " NOTE: not abort
   hi! link BqfPreviewTitle  Label
   hi! link BqfPreviewBorder WinSeparator
 
+  if has('nvim-0.4.0')
+    highlight FloatShadow        ctermbg=Black guibg=Black blend=70
+    highlight FloatShadowThrough ctermbg=Black guibg=Black blend=100
+  endif
+
   call Hi('Pmenu',                  { 'fg': fg, 'bg': gray[1] })
   call Hi('PmenuSel',               { 'fg': bg, 'bg': blue })
   hi! link PmenuSbar                  Pmenu
@@ -397,17 +402,16 @@ function! s:setup() " NOTE: not abort
   hi! link SnacksPickerDiagnosticCode     PmenuExtra
   hi! link SnacksPickerDiagnosticSource   PmenuExtra
 
-  if $TERM ==# 'xterm-kitty'
-    call Hi('SpellBad',   { 'attr': 'undercurl', 'sp': red })
-    call Hi('SpellLocal', { 'attr': 'undercurl', 'sp': cyan })
-    call Hi('SpellCap',   { 'attr': 'undercurl', 'sp': blue })
-    call Hi('SpellRare',  { 'attr': 'undercurl', 'sp': magenta })
-  else
-    call Hi('SpellBad',   { 'fg': bg, 'bg': red })
-    call Hi('SpellLocal', { 'fg': bg, 'bg': cyan })
-    call Hi('SpellCap',   { 'fg': bg, 'bg': blue })
-    call Hi('SpellRare',  { 'fg': bg, 'bg': magenta })
-  endif
+  for [spell_hl, color] in items({
+        \ 'SpellBad': red, 'SpellLocal': cyan, 'SpellCap': blue, 'SpellRare': magenta })
+    exe 'hi clear' spell_hl
+    exe 'hi' spell_hl 'gui=undercurl guisp=' color.gui
+    if has('nvim-0.3.2') && $TERM ==# 'xterm-kitty'
+      exe 'hi' spell_hl 'cterm=undercurl'
+    else
+      exe 'hi' spell_hl 'cterm=reverse ctermfg=' color.cterm 'ctermbg=' bg.cterm
+    endif
+  endfor
 
   call Hi('Sneak', { 'fg': bg, 'bg': green, 'attr': 'bold' })
   hi! link SneakScope Visual
@@ -626,11 +630,12 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Rust {{{
-  hi! link rustEnumVariant   Function
-  hi! link rustSelf          Variable
-  hi! link rustSigil         rustOperator
-  hi! link rustMacroVariable Variable
-  hi! link rustModPath       Identifier
+  hi! link rustEnumVariant    Function
+  hi! link rustSelf           Variable
+  hi! link rustSigil          rustOperator
+  hi! link rustMacroVariable  Variable
+  hi! link rustModPath        Identifier
+  hi! link rustCommentLineDoc Comment
   " }}}
 
   " HTML {{{
@@ -809,7 +814,7 @@ function! s:setup() " NOTE: not abort
   hi! link luaErrHand        PreProc
   hi! link luaFunc           PreProc
   hi! link luaFuncArgName    Variable
-  hi! link luaBuiltIn        Variable
+  hi! link luaBuiltIn        Special
   hi! link luaStringLongTag  luaStringLong
   hi! link luaIn             luaOperator
   hi! link luaDocTag         Special

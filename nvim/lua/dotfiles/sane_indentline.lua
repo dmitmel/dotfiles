@@ -336,12 +336,12 @@ function self.expand_scope(scope_level, line, up)
   local win_info = self.wins_info[vim.api.nvim_get_current_win()]
   local step = up and -1 or 1
 
-  -- Expand the search radius by one line up and down. This is necessary to draw
+  -- Expand the search radius by one page up and down. This is necessary to draw
   -- the scope correctly when the last line is only partially displayed (due to
   -- wrapping), but also helps with performance when scrolling the buffer by
   -- holding j/l or <C-u>/<C-d>.
-  local min_line = math.max(1, win_info.topline - 1)
-  local max_line = math.min(win_info.botline + 1, vim.api.nvim_buf_line_count(0))
+  local min_line = math.max(1, win_info.topline - win_info.height)
+  local max_line = math.min(win_info.botline + win_info.height, vim.api.nvim_buf_line_count(0))
 
   while true do
     if not win_info.no_folds then

@@ -15,9 +15,10 @@
   "editor.renderWhitespace": "trailing",
   "editor.renderFinalNewline": "off",
   "editor.renderLineHighlight": "all",
+  "editor.cursorBlinking": "solid",
 
   // Syntax highlighting
-  "workbench.colorTheme": "GitHub Dark Dimmed",
+  "workbench.colorTheme": "One Dark Pro Darker",
   "catppuccin.italicComments": false,
   "catppuccin.italicKeywords": false,
   "editor.bracketPairColorization.enabled": false,
@@ -72,6 +73,7 @@
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "git.confirmSync": false,
+  "git.openRepositoryInParentFolders": "never",
 
   // Disable experimental features
   "workbench.enableExperiments": false,
@@ -181,5 +183,6 @@
     "Meleshko",
     "nnoremap",
     "xnoremap"
-  ]
+  ],
+  "errorLens.excludeBySource": ["cSpell"]
 }

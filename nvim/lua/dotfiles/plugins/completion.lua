@@ -101,6 +101,9 @@ local blink_cmp_config = {
 
   sources = {
     default = { 'lsp', 'path', 'snippets', 'buffer' },
+    per_filetype = {
+      query = { 'omni', inherit_defaults = true },
+    },
 
     providers = {
       lsp = {
@@ -116,8 +119,16 @@ local blink_cmp_config = {
 
       buffer = {
         score_offset = -3,
-        opts = {
-          get_bufnrs = function()
+        opts = (function()
+          ---@type blink.cmp.BufferOpts|{} the `|{}` after the type makes all fields optional
+          local opts = {
+            max_sync_buffer_size = 20 * 1000,
+            max_async_buffer_size = 200 * 1000,
+            max_total_buffer_size = 1000 * 1000,
+          }
+          local max_buffer_size = math.max(opts.max_sync_buffer_size, opts.max_async_buffer_size)
+
+          function opts.get_bufnrs()
             local cmp_window = require('blink.cmp.completion.windows.menu').win.id
             local visible_bufs = {}
             for _, winid in ipairs(vim.api.nvim_list_wins()) do
@@ -132,14 +143,16 @@ local blink_cmp_config = {
                 and (visible_bufs[bufnr] or bo.buflisted)
                 and (bo.buftype == '' or bo.buftype == 'acwrite')
                 and not bo.binary
-                and utils.get_inmemory_buf_size(bufnr) <= 500000 -- 500kB
+                and utils.get_inmemory_buf_size(bufnr) < max_buffer_size
               then
                 table.insert(buffers_to_scan, bufnr)
               end
             end
             return buffers_to_scan
-          end,
-        },
+          end
+
+          return opts
+        end)(),
       },
 
       path = {
@@ -148,22 +161,6 @@ local blink_cmp_config = {
         },
       },
     },
-
-    -- TODO?????
-    -- transform_items = function(_, items)
-    --   local CompletionItemKind = require('blink.cmp.types').CompletionItemKind
-    --   -- The default score for items not listed in this table is zero.
-    --   ---@type table<lsp.CompletionItemKind, integer>
-    --   local score_offset_by_kind = {
-    --     -- [CompletionItemKind.Keyword] = 2,
-    --     [CompletionItemKind.Snippet] = -2,
-    --     [CompletionItemKind.Text] = -10,
-    --   }
-    --   for _, item in ipairs(items) do
-    --     item.score_offset = item.score_offset + (score_offset_by_kind[item] or 0)
-    --   end
-    --   return items
-    -- end,
   },
 
   fuzzy = {

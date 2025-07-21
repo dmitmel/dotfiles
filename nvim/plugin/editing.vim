@@ -1,6 +1,6 @@
 " <https://github.com/neovim/neovim/commit/6a7c904648827ec145fe02b314768453e2bbf4fe>
 " <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
-let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
+let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.2')
 
 " HACK: This has to be one of my coolest hacks. The |<Cmd>| pseudo-key can be
 " emulated in older versions of Vim simply by prepending code to the mapping to
@@ -365,6 +365,25 @@ endif
   " <https://github.com/neoclide/coc.nvim/blob/c6cd3ed431a2fb4367971229198f1f1e40257bce/autoload/coc/snippet.vim#L23-L26>
   let g:coc_selectmode_mapping = 0
 
+  function! s:backup_isk() abort
+    let s:iskeyword = &iskeyword
+    set iskeyword&vim
+    return ''
+  endfunction
+
+  function! s:restore_isk() abort
+    let &iskeyword = s:iskeyword
+    unlet s:iskeyword
+    return ''
+  endfunction
+
+  cnoremap <expr> <SID>backup_isk  <SID>backup_isk()
+  cnoremap <expr> <SID>restore_isk <SID>restore_isk()
+
+  " Make <C-w> work the same across all kinds of filetypes. This is based on
+  " <https://stackoverflow.com/a/77929847/12005228>.
+  cnoremap <script><C-w> <SID>backup_isk<C-w><SID>restore_isk
+
 " }}}
 
 
@@ -523,11 +542,11 @@ endif
     elseif a:type ==# 'line' && line("'[") == 1 && line("']") == line('$')
       let cmd = ":\<C-u>%s/"
     elseif a:type ==# 'line'
-      silent exe "normal! '[V']" | let cmd = ':s/'
+      let cmd = "'[V']:s/"
     elseif a:type ==# 'block'
-      silent exe "normal! `[\<C-v>`]" | let cmd = ':s/%V'
+      let cmd = "`[\<C-v>`]:s/%V"
     elseif a:type ==# 'char'
-      silent exe 'normal! `[v`]' | let cmd = ':s/%V'
+      let cmd = '`[v`]:s/%V'
     else
       throw 'unrecognized argument: '.a:type
     endif
@@ -566,7 +585,7 @@ endif
     endif
   endfunction
   command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
-  execute dotutils#cmd_alias('Sp', 'SpellCheck!')
+  execute dotutils#cmd_alias('Sp', 'SpellCheck')
 
 " }}}
 
@@ -651,9 +670,7 @@ endif
     nmap <silent> gc  <Plug>TComment_gc
     nmap <silent> gcc <Plug>TComment_gcc
     nmap <silent> gC  <Plug>TComment_gcb
-    " The default block commenting mapping refuses to work on a single line, as
-    " a workaround I give it another empty one to work with.
-    nmap <silent> gCC m'o<Esc>''<Plug>TComment_gcb+
+    nmap <silent> gCC :<C-u>.TCommentBlock<CR>
     xnoremap <silent> gc :TCommentMaybeInline<CR>
     xnoremap <silent> gC :TCommentBlock<CR>
     " Make an alias for the comment text object

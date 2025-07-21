@@ -48,9 +48,16 @@
     "when": "editorTextFocus && vim.active",
     "args": { "after": ["<C-v>"] }
   },
+
   {
     "key": "ctrl+,",
-    "command": "workbench.action.openSettingsJson"
+    "command": "workbench.action.openSettingsJson",
+    "when": "inSettingsEditor"
+  },
+  {
+    "key": "ctrl+k ctrl+s",
+    "command": "workbench.action.openGlobalKeybindingsFile",
+    "when": "inKeybindings"
   },
 
   {
@@ -85,124 +92,28 @@
   //   "when": "listFocus && !listHasSelectionOrFocus"
   // },
 
-  {
-    "key": "ctrl+l ctrl+l",
-    "command": "-expandLineSelection",
-    "when": "textInputFocus && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l alt+b",
-    "command": "-latex-workshop.build",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && !virtualWorkspace && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l alt+c",
-    "command": "-latex-workshop.clean",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && !virtualWorkspace && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ]",
-    "command": "-latex-workshop.demote-sectioning",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l [",
-    "command": "-latex-workshop.promote-sectioning",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+w",
-    "command": "-latex-workshop.surround",
-    "when": "editorHasSelection && editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l alt+j",
-    "command": "-latex-workshop.synctex",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && editorTextFocus && editorLangId =~ /^latex$|^latex-expl3$|^doctex$/"
-  },
-  {
-    "key": "ctrl+l alt+m",
-    "command": "-latex-workshop.toggleMathPreviewPanel",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l alt+v",
-    "command": "-latex-workshop.view",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l",
-    "command": "-notebook.centerActiveCell",
-    "when": "notebookEditorFocused"
-  },
-  {
-    "key": "ctrl+l ctrl+m",
-    "command": "-editor.action.toggleTabFocusMode",
-    "when": "textInputFocus && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l alt+x",
-    "command": "-workbench.view.extension.latex-workshop-activitybar",
-    "when": "config.latex-workshop.bind.altKeymap.enabled && viewContainer.workbench.view.extension.latex-workshop-activitybar.enabled"
-  },
-  {
-    "key": "ctrl+l ctrl+e",
-    "command": "-latex-workshop.shortcut.emph",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+enter",
-    "command": "-latex-workshop.shortcut.item",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+b",
-    "command": "-latex-workshop.shortcut.textbf",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+i",
-    "command": "-latex-workshop.shortcut.textit",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+n",
-    "command": "-latex-workshop.shortcut.textnormal",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+r",
-    "command": "-latex-workshop.shortcut.textrm",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+c",
-    "command": "-latex-workshop.shortcut.textsc",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+s",
-    "command": "-latex-workshop.shortcut.textsl",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+-",
-    "command": "-latex-workshop.shortcut.textsubscript",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+6",
-    "command": "-latex-workshop.shortcut.textsuperscript",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+t",
-    "command": "-latex-workshop.shortcut.texttt",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  },
-  {
-    "key": "ctrl+l ctrl+u",
-    "command": "-latex-workshop.shortcut.underline",
-    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^latex$|^latex-expl3$|^doctex$|^rsweave$|^jlweave$|^pweave$/"
-  }
+  { "key": "ctrl+l ctrl+l", "command": "-expandLineSelection" },
+  { "key": "ctrl+l alt+b", "command": "-latex-workshop.build" },
+  { "key": "ctrl+l alt+c", "command": "-latex-workshop.clean" },
+  { "key": "ctrl+l ]", "command": "-latex-workshop.demote-sectioning" },
+  { "key": "ctrl+l [", "command": "-latex-workshop.promote-sectioning" },
+  { "key": "ctrl+l ctrl+w", "command": "-latex-workshop.surround" },
+  { "key": "ctrl+l alt+j", "command": "-latex-workshop.synctex" },
+  { "key": "ctrl+l alt+m", "command": "-latex-workshop.toggleMathPreviewPanel" },
+  { "key": "ctrl+l alt+v", "command": "-latex-workshop.view" },
+  { "key": "ctrl+l", "command": "-notebook.centerActiveCell" },
+  { "key": "ctrl+l ctrl+m", "command": "-editor.action.toggleTabFocusMode" },
+  { "key": "ctrl+l alt+x", "command": "-workbench.view.extension.latex-workshop-activitybar" },
+  { "key": "ctrl+l ctrl+e", "command": "-latex-workshop.shortcut.emph" },
+  { "key": "ctrl+l ctrl+enter", "command": "-latex-workshop.shortcut.item" },
+  { "key": "ctrl+l ctrl+b", "command": "-latex-workshop.shortcut.textbf" },
+  { "key": "ctrl+l ctrl+i", "command": "-latex-workshop.shortcut.textit" },
+  { "key": "ctrl+l ctrl+n", "command": "-latex-workshop.shortcut.textnormal" },
+  { "key": "ctrl+l ctrl+r", "command": "-latex-workshop.shortcut.textrm" },
+  { "key": "ctrl+l ctrl+c", "command": "-latex-workshop.shortcut.textsc" },
+  { "key": "ctrl+l ctrl+s", "command": "-latex-workshop.shortcut.textsl" },
+  { "key": "ctrl+l ctrl+-", "command": "-latex-workshop.shortcut.textsubscript" },
+  { "key": "ctrl+l ctrl+6", "command": "-latex-workshop.shortcut.textsuperscript" },
+  { "key": "ctrl+l ctrl+t", "command": "-latex-workshop.shortcut.texttt" },
+  { "key": "ctrl+l ctrl+u", "command": "-latex-workshop.shortcut.underline" }
 ]

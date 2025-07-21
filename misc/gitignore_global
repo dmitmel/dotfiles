@@ -1,4 +1,5 @@
 Session.vim
+.vimspector.session
 .project.vim
 .DS_Store
 .ropeproject/
