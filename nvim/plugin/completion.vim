@@ -79,16 +79,6 @@ function! s:jump_in_out_float_win() abort
 endfunction
 nmap <leader>j <Cmd>call <SID>jump_in_out_float_win()<CR>
 
-" Text objects!
-xmap if <Plug>(coc-funcobj-i)
-omap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap af <Plug>(coc-funcobj-a)
-xmap iC <Plug>(coc-classobj-i)
-omap iC <Plug>(coc-classobj-i)
-xmap aC <Plug>(coc-classobj-a)
-omap aC <Plug>(coc-classobj-a)
-
 function! s:CocFormat(range, line1, line2) abort
   if a:range == 0
     if !s:coc_buf_supports('format') | return | endif

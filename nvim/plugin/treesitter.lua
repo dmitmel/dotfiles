@@ -107,6 +107,53 @@ if dotplug.has('nvim-treesitter') then
     highlight = {
       enable = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
     },
+
+    indent = {
+      enable = true,
+    },
+
+    incremental_selection = {
+      enable = true,
+      keymaps = {
+        init_selection = '<C-space>',
+        node_incremental = '<C-space>',
+        scope_incremental = false,
+        node_decremental = '<BS>',
+      },
+    },
+
+    textobjects = {
+      select = {
+        enable = true,
+        lookahead = true,
+
+        keymaps = {
+          ['af'] = '@function.outer',
+          ['if'] = '@function.inner',
+          ['ac'] = '@class.outer',
+          ['ic'] = '@class.inner',
+          ['ab'] = '@block.outer',
+          ['ib'] = '@block.inner',
+        },
+      },
+
+      move = {
+        enable = true,
+        set_jumps = true, -- whether to set jumps in the jumplist
+        goto_next_start = {
+          [']]'] = '@function.outer',
+        },
+        goto_next_end = {
+          [']['] = '@function.outer',
+        },
+        goto_previous_start = {
+          ['[['] = '@function.outer',
+        },
+        goto_previous_end = {
+          ['[]'] = '@function.outer',
+        },
+      },
+    },
   })
 
   local clear_underlined_urls ---@type function|nil
@@ -169,5 +216,25 @@ if dotplug.has('nvim-treesitter') then
         { 'CursorMoved', 'CursorMovedI', 'WinEnter', 'BufEnter' },
         highlight_url_under_cursor
       )
+  end
+
+  local function reparse_current_buffer()
+    local parser = require('nvim-treesitter.parsers').get_parser(0)
+    parser:parse({ vim.fn.line('w0') - 1, vim.fn.line('w$') })
+  end
+
+  local ts_select = require('nvim-treesitter.textobjects.select')
+  ts_select._old_select_textobject = ts_select._old_select_textobject or ts_select.select_textobject
+  function ts_select.select_textobject(...)
+    reparse_current_buffer()
+    return ts_select._old_select_textobject(...)
+  end
+
+  local ts_to_shared = require('nvim-treesitter.textobjects.shared')
+  ts_to_shared._old_get_query_strings_from_regex = ts_to_shared._old_get_query_strings_from_regex
+    or ts_to_shared.get_query_strings_from_regex
+  function ts_to_shared.get_query_strings_from_regex(...)
+    reparse_current_buffer()
+    return ts_to_shared._old_get_query_strings_from_regex(...)
   end
 end

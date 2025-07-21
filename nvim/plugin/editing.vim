@@ -611,6 +611,8 @@ endif
 
   let g:matchup_delim_noskips = 2
   let g:matchup_delim_nomids = 1
+  let g:matchup_treesitter_enabled = v:false
+  let g:matchup_treesitter_enable_quotes = v:false
 
   augroup dotfiles_matchup
     autocmd!

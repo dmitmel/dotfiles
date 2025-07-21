@@ -146,14 +146,9 @@ function! dotutils#url_under_cursor() abort
     " The Lua URL finder is better than Netrw's default one. It relies on
     " Treesitter though. The `vim.treesitter.highlighter` API was added in Nvim
     " 0.9, but we already checked for version 0.10.
-    if luaeval("vim.tbl_get(vim, 'treesitter', 'highlighter', 'active', _A) ~= nil", bufnr('%'))
-      " <https://github.com/neovim/neovim/commit/9762c5e3406cab8152d8dd161c0178965d841676>
-      let url = luaeval('vim.ui._get_urls and vim.ui._get_urls()[1]')
-      if !empty(url) | return url | endif
-      " <https://github.com/neovim/neovim/commit/f864b68c5b0fe1482249167712cd16ff2b50ec45>
-      let url = luaeval('vim.ui._get_url and vim.ui._get_url()')
-      if !empty(url) | return url | endif
-    endif
+    " <https://github.com/neovim/neovim/commit/9762c5e3406cab8152d8dd161c0178965d841676>
+    " <https://github.com/neovim/neovim/commit/f864b68c5b0fe1482249167712cd16ff2b50ec45>
+    return luaeval('(vim.ui._get_url and { vim.ui._get_url() } or vim.ui._get_urls())[1]')
   endif
 
   if s:netrw_GX_exists
