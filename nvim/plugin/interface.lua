@@ -54,30 +54,32 @@ if has_vim_ui then
   function vim_ui.open(path, opt)
     if utils.is_truthy(vim.g['dotutils#use_lua_for_open_uri']) and vim_ui._lua_open ~= nil then
       local netrw_cmd = vim.g.netrw_browsex_viewer
-      opt = vim.tbl_extend('keep', opt, {
+      opt = vim.tbl_extend('keep', opt or {}, {
         cmd = netrw_cmd and vim.split(netrw_cmd, '%s') or nil,
       })
       return vim_ui._lua_open(path, opt)
     end
 
     vim.call('dotutils#open_uri', path)
-    local fake_system = {} --[[@cast fake_system vim.SystemObj]]
-    function fake_system:wait()
-      local fake_completed = {} --[[@cast fake_completed vim.SystemCompleted]]
-      fake_completed.code = 0
-      return fake_completed
-    end
-    return fake_system
+
+    -- `T|{}` after the type works like `Partial<T>` in TypeScript.
+    ---@type vim.SystemObj|{}
+    return {
+      wait = function(_self, _timeout)
+        ---@type vim.SystemCompleted|{}
+        return { code = 0 }
+      end,
+    }
   end
 
-  function vim_ui.select(...) return require('dotfiles.ui_select').fzf_select(...) end
+  function vim_ui.select(...) return require('dotfiles.nvim_fzf_select').fzf_select(...) end
 end
 
 if dotplug.has('fzf-lua') then
   local FzfLua = require('fzf-lua')
 
   FzfLua.win._old_redraw_preview = FzfLua.win._old_redraw_preview or FzfLua.win.redraw_preview
-  FzfLua.win.redraw_preview = utils.schedule_once_per_frame(FzfLua.win._old_redraw_preview)
+  FzfLua.win.redraw_preview = utils.schedule_once_per_tick(FzfLua.win._old_redraw_preview)
 
   FzfLua.win._old_update_preview_title = FzfLua.win._old_update_preview_title
     or FzfLua.win.update_preview_title
@@ -107,7 +109,15 @@ if dotplug.has('fzf-lua') then
 
       preview = {
         hidden = false,
-        border = utils.border_styles.left,
+        border = function(_, m)
+          local layout_to_border = {
+            left = utils.border_styles.right,
+            right = utils.border_styles.left,
+            up = utils.border_styles.bottom,
+            down = utils.border_styles.top,
+          }
+          return layout_to_border[m.layout] or 'none'
+        end,
         horizontal = 'right:border-left:60%',
         winopts = {
           -- this helps by adding some padding between line numbers in the preview and the border
@@ -129,8 +139,8 @@ if dotplug.has('fzf-lua') then
         -- close our windows, and we should also close floats opened by it.
         -- <https://github.com/neovim/neovim/blob/v0.11.1/runtime/lua/vim/lsp/util.lua#L1554-L1559>
         local lsp_float = vim.b[src_buf].lsp_floating_preview
-        if lsp_float and lsp_float ~= fzf_win and vim.api.nvim_win_is_valid(lsp_float) then
-          vim.api.nvim_win_close(lsp_float, true)
+        if lsp_float and lsp_float ~= fzf_win then
+          pcall(vim.api.nvim_win_close, lsp_float, true)
         end
         -- <https://github.com/neovim/neovim/blob/v0.11.1/runtime/lua/vim/lsp/util.lua#L1615-L1616>
         vim.b[src_buf].lsp_floating_preview = fzf_win
@@ -169,10 +179,7 @@ if dotplug.has('fzf-lua') then
 
       code_actions = {
         fzf_opts = {
-          ['--layout'] = 'reverse-list',
-          ['--info'] = 'hidden',
           ['--scrollbar'] = '█',
-          ['--cycle'] = true,
         },
 
         fzf_colors = {
@@ -232,14 +239,15 @@ if dotplug.has('fzf-lua') then
     files = {
       git_icons = false,
       file_icons = false,
+      actions = {
+        ['enter'] = FzfLua.actions.file_edit, -- the default is file_edit_or_qf
+      },
     },
   })
 
   FzfLua.deregister_ui_select(--[[ opts = ]] nil, --[[ silent = ]] true)
   FzfLua.register_ui_select(
-    ---@generic T
-    ---@param items T[]
-    ---@param opts { prompt?: string, kind?: string, format_item?: fun(item: T): string }
+    ---@type dotfiles.ui_select_fn
     function(opts, items)
       local num_width = string.format('%d. ', #items):len()
       local item_width = 0
@@ -247,18 +255,42 @@ if dotplug.has('fzf-lua') then
         local text = opts.format_item and opts.format_item(item) or tostring(item)
         item_width = math.max(item_width, vim.api.nvim_strwidth(text))
       end
+
+      local win_width = utils.clamp(
+        num_width + item_width + 1, -- +1 for the scrollbar
+        vim.o.pumwidth,
+        vim.o.columns * 0.5
+      )
+
+      local win_height = math.min(#items, vim.o.pumheight)
+      win_height = (win_height <= 2) and (win_height / vim.o.lines) or (win_height - 1)
+
       return {
         winopts = {
-          height = utils.clamp(#items - 1, 2, vim.o.pumheight - 2),
-          width = utils.clamp(
-            num_width + item_width + 1,
-            math.max(2, vim.o.pumwidth),
-            vim.o.columns * 0.4
-          ),
+          height = win_height,
+          width = win_width,
+          split = opts.kind ~= 'codeaction' and string.format('botright %dnew', #items + 1) or nil,
+        },
+
+        fzf_opts = {
+          ['--layout'] = 'reverse-list',
+          ['--cycle'] = true,
+          ['--info'] = 'hidden',
+          ['--no-separator'] = true,
         },
       }
     end
   )
+
+  -- local fzf_ui_select = vim.ui.select
+  -- function vim.ui.select(...)
+  --   local _items, opts, _on_choice = ...
+  --   if opts.kind == 'codeaction' then
+  --     return require('dotfiles.nvim_fzf_select').popupmenu_select(...)
+  --   else
+  --     return fzf_ui_select(...)
+  --   end
+  -- end
 end
 
 if not dotplug.has('snacks.nvim') then return end
