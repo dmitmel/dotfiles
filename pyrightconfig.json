@@ -1,24 +1,18 @@
 {
+  "typeCheckingMode": "standard",
   "executionEnvironments": [
     {
       "root": "scripts",
-      "extraPaths": ["script-resources"]
+      "extraPaths": ["./script-resources"]
     },
     {
-      "root": "script-resources",
-      "extraPaths": ["script-resources"]
+      "root": "script-resources"
     },
     {
-      "root": "script-resources/welcome",
-      "extraPaths": ["script-resources/welcome"]
+      "root": "script-resources/welcome"
     },
     {
-      "root": "colorschemes",
-      "extraPaths": ["colorschemes"]
-    },
-    {
-      "root": "nvim/dotfiles/rplugin/python3",
-      "extraPaths": ["nvim/dotfiles/rplugin/python3"]
+      "root": "colorschemes"
     }
   ]
 }

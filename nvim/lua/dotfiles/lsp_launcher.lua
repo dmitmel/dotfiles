@@ -1,3 +1,4 @@
+---@deprecated
 local M = require('dotfiles.autoload')('dotfiles.lsp_launcher', {})
 
 local lsp = require('vim.lsp')
@@ -11,27 +12,30 @@ function M.reuse_client(client, config)
   return client.name == config.name
 end
 
----@class dotfiles.lsp.Config : vim.lsp.Config
----@field lazy_settings? elem_or_list<fun(config: vim.lsp.ClientConfig): lsp.LSPObject?>
+--- Straight-up stolen from <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/shared.lua#L1412-L1420>.
+--- This function was added only in v0.11.0, but is useful nonetheless.
+---@generic T
+---@param x unknown|T[]|nil
+---@return T[]
+local function ensure_list(x)
+  if type(x) == 'table' and M.is_list(x) then
+    return x
+  else
+    return { x }
+  end
+end
 
 ---@param config dotfiles.lsp.Config
 ---@return dotfiles.lsp.Config
 function M.patch_lsp_config(config)
   config.reuse_client = config.reuse_client or M.reuse_client
-  local before_inits = utils.ensure_list(config.before_init)
-  local lazy_settings = utils.ensure_list(config.lazy_settings)
+  local before_inits = ensure_list(config.before_init)
+  local lazy_settings = ensure_list(config.lazy_settings)
   config.lazy_settings = nil
 
   ---@param init_params lsp.InitializeParams
   ---@param config vim.lsp.ClientConfig
   config.before_init = function(init_params, config)
-    local capabilities = init_params.capabilities
-    capabilities.textDocument.inlayHint = nil -- COMPLETELY disable inlay hints
-    capabilities.textDocument.codeLens = nil -- COMPLETELY disable code lens
-    utils.remove_all(capabilities.textDocument.semanticTokens.tokenTypes, function(type)
-      return type == 'comment' --
-    end)
-
     if lazy_settings ~= nil then
       for _, callback in ipairs(lazy_settings) do
         local extra_settings = callback(config)
@@ -58,13 +62,7 @@ function M.should_attach(bufnr)
     and utils.get_inmemory_buf_size(bufnr) <= 1000000 -- 1MB
 end
 
---- NOTE: I'm gonna stick to lspconfig as my Language Server launcher for now
---- because it handles workspace folders correctly[1], while `vim.lsp` as of
---- Neovim 0.11+ has not implemented that functionality yet. However, I want
---- to put my server configs in `lsp/*.lua` in runtimepath, just like in the
---- new system[2].
---- [1]: <https://github.com/neovim/nvim-lspconfig/blob/48f4475eb71638b69c984557169dc3826603d37e/lua/lspconfig/manager.lua#L7-L152>
---- [2]: <https://github.com/neovim/neovim/blob/v0.11.1/runtime/lua/vim/lsp.lua#L397-L408>
+---@deprecated
 ---@param servers string[]
 function M.setup(servers)
   local LspManager = require('lspconfig.manager')

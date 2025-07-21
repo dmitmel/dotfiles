@@ -1,7 +1,7 @@
 -- <https://github.com/neovim/nvim-lspconfig/blob/master/lsp/basedpyright.lua>
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'basedpyright-langserver', '--stdio' },
   filetypes = { 'python' },
   root_markers = {
@@ -11,7 +11,7 @@ local config = {
     'requirements.txt',
     'Pipfile',
     'pyrightconfig.json',
+    '.git',
   },
+  settings_sections = { 'python', 'pyright', 'basedpyright' },
 }
-
-return config

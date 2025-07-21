@@ -4,7 +4,11 @@ if !(dotplug#has('coc.nvim') && g:vim_ide == 1) | finish | endif
 
 let g:coc_config_home = g:nvim_dotfiles_dir
 let g:coc_disable_startup_warning = 1
-" let g:coc_node_args = ['-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'), '--nolazy', '--inspect']
+if !empty($NVIM_DEBUG_COC)
+  let g:coc_node_args = extend(get(g:, 'coc_node_args', []), [
+        \ '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'),
+        \ '--nolazy', '--inspect-wait'])
+endif
 let g:coc_user_config = {}
 let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
 
@@ -27,7 +31,7 @@ nmap <space>gt <Plug>(coc-type-definition)
 nmap <space>gi <Plug>(coc-implementation)
 nmap <space>gr <Plug>(coc-references)
 nmap <F2>      <Plug>(coc-rename)
-nmap <A-CR>    <Plug>(coc-codeaction-line)
+nmap <silent> <A-CR> <Plug>(coc-codeaction-line)
 xmap <A-CR>    <Plug>(coc-codeaction-selected)
 nmap <A-d>     <Plug>(coc-diagnostic-info)
 
@@ -138,6 +142,7 @@ augroup dotfiles_coc
   autocmd!
   autocmd User CocNvimInit call s:patch_coc_signs()
   autocmd User CocOpenFloatPrompt call s:patch_coc_float_win()
+  autocmd User CocStatusChange,CocDiagnosticChange redrawstatus!
 augroup END
 
 runtime! dotfiles/coc-languages/*.vim

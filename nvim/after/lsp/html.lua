@@ -3,21 +3,15 @@
 -- <https://github.com/microsoft/vscode/blob/main/extensions/html-language-features/server/src/htmlServer.ts>
 
 ---@type dotfiles.lsp.Config
-local config = {
-  cmd = require('dotfiles.lsp_extras').find_vscode_server({
-    npm_exe = 'vscode-html-language-server',
-    archlinux_exe = 'vscode-html-languageserver',
-    vscode_script = 'extensions/html-language-features/server/dist/node/htmlServerMain.js',
-    args = { '--stdio' },
-  }),
-  filetypes = { 'html', 'templ' },
-  root_markers = { 'package.json' },
+return {
+  cmd = { 'vscode-html-language-server', '--stdio' },
+  filetypes = { 'html' },
+  root_markers = { 'package.json', '.git' },
 
+  settings_sections = { 'html', 'css', 'javascript' },
   init_options = {
     embeddedLanguages = { css = true, javascript = true },
     configurationSection = { 'html', 'css', 'javascript' },
     provideFormatter = false,
   },
 }
-
-return config

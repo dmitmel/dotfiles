@@ -5,7 +5,7 @@ local utils = require('dotfiles.utils')
 -- Note that every one of those is a valid filetype in Vim.
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'node', utils.script_relative('../../prettier-language-server/main.js'), '--stdio' },
 
   -- stylua: ignore
@@ -39,7 +39,8 @@ local config = {
     },
     'package.json',
     '.editorconfig',
+    '.git',
   },
-}
 
-return config
+  settings_sections = { 'prettier' },
+}

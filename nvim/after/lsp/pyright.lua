@@ -2,7 +2,7 @@
 -- <https://github.com/fannheyward/coc-pyright/blob/master/src/index.ts>
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'pyright-langserver', '--stdio' },
   filetypes = { 'python' },
   root_markers = {
@@ -12,17 +12,7 @@ local config = {
     'requirements.txt',
     'Pipfile',
     'pyrightconfig.json',
+    '.git',
   },
-
-  settings = {
-    python = {
-      analysis = {
-        autoSearchPaths = true,
-        useLibraryCodeForTypes = true,
-        diagnosticMode = 'workspace',
-      },
-    },
-  },
+  settings_sections = { 'python', 'pyright' },
 }
-
-return config

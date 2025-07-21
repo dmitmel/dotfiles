@@ -73,7 +73,7 @@ function M.plugin_dir(name) return M.find_plugin(name).dir end
 ---@param names string[]
 function M.load(names)
   utils.check_type('names', names, utils.is_list(names), 'list')
-  if vim.tbl_isempty(names) then error('expected one or more plugin names') end
+  if utils.is_empty(names) then error('expected one or more plugin names') end
   lazy.load({ plugins = names, wait = true })
 end
 
@@ -202,7 +202,7 @@ function M.end_setup()
 
   -- lazy.nvim automatically installs the missing plugins for us, but does not
   -- clean up the unused plugins by itself.
-  if utils.is_truthy(vim.g['dotplug#autoclean']) and not vim.tbl_isempty(LazyConfig.to_clean) then
+  if utils.is_truthy(vim.g['dotplug#autoclean']) and not utils.is_empty(LazyConfig.to_clean) then
     lazy.clean({ wait = true })
   end
 
@@ -216,7 +216,7 @@ function M.end_setup()
     pattern = vim.fn.escape(utils.script_relative('../lua/dotfiles/plugins'), '*?,{}[]\\')
       .. '/*.lua',
     -- Do schedule() beforehand so that if multiple files get changed, reload is called just once.
-    callback = utils.schedule_once_per_frame(
+    callback = utils.schedule_once_per_tick(
       function() require('lazy.manage.reloader').reload() end
     ),
   })

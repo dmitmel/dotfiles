@@ -76,7 +76,7 @@ vim_diagnostic.config({
 
 utils.augroup('dotfiles_diagnostics'):autocmd(
   'DiagnosticChanged',
-  utils.schedule_once_per_frame(function() vim.cmd('redrawstatus!') end),
+  utils.schedule_once_per_tick(function() vim.cmd('redrawstatus!') end),
   { desc = 'redraw the statusline on diagnostics updates' }
 )
 

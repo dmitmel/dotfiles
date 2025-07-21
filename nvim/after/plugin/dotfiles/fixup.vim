@@ -23,6 +23,11 @@ augroup dotfiles_session
   autocmd!
   let g:dotfiles_saved_shortmess = &shortmess
   autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
+  " Clear the argument list before saving the sessions and after loading them.
+  " It is very annoying that it is persisted in the session, the buffers opened
+  " from the command line become undeleatable.
+  autocmd User ObsessionPre %argdel
+  autocmd SessionLoadPost * %argdel
 augroup END
 
 " Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead

@@ -8,13 +8,38 @@ local lsp_extras = require('dotfiles.lsp_extras')
 lsp_log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
 lsp_log.set_level(utils.if_nil(lsp_log.levels[vim.env.NVIM_LSP_LOG], lsp_log.levels.WARN))
 
--- TODO: rename to :LspLog once I get rid of nvim-lspconfig
-vim.api.nvim_create_user_command('LspOpenLog', function(cmd) --
+require('dotfiles.lsp_ignition').enable({
+  'lua_ls',
+  'rust_analyzer',
+  'clangd',
+  'cssls',
+  'html',
+  'jsonls',
+  'yamlls',
+  'basedpyright',
+  'eslint',
+  'vtsls',
+  'ruff',
+  'prettier',
+})
+
+vim.api.nvim_create_user_command('LspLog', function(cmd) --
   vim.cmd.edit({ lsp.get_log_path(), bang = cmd.bang, mods = cmd.smods })
 end, { bar = true, bang = true })
 
 vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', { bar = true })
 vim.cmd("execute dotutils#cmd_alias('LI', 'LspInfo')")
+
+if dotplug.has('conform.nvim') then
+  require('conform').setup({
+    default_format_opts = {
+      lsp_format = 'fallback',
+    },
+    formatters_by_ft = {
+      lua = { 'stylua' },
+    },
+  })
+end
 
 local has_conform, conform = pcall(require, 'conform')
 local lsp_format = has_conform and conform.format or lsp.buf.format
@@ -65,8 +90,6 @@ map({ 'n', 'x' }, '<space>a', lsp.buf.code_action, { desc = 'lsp.buf.code_action
 local function signature_help() lsp.buf.signature_help(floating_preview_opts()) end
 map('n', '<space>s', signature_help, { desc = 'lsp.buf.signature_help()' })
 map('i', '<F1>', signature_help, { desc = 'lsp.buf.signature_help()' })
-map('n', '<space>o', lsp.buf.document_symbol, { desc = 'lsp.buf.document_symbol()' })
-map('n', '<space>w', lsp.buf.workspace_symbol, { desc = 'lsp.buf.workspace_symbol()' })
 map('n', '<space>K', function() lsp_extras.hover(floating_preview_opts()) end, {
   desc = 'lsp.buf.hover()',
 })
@@ -83,10 +106,6 @@ map('n', '<A-d>', function()
     end)
   end
 end, { desc = 'vim.diagnostic.open_float()' })
-
-map('n', '<space>d', function() --
-  vim.diagnostic.setqflist({ severity = { min = vim.diagnostic.severity.INFO } })
-end, { desc = 'vim.diagnostic.setqflist()' })
 
 -- The mnemonic here is "dia[g]nostic". Very intuitive, I know, but `]d` and
 -- `[d` are taken by the line duplication mappings. The previous mappings for
@@ -136,11 +155,20 @@ if dotplug.has('fzf-lua') then
   map('n', '<space>d', fzf.diagnostics_workspace, { desc = 'Pick diagnostics' })
   map('n', '<space>o', fzf.lsp_document_symbols, { desc = 'Pick LSP document symbols' })
   map('n', '<space>w', fzf.lsp_live_workspace_symbols, { desc = 'Pick LSP workspace symbols' })
+  map('n', '<space>c', function() fzf.commands({ query = '^Lsp ' }) end)
 elseif dotplug.has('snacks.nvim') then
   local pick = require('snacks.picker')
   map('n', '<space>d', pick.diagnostics, { desc = 'Pick diagnostics' })
   map('n', '<space>o', pick.lsp_symbols, { desc = 'Pick LSP document symbols' })
   map('n', '<space>w', pick.lsp_workspace_symbols, { desc = 'Pick LSP workspace symbols' })
+  map('n', '<space>c', function() pick.commands({ pattern = '^Lsp ' }) end)
+else
+  map('n', '<space>d', function() --
+    vim.diagnostic.setqflist({ severity = { min = vim.diagnostic.severity.INFO } })
+  end, { desc = 'vim.diagnostic.setqflist()' })
+  map('n', '<space>o', lsp.buf.document_symbol, { desc = 'lsp.buf.document_symbol()' })
+  map('n', '<space>w', lsp.buf.workspace_symbol, { desc = 'lsp.buf.workspace_symbol()' })
+  map('n', '<space>c', function() return ':<C-u>Lsp<C-z>' end, { expr = true })
 end
 
 local function lsp_supports(method) ---@param method string
@@ -197,58 +225,11 @@ if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
     end
   end
 
-  -- NOTE: neoconf must be initialized BEFORE calling lspconfig.
   require('neoconf').setup({
     import = {
       vscode = true,
       coc = true,
       nlsp = true,
-    },
-  })
-end
-
-require('dotfiles.lsp_launcher').setup({
-  'lua_ls',
-  'rust_analyzer',
-  'clangd',
-  'cssls',
-  'html',
-  'jsonls',
-  'yamlls',
-  vim.fn.executable('basedpyright') ~= 0 and 'basedpyright' or 'pyright',
-  'eslint',
-  vim.fn.executable('vtsls') ~= 0 and 'vtsls' or 'ts_ls',
-  'ruff',
-  'prettier',
-})
-
-vim.api.nvim_create_user_command('EslintFixAll', function(cmd)
-  local bufnr = vim.api.nvim_get_current_buf()
-  local params = {
-    title = 'Fix all Eslint errors for current buffer',
-    command = 'eslint.applyAllFixes',
-    arguments = {
-      { uri = vim.uri_from_bufnr(bufnr), version = lsp.util.buf_versions[bufnr] },
-    },
-  }
-  for _, client in ipairs(lsp.get_clients({ name = 'eslint', bufnr = bufnr })) do
-    if cmd.bang then
-      local timeout = 3000
-      -- Unfortunately, there is no `client:exec_cmd_sync` right now.
-      client:request_sync('workspace/executeCommand', params, timeout, bufnr)
-    else
-      client:exec_cmd(params, { bufnr = bufnr })
-    end
-  end
-end, { bar = true, bang = true })
-
-if dotplug.has('conform.nvim') then
-  require('conform').setup({
-    default_format_opts = {
-      lsp_format = 'fallback',
-    },
-    formatters_by_ft = {
-      lua = { 'stylua' },
     },
   })
 end
@@ -436,6 +417,26 @@ require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(
       vim.schedule(function() renderer:highlight_code_blocks(opts.bufnr) end)
     else
       renderer:highlight_code_blocks(opts.bufnr)
+    end
+  end
+end
+
+--- I patch this function to use `xpcall` instead of `pcall` to show full backtraces.
+---@param cbs function[]
+---@param error_id integer
+---@param ... any
+---@diagnostic disable-next-line: invisible
+function lsp.client:_run_callbacks(cbs, error_id, ...)
+  -- THE ORIGINAL SOURCE CODE USES `pairs` HERE!!!
+  for _, callback in ipairs(cbs) do
+    local ok, err = xpcall(callback, debug.traceback, ...)
+    if not ok then
+      local code = lsp.client_errors[error_id]
+      local prefix = self._log_prefix ---@diagnostic disable-line: invisible
+      local err_first_line = string.match(err, '^([^\n]*)')
+      lsp.log.error(prefix, 'on_error', { code = code, err = err_first_line })
+      local notify = vim.in_fast_event() and vim.schedule_wrap(vim.notify) or vim.notify
+      notify(('%s: Error %s: %s'):format(prefix, code, err), vim.log.levels.ERROR)
     end
   end
 end

@@ -4,9 +4,10 @@
 local utils = require('dotfiles.utils')
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'vim-language-server', '--stdio' },
   filetypes = { 'vim' },
+  settings_sections = { 'vim' },
 
   init_options = {
     isNeovim = utils.has('nvim'),
@@ -19,13 +20,10 @@ local config = {
     },
   },
 
-  ---@param init_params lsp.InitializeParams
-  before_init = function(init_params)
+  before_init = function(init_params) ---@param init_params lsp.InitializeParams
     local init_opts = init_params.initializationOptions --[[@as table]]
     init_opts.iskeyword = vim.api.nvim_get_option_value('iskeyword', { filetype = 'vim' })
     init_opts.vimruntime = vim.env.VIMRUNTIME
     init_opts.runtimepath = vim.o.runtimepath
   end,
 }
-
-return config

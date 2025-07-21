@@ -220,7 +220,7 @@ exe dotplug#define_plug_here()
       " Shows LSP and non-LSP notifications and progress messages in a nice and unobtrusive UI.
       Plug 'https://github.com/j-hui/fidget.nvim'
       " A bag of configs for Language Servers.
-      Plug 'https://github.com/neovim/nvim-lspconfig'
+      Plug 'https://github.com/neovim/nvim-lspconfig', { 'setup': 'let g:lspconfig = 1' }
       " Provides JSON and YAML schemas.
       Plug 'https://github.com/b0o/SchemaStore.nvim'
       " Manages global and local settings for Language Servers.

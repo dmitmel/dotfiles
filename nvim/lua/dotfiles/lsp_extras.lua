@@ -3,36 +3,6 @@ local M, module = require('dotfiles.autoload')('dotfiles.lsp_extras', {})
 local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 
-local vscode_install_paths = {} ---@type string[]
-if utils.has('macunix') then
-  vim.list_extend(vscode_install_paths, {
-    '/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app',
-    '/Applications/Visual Studio Code.app/Contents/Resources/app',
-  })
-elseif utils.has('unix') then
-  vim.list_extend(vscode_install_paths, {
-    '/opt/visual-studio-code-insiders/resources/app', -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-insiders-bin/>
-    '/opt/visual-studio-code/resources/app', -- Arch Linux <https://aur.archlinux.org/packages/visual-studio-code-bin/>
-    '/usr/lib/code/extensions', -- Arch Linux <https://archlinux.org/packages/community/x86_64/code/>
-    '/usr/share/code/resources/app', -- Debian/Ubuntu <https://code.visualstudio.com/docs/setup/linux#_debian-and-ubuntu-based-distributions>
-  })
-end
-
----@param opts { archlinux_exe: string, npm_exe: string, vscode_script: string, args: string[] }
----@return string[]
-function M.find_vscode_server(opts)
-  for _, exe in ipairs({ opts.npm_exe, opts.archlinux_exe }) do
-    if vim.fn.executable(exe) ~= 0 then return vim.list_extend({ exe }, opts.args) end
-  end
-  for _, vscode_dir in ipairs(vscode_install_paths) do
-    local script = vscode_dir .. '/' .. opts.vscode_script
-    if vim.fn.filereadable(script) ~= 0 then
-      return vim.list_extend({ 'node', script }, opts.args)
-    end
-  end
-  return vim.list_extend({ opts.npm_exe }, opts.args)
-end
-
 ---@param client_id integer
 ---@param message string
 ---@param level? vim.log.levels

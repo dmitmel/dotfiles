@@ -9,11 +9,9 @@ snippet dotmod! dotfiles Lua module
 	return M
 snippet lspconf! vim.lsp config module
 	---@type dotfiles.lsp.Config
-	local config = {
+	return {
 		$0
 	}
-
-	return config
 snippet schedule call to vim.schedule()
 	vim.schedule(function()
 		$0

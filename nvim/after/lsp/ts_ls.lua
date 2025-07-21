@@ -3,22 +3,14 @@
 -- <https://github.com/typescript-language-server/typescript-language-server/blob/master/docs/configuration.md>
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'typescript-language-server', '--stdio' },
-  filetypes = {
-    'javascript',
-    'javascriptreact',
-    'javascript.jsx',
-    'typescript',
-    'typescriptreact',
-    'typescript.tsx',
-  },
+  filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
   root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json' },
+  settings_sections = { 'tsserver', 'javascript', 'typescript' },
 
   on_init = function(client)
     client.server_capabilities.documentFormattingProvider = false
     client.server_capabilities.documentRangeFormattingProvider = false
   end,
 }
-
-return config

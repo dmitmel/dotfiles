@@ -66,29 +66,19 @@ function M.round(x) return math.floor(x + 0.5) end
 
 M.is_list = vim.islist or vim.tbl_islist ---@diagnostic disable-line: deprecated
 
---- Straight-up stolen from <https://github.com/neovim/neovim/blob/v0.11.0/runtime/lua/vim/shared.lua#L1412-L1420>.
---- This function was added only in v0.11.0, but is useful nonetheless.
---- @generic T
---- @param x elem_or_list<T>?
---- @return T[]
-function M.ensure_list(x)
-  if type(x) == 'table' then
-    return x
-  else
-    return { x }
-  end
-end
+---@param x table
+function M.is_empty(x) return next(x) == nil end
 
 --- Replacement for |vim.tbl_map()| for which type inference actually works.
 ---@generic T, U
 ---@param list T[]
----@param func fun(value: T, index: integer): U
+---@param func fun(value: T): U
 ---@return U[]
 ---@see vim.tbl_map
 function M.map(list, func)
   local result = {}
   for i, v in ipairs(list) do
-    result[i] = func(v, i)
+    result[i] = func(v)
   end
   return result
 end
@@ -96,13 +86,13 @@ end
 --- Replacement for |vim.tbl_filter()| for which type inference actually works.
 ---@generic T
 ---@param list T[]
----@param func fun(value: T, index: integer): boolean
+---@param func fun(value: T): boolean
 ---@return T[]
 ---@see vim.tbl_filter
 function M.filter(list, func)
   local result = {}
-  for i, v in ipairs(list) do
-    if func(v, i) then result[#result + 1] = v end
+  for _, v in ipairs(list) do
+    if func(v) then result[#result + 1] = v end
   end
   return result
 end
@@ -125,15 +115,19 @@ end
 ---@generic T
 ---@param list T[]
 ---@param predicate fun(item: T): boolean
+---@return T[] removed
 function M.remove_all(list, predicate)
   local i = 1
+  local removed = {}
   while list[i] ~= nil do -- Bruh, fuckin' C
     if predicate(list[i]) then
-      table.remove(list, i)
+      local item = table.remove(list, i)
+      table.insert(removed, item)
     else
       i = i + 1
     end
   end
+  return removed
 end
 
 ---@generic T
@@ -160,16 +154,11 @@ end
 ---@return table<T, boolean>
 function M.list_to_set(list)
   local set = {}
-  for _, value in pairs(list) do
+  for _, value in ipairs(list) do
     set[value] = true
   end
   return set
 end
-
----@generic T
----@param ... T
----@return T
-function M.inplace_merge(...) return require('snacks').config.merge(...) end
 
 -- Adapted from <https://stackoverflow.com/a/23535333/12005228>. See also:
 -- <https://www.lua.org/manual/5.1/manual.html#pdf-debug.getinfo>
@@ -206,24 +195,28 @@ function M.write_file(path, data, opts)
   file:close()
 end
 
+function M.is_inside_dir(path, dir)
+  path = vim.fs.normalize(path, { expand_env = false })
+  dir = vim.fs.normalize(dir, { expand_env = false })
+  return vim.startswith(path, dir) and path:sub(#dir + 1, #dir + 1) == '/'
+end
+
 ---@param bufnr integer
 ---@return integer
 function M.get_inmemory_buf_size(bufnr)
   return vim.api.nvim_buf_get_offset(bufnr, vim.api.nvim_buf_line_count(bufnr))
 end
 
----@param chunks string|[string,string?][]
----@param hl_group? string
-function M.echo(chunks, hl_group)
-  if type(chunks) == 'string' then chunks = { { chunks, hl_group } } end
-  vim.api.nvim_echo(chunks, false, {})
-end
-
----@param chunks string|[string,string?][]
----@param hl_group? string
-function M.echomsg(chunks, hl_group)
-  if type(chunks) == 'string' then chunks = { { chunks, hl_group } } end
-  vim.api.nvim_echo(chunks, true, {})
+---@param bufnr integer|nil
+---@return integer
+function M.resolve_bufnr(bufnr)
+  if bufnr == 0 or bufnr == nil then
+    return vim.api.nvim_get_current_buf()
+  elseif vim.api.nvim_buf_is_valid(bufnr) then
+    return bufnr
+  else
+    error('bufnr is not valid: ' .. bufnr)
+  end
 end
 
 ---@param name string
@@ -236,7 +229,7 @@ function M.pack(...) return { n = select('#', ...), ... } end
 ---@generic F: function
 ---@param callback F
 ---@return F
-function M.schedule_once_per_frame(callback)
+function M.schedule_once_per_tick(callback)
   local scheduled = false
   return function(...)
     if not scheduled then
@@ -261,6 +254,18 @@ function M.once(callback)
   end
 end
 
+---@param co thread
+local function async_step(co, ...)
+  local ok, err = coroutine.resume(co, ...)
+  if not ok then error(debug.traceback(co, err)) end
+end
+
+---@param fn async fun(...)
+function M.run_async(fn, ...)
+  local co = coroutine.create(fn)
+  async_step(co, ...)
+end
+
 --- Helper for turning callback-based APIs into asynchronous functions. Based on
 --- <https://github.com/gregorias/coerce.nvim/blob/4ea7e31b95209105899ee6360c2a3a30e09d361d/lua/coerce/coroutine.lua>
 --- and <https://gregorias.github.io/posts/using-coroutines-in-neovim-lua/>.
@@ -271,17 +276,15 @@ function M.await(fn)
   local results = nil
 
   local function async_callback(...)
-    results = { n = select('#', ...), ... }
-    if coroutine.status(co) == 'suspended' then
-      local ok, err = coroutine.resume(co)
-      if not ok then error(debug.traceback(co, err)) end
-    end
+    assert(not results, 'callback must be called only once')
+    results = M.pack(...)
+    if coroutine.status(co) == 'suspended' then async_step(co) end
   end
 
   fn(async_callback)
 
   if not results then coroutine.yield() end
-  assert(results, 'async callback did not get called')
+  assert(results, 'callback did not get called')
   return unpack(results, 1, results.n)
 end
 
@@ -318,6 +321,11 @@ function M.event()
     return unsubscribe
   end
 
+  --- Just a convenience wrapper around `subscribe()` to make the code clearer.
+  ---@param listener fun(...)
+  ---@return function
+  function self:subscribe_once(listener) return self:subscribe(listener, true) end
+
   function self:__call(...)
     local i = 1
     while listeners[i] ~= nil do
@@ -332,6 +340,15 @@ function M.event()
   end
 
   return setmetatable(self, self)
+end
+
+function M.gcfun(fn)
+  -- setmetatable() can't be called on a userdata object, so we do it in a
+  -- roundabout way: create a blank userdata with an empty metatable already
+  -- attached, that we will modify.
+  local proxy = newproxy(true)
+  getmetatable(proxy).__gc = fn
+  return proxy
 end
 
 return M

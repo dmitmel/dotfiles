@@ -260,7 +260,7 @@ set nofixendofline
     \  !get(s:, 'noformat', 0)
       call FixWhitespace()
       if exists(':LspEslintFixAll')
-        LspEslintFixAll!
+        LspEslintFixAll
       endif
       if exists(':LspFormat')
         LspFormat!
@@ -274,6 +274,7 @@ set nofixendofline
   command -bar FormatIgnore let g:format_on_save[&filetype] = 0
   command -nargs=* -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
   execute dotutils#cmd_alias('nof', 'NoFormat')
+  execute dotutils#cmd_alias('now', 'NoFormat write')
 
   augroup dotfiles_on_save
     autocmd!

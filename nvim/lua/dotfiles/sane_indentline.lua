@@ -251,7 +251,7 @@ function self.redraw_range(winid, first, last)
 end
 
 if vim.api.nvim__redraw == nil then
-  self.redraw_range = utils.schedule_once_per_frame(function() vim.cmd('redraw!') end)
+  self.redraw_range = utils.schedule_once_per_tick(function() vim.cmd('redraw!') end)
 end
 
 ---@param line integer

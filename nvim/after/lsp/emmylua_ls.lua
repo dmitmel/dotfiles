@@ -16,10 +16,11 @@ local function take_out(tbl, key)
 end
 
 ---@type dotfiles.lsp.Config
-local config = {
+return {
   cmd = { 'emmylua_ls' },
   filetypes = { 'lua' },
   root_markers = { '.luarc.json', '.emmyrc.json', '.luacheckrc', '.git' },
+  settings_sections = { 'Lua' },
 
   ---@param config vim.lsp.ClientConfig
   before_init = function(_, config)
@@ -34,5 +35,3 @@ local config = {
     })
   end,
 }
-
-return config

@@ -3,6 +3,7 @@ local M = require('dotfiles.autoload')('dotfiles', _G.dotfiles, {
   colorscheme = ..., ---@module 'dotfiles.colorscheme'
   lsp_extras = ..., ---@module 'dotfiles.lsp_extras'
   lsp_launcher = ..., ---@module 'dotfiles.lsp_launcher'
+  lsp_ignition = ..., ---@module 'dotfiles.lsp_ignition'
   utils = ..., ---@module 'dotfiles.utils'
   nvim_lua_dev = ..., ---@module 'dotfiles.nvim_lua_dev'
   nvim_fzf_select = ..., ---@module 'dotfiles.nvim_fzf_select'
@@ -13,6 +14,7 @@ _G.dotfiles = M
 
 local function dump_impl(opts, ...)
   local len = select('#', ...)
+  if len == 0 then len = 1 end -- Print at least one argument
   local strs = {}
   for i = 1, len do
     strs[i] = vim.inspect((select(i, ...)), opts)
