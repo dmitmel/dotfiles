@@ -22,6 +22,7 @@
  * - <https://github.com/fsouza/prettierd>
  * - <https://github.com/sosukesuzuki/prettier-language-server-deprecated>
  * - <https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-sample/server/src/server.ts>
+ *
  * See also:
  * - <https://github.com/prettier/prettier-vscode/pull/3016>
  * - <https://github.com/prettier/prettier-vscode/pull/2947>

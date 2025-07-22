@@ -223,10 +223,14 @@ function Igniter:launch_client(root_dir)
   config.workspace_folders = #wfs > 0 and wfs or nil
   config.root_dir = root_dir
 
+  local successfully_initialized = false
   config.on_init = concat(
     function(client, init_result) self.on_client_initialized(client, init_result) end,
     config.on_init,
-    function() init_completed('Started') end
+    function()
+      successfully_initialized = true
+      init_completed('Started')
+    end
   )
 
   config.on_exit = concat(config.on_exit, function(code, signal, client_id)
@@ -237,6 +241,10 @@ function Igniter:launch_client(root_dir)
     -- code. The condition for determining an abnormal exit condition is from:
     -- <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/lsp.lua#L236>
     if code ~= 0 or (signal ~= 0 and signal ~= 15) then self.autostart = false end
+
+    -- It might happen that the server crashes while initializing, in which case
+    -- `on_init` is not called and we jump straight into `on_exit`.
+    if not successfully_initialized then init_completed('Failed to start') end
 
     self.on_client_exited(code, signal, client_id)
   end)
@@ -279,17 +287,6 @@ function Igniter:launch_client(root_dir)
   M.launched_clients[self.client_id] = self
   return self.client_id
 end
-
-local find_root = utils.has('nvim-0.11.3') and vim.fs.root
-  or function(path, markers)
-    -- The signature of this function got changed in v0.11.3, this is a backport
-    -- to adapt the older implementation to the new behavior.
-    -- <https://github.com/neovim/neovim/commit/5d0766ddceecca32e3764206558eba54850cf64c>
-    for _, marker in ipairs(markers) do
-      local result = vim.fs.root(path, marker)
-      if result ~= nil then return result end
-    end
-  end
 
 ---@async
 ---@param bufnr integer
@@ -399,12 +396,10 @@ function Igniter:stop_client(force, callback)
   else
     local stop_completed = self:create_progress_tracker('Stopping...')
     self.on_client_exited:subscribe_once(function()
+      stop_completed('Stopped')
       -- The `on_exit` handlers are invoked in a fast context, so a `schedule()`
       -- is necessary. It will also isolate any errors thrown by the `callback`.
-      vim.schedule(function()
-        stop_completed('Stopped')
-        if callback then callback() end
-      end)
+      if callback then vim.schedule(callback) end
     end)
 
     lsp.stop_client(self.client_id, force)
@@ -674,7 +669,7 @@ vim.api.nvim_create_user_command('LspRestart', function(cmd)
       M.attach_to_all_buffers(function(other) return other == igniter end)
     end)
   end
-end, { bar = true, nargs = '*', complete = complete_config_names(M.launched_clients), bang = true })
+end, { bar = true, nargs = '*', complete = complete_config_names(M.enabled_igniters), bang = true })
 
 vim.api.nvim_create_user_command('LspStop', function(cmd)
   for _, igniter in ipairs(parse_igniters_list(cmd) or vim.tbl_values(M.launched_clients)) do
