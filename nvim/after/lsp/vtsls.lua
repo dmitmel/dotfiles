@@ -7,13 +7,17 @@ return {
   filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
   root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
 
-  settings_sections = { 'tsserver', 'javascript', 'typescript' },
+  settings_sections = { 'tsserver', 'javascript', 'typescript', 'vtsls' },
   settings = { typescript = {} },
 
   before_init = function(_, config)
     local settings = config.settings --[[@as any]]
-    if type(settings.tsserver) == 'table' and type(settings.typescript) == 'table' then
-      settings.typescript = vim.tbl_deep_extend('keep', settings.typescript, settings.tsserver)
+    local tsserver = settings.tsserver
+    if type(tsserver) == 'table' then
+      settings.typescript = vim.tbl_deep_extend('keep', settings.typescript or {}, tsserver)
+      settings.vtsls = vim.tbl_deep_extend('keep', settings.vtsls or {}, {
+        autoUseWorkspaceTsdk = tsserver.useLocalTsdk,
+      })
     end
   end,
 
