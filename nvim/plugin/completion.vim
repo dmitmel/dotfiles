@@ -9,8 +9,23 @@ if !empty($NVIM_DEBUG_COC)
         \ '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register'),
         \ '--nolazy', '--inspect-wait'])
 endif
-let g:coc_user_config = {}
-let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
+
+let g:coc_user_config = get(g:, 'coc_user_config', {})
+
+let g:coc_global_extensions = [
+\ 'coc-snippets',
+\ 'coc-clangd',
+\ 'coc-prettier',
+\ 'coc-html',
+\ 'coc-emmet',
+\ 'coc-css',
+\ 'coc-tsserver',
+\ 'coc-eslint',
+\ 'coc-json',
+\ 'coc-pyright',
+\ '@yaegassy/coc-ruff',
+\ 'coc-rust-analyzer',
+\ ]
 
 let g:coc_snippet_next = '<Tab>'
 let g:coc_snippet_prev = '<S-Tab>'
@@ -108,6 +123,26 @@ let g:coc_user_config['colors.filetypes'] = ['*']
 let g:coc_user_config['semanticTokens.filetypes'] = ['*']
 let g:coc_default_semantic_highlight_groups = 0
 
+let g:coc_user_config['python.formatting.yapfArgs'] = ['--style=' . g:dotfiles_dir.'/misc/yapf.ini']
+let g:coc_user_config['python.linting.flake8Args'] = ['--config=' . g:dotfiles_dir.'/misc/flake8.ini']
+
+let g:coc_user_config['ruff.configuration'] = g:dotfiles_dir.'/ruff.toml'
+let g:coc_user_config['ruff.configurationPreference'] = 'filesystemFirst'
+
+let s:clangd_args = []
+" Enables `.clangd` configuration files, see <https://clangd.llvm.org/config>.
+call add(s:clangd_args, '--enable-config')
+" Which binaries of compilers clangd is allowed to run to determine the system
+" include paths and other such details about the compiler.
+call add(s:clangd_args, '--query-driver=/usr/bin/*')
+call add(s:clangd_args, '--query-driver=/usr/local/bin/*')
+call add(s:clangd_args, '--header-insertion=never')
+let g:coc_user_config['clangd.arguments'] = s:clangd_args
+
+if has('nvim-0.5.0')
+  let g:coc_user_config['Lua'] = luaeval('dotfiles.nvim_lua_dev.make_lua_ls_settings()')
+endif
+
 " <https://github.com/neoclide/coc.nvim/blob/76ba8a29bf1342848b78a638065c93b38eaffdf3/src/diagnostic/manager.ts#L138-L149>
 function! s:patch_coc_signs() abort
   for s:severity in ['Error', 'Warn', 'Info', 'Hint']
@@ -133,6 +168,35 @@ augroup dotfiles_coc
   autocmd User CocNvimInit call s:patch_coc_signs()
   autocmd User CocOpenFloatPrompt call s:patch_coc_float_win()
   autocmd User CocStatusChange,CocDiagnosticChange redrawstatus!
+
+  if v:false
+    autocmd User CocNvimInit call coc#config('languageserver.emmylua_ls', #{
+    \ filetypes: ['lua'],
+    \ command: 'emmylua_ls',
+    \ rootPatterns: ['.luarc.json', '.emmyrc.json'],
+    \ settings: { 'Lua': coc#util#get_config('Lua') },
+    \ })
+  else
+    autocmd User CocNvimInit call coc#config('languageserver.lua_ls', #{
+    \ filetypes: ['lua'],
+    \ command: 'lua-language-server',
+    \ rootPatterns: ['.luarc.json', '.luarc.jsonc'],
+    \ settings: { 'Lua': coc#util#get_config('Lua') },
+    \ })
+  endif
 augroup END
 
-runtime! dotfiles/coc-languages/*.vim
+let g:coc_user_config['languageserver.efm'] = #{
+\ command: 'efm-langserver',
+\ filetypes: ['lua'],
+\ formatterPriority: 1,
+\ initializationOptions: #{
+\   documentFormatting: v:true,
+\   documentRangeFormatting: v:true,
+\ },
+\}
+
+let g:coc_user_config['languageserver.efm.settings.languages.lua'] = [#{
+\ formatCommand: 'stylua --search-parent-directories --stdin-filepath=${INPUT} -',
+\ formatStdin: v:true,
+\}]
