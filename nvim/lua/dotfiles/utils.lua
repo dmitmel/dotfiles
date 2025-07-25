@@ -351,4 +351,43 @@ function M.gcfun(fn)
   return proxy
 end
 
+--- Generates a `complete` function suitable for `nvim_create_user_command()`,
+--- which handles the matching and sorting of the results given by `get_strings`.
+---@param get_strings fun(): string[]
+---@return fun(arg_lead: string, cmd_line: string, cursor_pos: integer): string[] completion_fn
+function M.command_completion_fn(get_strings)
+  return function(arg_lead)
+    local results = {} ---@type string[]
+    -- The lower the score, the better.
+    local scores = {} ---@type table<string, integer>
+
+    local fuzzy = vim.tbl_contains(vim.opt.wildoptions:get(), 'fuzzy')
+
+    local function filter(str)
+      if fuzzy then
+        return string.find(str, arg_lead, 1, true) or 0
+      else
+        return vim.startswith(str, arg_lead) and 1 or 0
+      end
+    end
+
+    for _, str in ipairs(get_strings()) do
+      local score = filter(str)
+      if score > 0 and not scores[str] then
+        results[#results + 1] = str
+        scores[str] = score
+      end
+    end
+
+    table.sort(results, function(a, b)
+      if scores[a] == scores[b] then
+        return vim.stricmp(a, b) < 0
+      else
+        return scores[a] < scores[b]
+      end
+    end)
+    return results
+  end
+end
+
 return M

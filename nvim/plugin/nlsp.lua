@@ -44,17 +44,17 @@ end
 local has_conform, conform = pcall(require, 'conform')
 local lsp_format = has_conform and conform.format or lsp.buf.format
 
-local function complete_formatters(arg)
+local complete_formatters = utils.command_completion_fn(function()
   local bufnr = vim.api.nvim_get_current_buf()
   local names = {} ---@type string[]
   for _, formatter in ipairs(has_conform and conform.list_formatters(bufnr) or {}) do
     names[#names + 1] = formatter.name
   end
-  for _, client in ipairs(lsp.get_clients({ method = 'textDocument/formatting' })) do
+  for _, client in ipairs(lsp.get_clients({ bufnr = bufnr, method = 'textDocument/formatting' })) do
     names[#names + 1] = client.name
   end
-  return utils.filter(names, function(name) return vim.startswith(name, arg) end)
-end
+  return names
+end)
 
 vim.api.nvim_create_user_command('LspFormat', function(cmd) --
   lsp_format({

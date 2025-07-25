@@ -642,16 +642,13 @@ end
 
 ---@param list table<unknown, dotfiles.lsp.Igniter> | (fun(): table<unknown, dotfiles.lsp.Igniter>)
 local function complete_config_names(list)
-  ---@param arg string
-  return function(arg, _cmdline, _cursor)
-    local items = vim
-      .iter(pairs(type(list) ~= 'function' and list or list()))
-      :map(function(_, igniter) return igniter.name end)
-      :filter(function(result) return vim.startswith(result, arg) end)
-      :totable()
-    table.sort(items)
-    return items
-  end
+  return utils.command_completion_fn(function()
+    local names = {}
+    for _, igniter in pairs(type(list) ~= 'function' and list or list()) do
+      names[#names + 1] = igniter.name
+    end
+    return names
+  end)
 end
 
 vim.api.nvim_create_user_command('LspStart', function(cmd)
@@ -691,5 +688,19 @@ vim.api.nvim_create_user_command('LspDetach', function(cmd)
     igniter:detach_from_buffer(bufnr)
   end
 end, { bar = true, nargs = '*', complete = complete_config_names(M.get_attached_igniters) })
+
+function M.get_all_config_names()
+  return utils.map(vim.api.nvim_get_runtime_file('lsp/*.lua', true), function(path) --
+    return path:match('([^/]*)%.lua$')
+  end)
+end
+
+vim.api.nvim_create_user_command('LspEnable', function(cmd) --
+  M.enable(cmd.args, true)
+end, { bar = true, nargs = '+', complete = utils.command_completion_fn(M.get_all_config_names) })
+
+vim.api.nvim_create_user_command('LspDisable', function(cmd) --
+  M.enable(cmd.args, false)
+end, { bar = true, nargs = '+', complete = complete_config_names(M.enabled_igniters) })
 
 return M
