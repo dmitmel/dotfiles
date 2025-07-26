@@ -181,8 +181,8 @@ function Igniter.new(name, config)
   self.autostart = true
   self.autostop = true
   self.attaching_buffers = {} ---@type table<integer, true>
-  self.on_client_initialized = utils.event()
-  self.on_client_exited = utils.event()
+  self.deferred_workspace_folder_changes = nil ---@type lsp.WorkspaceFoldersChangeEvent[]|nil
+  self.client_exited_listeners = nil ---@type function[]|nil
   return self
 end
 
@@ -205,12 +205,19 @@ local function concat(...)
   return result
 end
 
+function Igniter:reset_client_stuff()
+  self.client_id = nil
+  self.deferred_workspace_folder_changes = nil
+  self.client_exited_listeners = nil
+end
+
 ---@param root_dir string|nil
 ---@return integer? client_id
 function Igniter:launch_client(root_dir)
   if self.client_id ~= nil then return self.client_id end
 
   local init_completed = self:create_progress_tracker('Starting...')
+  self:reset_client_stuff()
 
   local config = vim.deepcopy(self.config)
 
@@ -225,8 +232,17 @@ function Igniter:launch_client(root_dir)
 
   local successfully_initialized = false
   config.on_init = concat(
-    function(client, init_result) self.on_client_initialized(client, init_result) end,
+    function()
+      -- The VERY FIRST thing that must be done is catching up with the folder
+      -- changes that occurred while the server was initializing.
+      for _, event in ipairs(self.deferred_workspace_folder_changes) do
+        self:send_workspace_folders_changes(event)
+      end
+      self.deferred_workspace_folder_changes = nil
+    end,
+
     config.on_init,
+
     function()
       successfully_initialized = true
       init_completed('Started')
@@ -234,8 +250,10 @@ function Igniter:launch_client(root_dir)
   )
 
   config.on_exit = concat(config.on_exit, function(code, signal, client_id)
+    assert(client_id == self.client_id)
     M.launched_clients[self.client_id] = nil
-    self.client_id = nil
+    local exit_listeners = self.client_exited_listeners ---@cast exit_listeners -nil
+    self:reset_client_stuff()
 
     -- Don't auto-restart the client if the server has exited with an error
     -- code. The condition for determining an abnormal exit condition is from:
@@ -246,7 +264,9 @@ function Igniter:launch_client(root_dir)
     -- `on_init` is not called and we jump straight into `on_exit`.
     if not successfully_initialized then init_completed('Failed to start') end
 
-    self.on_client_exited(code, signal, client_id)
+    for _, exit_listener in ipairs(exit_listeners) do
+      exit_listener()
+    end
   end)
 
   if config.on_new_config then
@@ -269,7 +289,7 @@ function Igniter:launch_client(root_dir)
     end
   end
 
-  self.client_id = lsp.start(config, {
+  local client_id = lsp.start(config, {
     reuse_client = function() return false end,
     attach = false,
     silent = false,
@@ -278,14 +298,42 @@ function Igniter:launch_client(root_dir)
   -- `lsp.start()` may return `nil` if, for instance, the server executable does
   -- not exist. None of the callbacks (like `on_init`, `on_exit` etc) will be
   -- invoked then.
-  if self.client_id == nil then
+  if client_id == nil then
     self.autostart = false
     init_completed('Failed to start')
     return nil
   end
 
-  M.launched_clients[self.client_id] = self
-  return self.client_id
+  self.client_id = client_id
+  self.deferred_workspace_folder_changes = {}
+  self.client_exited_listeners = {}
+  M.launched_clients[client_id] = self
+  return client_id
+end
+
+---@param event lsp.WorkspaceFoldersChangeEvent
+function Igniter:send_workspace_folders_changes(event)
+  local client = assert(lsp.get_client_by_id(self.client_id), 'the client must be running')
+  if not client.initialized then
+    table.insert(self.deferred_workspace_folder_changes, event)
+    return
+  end
+
+  client.workspace_folders = client.workspace_folders or {}
+
+  for _, folder in ipairs(event.added) do
+    if not utils.find(client.workspace_folders, function(w) return w.uri == folder.uri end) then
+      table.insert(client.workspace_folders, folder)
+    end
+  end
+
+  for _, folder in ipairs(event.removed) do
+    utils.remove_all(client.workspace_folders, function(w) return w.uri == folder.uri end)
+  end
+
+  ---@type lsp.DidChangeWorkspaceFoldersParams
+  local params = { event = event }
+  client:notify('workspace/didChangeWorkspaceFolders', params)
 end
 
 ---@async
@@ -359,7 +407,7 @@ function Igniter:attach_to_buffer(bufnr)
       -- In which case we wait for it to stop completely, so that a brand new
       -- client can be started in its place.
       if lsp.get_client_by_id(prev_client_id):is_stopped() then
-        utils.await(function(cb) self.on_client_exited:subscribe_once(cb) end)
+        utils.await(function(cb) table.insert(self.client_exited_listeners, cb) end)
       end
     end
 
@@ -395,7 +443,7 @@ function Igniter:stop_client(force, callback)
     if callback then callback() end
   else
     local stop_completed = self:create_progress_tracker('Stopping...')
-    self.on_client_exited:subscribe_once(function()
+    table.insert(self.client_exited_listeners, function()
       stop_completed('Stopped')
       -- The `on_exit` handlers are invoked in a fast context, so a `schedule()`
       -- is necessary. It will also isolate any errors thrown by the `callback`.
@@ -424,16 +472,6 @@ function Igniter:create_progress_tracker(message)
     end
   else
     return function() end
-  end
-end
-
----@param callback fun(client: vim.lsp.Client)
-function Igniter:ensure_initialized(callback)
-  local client = assert(lsp.get_client_by_id(self.client_id), 'the client must be running')
-  if client.initialized then
-    callback(client)
-  else
-    self.on_client_initialized:subscribe_once(callback)
   end
 end
 
@@ -476,15 +514,7 @@ function M.add_workspace_folder_of_buffer(path, bufnr)
   if not is_new then return end
 
   for _, igniter in pairs(M.launched_clients) do
-    igniter:ensure_initialized(function(client)
-      if not utils.find(client.workspace_folders, function(w) return w.uri == folder.uri end) then
-        local wf = folder:to_lsp()
-        table.insert(client.workspace_folders, wf)
-        ---@type lsp.DidChangeWorkspaceFoldersParams
-        local params = { event = { added = { wf }, removed = {} } }
-        client:notify('workspace/didChangeWorkspaceFolders', params)
-      end
-    end)
+    igniter:send_workspace_folders_changes({ added = { folder:to_lsp() }, removed = {} })
   end
 end
 
@@ -500,16 +530,7 @@ function M.remove_workspace_folder_of_buffer(path, bufnr)
   M.workspace_folders[path] = nil
 
   for _, igniter in pairs(M.launched_clients) do
-    igniter:ensure_initialized(function(client)
-      local removed = utils.remove_all(client.workspace_folders, function(w) --
-        return w.uri == folder.uri
-      end)
-      if #removed > 0 then
-        ---@type lsp.DidChangeWorkspaceFoldersParams
-        local params = { event = { added = {}, removed = removed } }
-        client:notify('workspace/didChangeWorkspaceFolders', params)
-      end
-    end)
+    igniter:send_workspace_folders_changes({ added = {}, removed = { folder:to_lsp() } })
   end
 end
 
