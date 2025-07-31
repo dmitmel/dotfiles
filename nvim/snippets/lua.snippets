@@ -63,3 +63,5 @@ snippet patchval monkey-patch a value
 	$2.$1 = ${3:...}
 	$0
 	$2.$1 = old_$1
+snippet format string.format()
+	('$1'):format($0)

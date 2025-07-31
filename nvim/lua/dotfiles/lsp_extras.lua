@@ -377,22 +377,134 @@ function M.highlight_range(winid, start, finish, hlgroup, priority)
   return vim.fn.matchaddpos(hlgroup, positions, priority, -1, { window = winid } --[[@as any]])
 end
 
---- Somehow this is absent from `vim.lsp.util`.
----@param bufnr integer?
----@return lsp.VersionedTextDocumentIdentifier
-function M.make_versioned_text_document_params(bufnr)
-  bufnr = utils.resolve_bufnr(bufnr)
-  return { uri = vim.uri_from_bufnr(bufnr), version = lsp.util.buf_versions[bufnr] }
+--- Based on <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/lsp/util.lua#L2135-L2167>.
+---@param bufnr integer
+---@param position_encoding lsp.PositionEncodingKind
+---@return lsp.Range
+function M.make_full_document_range(bufnr, position_encoding)
+  assert(vim.api.nvim_buf_is_loaded(bufnr))
+  local last_line = vim.api.nvim_buf_line_count(bufnr) - 1
+
+  ---@type lsp.Position
+  local end_pos
+  if not vim.bo[bufnr].endofline then
+    local last_col = #vim.fn.getline(bufnr, '$')
+    end_pos = {
+      line = last_line,
+      character = lsp.util.character_offset(bufnr, last_line, last_col, position_encoding),
+    }
+  else
+    end_pos = { line = last_line + 1, character = 0 }
+  end
+
+  return {
+    start = { line = 0, character = 0 },
+    ['end'] = end_pos,
+  }
 end
 
---- Returns `true` if a given buffer contains any diagnostics published by the
---- specified client.
----@param client_id integer
----@param bufnr integer?
-function M.client_has_diagnostics(client_id, bufnr)
-  local push_ns = lsp.diagnostic.get_namespace(client_id, false)
-  local pull_ns = lsp.diagnostic.get_namespace(client_id, true)
-  return not utils.is_empty(vim.diagnostic.count(bufnr, { namespace = { pull_ns, push_ns } }))
+local function hrtime_ms() return math.floor(vim.uv.hrtime() / 1000000) end
+
+---@param bufnr integer
+---@param actions_kind lsp.CodeActionKind|string
+---@param timeout_ms integer?
+function M.code_actions_sync(bufnr, actions_kind, timeout_ms)
+  local deadline_ms = hrtime_ms() + (timeout_ms or 1000)
+  bufnr = utils.resolve_bufnr(bufnr)
+  local clients = lsp.get_clients({ bufnr = bufnr, method = 'textDocument/codeAction' })
+
+  clients = utils.filter(clients, function(client)
+    for _, supported_kind in
+      ipairs(vim.tbl_get(client.server_capabilities, 'codeActionProvider', 'codeActionKinds') or {})
+    do
+      if
+        supported_kind == actions_kind
+        or vim.startswith(supported_kind, actions_kind .. '.')
+        or vim.startswith(actions_kind, supported_kind .. '.')
+      then
+        return true
+      end
+    end
+    return false
+  end)
+
+  for _, client in ipairs(clients) do
+    ---@param method vim.lsp.protocol.Method
+    local function sync_request(method, params)
+      assert(not client:is_stopped())
+      local this_timeout = math.max(1, deadline_ms - hrtime_ms())
+      local r, wait_error = client:request_sync(method, params, this_timeout, bufnr)
+      if wait_error then
+        local msg = ('request %q failed: %s'):format(method, wait_error)
+        M.client_notify(client.id, msg, vim.log.levels.WARN)
+      elseif r and r.err then
+        lsp.log.error(module.name, r.err)
+        M.client_notify(client.id, tostring(r.err), vim.log.levels.WARN)
+      elseif r and r.result then
+        return r.result
+      end
+    end
+
+    ---@param cmd lsp.Command
+    local function execute_command(cmd)
+      local method = 'workspace/executeCommand'
+      local command_fn = client.commands[cmd.command] or lsp.commands[cmd.command]
+      if command_fn then
+        ---@type lsp.HandlerContext
+        local ctx = { bufnr = bufnr, client_id = client.id, method = method }
+        command_fn(cmd, ctx)
+      else
+        sync_request(method, cmd)
+      end
+    end
+
+    ---@param action lsp.CodeAction|lsp.Command
+    local function apply_code_action(action)
+      if not (action.kind == actions_kind or vim.startswith(action.kind, actions_kind .. '.')) then
+        return
+      end
+
+      if
+        not (action.edit or action.command)
+        and client:supports_method('codeAction/resolve', bufnr)
+      then
+        action = sync_request('codeAction/resolve', action)
+        if not action then return end
+      end
+
+      if action.edit then lsp.util.apply_workspace_edit(action.edit, client.offset_encoding) end
+
+      local command = action.command
+      if type(command) == 'table' then
+        execute_command(command)
+      elseif type(command) == 'string' then ---@cast action lsp.Command
+        execute_command(action)
+      end
+    end
+
+    ---@type lsp.CodeActionParams
+    local params = {
+      textDocument = lsp.util.make_text_document_params(bufnr),
+      range = M.make_full_document_range(bufnr, client.offset_encoding),
+      context = {
+        -- The diagnostics are not sent to save time on (de)serialization. The
+        -- specification states the following: "The primary parameter to compute
+        -- code actions is the provided range"[1], so this should be safe to do.
+        -- <https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#codeActionContext>
+        diagnostics = {},
+        only = { actions_kind },
+        kind = lsp.protocol.CodeActionTriggerKind.Invoked,
+      },
+    }
+
+    ---@type (lsp.Command|lsp.CodeAction)[]
+    local actions = sync_request('textDocument/codeAction', params)
+    if actions then
+      for _, action in ipairs(actions) do
+        apply_code_action(action)
+      end
+    end
+  end
 end
 
 return M
