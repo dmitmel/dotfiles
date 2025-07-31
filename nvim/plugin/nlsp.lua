@@ -59,13 +59,26 @@ end)
 vim.api.nvim_create_user_command('LspFormat', function(cmd) --
   lsp_format({
     name = #cmd.args > 0 and cmd.args or nil,
-    async = not cmd.bang,
+    async = false,
     range = cmd.range ~= 0 and {
       start = { cmd.line1, 0 },
       ['end'] = { cmd.line2, vim.fn.col({ cmd.line2, '$' }) - 1 },
     } or nil,
   })
-end, { bar = true, bang = true, range = true, nargs = '?', complete = complete_formatters })
+end, { bar = true, range = true, nargs = '?', complete = complete_formatters })
+
+-- TODO: support more things than just eslint?
+vim.api.nvim_create_user_command('LspFixAll', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  for _, client in ipairs(lsp.get_clients({ name = 'eslint', bufnr = bufnr })) do
+    if lsp_extras.client_has_diagnostics(client.id, bufnr) then
+      client:request_sync('workspace/executeCommand', {
+        command = 'eslint.applyAllFixes',
+        arguments = { lsp_extras.make_versioned_text_document_params(bufnr) },
+      }, nil, bufnr)
+    end
+  end
+end, { bar = true })
 
 local map = vim.keymap.set
 

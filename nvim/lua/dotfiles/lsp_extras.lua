@@ -377,4 +377,22 @@ function M.highlight_range(winid, start, finish, hlgroup, priority)
   return vim.fn.matchaddpos(hlgroup, positions, priority, -1, { window = winid } --[[@as any]])
 end
 
+--- Somehow this is absent from `vim.lsp.util`.
+---@param bufnr integer?
+---@return lsp.VersionedTextDocumentIdentifier
+function M.make_versioned_text_document_params(bufnr)
+  bufnr = utils.resolve_bufnr(bufnr)
+  return { uri = vim.uri_from_bufnr(bufnr), version = lsp.util.buf_versions[bufnr] }
+end
+
+--- Returns `true` if a given buffer contains any diagnostics published by the
+--- specified client.
+---@param client_id integer
+---@param bufnr integer?
+function M.client_has_diagnostics(client_id, bufnr)
+  local push_ns = lsp.diagnostic.get_namespace(client_id, false)
+  local pull_ns = lsp.diagnostic.get_namespace(client_id, true)
+  return not utils.is_empty(vim.diagnostic.count(bufnr, { namespace = { pull_ns, push_ns } }))
+end
+
 return M

@@ -259,11 +259,12 @@ set nofixendofline
     \  get(g:format_on_save, &filetype, 1) && get(b:, 'format_on_save', 1) &&
     \  !get(s:, 'noformat', 0)
       call FixWhitespace()
-      if exists(':LspEslintFixAll')
-        LspEslintFixAll
+      if exists(':LspFixAll')
+        " Automatic fixes must be applied BEFORE running the formatters!
+        LspFixAll
       endif
       if exists(':LspFormat')
-        LspFormat!
+        LspFormat
       elseif exists(':CocFormat')
         CocFormat
       endif
