@@ -16,8 +16,8 @@ local function make_weak_table() return setmetatable({}, { __mode = 'kv' }) end
 M.enabled_igniters = M.enabled_igniters or {}
 ---@type table<string, table<dotfiles.lsp.Igniter, unknown>> filetype -> set<igniter>
 M.igniters_by_filetype = M.igniters_by_filetype or {}
----@type table<string, dotfiles.lsp.WorkspaceFolder> root_dir -> workspace_folder
-M.workspace_folders = M.workspace_folders or {}
+---@type table<string, table<integer, unknown>> root_dir -> set<bufnr>
+M.buffers_by_root_dir = M.buffers_by_root_dir or {}
 ---@type table<integer, dotfiles.lsp.Igniter> client_id -> igniter
 M.launched_clients = M.launched_clients or make_weak_table()
 ---@type table<integer, table<integer, dotfiles.lsp.Igniter>> bufnr -> client_id -> igniter
@@ -221,10 +221,7 @@ function Igniter:launch_client(root_dir)
 
   local config = vim.deepcopy(self.config)
 
-  local wfs = {} ---@type lsp.WorkspaceFolder[]
-  for _, folder in pairs(M.workspace_folders) do
-    wfs[#wfs + 1] = folder:to_lsp()
-  end
+  local wfs = utils.map(vim.tbl_keys(M.buffers_by_root_dir), M.make_lsp_workspace_folder)
   -- NOTE: This check breaks if the `workspace_folders` list is empty, but not if it is `nil`:
   -- <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/lsp/client.lua#L501-L504>.
   config.workspace_folders = #wfs > 0 and wfs or nil
@@ -262,7 +259,9 @@ function Igniter:launch_client(root_dir)
 
     -- It might happen that the server crashes while initializing, in which case
     -- `on_init` is not called and we jump straight into `on_exit`.
-    if not successfully_initialized then init_completed('Failed to start') end
+    if not successfully_initialized then
+      vim.schedule(function() init_completed('Failed to start') end)
+    end
 
     for _, exit_listener in ipairs(exit_listeners) do
       exit_listener()
@@ -444,7 +443,7 @@ function Igniter:stop_client(force, callback)
   else
     local stop_completed = self:create_progress_tracker('Stopping...')
     table.insert(self.client_exited_listeners, function()
-      stop_completed('Stopped')
+      vim.schedule(function() stop_completed('Stopped') end)
       -- The `on_exit` handlers are invoked in a fast context, so a `schedule()`
       -- is necessary. It will also isolate any errors thrown by the `callback`.
       if callback then vim.schedule(callback) end
@@ -475,24 +474,16 @@ function Igniter:create_progress_tracker(message)
   end
 end
 
----@class dotfiles.lsp.WorkspaceFolder
-local WorkspaceFolder = {}
-WorkspaceFolder.__index = WorkspaceFolder
-M.WorkspaceFolder = WorkspaceFolder
-
----@param path string
-function WorkspaceFolder.new(path)
-  ---@class dotfiles.lsp.WorkspaceFolder
-  local self = setmetatable({}, WorkspaceFolder)
-  self.path = path
-  self.uri = vim.uri_from_fname(path)
-  self.buffers = {} ---@type table<integer, unknown>
-  return self
-end
-
-function WorkspaceFolder:to_lsp()
+---@param root_dir string
+function M.make_lsp_workspace_folder(root_dir)
   ---@type lsp.WorkspaceFolder
-  return { uri = self.uri, name = self.path }
+  return {
+    uri = vim.uri_from_fname(root_dir),
+    -- Put the full path instead of just the basename/tail into the name of the
+    -- folder because `:checkhealth vim.lsp` displays only the name and not the
+    -- URI, and it's more informative to be able to see the full path.
+    name = root_dir,
+  }
 end
 
 ---@param path string
@@ -505,16 +496,14 @@ function M.add_workspace_folder_of_buffer(path, bufnr)
 
   bufnr = utils.resolve_bufnr(bufnr)
 
-  local is_new = false
-  local folder = get_or_insert(M.workspace_folders, path, function()
-    is_new = true
-    return M.WorkspaceFolder.new(path)
-  end)
-  folder.buffers[bufnr] = vim.api.nvim_buf_get_name(bufnr)
-  if not is_new then return end
+  local is_new_folder = M.buffers_by_root_dir[path] == nil
+  get_or_insert(M.buffers_by_root_dir, path, make_table)[bufnr] = vim.api.nvim_buf_get_name(bufnr)
 
-  for _, igniter in pairs(M.launched_clients) do
-    igniter:send_workspace_folders_changes({ added = { folder:to_lsp() }, removed = {} })
+  if is_new_folder then
+    for _, igniter in pairs(M.launched_clients) do
+      local folder = M.make_lsp_workspace_folder(path)
+      igniter:send_workspace_folders_changes({ added = { folder }, removed = {} })
+    end
   end
 end
 
@@ -522,15 +511,12 @@ end
 function M.remove_workspace_folder_of_buffer(path, bufnr)
   bufnr = utils.resolve_bufnr(bufnr)
 
-  local folder = M.workspace_folders[path]
-  if not folder then return end
-  folder.buffers[bufnr] = nil
-  if not utils.is_empty(folder.buffers) then return end
-
-  M.workspace_folders[path] = nil
-
-  for _, igniter in pairs(M.launched_clients) do
-    igniter:send_workspace_folders_changes({ added = {}, removed = { folder:to_lsp() } })
+  local should_remove = remove_from_grouped(M.buffers_by_root_dir, path, bufnr)
+  if should_remove then
+    for _, igniter in pairs(M.launched_clients) do
+      local folder = M.make_lsp_workspace_folder(path)
+      igniter:send_workspace_folders_changes({ added = {}, removed = { folder } })
+    end
   end
 end
 
@@ -542,20 +528,20 @@ end
 function M.export_workspace()
   ---@type dotfiles.lsp.ExportedWorkspace
   local json = { version = 1, folders = {} }
-  for _, folder in pairs(M.workspace_folders) do
+  for dir_path, dir_buffers in pairs(M.buffers_by_root_dir) do
     local folder_json = {}
 
-    for bufnr in pairs(folder.buffers) do
+    for bufnr in pairs(dir_buffers) do
       local name = vim.api.nvim_buf_get_name(bufnr)
       local is_shortened = 0
-      if vim.startswith(name, folder.path) then
-        name = name:sub(#folder.path + 1, -1)
+      if vim.startswith(name, dir_path) then
+        name = name:sub(#dir_path + 1, -1)
         is_shortened = 1
       end
       folder_json[name] = is_shortened
     end
 
-    json.folders[folder.path] = folder_json
+    json.folders[dir_path] = folder_json
   end
   return json
 end
@@ -605,9 +591,9 @@ augroup:autocmd('LspDetach', function(event)
   local no_clients_attached_to_buf =
     remove_from_grouped(M.clients_by_buffer, event.buf, event.data.client_id)
   if no_clients_attached_to_buf then
-    for _, folder in pairs(M.workspace_folders) do
-      if folder.buffers[event.buf] ~= nil then
-        M.remove_workspace_folder_of_buffer(folder.path, event.buf)
+    for dir_path, dir_buffers in pairs(M.buffers_by_root_dir) do
+      if dir_buffers[event.buf] ~= nil then
+        M.remove_workspace_folder_of_buffer(dir_path, event.buf)
       end
     end
   end
@@ -723,5 +709,18 @@ end, { bar = true, nargs = '+', complete = utils.command_completion_fn(M.get_all
 vim.api.nvim_create_user_command('LspDisable', function(cmd) --
   M.enable(cmd.args, false)
 end, { bar = true, nargs = '+', complete = complete_config_names(M.enabled_igniters) })
+
+vim.api.nvim_create_user_command('LspWorkspace', function()
+  local out = {}
+  for dir_path, dir_buffers in pairs(M.buffers_by_root_dir) do
+    out[#out + 1] = ('Folder %q, with buffers:'):format(vim.fn.fnamemodify(dir_path, ':~'))
+    for bufnr in pairs(dir_buffers) do
+      local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ':~')
+      out[#out + 1] = ('%6d %q'):format(bufnr, path)
+    end
+    out[#out + 1] = ''
+  end
+  print(table.concat(out, '\n'))
+end, { bar = true })
 
 return M
