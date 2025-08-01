@@ -68,11 +68,16 @@ vim.api.nvim_create_user_command('LspFormat', function(cmd) --
 end, { bar = true, range = true, nargs = '?', complete = complete_formatters })
 
 vim.api.nvim_create_user_command('LspFixAll', function() --
-  lsp_extras.code_actions_sync(vim.api.nvim_get_current_buf(), 'source.fixAll', 3000)
+  lsp_extras.code_actions_sync(vim.api.nvim_get_current_buf(), 'source.fixAll', {
+    timeout_ms = 3000,
+    excluded_servers = { vtsls = true },
+  })
 end, { bar = true })
 
 vim.api.nvim_create_user_command('LspOrganizeImports', function() --
-  lsp_extras.code_actions_sync(vim.api.nvim_get_current_buf(), 'source.organizeImports', 1000)
+  lsp_extras.code_actions_sync(vim.api.nvim_get_current_buf(), 'source.organizeImports', {
+    timeout_ms = 1000,
+  })
 end, { bar = true })
 
 local map = vim.keymap.set

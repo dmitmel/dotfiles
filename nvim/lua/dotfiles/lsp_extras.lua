@@ -407,13 +407,16 @@ local function hrtime_ms() return math.floor(vim.uv.hrtime() / 1000000) end
 
 ---@param bufnr integer
 ---@param actions_kind lsp.CodeActionKind|string
----@param timeout_ms integer?
-function M.code_actions_sync(bufnr, actions_kind, timeout_ms)
-  local deadline_ms = hrtime_ms() + (timeout_ms or 1000)
+---@param opts? { timeout_ms?: integer, excluded_servers?: table<string, boolean> }
+function M.code_actions_sync(bufnr, actions_kind, opts)
   bufnr = utils.resolve_bufnr(bufnr)
+  opts = opts or {}
+
   local clients = lsp.get_clients({ bufnr = bufnr, method = 'textDocument/codeAction' })
 
   clients = utils.filter(clients, function(client)
+    if opts.excluded_servers and opts.excluded_servers[client.name] then return false end
+
     for _, supported_kind in
       ipairs(vim.tbl_get(client.server_capabilities, 'codeActionProvider', 'codeActionKinds') or {})
     do
@@ -425,8 +428,11 @@ function M.code_actions_sync(bufnr, actions_kind, timeout_ms)
         return true
       end
     end
+
     return false
   end)
+
+  local deadline_ms = hrtime_ms() + (opts.timeout_ms or 1000)
 
   for _, client in ipairs(clients) do
     ---@param method vim.lsp.protocol.Method
