@@ -9,6 +9,10 @@ export LESS='--RAW-CONTROL-CHARS'
 # Removed K and X from the default value. See the journalctl(1) manpage.
 export SYSTEMD_LESS='FRSM'
 
+if [[ -n "$NVIM" || -n "$VIM_TERMINAL" || -n "$TMUX" ]]; then
+  export LESS="$LESS --mouse --wheel-lines=5"
+fi
+
 export CLICOLOR=1
 
 # BSD ls colors
