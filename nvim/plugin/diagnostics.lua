@@ -62,7 +62,9 @@ vim_diagnostic.config({
   },
 
   signs = {
-    priority = 8,
+    -- NOTE: The real sign priorities will be in the range from `priority` to `priority+3`:
+    -- <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/diagnostic.lua#L720-L740>.
+    priority = 5,
     text = {
       [Severity.ERROR] = 'XX',
       [Severity.WARN] = '!!',

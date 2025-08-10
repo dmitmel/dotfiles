@@ -15,5 +15,5 @@ Sign priorities:
 | Kind        | Priority |
 | ----------- | -------- |
 | git signs   | 3        |
-| diagnostics | 4-8      |
+| diagnostics | 5-8      |
 | vimspector  | 9        |

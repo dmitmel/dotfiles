@@ -8,9 +8,9 @@
   "diagnostic.warningSign": "!!",
   "diagnostic.infoSign": "##",
   "diagnostic.hintSign": ">>",
-  // Note that the real priorities range from signPriority to signPriority+4
+  // Note that the real priorities range from signPriority to signPriority+3 inclusive.
   // <https://github.com/neoclide/coc.nvim/blob/95fcd6d2edf695117625669a7a67cc3c02a1106a/src/diagnostic/buffer.ts#L481>
-  "diagnostic.signPriority": 4,
+  "diagnostic.signPriority": 5,
   "suggest.enableFloat": false,
   "suggest.noselect": true,
   "coc.preferences.maxFileSize": "1MB",
