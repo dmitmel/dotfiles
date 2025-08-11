@@ -4,11 +4,74 @@ if not (has_lsp and lsp.config ~= nil and vim.g.vim_ide == 2) then return end
 local utils = require('dotfiles.utils')
 local lsp_log = require('vim.lsp.log') -- This was not exported until Nvim 0.9
 local lsp_extras = require('dotfiles.lsp_extras')
+local lsp_ignition = require('dotfiles.lsp_ignition')
+local lsp_settings = require('dotfiles.lsp_settings')
 
 lsp_log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
 lsp_log.set_level(utils.if_nil(lsp_log.levels[vim.env.NVIM_LSP_LOG], lsp_log.levels.WARN))
 
-require('dotfiles.lsp_ignition').enable({
+vim.api.nvim_create_user_command(
+  'LspLog',
+  '<mods> edit<bang> `=v:lua.vim.lsp.get_log_path()`',
+  { bar = true, bang = true }
+)
+
+vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', { bar = true })
+vim.cmd("execute dotutils#cmd_alias('LI', 'LspInfo')")
+
+if dotplug.has('neoconf.nvim') then
+  local NeoconfUtil = require('neoconf.util')
+  local NeoconfConfig = require('neoconf.config')
+  local NeoconfPlugins = require('neoconf.plugins')
+
+  -- Patch neoconf to search for global configs not only in `stdpath("config")`,
+  -- but also in all runtime directories.
+  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/util.lua#L216-L228>
+  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/import.lua>
+  ---@param fn fun(file: string, key: string|nil, pattern: string)
+  function NeoconfUtil.for_each_global(fn)
+    for _, pat in ipairs(NeoconfConfig.global_patterns) do
+      for _, file in ipairs(vim.api.nvim_get_runtime_file(pat.pattern, true)) do
+        local key = pat.key
+        if type(key) == 'function' then key = key(file) end
+        fn(file, key, pat.pattern)
+      end
+    end
+  end
+
+  -- The original implementation of this function is fundamentally broken, see
+  -- <https://github.com/folke/neoconf.nvim/issues/118>.
+  function NeoconfUtil.merge(...)
+    local settings = lsp_settings.new()
+    for i = 1, select('#', ...) do
+      local arg = select(i, ...)
+      settings:merge(arg)
+    end
+    return settings:get()
+  end
+
+  -- NOTE: Neoconf must be initialized BEFORE nvim-lspconfig and lsp_ignition!
+  require('neoconf').setup({
+    import = {
+      vscode = true,
+      coc = true,
+      nlsp = false,
+    },
+  })
+
+  -- The local settings from coc.nvim are not loaded from the correct path.
+  -- <https://github.com/folke/neoconf.nvim/issues/49#issuecomment-3160779876>
+  for _, p in ipairs(NeoconfConfig.local_patterns) do
+    if p.pattern == 'coc-settings.json' then p.pattern = '.vim/coc-settings.json' end
+  end
+
+  -- I'll replace ALL of the default plugin integrations (lspconfig, jsonls and
+  -- lua_ls) with just the lsp_ignition shim because they are incompatible with
+  -- each other.
+  NeoconfPlugins.plugins = { lsp_ignition.neoconf_plugin }
+end
+
+lsp_ignition.enable({
   'lua_ls',
   'rust_analyzer',
   'clangd',
@@ -22,13 +85,6 @@ require('dotfiles.lsp_ignition').enable({
   'ruff',
   'prettier',
 })
-
-vim.api.nvim_create_user_command('LspLog', function(cmd) --
-  vim.cmd.edit({ lsp.get_log_path(), bang = cmd.bang, mods = cmd.smods })
-end, { bar = true, bang = true })
-
-vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', { bar = true })
-vim.cmd("execute dotutils#cmd_alias('LI', 'LspInfo')")
 
 if dotplug.has('conform.nvim') then
   require('conform').setup({
@@ -220,32 +276,6 @@ vim.keymap.set('n', 'K', function()
     return 'K'
   end
 end, { expr = true, remap = true })
-
-if dotplug.has('neoconf.nvim') and utils.has('vim_starting') then
-  local neoconf_util = require('neoconf.util')
-  local neoconf_config = require('neoconf.config')
-
-  -- Patch neoconf to search for global configs not only in `stdpath("config")`,
-  -- but also in all runtime directories.
-  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/util.lua#L216-L228>
-  -- <https://github.com/folke/neoconf.nvim/blob/33880483b4ca91fef04d574b9c8b8cca88061c8f/lua/neoconf/import.lua>
-  ---@param fn fun(file: string, key:string|nil, pattern:string)
-  function neoconf_util.for_each_global(fn)
-    for _, p in ipairs(neoconf_config.global_patterns) do
-      for _, f in ipairs(vim.api.nvim_get_runtime_file(p.pattern, true)) do
-        fn(f, (type(p.key) == 'function' and p.key(f) or p.key) --[[@as string]], p.pattern)
-      end
-    end
-  end
-
-  require('neoconf').setup({
-    import = {
-      vscode = true,
-      coc = true,
-      nlsp = true,
-    },
-  })
-end
 
 if dotplug.has('fidget.nvim') then
   local fidget = require('fidget')

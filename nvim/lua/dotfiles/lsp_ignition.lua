@@ -3,11 +3,15 @@ local M, module = require('dotfiles.autoload')('dotfiles.lsp_ignition', {})
 local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 local lsp_extras = require('dotfiles.lsp_extras')
+local Settings = require('dotfiles.lsp_settings')
+
+---@alias dotfiles.lsp.RootMarker string | string[] | (fun(name: string, path: string): boolean)
 
 ---@class dotfiles.lsp.Config : vim.lsp.Config
 ---@field enabled? fun(bufnr: integer): boolean
----@field on_new_config? fun(new_config: dotfiles.lsp.Config, new_root_dir: string)
----@field settings_sections? string[]
+---@field on_new_config? fun(new_config: dotfiles.lsp.Config, new_root_dir: string, igniter: dotfiles.lsp.Igniter)
+---@field root_markers? dotfiles.lsp.RootMarker[]
+---@field build_settings? fun(ctx: dotfiles.lsp.SettingsContext)
 
 local function make_table() return {} end
 local function make_weak_table() return setmetatable({}, { __mode = 'kv' }) end
@@ -19,9 +23,11 @@ M.igniters_by_filetype = M.igniters_by_filetype or {}
 ---@type table<string, table<integer, unknown>> root_dir -> set<bufnr>
 M.buffers_by_root_dir = M.buffers_by_root_dir or {}
 ---@type table<integer, dotfiles.lsp.Igniter> client_id -> igniter
-M.launched_clients = M.launched_clients or make_weak_table()
+M.launched_clients = M.launched_clients or {}
 ---@type table<integer, table<integer, dotfiles.lsp.Igniter>> bufnr -> client_id -> igniter
 M.clients_by_buffer = M.clients_by_buffer or {}
+---@type table<vim.lsp.protocol.Method|string, lsp.Handler>
+M.default_handlers = M.default_handlers or {}
 
 ---@generic K, V
 ---@param tbl table<K, V>
@@ -186,25 +192,6 @@ function Igniter.new(name, config)
   return self
 end
 
---- A helper for joining the lists of `on_init`/`on_exit`/etc callbacks. I used
---- varargs here not only because it looks nice, but because Lua lists don't
---- like containing `nil`s in the middle.
----@generic T
----@param ... T|T[]|nil
----@return T[]
-local function concat(...)
-  local result = {}
-  for i = 1, select('#', ...) do
-    local arg = select(i, ...)
-    if utils.is_list(arg) then
-      vim.list_extend(result, arg)
-    elseif arg ~= nil then
-      table.insert(result, arg)
-    end
-  end
-  return result
-end
-
 function Igniter:reset_client_stuff()
   self.client_id = nil
   self.deferred_workspace_folder_changes = nil
@@ -220,6 +207,7 @@ function Igniter:launch_client(root_dir)
   self:reset_client_stuff()
 
   local config = vim.deepcopy(self.config)
+  config.handlers = vim.tbl_extend('keep', config.handlers or {}, M.default_handlers)
 
   local wfs = utils.map(vim.tbl_keys(M.buffers_by_root_dir), M.make_lsp_workspace_folder)
   -- NOTE: This check breaks if the `workspace_folders` list is empty, but not if it is `nil`:
@@ -228,14 +216,18 @@ function Igniter:launch_client(root_dir)
   config.root_dir = root_dir
 
   local successfully_initialized = false
-  config.on_init = concat(
+  local folder_changes = {} ---@type lsp.WorkspaceFoldersChangeEvent[]
+  local exit_listeners = {} ---@type function[]
+
+  config.on_init = utils.concat_lists(
     function()
       -- The VERY FIRST thing that must be done is catching up with the folder
       -- changes that occurred while the server was initializing.
-      for _, event in ipairs(self.deferred_workspace_folder_changes) do
+      for _, event in ipairs(folder_changes) do
         self:send_workspace_folders_changes(event)
       end
-      self.deferred_workspace_folder_changes = nil
+      utils.clear_table(folder_changes)
+      self:send_workspace_settings()
     end,
 
     config.on_init,
@@ -246,10 +238,9 @@ function Igniter:launch_client(root_dir)
     end
   )
 
-  config.on_exit = concat(config.on_exit, function(code, signal, client_id)
+  config.on_exit = utils.concat_lists(config.on_exit, function(code, signal, client_id)
     assert(client_id == self.client_id)
     M.launched_clients[self.client_id] = nil
-    local exit_listeners = self.client_exited_listeners ---@cast exit_listeners -nil
     self:reset_client_stuff()
 
     -- Don't auto-restart the client if the server has exited with an error
@@ -269,22 +260,10 @@ function Igniter:launch_client(root_dir)
   end)
 
   if config.on_new_config then
-    local ok, err = xpcall(config.on_new_config, debug.traceback, config, root_dir)
+    local ok, err = xpcall(config.on_new_config, debug.traceback, config, root_dir, self)
     if not ok then
       local msg = ('LSP[%s]: Error in on_new_config callback: %s'):format(self.name, err)
       vim.notify(msg, vim.log.levels.ERROR)
-    end
-  end
-
-  -- local nc_workspace = require('neoconf.workspace').get({ file = root_dir })
-  -- local neoconfs = require('neoconf').get(nil, nil, { file = nc_workspace.root_dir })
-  require('neoconf.plugins.lspconfig').on_new_config(config, root_dir, self.config)
-
-  local settings = config.settings
-  if config.settings_sections and settings ~= nil then
-    config.settings = {}
-    for _, section in ipairs(config.settings_sections) do
-      config.settings[section] = settings[section]
     end
   end
 
@@ -303,16 +282,23 @@ function Igniter:launch_client(root_dir)
     return nil
   end
 
+  -- HACK: reset the `settings` table of the client to prevent this code from being executed:
+  -- <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/lsp/client.lua#L562-L564>
+  lsp.get_client_by_id(client_id).settings = {}
+
   self.client_id = client_id
-  self.deferred_workspace_folder_changes = {}
-  self.client_exited_listeners = {}
+  self.deferred_workspace_folder_changes = folder_changes
+  self.client_exited_listeners = exit_listeners
   M.launched_clients[client_id] = self
   return client_id
 end
 
+---@return vim.lsp.Client|nil
+function Igniter:get_client() return lsp.get_client_by_id(self.client_id) end
+
 ---@param event lsp.WorkspaceFoldersChangeEvent
 function Igniter:send_workspace_folders_changes(event)
-  local client = assert(lsp.get_client_by_id(self.client_id), 'the client must be running')
+  local client = assert(self:get_client(), 'the client must be running')
   if not client.initialized then
     table.insert(self.deferred_workspace_folder_changes, event)
     return
@@ -335,6 +321,137 @@ function Igniter:send_workspace_folders_changes(event)
   client:notify('workspace/didChangeWorkspaceFolders', params)
 end
 
+---@param scope_uri string|nil
+---@param trigger 'workspace'|'server_request'
+function Igniter:resolve_settings(scope_uri, trigger)
+  local client = self:get_client()
+
+  local NeoconfSettings = require('neoconf.settings')
+  local NeoconfWorkspace = require('neoconf.workspace')
+
+  local workspace_root = (scope_uri and scope_uri:match('^file:')) and vim.uri_to_fname(scope_uri)
+    or (client and client.root_dir or nil)
+  workspace_root = workspace_root and NeoconfWorkspace.find_root({ file = workspace_root })
+
+  local global_settings = NeoconfSettings.get_global()
+  local local_settings = workspace_root and NeoconfSettings.get_local(workspace_root)
+    or NeoconfSettings.new() -- create an empty object if the workspace root wasn't found
+
+  ---@alias dotfiles.lsp.SettingsBuildStep
+  ---| 'lspconfig'
+  ---| 'generated'
+  ---| 'neoconf_local'
+  ---| 'neoconf_global'
+  ---| 'coc_global'
+  ---| 'coc_local'
+  ---| 'nlsp_local'
+  ---| 'nlsp_global'
+  ---| 'vscode_local'
+
+  ---@class dotfiles.lsp.SettingsContext
+  local ctx = {
+    settings = Settings.new(),
+    new_settings = Settings.new(),
+    step = nil, ---@type dotfiles.lsp.SettingsBuildStep
+    trigger = trigger,
+    scope_uri = scope_uri,
+    client = client,
+    igniter = self,
+  }
+
+  local lsp_config = client and client.config --[[@as dotfiles.lsp.Config]]
+    or self.config
+
+  ---@param name dotfiles.lsp.SettingsBuildStep
+  local function step(name, data)
+    ctx.step = name
+    ctx.new_settings = Settings.new(data)
+
+    local build_settings = lsp_config.build_settings
+    if type(build_settings) == 'function' then
+      build_settings(ctx)
+    elseif type(data) == 'table' then
+      ctx.settings:merge(data) -- the default settings resolution behavior
+    end
+  end
+
+  local options = require('neoconf.config').get({ file = workspace_root })
+  -- The settings resolution order matches the one of neoconf.nvim:
+  -- <https://github.com/folke/neoconf.nvim/blob/b516f1ca1943de917e476224e7aa6b9151961991/lua/neoconf/plugins/lspconfig.lua#L53-L64>.
+  step('lspconfig', lsp_config.settings)
+  step('neoconf_local', global_settings:get('lspconfig.' .. self.name, { expand = true }))
+  if options.import.coc then step('coc_global', global_settings:get('coc')) end
+  if options.import.nlsp then step('nlsp_global', global_settings:get('nlsp.' .. self.name)) end
+  if options.import.vscode then step('vscode_local', local_settings:get('vscode')) end
+  if options.import.coc then step('coc_local', local_settings:get('coc')) end
+  if options.import.nlsp then step('nlsp_local', local_settings:get('nlsp.' .. self.name)) end
+  step('neoconf_local', local_settings:get('lspconfig.' .. self.name, { expand = true }))
+  -- The step for generating settings comes last to give the user a chance to
+  -- modify any previously merged settings or provide default fallbacks.
+  step('generated', nil)
+
+  return ctx.settings
+end
+
+function Igniter:send_workspace_settings()
+  local client = assert(self:get_client(), 'the client must be running')
+
+  local settings = self:resolve_settings(nil, 'workspace'):get()
+  if type(settings) ~= 'table' or utils.is_empty(settings) then settings = vim.empty_dict() end
+
+  if not vim.deep_equal(client.settings, settings) then
+    client.settings = settings
+    client:notify('workspace/didChangeConfiguration', { settings = settings })
+    return true
+  else
+    return false
+  end
+end
+
+local DEBUG_SETTINGS_REQUESTS = false
+
+---@param params lsp.ConfigurationParams
+M.default_handlers['workspace/configuration'] = function(err, params, ctx)
+  if err then
+    lsp.log.error(module.name, ctx.method, err)
+    lsp_extras.client_notify(ctx.client_id, tostring(err), vim.log.levels.ERROR)
+    return
+  end
+
+  local client = lsp.get_client_by_id(ctx.client_id)
+  if not client then
+    local msg = 'client has shut down after sending a ' .. ctx.method .. ' request'
+    lsp_extras.client_notify(ctx.client_id, msg, vim.log.levels.ERROR)
+    return
+  end
+
+  -- It's common for servers to request multiple different sections for the same
+  -- URI scope within one request, so a cache is useful to prevent the redundant
+  -- work of repeatedly resolving the whole settings table for the same URI.
+  -- `vim.NIL` is used as a key for when no `scopeUri` is provided.
+  ---@type table<string|vim.NIL, dotfiles.lsp.Settings>
+  local settings_per_uri = {
+    -- [vim.NIL] = Settings.new(client.settings),
+  }
+
+  if DEBUG_SETTINGS_REQUESTS then
+    local sections_by_scope = {}
+    for _, item in ipairs(params.items) do
+      local list = get_or_insert(sections_by_scope, item.scopeUri or vim.NIL, make_table)
+      table.insert(list, item.section or vim.NIL)
+    end
+    dump_compact(client.name, sections_by_scope)
+  end
+
+  return utils.map(params.items, function(item)
+    local settings = get_or_insert(settings_per_uri, item.scopeUri or vim.NIL, function()
+      local igniter = assert(M.launched_clients[client.id])
+      return igniter:resolve_settings(item.scopeUri, 'server_request')
+    end)
+    return settings:get(item.section, vim.NIL)
+  end)
+end
+
 ---@async
 ---@param bufnr integer
 ---@param config dotfiles.lsp.Config
@@ -348,9 +465,9 @@ local function resolve_root_dir(bufnr, config)
   elseif config.root_markers then
     -- The root resolution logic is roughly based on coc.nvim
 
-    local cwd = vim.fs.normalize(vim.fn.getcwd(), { expand_env = false })
+    local cwd = utils.normalize_path(vim.fn.getcwd())
     local buf_name = vim.fs.abspath(vim.api.nvim_buf_get_name(bufnr))
-    local buf_path = vim.fs.normalize(buf_name, { expand_env = false })
+    local buf_path = utils.normalize_path(buf_name)
 
     local parents = {} ---@type string[]
     for path in vim.fs.parents(buf_path) do
@@ -358,12 +475,18 @@ local function resolve_root_dir(bufnr, config)
     end
 
     ---@param dir string
-    ---@param marker string|string[]
+    ---@param marker dotfiles.lsp.RootMarker
     ---@return boolean
     local function check_dir(dir, marker)
-      if type(marker) == 'string' then marker = { marker } end
-      for _, name in ipairs(marker) do
-        if vim.uv.fs_stat(vim.fs.joinpath(dir, name)) ~= nil then return true end
+      if type(marker) == 'function' then
+        for name in vim.fs.dir(dir) do
+          if marker(name, dir) then return true end
+        end
+      else
+        if type(marker) == 'string' then marker = { marker } end
+        for _, name in ipairs(marker) do
+          if vim.uv.fs_stat(vim.fs.joinpath(dir, name)) ~= nil then return true end
+        end
       end
       return false
     end
@@ -417,8 +540,8 @@ function Igniter:attach_to_buffer(bufnr)
 
     self.attaching_buffers[bufnr] = nil
 
-    -- Exit if the buffer was deleted while we were determining the root dir.
-    if not vim.api.nvim_buf_is_valid(bufnr) then return end
+    -- Exit if the buffer got deleted/unloaded while we were determining the root dir.
+    if not vim.api.nvim_buf_is_loaded(bufnr) then return end
 
     if root_dir then M.add_workspace_folder_of_buffer(root_dir, bufnr) end
 
@@ -697,8 +820,11 @@ vim.api.nvim_create_user_command('LspDetach', function(cmd)
 end, { bar = true, nargs = '*', complete = complete_config_names(M.get_attached_igniters) })
 
 function M.get_all_config_names()
-  return utils.map(vim.api.nvim_get_runtime_file('lsp/*.lua', true), function(path) --
-    return path:match('([^/]*)%.lua$')
+  return utils.map(vim.api.nvim_get_runtime_file('lsp/*.lua', true), function(path)
+    -- This pattern *should* always match and extract the basename of the file,
+    -- but in case it doesn't, raise an error with the offending path in the
+    -- message. Also, I love how handy the `assert()` function is in Lua!
+    return assert(path:match('([^/]*)%.lua$'), path)
   end)
 end
 
@@ -708,6 +834,11 @@ end, { bar = true, nargs = '+', complete = utils.command_completion_fn(M.get_all
 
 vim.api.nvim_create_user_command('LspDisable', function(cmd) --
   M.enable(cmd.args, false)
+end, { bar = true, nargs = '+', complete = complete_config_names(M.enabled_igniters) })
+
+vim.api.nvim_create_user_command('LspReload', function(cmd) --
+  M.enable(cmd.args, false)
+  M.enable(cmd.args, true)
 end, { bar = true, nargs = '+', complete = complete_config_names(M.enabled_igniters) })
 
 vim.api.nvim_create_user_command('LspWorkspace', function()
@@ -720,7 +851,39 @@ vim.api.nvim_create_user_command('LspWorkspace', function()
     end
     out[#out + 1] = ''
   end
-  print(table.concat(out, '\n'))
+  vim.api.nvim_echo({ { table.concat(out, '\n') } }, --[[ history ]] false, {})
 end, { bar = true })
+
+---@type SettingsPlugin
+M.neoconf_plugin = M.neoconf_plugin or {}
+M.neoconf_plugin.name = module.name
+
+--- See <https://github.com/folke/neoconf.nvim/blob/b516f1ca1943de917e476224e7aa6b9151961991/lua/neoconf/plugins/lspconfig.lua#L8>.
+---@param schema Schema
+function M.neoconf_plugin.on_schema(schema)
+  local options = require('neoconf.config').options
+  schema:set('lspconfig', { description = 'lsp server settings for ' .. module.name })
+  for name, server_schema in pairs(require('neoconf.build.schemas').get_schemas()) do
+    if options.plugins.jsonls.configured_servers_only == false or M.enabled_igniters[name] then
+      schema:set('lspconfig.' .. name, {
+        ['$ref'] = vim.uri_from_fname(server_schema.settings_file),
+      })
+    end
+  end
+end
+
+---@param _changed_settings_file string
+function M.neoconf_plugin.on_update(_changed_settings_file)
+  local affected_clients = {} ---@type string[]
+
+  for _, igniter in pairs(M.launched_clients) do
+    if igniter:send_workspace_settings() then table.insert(affected_clients, igniter.name) end
+  end
+
+  if #affected_clients > 0 then
+    local msg = module.name .. ': reloaded settings for ' .. table.concat(affected_clients, ', ')
+    vim.notify(msg, vim.log.levels.INFO)
+  end
+end
 
 return M

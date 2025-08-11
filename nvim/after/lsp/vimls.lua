@@ -7,7 +7,6 @@ local utils = require('dotfiles.utils')
 return {
   cmd = { 'vim-language-server', '--stdio' },
   filetypes = { 'vim' },
-  settings_sections = { 'vim' },
 
   init_options = {
     isNeovim = utils.has('nvim'),
@@ -19,6 +18,10 @@ return {
       enable = true,
     },
   },
+
+  build_settings = function(_ctx)
+    -- Just do nothing. This server supports configuration only via `init_options`.
+  end,
 
   before_init = function(init_params) ---@param init_params lsp.InitializeParams
     local init_opts = init_params.initializationOptions --[[@as table]]

@@ -35,6 +35,8 @@ ignore = [
   "PLW2901",  # outer loop variable overwritten by inner loop target
   "B905",     # `zip()` without an explicit `strict` parameter
   "E731",     # use `def` instead of assigning `lambda` to a variable
+  "B009",     # `getattr()` with a constant string
+  "B010",     # `setattr()` with a constant string
 ]
 
 [lint.flake8-quotes]

@@ -8,8 +8,11 @@ return {
   filetypes = { 'css', 'less', 'sass', 'scss' },
   root_markers = { 'package.json', '.git' },
 
-  settings_sections = { 'css', 'less', 'scss' },
   init_options = {
     provideFormatter = false,
   },
+
+  build_settings = function(ctx)
+    ctx.settings:merge(ctx.new_settings:pick({ 'css', 'less', 'scss' }))
+  end,
 }

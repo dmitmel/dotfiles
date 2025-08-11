@@ -8,10 +8,13 @@ return {
   filetypes = { 'html' },
   root_markers = { 'package.json', '.git' },
 
-  settings_sections = { 'html', 'css', 'javascript' },
   init_options = {
     embeddedLanguages = { css = true, javascript = true },
     configurationSection = { 'html', 'css', 'javascript' },
     provideFormatter = false,
   },
+
+  build_settings = function(ctx)
+    ctx.settings:merge(ctx.new_settings:pick({ 'html', 'css', 'javascript', 'js/ts' }))
+  end,
 }

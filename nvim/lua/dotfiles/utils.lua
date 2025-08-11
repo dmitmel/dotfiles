@@ -160,6 +160,23 @@ function M.list_to_set(list)
   return set
 end
 
+--- Concatenates all non-nil arguments into one long list.
+---@generic T
+---@param ... T|T[]|nil
+---@return T[]
+function M.concat_lists(...)
+  local result = {}
+  for i = 1, select('#', ...) do
+    local arg = select(i, ...)
+    if M.is_list(arg) then
+      vim.list_extend(result, arg)
+    elseif arg ~= nil then
+      table.insert(result, arg)
+    end
+  end
+  return result
+end
+
 -- Adapted from <https://stackoverflow.com/a/23535333/12005228>. See also:
 -- <https://www.lua.org/manual/5.1/manual.html#pdf-debug.getinfo>
 -- <https://www.lua.org/manual/5.1/manual.html#lua_getinfo>
@@ -195,10 +212,28 @@ function M.write_file(path, data, opts)
   file:close()
 end
 
-function M.is_inside_dir(path, dir)
-  path = vim.fs.normalize(path, { expand_env = false })
-  dir = vim.fs.normalize(dir, { expand_env = false })
-  return vim.startswith(path, dir) and path:sub(#dir + 1, #dir + 1) == '/'
+--- Same as `vim.fs.normalize()`, but does not expand any characters with special meaning.
+---@param path string
+---@param opts? { win?: boolean }
+---@see vim.fs.normalize.Opts
+function M.normalize_path(path, opts)
+  -- Unfortunately there is no option to turn home expansion off, but this can
+  -- be easily worked around because `vim.fs.normalize()` only checks if a tilde
+  -- is literally the first character in the string:
+  -- <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/fs.lua#L552-L571>
+  if vim.startswith(path, '~') then path = './' .. path end
+  return vim.fs.normalize(path, { expand_env = false, win = opts and opts.win })
+end
+
+---@param path string
+---@param dir string
+---@param opts? { skip_path_normalization?: boolean }
+function M.is_path_inside_dir(path, dir, opts)
+  if not (opts and opts.skip_path_normalization) then
+    path = M.normalize_path(path)
+    dir = M.normalize_path(dir)
+  end
+  return vim.startswith(path, dir) and (path:sub(#dir + 1, #dir + 1) == '/' or dir:sub(-1) == '/')
 end
 
 ---@param bufnr integer
@@ -257,7 +292,7 @@ end
 ---@param co thread
 local function async_step(co, ...)
   local ok, err = coroutine.resume(co, ...)
-  if not ok then error(debug.traceback(co, err)) end
+  if not ok then error(debug.traceback(co, err), 0) end
 end
 
 ---@param fn async fun(...)

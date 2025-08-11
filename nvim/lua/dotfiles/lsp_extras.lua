@@ -14,6 +14,21 @@ function M.client_notify(client_id, message, level, opts)
   vim.cmd('redraw')
 end
 
+---@param client vim.lsp.Client
+---@param file_uri string
+function M.find_workspace_folder(file_uri, client)
+  local best_folder = nil ---@type lsp.WorkspaceFolder?
+  for _, folder in ipairs(client.workspace_folders) do
+    if
+      utils.is_path_inside_dir(file_uri, folder.uri, { skip_path_normalization = true })
+      and (best_folder == nil or #folder.uri > #best_folder.uri)
+    then
+      best_folder = folder
+    end
+  end
+  return best_folder
+end
+
 -- List of events that will end or cancel actions that depend on the current cursor position.
 M.CURSOR_MOVE_EVENTS = {
   'CursorMoved', -- This is obvious. It is also triggered when moving to another buffer or window.

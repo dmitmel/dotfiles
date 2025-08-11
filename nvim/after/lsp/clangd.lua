@@ -25,5 +25,6 @@ return {
     'compile_flags.txt',
     '.git',
   },
-  settings_sections = { 'clangd' },
+
+  build_settings = function(ctx) ctx.settings:merge(ctx.new_settings:pick({ 'clangd' })) end,
 }

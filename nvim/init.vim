@@ -14,8 +14,7 @@ endif
 " <https://github.com/neovim/neovim/issues/6289>
 " <https://github.com/neovim/neovim/labels/defaults>
 
-let g:nvim_dotfiles_dir = expand('<sfile>:p:h')
-let g:dotfiles_dir = expand('<sfile>:p:h:h')
+let s:dotfiles_dir = expand('<sfile>:p:h')
 
 " 0 - no IDE features
 " 1 - use coc.nvim as the IDE backend
@@ -51,10 +50,10 @@ endfunction
 
 function! s:configure_runtimepath() abort
   let rtp = split(&runtimepath, ',')
-  call s:remove(rtp, g:nvim_dotfiles_dir)
-  call   insert(rtp, g:nvim_dotfiles_dir)
-  call s:remove(rtp, g:nvim_dotfiles_dir . '/after')
-  call      add(rtp, g:nvim_dotfiles_dir . '/after')
+  call s:remove(rtp, s:dotfiles_dir)
+  call   insert(rtp, s:dotfiles_dir)
+  call s:remove(rtp, s:dotfiles_dir . '/after')
+  call      add(rtp, s:dotfiles_dir . '/after')
   let &runtimepath = join(rtp, ',')
 endfunction
 

@@ -14,5 +14,6 @@ return {
     'pyrightconfig.json',
     '.git',
   },
-  settings_sections = { 'python', 'pyright' },
+
+  build_settings = function(ctx) ctx.settings:merge(ctx.new_settings:pick({ 'python', 'pyright' })) end,
 }

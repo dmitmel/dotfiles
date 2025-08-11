@@ -25,17 +25,13 @@
   "workspace.rootPatterns": [".vim", ".git", ".hg", ".projections.json"],
   "workspace.removeEmptyWorkspaceFolder": true,
 
-  "tsserver.disableAutomaticTypeAcquisition": true,
-  "tsserver.useLocalTsdk": true,
-  "tsserver.useSyntaxServer": "never",
-  "tsserver.experimental.enableProjectDiagnostics": false,
-  "typescript.suggest.completeFunctionCalls": true,
-  "javascript.suggest.completeFunctionCalls": true,
+  "tsserver.disableAutomaticTypeAcquisition": true, // coc.nvim
+  "typescript.disableAutomaticTypeAcquisition": true, // vtsls
+  "tsserver.useLocalTsdk": true, // coc.nvim
+  "vtsls.autoUseWorkspaceTsdk": true, // vtsls
   "javascript.format.enable": false,
   "typescript.format.enable": false,
 
-  "eslint.autoFixOnSave": true,
-  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
@@ -79,19 +75,19 @@
   "rust-analyzer.completion.callable.snippets": "add_parentheses",
   "rust-analyzer.completion.autoimport.enable": false,
 
-  "json.validate.enable": true
-  // "json.schemas": [
-  //   {
-  //     "fileMatch": ["**/assets/**/*.json.patch"],
-  //     "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
-  //   },
-  //   {
-  //     "fileMatch": ["**/snippets/*.json"],
-  //     "url": "https://raw.githubusercontent.com/Yash-Singh1/vscode-snippets-json-schema/main/schema.json"
-  //   },
-  //   {
-  //     "fileMatch": ["*.vimspector.json"],
-  //     "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
-  //   }
-  // ]
+  "json.validate.enable": true,
+  "json.schemas": [
+    {
+      "fileMatch": ["**/assets/**/*.json.patch"],
+      "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
+    },
+    {
+      "fileMatch": ["**/snippets/*.json"],
+      "url": "https://raw.githubusercontent.com/Yash-Singh1/vscode-snippets-json-schema/main/schema.json"
+    },
+    {
+      "fileMatch": ["*.vimspector.json"],
+      "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
+    }
+  ]
 }

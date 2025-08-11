@@ -7,22 +7,12 @@ return {
   filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
   root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
 
-  settings_sections = { 'tsserver', 'javascript', 'typescript', 'vtsls' },
-  settings = { typescript = {} },
-
-  before_init = function(_, config)
-    local settings = config.settings --[[@as any]]
-    local tsserver = settings.tsserver
-    if type(tsserver) == 'table' then
-      settings.typescript = vim.tbl_deep_extend('keep', settings.typescript or {}, tsserver)
-      settings.vtsls = vim.tbl_deep_extend('keep', settings.vtsls or {}, {
-        autoUseWorkspaceTsdk = tsserver.useLocalTsdk,
-      })
-    end
-  end,
-
   on_init = function(client)
     client.server_capabilities.documentFormattingProvider = false
     client.server_capabilities.documentRangeFormattingProvider = false
+  end,
+
+  build_settings = function(ctx)
+    ctx.settings:merge(ctx.new_settings:pick({ 'javascript', 'typescript', 'js/ts', 'vtsls' }))
   end,
 }

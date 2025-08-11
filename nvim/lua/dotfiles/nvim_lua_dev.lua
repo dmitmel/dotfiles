@@ -2,16 +2,72 @@
 local M = require('dotfiles.autoload')('dotfiles.nvim_lua_dev', {})
 
 local utils = require('dotfiles.utils')
+local Settings = require('dotfiles.lsp_settings')
 
--- <https://luals.github.io/wiki/settings/>
-M.DEFAULT_LUA_LS_SETTINGS = {
-  runtime = {
-    version = 'LuaJIT',
-  },
-  workspace = {
-    preloadFileSize = 1000, -- KB
-    -- library = { vim.env.VIMRUNTIME },
-    ignoreDir = {
+M.PLUGINS_EXCLUDED_FROM_LIBRARIES = {
+  ['catppuccin'] = true,
+  ['fzf-lua'] = true,
+  ['gitsigns.nvim'] = true,
+}
+
+--- Yep, that's right, the library list is resolved at runtime, no need for any
+--- manual configuration!
+---@param server 'lua_ls'|'emmylua_ls'
+---@param workspace_dir string
+function M.make_settings(server, workspace_dir)
+  local settings = Settings.new()
+
+  -- Basic settings for any kind of Lua project:
+  if server == 'lua_ls' then
+    -- <https://luals.github.io/wiki/settings/>
+    settings:set('diagnostics.libraryFiles', 'Opened')
+    settings:set('completion.workspaceWord', false)
+    settings:set('completion.showWord', 'Disable')
+    settings:set('completion.callSnippet', 'Replace')
+    settings:set('completion.keywordSnippet', 'Replace')
+  elseif server == 'emmylua_ls' then
+    -- <https://github.com/EmmyLuaLs/emmylua-analyzer-rust/blob/main/docs/config/emmyrc_json_EN.md>
+    settings:set('completion.callSnippet', true)
+  end
+
+  workspace_dir = utils.normalize_path(workspace_dir)
+  local runtime_dirs = utils.map(vim.api.nvim_list_runtime_paths(), utils.normalize_path)
+  local plugins_root = utils.normalize_path(vim.g['dotplug#plugins_dir']) .. '/'
+
+  if
+    not vim.tbl_contains(runtime_dirs, workspace_dir)
+    and not vim.startswith(workspace_dir, plugins_root)
+  then
+    return settings:get()
+  end
+
+  local libraries = utils.filter(runtime_dirs, function(rtp_dir)
+    if vim.fn.isdirectory(rtp_dir .. '/lua') == 0 then return false end
+
+    rtp_dir = utils.normalize_path(rtp_dir)
+    if vim.startswith(rtp_dir, plugins_root) then
+      local name_end = rtp_dir:find('/', #plugins_root + 1) or 0
+      local plugin_name = rtp_dir:sub(#plugins_root + 1, name_end - 1)
+      if M.PLUGINS_EXCLUDED_FROM_LIBRARIES[plugin_name] then return false end
+    end
+
+    return true
+  end)
+
+  settings:set('runtime.version', jit ~= nil and 'LuaJIT' or _VERSION)
+
+  settings:set(
+    server == 'emmylua_ls' and 'runtime.requirePattern' or 'runtime.path',
+    { 'lua/?.lua', 'lua/?/init.lua' }
+  )
+
+  if server == 'lua_ls' then table.insert(libraries, '${3rd}/luv/library') end
+  settings:set('workspace.library', libraries)
+
+  if server == 'lua_ls' then
+    settings:set('workspace.checkThirdParty', false)
+    settings:set('workspace.preloadFileSize', 1000) -- KB
+    settings:set('workspace.ignoreDir', {
       '/*/',
       '!/lua/',
       '!/plugin/',
@@ -23,82 +79,10 @@ M.DEFAULT_LUA_LS_SETTINGS = {
       -- '/spec/',
       -- '/ftplugin/',
       -- '/syntax/',
-    },
-  },
-  diagnostics = {
-    globals = { 'vim' },
-    libraryFiles = 'Opened',
-  },
-  completion = {
-    workspaceWord = false,
-    showWord = 'Disable',
-    callSnippet = 'Replace',
-    keywordSnippet = 'Replace',
-  },
-  format = {
-    enabled = false,
-  },
-}
-
-M.PLUGINS_EXCLUDED_FROM_LIBRARIES = {
-  ['catppuccin'] = true,
-  ['fzf-lua'] = true,
-  ['gitsigns.nvim'] = true,
-}
-
---- Yep, that's right, the library list is resolved at runtime, no need for
---- manual configurations!
----@param root_dir string?
-function M.make_lua_ls_settings(root_dir)
-  root_dir = root_dir or vim.g.dotfiles_dir --[[@as string]]
-
-  local libraries = { '${3rd}/luv/library' } ---@type string[]
-
-  local pkgconf = vim.split(package.config, '\n')
-  local sep = pkgconf[1] -- / or \
-
-  local plugins_root = vim.g['dotplug#plugins_dir'] .. sep
-  for _, rtp_dir in ipairs(vim.api.nvim_list_runtime_paths()) do
-    if vim.startswith(rtp_dir, plugins_root) then
-      local plugin_dir = string.sub(rtp_dir, #plugins_root + 1)
-      if M.PLUGINS_EXCLUDED_FROM_LIBRARIES[plugin_dir] then goto continue end
-    end
-    local lua_dir = rtp_dir .. sep .. 'lua'
-    if vim.fn.isdirectory(lua_dir) == 1 and not vim.startswith(lua_dir, root_dir) then
-      table.insert(libraries, rtp_dir)
-    end
-    ::continue::
+    })
   end
 
-  local path_list_sep = pkgconf[2] -- ;
-  local template_char = pkgconf[3] -- ?
-  local package_path = vim.split(package.path, path_list_sep)
-
-  local function pc(s) ---@param s string
-    -- `(...)` around the return value is necessary to return only a single value
-    return (s:gsub('/', sep):gsub('?', template_char))
-  end
-
-  local _, i = utils.find(package_path, pc('./?.lua'))
-  -- `init.lua` must come after normal modules in `package.path`.
-  table.insert(package_path, i + 1, pc('./?/init.lua'))
-  table.insert(package_path, i + 2, pc('lua/?.lua'))
-  table.insert(package_path, i + 3, pc('lua/?/init.lua'))
-
-  package_path = {
-    pc('lua/?.lua'),
-    pc('lua/?/init.lua'),
-  }
-
-  return vim.tbl_deep_extend('keep', M.DEFAULT_LUA_LS_SETTINGS, {
-    runtime = {
-      path = package_path, -- LuaLS
-      requirePattern = package_path, -- EmmyLuaLS
-    },
-    workspace = {
-      library = libraries,
-    },
-  })
+  return settings:get()
 end
 
 return M

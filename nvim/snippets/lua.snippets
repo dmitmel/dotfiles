@@ -65,3 +65,7 @@ snippet patchval monkey-patch a value
 	$2.$1 = old_$1
 snippet format string.format()
 	('$1'):format($0)
+snippet @as type cast comment
+	--[[@as $0]]
+snippet @type type annotation comment
+	---@type $0

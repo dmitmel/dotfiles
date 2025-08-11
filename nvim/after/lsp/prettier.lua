@@ -2,11 +2,35 @@ local utils = require('dotfiles.utils')
 
 -- All VSCode language IDs supported by Prettier can be obtained with:
 -- $ prettier --support-info | jq '[.languages[].vscodeLanguageIds[]] | unique'
--- Note that every one of those is a valid filetype in Vim.
+-- Note that not every one of those is a valid filetype in Vim.
+
+-- <https://github.com/prettier/prettier/blob/3.6.0/src/config/prettier-config/config-searcher.js#L11-L32>
+local CONFIG_FILE_NAMES = utils.list_to_set({
+  '.prettierrc',
+  '.prettierrc.json',
+  '.prettierrc.yaml',
+  '.prettierrc.yml',
+  '.prettierrc.json5',
+  '.prettierrc.js',
+  '.prettierrc.ts',
+  '.prettierrc.mjs',
+  '.prettierrc.mts',
+  '.prettierrc.cjs',
+  '.prettierrc.cts',
+  'prettier.config.js',
+  'prettier.config.ts',
+  'prettier.config.mjs',
+  'prettier.config.mts',
+  'prettier.config.cjs',
+  'prettier.config.cts',
+  '.prettierrc.toml',
+})
+
+local PRETTIER_LS_DIR = utils.script_relative('../../prettier-language-server')
 
 ---@type dotfiles.lsp.Config
 return {
-  cmd = { 'node', utils.script_relative('../../prettier-language-server/main.js'), '--stdio' },
+  cmd = { 'node', PRETTIER_LS_DIR .. '/main.js', '--stdio' },
 
   -- stylua: ignore
   filetypes = {
@@ -16,31 +40,18 @@ return {
   },
 
   root_markers = {
-    -- <https://github.com/prettier/prettier/blob/3.6.0/src/config/prettier-config/config-searcher.js#L11-L32>
-    {
-      '.prettierrc',
-      '.prettierrc.json',
-      '.prettierrc.yaml',
-      '.prettierrc.yml',
-      '.prettierrc.json5',
-      '.prettierrc.js',
-      '.prettierrc.ts',
-      '.prettierrc.mjs',
-      '.prettierrc.mts',
-      '.prettierrc.cjs',
-      '.prettierrc.cts',
-      'prettier.config.js',
-      'prettier.config.ts',
-      'prettier.config.mjs',
-      'prettier.config.mts',
-      'prettier.config.cjs',
-      'prettier.config.cts',
-      '.prettierrc.toml',
-    },
+    function(name) return CONFIG_FILE_NAMES[name] ~= nil end,
     'package.json',
     '.editorconfig',
     '.git',
   },
 
-  settings_sections = { 'prettier' },
+  build_settings = function(ctx) ctx.settings:merge(ctx.new_settings:pick({ 'prettier' })) end,
+
+  on_new_config = function()
+    if vim.fn.isdirectory(PRETTIER_LS_DIR .. '/node_modules') == 0 then
+      local pm = utils.find({ 'yarn', 'npm' }, function(pm) return vim.fn.executable(pm) ~= 0 end)
+      vim.cmd('!cd -- ' .. vim.fn.shellescape(PRETTIER_LS_DIR, true) .. ' && ' .. pm .. ' install')
+    end
+  end,
 }

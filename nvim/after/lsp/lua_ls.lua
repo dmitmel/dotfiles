@@ -15,10 +15,14 @@ return {
     '.git',
   },
 
-  settings_sections = { 'Lua' },
-  on_new_config = function(config, root_dir)
-    config.settings = vim.tbl_deep_extend('keep', config.settings or {}, {
-      Lua = require('dotfiles.nvim_lua_dev').make_lua_ls_settings(root_dir),
-    })
+  build_settings = function(ctx)
+    ctx.settings:merge(ctx.new_settings:pick({ 'Lua', 'files' }))
+
+    if ctx.trigger == 'server_request' and ctx.step == 'generated' and ctx.scope_uri ~= nil then
+      local workspace_dir = vim.uri_to_fname(ctx.scope_uri)
+      ctx.settings:merge_defaults({
+        Lua = require('dotfiles.nvim_lua_dev').make_settings('lua_ls', workspace_dir),
+      })
+    end
   end,
 }

@@ -8,5 +8,5 @@ return {
   -- convoluted function for detection of root_dir, apparently to support
   -- multi-crate (Cargo workspace) projects. I'll figure that out later.
   root_markers = { 'rust-project.json', 'Cargo.toml', '.git' },
-  settings_sections = { 'rust-analyzer' },
+  build_settings = function(ctx) ctx.settings:merge(ctx.new_settings:pick({ 'rust-analyzer' })) end,
 }

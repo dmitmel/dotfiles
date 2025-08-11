@@ -6,8 +6,11 @@
 return {
   cmd = { 'typescript-language-server', '--stdio' },
   filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
-  root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json' },
-  settings_sections = { 'tsserver', 'javascript', 'typescript' },
+  root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
+
+  build_settings = function(ctx)
+    ctx.settings:merge(ctx.new_settings:pick({ 'tsserver', 'javascript', 'typescript', 'js/ts' }))
+  end,
 
   on_init = function(client)
     client.server_capabilities.documentFormattingProvider = false

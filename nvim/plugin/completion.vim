@@ -2,7 +2,10 @@ if !(dotplug#has('coc.nvim') && g:vim_ide == 1) | finish | endif
 
 " NOTE: <Cmd> mappings are non-recursive and silent by default.
 
-let g:coc_config_home = g:nvim_dotfiles_dir
+let s:nvim_dotfiles_dir = expand('<sfile>:p:h:h')
+let s:dotfiles_dir = expand('<sfile>:p:h:h:h')
+
+let g:coc_config_home = s:nvim_dotfiles_dir
 let g:coc_disable_startup_warning = 1
 if !empty($NVIM_DEBUG_COC)
   let g:coc_node_args = extend(get(g:, 'coc_node_args', []), [
@@ -22,7 +25,7 @@ let g:coc_global_extensions = [
 \ 'coc-tsserver',
 \ 'coc-eslint',
 \ 'coc-json',
-\ 'coc-pyright',
+\ 'coc-basedpyright',
 \ '@yaegassy/coc-ruff',
 \ 'coc-rust-analyzer',
 \ ]
@@ -111,10 +114,8 @@ command! -nargs=0 -range -bar CocFormat call s:CocFormat(<range>, <line1>, <line
 " Stolen from <https://github.com/keanuplayz/dotfiles/blob/097aaf4ae3721b27c7fc341c6c7b99d78c7d9338/nvim/plugin/commands.vim#L1>
 command! -nargs=0 -bar CocOrganizeImports call CocAction('organizeImport')
 
-call dotutils#add_unique(g:coc_global_extensions, 'coc-snippets')
-
 let g:coc_user_config['snippets.textmateSnippetsRoots'] =
-\ [g:nvim_dotfiles_dir . '/snippets', g:dotfiles_dir . '/vscode/snippets']
+\ [s:nvim_dotfiles_dir . '/snippets', s:dotfiles_dir . '/vscode/snippets']
 
 " Show the cursor when in CocList
 let g:coc_disable_transparent_cursor = v:true
@@ -123,10 +124,10 @@ let g:coc_user_config['colors.filetypes'] = ['*']
 let g:coc_user_config['semanticTokens.filetypes'] = ['*']
 let g:coc_default_semantic_highlight_groups = 0
 
-let g:coc_user_config['python.formatting.yapfArgs'] = ['--style=' . g:dotfiles_dir.'/misc/yapf.ini']
-let g:coc_user_config['python.linting.flake8Args'] = ['--config=' . g:dotfiles_dir.'/misc/flake8.ini']
+let g:coc_user_config['python.formatting.yapfArgs'] = ['--style=' . s:dotfiles_dir.'/misc/yapf.ini']
+let g:coc_user_config['python.linting.flake8Args'] = ['--config=' . s:dotfiles_dir.'/misc/flake8.ini']
 
-let g:coc_user_config['ruff.configuration'] = g:dotfiles_dir.'/ruff.toml'
+let g:coc_user_config['ruff.configuration'] = s:dotfiles_dir.'/ruff.toml'
 let g:coc_user_config['ruff.configurationPreference'] = 'filesystemFirst'
 
 let s:clangd_args = []
@@ -139,8 +140,10 @@ call add(s:clangd_args, '--query-driver=/usr/local/bin/*')
 call add(s:clangd_args, '--header-insertion=never')
 let g:coc_user_config['clangd.arguments'] = s:clangd_args
 
+let s:use_emmylua = v:false
 if has('nvim-0.5.0')
-  let g:coc_user_config['Lua'] = luaeval('dotfiles.nvim_lua_dev.make_lua_ls_settings()')
+  let g:coc_user_config['Lua'] = v:lua.dotfiles.nvim_lua_dev.make_lua_ls_settings(
+        \ s:use_emmylua ? 'emmylua_ls' : 'lua_ls', s:nvim_dotfiles_dir)
 endif
 
 " <https://github.com/neoclide/coc.nvim/blob/76ba8a29bf1342848b78a638065c93b38eaffdf3/src/diagnostic/manager.ts#L138-L149>
@@ -169,7 +172,7 @@ augroup dotfiles_coc
   autocmd User CocOpenFloatPrompt call s:patch_coc_float_win()
   autocmd User CocStatusChange,CocDiagnosticChange redrawstatus!
 
-  if v:false
+  if s:use_emmylua
     autocmd User CocNvimInit call coc#config('languageserver.emmylua_ls', #{
     \ filetypes: ['lua'],
     \ command: 'emmylua_ls',
