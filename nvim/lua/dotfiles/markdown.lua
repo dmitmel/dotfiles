@@ -54,6 +54,11 @@
 --- LSP documentation on the matter:
 --- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#hover>
 --- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markupContent>
+---
+--- TODO: use vim.treesitter to parse the markdown
+--- 1. <https://github.com/ibhagwan/ts-vimdoc.nvim>
+--- 2. <https://github.com/kdheepak/panvimdoc>
+--- 3. <https://github.com/neovim/neovim/blob/master/src/gen/util.lua>
 local M, module = require('dotfiles.autoload')('dotfiles.markdown', {})
 
 local utils = require('dotfiles.utils')
@@ -84,12 +89,15 @@ for hlgroup, link in pairs({
   dotmarkStrikethrough = 'Strikethrough',
   dotmarkHeading = 'Title',
   dotmarkBlockquote = 'Comment',
-  dotmarkThematicBreak = 'WinSeparator',
+  dotmarkSeparator = 'WinSeparator',
   dotmarkLinkUrl = 'String',
   dotmarkLinkText = 'Underlined',
   dotmarkLinkTitle = 'Label',
   dotmarkItem = 'Identifier',
+  dotmarkItemChecked = 'Function',
+  dotmarkItemUnchecked = 'Comment',
   dotmarkTodo = 'Todo',
+  dotmarkImageIcon = 'Special',
 }) do
   vim.api.nvim_set_hl(0, hlgroup, { default = true, link = link })
 end
@@ -99,11 +107,10 @@ end
 ---@field lines string[]
 ---@field lines_prefixes string[]
 ---@field line_indent_stack string[]
----@field lines_separators table<integer, boolean>
----@field syntaxes_stack dotfiles.markdown.syntax[]
+---@field lines_separators table<integer, dotfiles.markdown.separator>
 ---@field syntaxes_ranges dotfiles.markdown.syntax[]
----@field hlgroups_stack dotfiles.markdown.hlgroup[]
----@field hlgroups_ranges dotfiles.markdown.hlgroup[]
+---@field extmarks_stack dotfiles.markdown.extmark[]
+---@field extmarks dotfiles.markdown.extmark[]
 local renderer = M.renderer or {}
 renderer.__index = renderer
 M.renderer = renderer
@@ -116,15 +123,14 @@ function renderer.new()
   self.lines_prefixes = {}
   self.lines_separators = {}
   self.syntaxes_ranges = {}
-  self.hlgroups_ranges = {}
+  self.extmarks = {}
   self:reset_section_state()
   return self
 end
 
 function renderer:reset_section_state()
   self.line_indent_stack = {}
-  self.syntaxes_stack = {}
-  self.hlgroups_stack = {}
+  self.extmarks_stack = {}
 end
 
 ---@return integer line
@@ -134,17 +140,6 @@ function renderer:current_pos()
   if line == 0 then return 0, 0 end
   return line - 1, #self.lines_prefixes[line] + #self.lines[line]
 end
-
----@param indent string
-function renderer:push_indent(indent) table.insert(self.line_indent_stack, indent) end
-
----@param indent string
-function renderer:push_temporary_indent(indent)
-  self.lines_prefixes[self.linenr] = self.lines_prefixes[self.linenr] .. indent
-end
-
----@return string
-function renderer:pop_indent() return table.remove(self.line_indent_stack) end
 
 ---@param text string
 function renderer:push_line(text)
@@ -156,7 +151,7 @@ end
 ---@param text string
 function renderer:push_text(text)
   local first = true
-  for chunk in vim.gsplit(text, '\n') do
+  for chunk in vim.gsplit(text, '\n', { plain = true }) do
     if first and self.linenr ~= 0 then
       self.lines[self.linenr] = self.lines[self.linenr] .. chunk
     else
@@ -174,54 +169,92 @@ function renderer:ensure_new_line()
   end
 end
 
-function renderer:ensure_separator()
+---@param hlgroup? string
+---@param char? string
+function renderer:set_separator(linenr, hlgroup, char)
+  assert(self.lines[linenr] == '')
+  ---@class dotfiles.markdown.separator
+  local sep = { hlgroup = hlgroup, char = char }
+  self.lines_separators[linenr] = sep
+end
+
+---@param hlgroup? string
+---@param char? string
+function renderer:push_separator(hlgroup, char)
   if self.linenr > 0 and not self.lines_separators[self.linenr] then
     self:ensure_new_line()
-    self.lines_separators[self.linenr] = true
-    self:ensure_new_line()
+    self:set_separator(self.linenr, hlgroup, char)
   end
 end
 
----@param syntax string
-function renderer:push_syntax(syntax)
-  ---@class dotfiles.markdown.syntax
-  local syn = { syntax = syntax }
-  syn.start_row, syn.start_col = self:current_pos()
-  syn.end_row, syn.end_col = -1, -1
-  table.insert(self.syntaxes_stack, syn)
-  table.insert(self.syntaxes_ranges, syn)
+---@param details string|vim.api.keyset.set_extmark
+---@return dotfiles.markdown.extmark
+function renderer:push_extmark(details)
+  if type(details) == 'string' then details = { hl_group = details } end
+  ---@class dotfiles.markdown.extmark
+  local ext = { details = details }
+  ext.row, ext.col = self:current_pos()
+  table.insert(self.extmarks_stack, ext)
+  table.insert(self.extmarks, ext)
+  return ext
 end
 
-function renderer:pop_syntax()
-  ---@type dotfiles.markdown.syntax
-  local syn = table.remove(self.syntaxes_stack)
-  syn.end_row, syn.end_col = self:current_pos()
-end
-
----@param name string
----@param extmark? vim.api.keyset.set_extmark
-function renderer:push_hlgroup(name, extmark)
-  ---@class dotfiles.markdown.hlgroup
-  local hl = { name = name, extmark = extmark }
-  hl.start_row, hl.start_col = self:current_pos()
-  hl.end_row, hl.end_col = -1, -1
-  table.insert(self.hlgroups_stack, hl)
-  table.insert(self.hlgroups_ranges, hl)
+function renderer:pop_extmark()
+  ---@type dotfiles.markdown.extmark
+  local ext = table.remove(self.extmarks_stack)
+  ext.details.end_row, ext.details.end_col = self:current_pos()
 end
 
 ---@param text string
----@param hlgroup string
----@param extmark? vim.api.keyset.set_extmark
-function renderer:push_text_with_hl(text, hlgroup, extmark)
-  self:push_hlgroup(hlgroup, extmark)
+---@param details string|vim.api.keyset.set_extmark
+function renderer:push_text_with_hl(text, details)
+  self:push_extmark(details)
   self:push_text(text)
-  self:pop_hlgroup()
+  self:pop_extmark()
 end
 
-function renderer:pop_hlgroup()
-  ---@type dotfiles.markdown.hlgroup
-  local hl = table.remove(self.hlgroups_stack)
-  hl.end_row, hl.end_col = self:current_pos()
+---@param chunks [string,string][]
+---@param width integer
+---@param repeat_after_wrapping boolean?
+function renderer:push_indent(chunks, width, repeat_after_wrapping)
+  local extmark = self:push_extmark({
+    virt_text = chunks,
+    virt_text_pos = 'overlay',
+    -- NOTE: adjust this when <https://github.com/neovim/neovim/issues/23775> is fixed
+    virt_text_hide = true,
+  })
+
+  if repeat_after_wrapping then
+    extmark.details.virt_text_win_col = extmark.col
+    extmark.details.virt_text_repeat_linebreak = true
+  end
+
+  local text = string.rep(' ', width)
+  self.lines_prefixes[self.linenr] = self.lines_prefixes[self.linenr] .. text
+  table.insert(self.line_indent_stack, text)
+
+  self:pop_extmark()
+end
+
+---@return string
+function renderer:pop_indent() return table.remove(self.line_indent_stack) end
+
+---@param start_row integer
+---@param end_row integer
+---@param syntax string
+function renderer:set_syntax(start_row, end_row, syntax)
+  ---@class dotfiles.markdown.syntax
+  local syn = { syntax = syntax, start_row = start_row, end_row = end_row }
+  table.insert(self.syntaxes_ranges, syn)
+end
+
+---@param text string
+---@param syntax string
+function renderer:push_text_with_syntax(text, syntax)
+  local start_row = self:current_pos()
+  self:push_text(text)
+  local end_row = self:current_pos()
+  self:set_syntax(start_row, end_row, syntax)
 end
 
 -- A rough re-implementation of <https://github.com/neoclide/coc.nvim/blob/e7f4fd4d941cb651105d9001253c9187664f4ff6/src/markdown/index.ts#L36-L75>.
@@ -249,12 +282,12 @@ function renderer:parse_documentation_sections(sections)
       for idx, section in ipairs(sections) do
         if type(section) == 'string' then
           if section ~= '' then
-            self:ensure_separator()
+            self:push_separator()
             self:parse_markdown_section(section)
           end
         elseif type(section) == 'table' then
           if section.value and section.value ~= '' then
-            self:ensure_separator()
+            self:push_separator()
             self:parse_plaintext_section(section.value, section.language)
           end
         else
@@ -312,9 +345,9 @@ function renderer:parse_markdown_section(section_text)
 
   local function handle_inline_style_node(event, hlgroup)
     if event == lib.CMARK_EVENT_ENTER then
-      self:push_hlgroup(hlgroup)
+      self:push_extmark(hlgroup)
     elseif event == lib.CMARK_EVENT_EXIT then
-      self:pop_hlgroup()
+      self:pop_extmark()
     end
   end
 
@@ -336,32 +369,37 @@ function renderer:parse_markdown_section(section_text)
   ---@type { [string]: boolean, [integer]: { url: string, text: string, title: string } }
   local seen_link_nodes = {}
   local function add_links_section()
+    if utils.is_empty(seen_link_nodes) then return end
     handle_block_node(lib.CMARK_EVENT_ENTER)
 
     table.sort(seen_link_nodes, function(a, b) return vim.stricmp(a.text, b.text) < 0 end)
     for _, link in ipairs(seen_link_nodes) do
-      self:ensure_new_line()
-      self:push_text_with_hl(link.text, 'dotmarkLinkText', { url = link.url })
-      self:push_text(': ')
-      self:push_text_with_hl(link.url, 'dotmarkLinkUrl', { url = link.url })
-      if #link.title > 0 then
-        self:push_text(' ')
-        self:push_text_with_hl(link.title, 'dotmarkLinkTitle')
+      if not vim.startswith(link.url, 'data:') then
+        self:ensure_new_line()
+        self:push_text_with_hl(link.text, { url = link.url, hl_group = 'dotmarkLinkText' })
+        self:push_text(': ')
+        self:push_text_with_hl(link.url, { url = link.url, hl_group = 'dotmarkLinkUrl' })
+        if #link.title > 0 then
+          self:push_text(' ')
+          self:push_text_with_hl(link.title, 'dotmarkLinkTitle')
+        end
       end
     end
 
     handle_block_node(lib.CMARK_EVENT_EXIT)
+    utils.clear_table(seen_link_nodes)
   end
 
   handlers[tonumber(lib.CMARK_NODE_DOCUMENT)] = function(_, event)
     if event == lib.CMARK_EVENT_ENTER then paragraph_started = true end
     handle_block_node(event)
-    if event == lib.CMARK_EVENT_EXIT then
-      if #seen_link_nodes > 0 then add_links_section() end
-    end
+    if event == lib.CMARK_EVENT_EXIT then add_links_section() end
   end
 
-  handlers[tonumber(lib.CMARK_NODE_PARAGRAPH)] = function(_, event) handle_block_node(event) end
+  handlers[tonumber(lib.CMARK_NODE_PARAGRAPH)] = function(_, event)
+    handle_block_node(event)
+    if event == lib.CMARK_EVENT_EXIT then add_links_section() end
+  end
 
   handlers[tonumber(lib.CMARK_NODE_TEXT)] = function(node, event)
     if event == lib.CMARK_EVENT_ENTER then
@@ -460,13 +498,24 @@ function renderer:parse_markdown_section(section_text)
         error('invalid list type: ' .. list_type)
       end
 
-      self:push_hlgroup('dotmarkItem')
-      self:push_temporary_indent(marker)
-      self:pop_hlgroup()
-      self:push_temporary_indent(' ')
+      local chunks = { { marker .. ' ', 'dotmarkItem' } }
+      local indent = #marker + 1
+
       local is_checked = is_tasklist_item_checked(node)
-      if is_checked ~= nil then self:push_temporary_indent(is_checked and ' ' or ' ') end
-      self:push_indent(string.rep(' ', #marker + 1))
+      if is_checked ~= nil then
+        if list_type == lib.CMARK_BULLET_LIST then
+          chunks = {}
+          indent = 0
+        end
+        if is_checked then
+          chunks[#chunks + 1] = { ' ', 'dotmarkItemChecked' }
+        else
+          chunks[#chunks + 1] = { ' ', 'dotmarkItemUnchecked' }
+        end
+        indent = indent + 2
+      end
+
+      self:push_indent(chunks, indent)
       paragraph_started = true
     elseif event == lib.CMARK_EVENT_EXIT then
       self:pop_indent()
@@ -497,10 +546,9 @@ function renderer:parse_markdown_section(section_text)
   handlers[tonumber(lib.CMARK_NODE_CODE_BLOCK)] = function(node, event)
     if event == lib.CMARK_EVENT_ENTER then
       handle_block_node(lib.CMARK_EVENT_ENTER)
-      self:push_syntax(ffi.string(lib.cmark_node_get_fence_info(node)))
+      local syntax = ffi.string(lib.cmark_node_get_fence_info(node))
       local text = ffi.string(lib.cmark_node_get_literal(node))
-      self:push_text(text:sub(-1) == '\n' and text:sub(1, -2) or text)
-      self:pop_syntax()
+      self:push_text_with_syntax(text:sub(-1) == '\n' and text:sub(1, -2) or text, syntax)
       handle_block_node(lib.CMARK_EVENT_EXIT)
     end
   end
@@ -525,9 +573,9 @@ function renderer:parse_markdown_section(section_text)
       if event == lib.CMARK_EVENT_ENTER then
         self:push_text('<')
         local url = ffi.string(lib.cmark_node_get_url(node))
-        self:push_hlgroup('dotmarkLinkText', { url = url })
+        self:push_extmark({ hl_group = 'dotmarkLinkText', url = url })
       elseif event == lib.CMARK_EVENT_EXIT then
-        self:pop_hlgroup()
+        self:pop_extmark()
         self:push_text('>')
       end
       return
@@ -557,11 +605,11 @@ function renderer:parse_markdown_section(section_text)
         table.insert(seen_link_nodes, link_obj)
       end
       if lib.cmark_node_get_type(node) == lib.CMARK_NODE_IMAGE then
-        self:push_text_with_hl('[IMG]', 'Error') -- TODO: render images with snacks.nvim
+        self:push_text_with_hl(' ', 'dotmarkImageIcon')
       end
-      self:push_hlgroup('dotmarkLinkText', { url = link_obj.url })
+      self:push_extmark({ hl_group = 'dotmarkLinkText', url = link_obj.url })
     elseif event == lib.CMARK_EVENT_EXIT then
-      self:pop_hlgroup()
+      self:pop_extmark()
     end
   end
   handlers[tonumber(lib.CMARK_NODE_IMAGE)] = handlers[tonumber(lib.CMARK_NODE_LINK)]
@@ -569,9 +617,7 @@ function renderer:parse_markdown_section(section_text)
   handlers[tonumber(lib.CMARK_NODE_BLOCK_QUOTE)] = function(_, event)
     handle_block_node(event)
     if event == lib.CMARK_EVENT_ENTER then
-      local marker = '> '
-      self:push_indent(marker)
-      self:push_temporary_indent(marker)
+      self:push_indent({ { '┃ ', 'dotmarkBlockquote' } }, 2, true)
     elseif event == lib.CMARK_EVENT_EXIT then
       self:pop_indent()
     end
@@ -581,19 +627,18 @@ function renderer:parse_markdown_section(section_text)
     handle_block_node(event)
     handle_inline_style_node(event, 'dotmarkHeading')
     if event == lib.CMARK_EVENT_ENTER then
-      local marker = string.rep('#', lib.cmark_node_get_heading_level(node)) .. ' '
-      self:push_temporary_indent(marker)
-      self:push_indent(string.rep(' ', #marker))
+      local level = lib.cmark_node_get_heading_level(node)
+      self:push_indent({ { string.rep('#', level) .. ' ', 'dotmarkHeading' } }, level + 1)
     elseif event == lib.CMARK_EVENT_EXIT then
       self:pop_indent()
+      self:push_separator('dotmarkHeading', '-')
+      paragraph_started = true
     end
   end
 
   handlers[tonumber(lib.CMARK_NODE_THEMATIC_BREAK)] = function(_, event)
     if event == lib.CMARK_EVENT_ENTER then
-      self:ensure_new_line()
-      self.lines_separators[self.linenr] = true
-      self:ensure_new_line()
+      self:push_separator()
       paragraph_started = true
     end
   end
@@ -601,10 +646,10 @@ function renderer:parse_markdown_section(section_text)
   handlers[tonumber(lib.CMARK_NODE_HTML_BLOCK)] = function(node, event)
     if event == lib.CMARK_EVENT_ENTER then
       handle_block_node(lib.CMARK_EVENT_ENTER)
-      self:push_syntax('html')
+      local start_row = self:current_pos()
       local text = ffi.string(lib.cmark_node_get_literal(node))
       self:push_text(text:sub(-1) == '\n' and text:sub(1, -2) or text)
-      self:pop_syntax()
+      self:set_syntax(start_row, self:current_pos(), 'html')
       handle_block_node(lib.CMARK_EVENT_EXIT)
     end
   end
@@ -637,12 +682,11 @@ function renderer:parse_markdown_section(section_text)
   handlers[tonumber(lib_ext.CMARK_NODE_TABLE)] = function(node, event)
     if event == lib.CMARK_EVENT_ENTER then
       handle_block_node(lib.CMARK_EVENT_ENTER)
-      local start_line = lib.cmark_node_get_start_line(node)
-      local end_line = lib.cmark_node_get_end_line(node)
-      self:push_syntax('markdown')
-      local lines = vim.split(section_text, '\n', { plain = true })
-      self:push_text(table.concat(vim.list_slice(lines, start_line, end_line), '\n'))
-      self:pop_syntax()
+      local src_start_line = lib.cmark_node_get_start_line(node)
+      local src_end_line = lib.cmark_node_get_end_line(node)
+      local src_lines = vim.split(section_text, '\n', { plain = true })
+      local table_lines = vim.list_slice(src_lines, src_start_line, src_end_line)
+      self:push_text_with_syntax(table.concat(table_lines, '\n'), 'markdown')
       handle_block_node(lib.CMARK_EVENT_EXIT)
       return false
     end
@@ -674,7 +718,7 @@ end
 ---@param syntax string
 function renderer:parse_plaintext_section(text, syntax)
   self:reset_section_state()
-  self:push_syntax(syntax)
+  local start_row = self:current_pos()
 
   local empty_lines_counter = 0
   local is_first_paragraph = true
@@ -694,7 +738,8 @@ function renderer:parse_plaintext_section(text, syntax)
     end
   end
 
-  self:pop_syntax()
+  local end_row = self:current_pos()
+  self:set_syntax(start_row, end_row, syntax)
 end
 
 ---@param bufnr integer
@@ -702,18 +747,17 @@ end
 function renderer:highlight_markdown(bufnr, win_width)
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
 
-  for _, hl in ipairs(self.hlgroups_ranges) do
-    local extmark = hl.extmark or {}
-    extmark.hl_group = hl.name
-    extmark.end_row = hl.end_row
-    extmark.end_col = hl.end_col
-    vim.api.nvim_buf_set_extmark(bufnr, ns_id, hl.start_row, hl.start_col, extmark)
+  for _, ext in ipairs(self.extmarks) do
+    vim.api.nvim_buf_set_extmark(bufnr, ns_id, ext.row, ext.col, ext.details)
   end
 
-  for linenr in pairs(self.lines_separators) do
+  for linenr, sep in pairs(self.lines_separators) do
     vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr - 1, 0, {
-      virt_text = { { string.rep('─', win_width), 'dotmarkThematicBreak' } },
+      virt_text = {
+        { string.rep(sep.char or '─', win_width), sep.hlgroup or 'dotmarkSeparator' },
+      },
       virt_text_pos = 'overlay',
+      virt_text_hide = true,
     })
   end
 end
@@ -806,18 +850,12 @@ end
 function renderer:get_lines()
   local rendered = {}
   for nr, line in ipairs(self.lines) do
-    rendered[nr] = self.lines_prefixes[nr] .. line
+    line = self.lines_prefixes[nr] .. line
+    -- Replace the line with an empty string if it is just whitespace.
+    if not line:match('%S') then line = '' end
+    rendered[nr] = line
   end
   return rendered
-end
-
----@param level integer
----@param text string
-function renderer:add_section_heading(level, text)
-  self:ensure_new_line()
-  self:push_indent(string.rep(' ', level + 1))
-  self:push_text_with_hl(string.rep('#', level) .. ' ' .. text, 'dotmarkHeading')
-  self:pop_indent()
 end
 
 return M

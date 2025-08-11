@@ -436,10 +436,12 @@ require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(
   end
 
   if opts.documentation then
-    local separator_line = renderer.linenr + 1
+    local separation_line = renderer.linenr + 1
     renderer:parse_documentation_sections(opts.documentation)
-    if renderer.lines[separator_line] == '' then
-      renderer.lines_separators[separator_line] = true
+    -- Insert a separator between the details and the documentation blocks, if
+    -- the documentation did not contain a separator already.
+    if renderer.lines[separation_line] == '' and not renderer.lines_separators[separation_line] then
+      renderer:set_separator(separation_line)
     end
   end
 

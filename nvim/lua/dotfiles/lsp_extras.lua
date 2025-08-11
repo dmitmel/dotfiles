@@ -67,7 +67,7 @@ function M.cancellable_request(bufnr, method, params, handler)
     for client_id, r in pairs(responses) do
       if r.err then
         errors[client_id] = r.err
-        lsp.log.error(module.name, r.err)
+        lsp.log.error(module.name, method, r.err)
         M.client_notify(client_id, tostring(r.err), vim.log.levels.ERROR)
       elseif r.result then
         results[client_id] = r.result
@@ -227,13 +227,6 @@ function M.pick_locations_with_snacks(list_type, locations)
   })
 end
 
--- `nvim_get_option_value()` with `filetype` creates a temporary buffer and runs
--- the ftplugins to obtain the value of the option, it is evaluated lazily and
--- only once.
-local markdown_formatlistpat = utils.once(function() ---@return string
-  return vim.api.nvim_get_option_value('formatlistpat', { filetype = 'markdown' })
-end)
-
 --- Based on <https://github.com/neovim/neovim/blob/v0.11.2/runtime/lua/vim/lsp/buf.lua#L31-L147>.
 ---@param opts vim.lsp.buf.hover.Opts?
 function M.hover(opts)
@@ -322,9 +315,9 @@ function M.hover(opts)
 
     local many_clients = #vim.tbl_keys(results) > 1
     for client_id, result in pairs(results) do
-      renderer:ensure_separator()
+      renderer:push_separator()
       local client = assert(lsp.get_client_by_id(client_id))
-      if many_clients then renderer:add_section_heading(1, client.name) end
+      if many_clients then renderer:parse_markdown_section('# ' .. client.name) end
       renderer:parse_documentation_sections(result.contents)
     end
 
@@ -348,7 +341,6 @@ function M.hover(opts)
     wo.wrap = true
     wo.linebreak = true
     wo.breakindent = true
-    wo.breakindentopt = 'list:-1'
     wo.showbreak = 'NONE'
     wo.smoothscroll = true
     wo.virtualedit = 'none'
@@ -356,9 +348,6 @@ function M.hover(opts)
     wo.foldenable = false
     wo.spell = false
     wo.conceallevel = 0
-
-    local bo = vim.bo[float_buf]
-    bo.formatlistpat = markdown_formatlistpat()
 
     -- Add some pager-like mappings. `d` and `u` are normally used for editing
     -- text, so they are perfect for remapping. `<nowait>` is necessary because
@@ -459,7 +448,7 @@ function M.code_actions_sync(bufnr, actions_kind, opts)
         local msg = ('request %q failed: %s'):format(method, wait_error)
         M.client_notify(client.id, msg, vim.log.levels.WARN)
       elseif r and r.err then
-        lsp.log.error(module.name, r.err)
+        lsp.log.error(module.name, method, r.err)
         M.client_notify(client.id, tostring(r.err), vim.log.levels.WARN)
       elseif r and r.result then
         return r.result
