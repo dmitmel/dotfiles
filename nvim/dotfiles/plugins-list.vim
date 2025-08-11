@@ -67,7 +67,11 @@ exe dotplug#define_plug_here()
   " [1]: <https://github.com/tjdevries/config_manager/blob/1b7d2f60ed6685022e29c1bdef2625bb7856e1eb/xdg_config/nvim/lua/tj/plugins.lua#L604>
   Plug 'https://github.com/AndrewRadev/linediff.vim'
   " Automatically close XML/HTML/JSX tags.
-  Plug 'https://github.com/alvan/vim-closetag'
+  if has('nvim-0.9.5')
+    Plug 'https://github.com/windwp/nvim-ts-autotag'
+  else
+    Plug 'https://github.com/alvan/vim-closetag'
+  endif
   " Automatic indentation detection.
   Plug 'https://github.com/tpope/vim-sleuth'
 " }}}
@@ -228,8 +232,10 @@ exe dotplug#define_plug_here()
     endif
     if has('nvim-0.9.0')
       " The new parsing and syntax highlighting system for Neovim.
-      Plug 'https://github.com/nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
-      Plug 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', { 'requires': 'nvim-treesitter' }
+      Plug 'https://github.com/nvim-treesitter/nvim-treesitter', {
+            \ 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
+      Plug 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', {
+            \ 'requires': 'nvim-treesitter' }
     endif
   endif
 " }}}

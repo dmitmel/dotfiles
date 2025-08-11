@@ -237,4 +237,6 @@ if dotplug.has('nvim-treesitter') then
     reparse_current_buffer()
     return ts_to_shared._old_get_query_strings_from_regex(...)
   end
+
+  require('nvim-ts-autotag').setup()
 end
