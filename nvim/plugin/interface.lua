@@ -3,8 +3,8 @@ local utils = require('dotfiles.utils')
 if dotplug.has('nvim-bqf') then
   -- setting a Vim variable is equivalent to |:unlet|
   vim.g.qf_mapping_ack_style = nil -- the mappings will be added by bqf
-  vim.g.qf_auto_resize = false -- auto-resizing will be done by bqf
 
+  ---@diagnostic disable-next-line: missing-fields
   require('bqf').setup({
     auto_enable = true,
     auto_resize_height = true,
@@ -119,6 +119,7 @@ if dotplug.has('fzf-lua') then
           return layout_to_border[m.layout] or 'none'
         end,
         horizontal = 'right:border-left:60%',
+        vertical = 'up:border-bottom:50%',
         winopts = {
           -- this helps by adding some padding between line numbers in the preview and the border
           signcolumn = 'yes',
@@ -256,22 +257,23 @@ if dotplug.has('fzf-lua') then
         item_width = math.max(item_width, vim.api.nvim_strwidth(text))
       end
 
-      local win_width = utils.clamp(
-        num_width + item_width + 1, -- +1 for the scrollbar
-        vim.o.pumwidth,
-        vim.o.columns * 0.5
-      )
-
-      local win_height = math.min(#items, vim.o.pumheight)
-      win_height = (win_height <= 2) and (win_height / vim.o.lines) or (win_height - 1)
+      local winopts = {}
+      if opts.kind == 'codeaction' then
+        winopts.width = utils.clamp(
+          num_width + item_width + 1, -- +1 for the scrollbar
+          vim.o.pumwidth,
+          vim.o.columns * 0.5
+        )
+        local list_height = math.min(#items, vim.o.pumheight)
+        winopts.height = (list_height <= 2) and (list_height / vim.o.lines) or (list_height - 1)
+      else
+        local list_height = math.min(#items + 1, utils.round(vim.o.lines * 0.4))
+        winopts.split = string.format('botright %dnew', list_height)
+      end
 
       return {
-        winopts = {
-          height = win_height,
-          width = win_width,
-          split = opts.kind ~= 'codeaction' and string.format('botright %dnew', #items + 1) or nil,
-        },
-
+        prompt = (opts.prompt or 'Select'):gsub('^%s*', ''):gsub(':?%s*$', '') .. ': ',
+        winopts = winopts,
         fzf_opts = {
           ['--layout'] = 'reverse-list',
           ['--cycle'] = true,

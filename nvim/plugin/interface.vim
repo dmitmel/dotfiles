@@ -144,7 +144,7 @@ set history=10000
   " buffer was wiped out fails with |E92|.
   nnoremap <silent> <BS> :<C-u>call <SID>close_buffer()<CR>
   " Delete the buffer, but also close the window (that is, if it's not the last one).
-  nnoremap <silent> <M-BS> :<C-u>bdelete<CR>
+  nnoremap <silent> <Del> :<C-u>bdelete<CR>
 
   augroup dotfiles_special_buffers
     autocmd!
@@ -168,17 +168,23 @@ set history=10000
 
 " Windows {{{
 
+  " Move between windows with CTRL+hjkl
   for s:key in ['h', 'j', 'k', 'l']
-    for s:mode in ['n', 'x']
-      execute s:mode.'noremap <C-'.s:key.'> <C-w>'.s:key
-    endfor
+    execute 'nnoremap <C-'.s:key.'> <C-w>'.s:key
+    execute 'xnoremap <C-'.s:key.'> <C-w>'.s:key
   endfor
+
+  " Resize windows with CTRL+arrows
+  nnoremap <silent> <C-Up>    :<C-u>resize +<C-r>=v:count1<CR><CR>
+  nnoremap <silent> <C-Down>  :<C-u>resize -<C-r>=v:count1<CR><CR>
+  nnoremap <silent> <C-Right> :<C-u>vertical resize +<C-r>=v:count1*2<CR><CR>
+  nnoremap <silent> <C-Left>  :<C-u>vertical resize -<C-r>=v:count1*2<CR><CR>
 
   " switch to previous window
   nnoremap <C-\> <C-w>p
   xnoremap <C-\> <C-w>p
 
-  nnoremap <silent> <Del> :<C-u>quit<CR>
+  nnoremap <silent> <M-BS> :<C-u>quit<CR>
 
   " Split-and-go-back. Particularly useful after go-to-definition.
   nnoremap <silent> <leader>v :<C-u>vsplit<bar>normal!<C-o><CR>
@@ -292,6 +298,10 @@ set history=10000
   nnoremap <silent> <leader>b :<C-u>Buffers<CR>
   nnoremap <silent> <leader>m :<C-u>Manpages<CR>
   nnoremap <silent> <C-/>     :<C-u>Lines<CR>
+
+  if dotplug#has('fzf-lua')
+    nnoremap <silent> z= <Cmd>FzfLua spell_suggest<CR>
+  endif
 
   let $FZF_DEFAULT_OPTS = ''
     " Never show the separator between the prompt and the list

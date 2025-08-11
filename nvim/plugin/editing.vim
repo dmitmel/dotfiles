@@ -244,7 +244,7 @@ endif
 
   " Swap `[hjkl]` and `g[hjkl]` keys when `wrap` is on.
   for s:key in ['j', 'k', '0', '$', '<Up>', '<Down>', '<Home>', '<End>']
-    exe printf('noremap <expr>  %s &wrap ? "g%s" : "%s"', s:key, s:key, s:key)
+    exe printf('noremap <expr> %s (&wrap && v:count == 0) ? "g%s" : "%s"', s:key, s:key, s:key)
     exe printf('noremap <expr> g%s &wrap ? "%s" : "g%s"', s:key, s:key, s:key)
     exe 'sunmap  '.s:key
     exe 'sunmap g'.s:key
@@ -255,8 +255,8 @@ endif
     " `./completion.vim` might remap <Up> and <Down> before `./editing.vim` runs,
     " so make the wrapped <Up/Down> keys available as <Plug>dotfiles<Up/Down>,
     " which `./completion.vim` can use.
-    exe printf('inoremap <silent><expr> <Plug>dotfiles%s &wrap ? <SID>Cmd("normal! g%s") : "%s"',
-          \ s:key, s:key, s:key)
+    exe printf('inoremap <silent><expr> %s (&wrap && v:count == 0) ? <SID>Cmd("normal! g%s") : "%s"',
+          \ '<Plug>dotfiles' . s:key, s:key, s:key)
     if empty(maparg(s:key, 'i'))
       exe 'imap' s:key '<Plug>dotfiles'.s:key
     endif
@@ -530,22 +530,22 @@ endif
 
   " This operator was written mostly by referencing example code in |:map-operator|.
   function! s:substitute_operator(type) abort
-    if empty(a:type)
+    if a:type is# 'start'
       let s:substitute_operator_view = winsaveview()
       let &opfunc = expand('<SID>').'substitute_operator'
       return 'g@'
     endif
 
     let cmd = ''
-    if a:type ==# 'line' && line("'[") == line('.') && line("']") == line('.')
+    if a:type is# 'line' && line("'[") == line('.') && line("']") == line('.')
       let cmd = ":\<C-u>.s/"
-    elseif a:type ==# 'line' && line("'[") == 1 && line("']") == line('$')
+    elseif a:type is# 'line' && line("'[") == 1 && line("']") == line('$')
       let cmd = ":\<C-u>%s/"
-    elseif a:type ==# 'line'
+    elseif a:type is# 'line'
       let cmd = "'[V']:s/"
-    elseif a:type ==# 'block'
+    elseif a:type is# 'block'
       let cmd = "`[\<C-v>`]:s/%V"
-    elseif a:type ==# 'char'
+    elseif a:type is# 'char'
       let cmd = '`[v`]:s/%V'
     else
       throw 'unrecognized argument: '.a:type
@@ -559,9 +559,9 @@ endif
   endfunction
 
   " The mnemonic is [g]o [s]ubstitute.
-  nnoremap <expr> gs  <SID>substitute_operator('')
+  nnoremap <expr> gs  <SID>substitute_operator('start')
   " Substitute in the current line (`gsae` will substitute in the entire file).
-  nnoremap <expr> gss <SID>substitute_operator('') . '_'
+  nnoremap <expr> gss <SID>substitute_operator('start') . '_'
   " Substitute inside a Visual selection.
   xnoremap <expr> gs (mode() ==# 'V' ? ':s/' : ':s/\%V')
 
@@ -674,7 +674,7 @@ endif
     xnoremap <silent> gc :TCommentMaybeInline<CR>
     xnoremap <silent> gC :TCommentBlock<CR>
     " Make an alias for the comment text object
-    omap <silent> gc ac
+    omap <silent> gc <Plug>(textobj-comment-a)
   endif
 
   " Prefer line C-style comments over block ones (/* ... */)
@@ -691,6 +691,7 @@ endif
     nmap <leader>hlt <Cmd>Inspect<CR>
     " Toggle treesitter highlighting in the buffer.
     nmap <leader>ht <Cmd>lua vim.treesitter[vim.b.ts_highlight and 'stop' or 'start']()<CR>
+    nmap <F12> <Cmd>lua vim.treesitter.inspect_tree()<CR>
   else
     " Workaround for a select-mode mapping definition in:
     " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>

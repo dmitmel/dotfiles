@@ -13,7 +13,7 @@
  * in JS instead of TS so that I can run it directly without an extra
  * compilation step, but the JSDoc annotations enable me to use the TS compiler
  * to typecheck my code. Also, I deliberately stuck to the older ES2018 syntax,
- * so that this program works on my unversity's server, which only has Node v12
+ * so that this program works on my university's server, which only has Node v12
  * installed.
  *
  * This code is roughly based on:

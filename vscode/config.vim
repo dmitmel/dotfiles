@@ -55,6 +55,10 @@ nnoremap <silent> <leader>] m'yygccp`'j
 " xnoremap gj j
 " xnoremap gk k
 
+nnoremap <C-space> editor.action.smartSelect.expand
+xnoremap <C-space> editor.action.smartSelect.expand
+xnoremap <BS> editor.action.smartSelect.shrink
+
 
 
 """""""""""""""""""""""""""""""" vim-unimpaired """"""""""""""""""""""""""""""""

@@ -58,8 +58,11 @@ function! dotfiles#ranger#run(ranger_args) abort
       let paths = []
     endtry
 
-    " Ignore the error if the file does not exist.
-    silent! call delete(self.choice_file)
+    try
+      call delete(self.choice_file)
+    catch
+      " Ignore the error if the file does not exist.
+    endtry
 
     for path in paths
       try

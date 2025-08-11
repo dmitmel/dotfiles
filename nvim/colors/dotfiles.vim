@@ -137,19 +137,23 @@ function! s:setup() " NOTE: not abort
   hi! link SpecialComment  Special
   call Hi('Type',        { 'fg': yellow })
   hi! link Typedef         Type
-  call HiClear('Operator')
-  call HiClear('Delimiter')
+  call Hi('Operator',    { 'fg': fg })
+  call Hi('Delimiter',   { 'fg': fg })
   call HiClear('Ignore')
 
   " }}}
 
   if has('nvim-0.8.0') " Treesitter {{{
 
+    " This group is used to reset highlighting in places like string interpolation.
+    call Hi('@none', { 'fg': fg })
+
     call HiClear('@variable')
     hi! link @variable.builtin      Special
     hi! link @variable.member       Variable
     hi! link @variable.parameter    Variable
     hi! link @variable.declaration  Variable
+    hi! link @variable.cmake        Variable
 
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
@@ -157,6 +161,7 @@ function! s:setup() " NOTE: not abort
     hi! link @type.builtin          Type
 
     call HiClear('@lsp.type.comment')
+    call HiClear('@lsp.type.variable')
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
     hi! link @lsp.typemod.function.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
@@ -187,6 +192,8 @@ function! s:setup() " NOTE: not abort
     for [kind, color] in items({ 'note': blue, 'warning': yellow, 'error': red })
       call Hi('@comment.' . kind, { 'fg': color, 'bg': bg, 'attr': 'reverse,bold' })
     endfor
+    call HiClear('@punctuation.delimiter.comment')
+    call HiClear('@punctuation.bracket.comment')
 
   endif " }}}
 
@@ -538,7 +545,7 @@ function! s:setup() " NOTE: not abort
     exe 'hi clear Diff'.diff_hl
     exe 'hi Diff'.diff_hl
     \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(bg, color, 0.32) : 'NONE')
-    \ 'guibg=' s:mix_colors(bg, color, diff_hl ==# 'Text' ? 0.16 : 0.08)
+    \ 'guibg=' s:mix_colors(bg, color, diff_hl ==# 'Text' ? 0.24 : 0.08)
     \ 'guisp=' gray[3].gui
     \ 'ctermfg=' color.cterm
     \ 'ctermbg=' gray[1].cterm

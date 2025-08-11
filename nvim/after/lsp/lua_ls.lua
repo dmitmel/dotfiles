@@ -18,6 +18,8 @@ return {
   build_settings = function(ctx)
     ctx.settings:merge(ctx.new_settings:pick({ 'Lua', 'files' }))
 
+    -- NOTE: <https://github.com/LuaLS/lua-language-server/wiki/FAQ#why-are-there-two-workspacesprogress-bars>
+    -- NOTE: <https://github.com/LuaLS/lua-language-server/issues/1596#issuecomment-1260881130>
     if ctx.trigger == 'server_request' and ctx.step == 'generated' and ctx.scope_uri ~= nil then
       local workspace_dir = vim.uri_to_fname(ctx.scope_uri)
       ctx.settings:merge_defaults({

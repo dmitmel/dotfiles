@@ -79,12 +79,12 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/kana/vim-textobj-entire', { 'requires': 'vim-textobj-user' }
   " A single line - `al` (with indentation) and `il` (without indentation).
   Plug 'https://github.com/kana/vim-textobj-line', { 'requires': 'vim-textobj-user' }
-  " This one is really handy: a code block determined by indentation (when it
-  " is the same or more indented) - `ai` (include blank lines) and `ii`
-  " (exclude blanks, selecting a single paragraph).
+  " This one is really handy: a code block determined by indentation (when it is
+  " the same or indented deeper) - `ai` (include blank lines) and `ii` (exclude
+  " blanks, selecting a single paragraph).
   Plug 'https://github.com/kana/vim-textobj-indent', { 'requires': 'vim-textobj-user' }
   " Selects a comment block - `ic` and `ac` (not sure what is the difference).
-  " Useful for reformatting comments with `gcgc` (a mapping of `gc` to `ac`
+  " Useful for reformatting comments with `gwgc` (a mapping of `gc` to `ac`
   " exists for compatibility with vim-commentary).
   Plug 'https://github.com/glts/vim-textobj-comment', { 'requires': 'vim-textobj-user' }
 " }}}

@@ -5,7 +5,7 @@ call dotfiles#ft#undo_map('n', ['q'])
 
 if b:qf_isLoc
   " Transfers the contents of a loclist into the quickfix list.
-  nnoremap <silent> <A-q> :<C-u>call <SID>loc2qf()<CR>
+  nnoremap <buffer><silent> <A-q> :<C-u>call <SID>loc2qf()<CR>
   function! s:loc2qf() abort
     let info = getloclist(0, { 'items': 1, 'title': 1, 'quickfixtextfunc': 1 })
     let info.idx = getloclist(0, { 'idx': 0 }).idx  " Select the same item that was selected
@@ -15,7 +15,51 @@ if b:qf_isLoc
     call qf#OpenQuickfix()
   endfunction
 else
-  nnoremap <silent> <A-q> <Nop>
+  nnoremap <buffer><silent> <A-q> <Nop>
+endif
+
+if !exists('s:in_delete_operator')
+  function! s:delete_operator(type) abort
+    if a:type is# 'start'
+      let &opfunc = expand('<SID>') . 'delete_operator'
+      return 'g@'
+    endif
+
+    let GetList = b:qf_isLoc ? function('getloclist', [0]) : function('getqflist')
+    let SetList = b:qf_isLoc ? function('setloclist', [0]) : function('setqflist')
+
+    let [start, end] = [line("'["), line("']")]
+    let info = GetList({ 'items': 1, 'idx': 0 })
+    call remove(info.items, start - 1, end - 1)
+
+    " Adjust the current item index.
+    if info.idx > end
+      let info.idx -= end - start + 1
+    elseif info.idx > start
+      let info.idx = start
+    endif
+
+    let view = winsaveview()
+
+    let s:in_delete_operator = 1
+    try
+      call SetList([], 'r', info)
+    finally
+      unlet s:in_delete_operator
+    endtry
+
+    call winrestview(view)
+  endfunction
+endif
+
+" I disabled this operator because it is hard to use. Other methods for
+" filtering the quickfix list provided by nvim-bqf and vim-qf are much handier
+" because they create a new list. The code of the operator itself is left for
+" future reference.
+if 0
+  nnoremap <buffer><expr> d  <SID>delete_operator('start')
+  nnoremap <buffer><expr> dd <SID>delete_operator('start') . '_'
+  xnoremap <buffer><expr> d  <SID>delete_operator('start')
 endif
 
 " <https://github.com/romainl/vim-qf/blob/4fe7e33a514874692d6897edd1acaaa46d9fb646/after/ftplugin/qf.vim#L48-L94>

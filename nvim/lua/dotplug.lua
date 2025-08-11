@@ -197,6 +197,8 @@ function M.end_setup()
     end
   end
 
+  local prev_window = vim.api.nvim_get_current_win()
+
   lazy.setup(M.lazy_config)
 
   -- lazy.nvim automatically installs the missing plugins for us, but does not
@@ -208,6 +210,23 @@ function M.end_setup()
   if not let_lazy_do_its_thing then
     LazyLoader.packadd = old_packadd
     vim.o.loadplugins = old_loadplugins
+
+    -- This is a really weird HACK related to how window options work in Vim.
+    -- Basically, the configuration of window-local options is passed by
+    -- mitosis: when a window is split, the new split gets a copy of the options
+    -- of the original window. During startup of the editor, while it is
+    -- sourcing the vimrc, there is already an empty window that will receive
+    -- the options set by `:set` commands in the config file, and all new
+    -- windows will be created after `VimEnter` (for example, by the session
+    -- script). However, this is not the case if lazy.nvim decides to open its
+    -- UI because then the options intended for the initial base window will be
+    -- set on the float created by lazy.nvim. To ensure that window-related
+    -- options in my vimrc are configured correctly, I switch back to this
+    -- ancestor window after `lazy.setup()` finishes (fortunately, if it decides
+    -- to install any plugins, the installation will happen synchronously).
+    if vim.api.nvim_get_current_win() ~= prev_window then
+      vim.api.nvim_set_current_win(prev_window)
+    end
   end
 
   vim.api.nvim_create_autocmd('BufWritePost', {

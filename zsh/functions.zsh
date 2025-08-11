@@ -254,8 +254,8 @@ j() {
 
 d() {
   local selected
-  if selected=( $(builtin dirs -p | fzf --tiebreak=index --query="$*") ); then
-    cd -- "${selected[2]}"
+  if selected="$(builtin dirs -pl | fzf --tiebreak=index --query="$*")"; then
+    cd -- "$selected"
   fi
 }
 

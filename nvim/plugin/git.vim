@@ -26,8 +26,7 @@ nnoremap <leader>gg :<C-u>G
 nnoremap <leader>g  :<C-u>Git<space>
 nnoremap <leader>gs :<C-u>vertical Git<CR>
 nnoremap <leader>gS :<C-u>tab Git<CR>
-nnoremap <leader>gd :<C-u>Gdiffsplit<bar>normal!zvzz<CR>
-nnoremap <leader>gD :<C-u>tab Gdiffsplit<bar>normal!zvzz<CR>
+nnoremap <leader>gd :<C-u>tab Gdiffsplit<bar>normal!zvzz<CR>
 nnoremap <leader>gb :<C-u>Git blame<bar>normal!zvzz<CR>
 nnoremap <leader>gw :<C-u>GBrowse<CR>
 nnoremap <leader>gW :<C-u>.GBrowse<CR>
