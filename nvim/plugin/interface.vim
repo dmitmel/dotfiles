@@ -492,3 +492,69 @@ if exists('*nvim_get_proc_children')
   \          '--table-truncate='.(index(s:ps_columns, 'cmd') + 1)
   \          '--output-width='.(&columns - 1)
 endif
+
+
+" This is a fix for an ancient bug that exists ever since Neovim v0.3.1
+" (introduced by this PR: <https://github.com/neovim/neovim/pull/8578>): when
+" `cursorline` is enabled, the cursor line background is not drawn over hlgroups
+" on the current line which are linked to `Normal`. Such links occasionally
+" appear in syntax files, and it looks super ugly:
+" 1. <https://github.com/neovim/neovim/issues/9019>
+" 2. <https://github.com/neovim/neovim/issues/35017>
+" I work around this by simply finding all hlgroups linked to `Normal` and
+" resetting them. I also assume that the syntax highlight groups start with a
+" lowercase letter, as opposed to interface-related ones which are all
+" capitalized, and only patch the former ones because sometimes it makes sense
+" for UI hlgroups to be linked to `Normal`.
+if has('nvim-0.3.1')
+  if has('nvim-0.9.0')
+    " In newer versions we can accelerate this process by using Lua and Nvim API
+    function! s:patch_highlights() abort
+      lua <<EOF
+      for name, info in pairs(vim.api.nvim_get_hl(0, { link = true })) do
+        if info.link == 'Normal' and name:match('^[a-z]') then
+          vim.api.nvim_set_hl(0, name, {})
+        end
+      end
+EOF
+    endfunction
+  else
+    " Okay, so the fallback implementation is really jank, but it works and pretty fast
+    function! s:patch_highlights() abort
+      let lines = split(execute('highlight'), "\n")
+      let idx = 0
+      while 1
+        " This function will find the first string in the array that matches the
+        " given regexp, and is considerably faster than checking each string in
+        " a loop in Vimscript. `\zs` and `\ze` are used because it does not
+        " return the matched subgroups.
+        let [name, idx, _, _] = matchstrpos(lines, '^\zs\l\w\+\ze\s\+xxx links to Normal$', idx)
+        if idx < 0 | break | endif
+        exe 'highlight! link' name 'NONE'
+        let idx += 1
+      endwhile
+    endfunction
+  endif
+
+  augroup dotfiles_patch_highlights
+    autocmd!
+
+    let s:done_syntaxes = {}
+    autocmd Syntax *
+    \ if !has_key(s:done_syntaxes, expand('<amatch>'))
+    \|  call s:patch_highlights()
+    \|  let s:done_syntaxes[expand('<amatch>')] = 1
+    \|endif
+
+    " The `Ignore` a built-in hlgroup that is used for concealed characters in
+    " Vim Help files. In Nvim v0.10.0 it became linked to Normal in the C code:
+    " <https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/highlight_group.c#L203>.
+    " I actually never knew this group even existed because it is always
+    " concealed in the |:help| viewer, but this became a problem in Fzf-Lua's
+    " |:Helptags| searcher.
+    autocmd VimEnter,Colorscheme *
+    \ let s:done_syntaxes = {}
+    \|hi! link Ignore NONE
+    \|call s:patch_highlights()
+  augroup END
+endif

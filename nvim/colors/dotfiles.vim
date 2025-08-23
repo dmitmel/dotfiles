@@ -43,14 +43,8 @@ function! s:Hi(group, def) abort
   \ 'gui='.attr 'cterm='.attr 'guisp='.(sp.gui)
 endfunction
 
-function! s:HiClear(group) abort
-  exe 'hi clear' a:group
-  exe 'hi link' a:group 'NONE'
-endfunction
-
 function! s:setup() " NOTE: not abort
   let Hi      = function('s:Hi')
-  let HiClear = function('s:HiClear')
 
   let base16 = g:dotfiles#colorscheme#base16_colors
   let [red, orange, yellow, green, cyan, blue, magenta, brown] = base16[8:15]
@@ -139,7 +133,6 @@ function! s:setup() " NOTE: not abort
   hi! link Typedef         Type
   call Hi('Operator',    { 'fg': fg })
   call Hi('Delimiter',   { 'fg': fg })
-  call HiClear('Ignore')
 
   " }}}
 
@@ -148,28 +141,30 @@ function! s:setup() " NOTE: not abort
     " This group is used to reset highlighting in places like string interpolation.
     call Hi('@none', { 'fg': fg })
 
-    call HiClear('@variable')
-    hi! link @variable.builtin      Special
-    hi! link @variable.member       Variable
-    hi! link @variable.parameter    Variable
-    hi! link @variable.declaration  Variable
-    hi! link @variable.cmake        Variable
+    hi! link @variable                @none
+    hi! link @variable.builtin        Special
+    hi! link @variable.member         Variable
+    hi! link @variable.parameter      Variable
+    hi! link @variable.declaration    Variable
+    hi! link @variable.cmake          Variable
+    hi! link @variable.parameter.bash @none
 
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
     " hi! link @function.builtin      PreProc
     hi! link @type.builtin          Type
 
-    call HiClear('@lsp.type.comment')
-    call HiClear('@lsp.type.variable')
+    hi! link @lsp.type.comment                    NONE
+    hi! link @lsp.type.variable                   NONE
+    hi! link @lsp.type.operator                   NONE
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
     hi! link @lsp.typemod.function.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.global         PreProc
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
-    hi! link @markup.raw String
-    call HiClear('@markup.raw.block')
+    hi! link @markup.raw            String
+    hi! link @markup.raw.block      NONE
 
     hi! link @markup.link           Identifier
     hi! link @markup.link.url       Underlined
@@ -192,8 +187,8 @@ function! s:setup() " NOTE: not abort
     for [kind, color] in items({ 'note': blue, 'warning': yellow, 'error': red })
       call Hi('@comment.' . kind, { 'fg': color, 'bg': bg, 'attr': 'reverse,bold' })
     endfor
-    call HiClear('@punctuation.delimiter.comment')
-    call HiClear('@punctuation.bracket.comment')
+    hi! link @punctuation.delimiter.comment  NONE
+    hi! link @punctuation.bracket.comment    NONE
 
   endif " }}}
 
@@ -217,9 +212,9 @@ function! s:setup() " NOTE: not abort
   hi! link CocMarkdownLink      Underlined
   hi! link CocLink              Underlined
   hi! link CocDiagnosticsFile   Directory
-  call HiClear('CocOutlineName')
-  call HiClear('CocExtensionsLoaded')
-  call HiClear('CocSymbolsName')
+  hi! link CocOutlineName       NONE
+  hi! link CocExtensionsLoaded  NONE
+  hi! link CocSymbolsName       NONE
   hi! link CocOutlineIndentLine IndentLine
   hi! link CocSymbolsFile       Directory
 
@@ -273,6 +268,9 @@ function! s:setup() " NOTE: not abort
     call Hi('qf'.qf_severity, { 'fg': color, 'attr': 'reverse,bold' })
   endfor
 
+  " This links to Normal by default, which looks super ugly when `cursorline` is enabled.
+  hi! link qfText NONE
+
   call Hi('DiagnosticUnnecessary',       { 'fg': gray[3] })
   call Hi('DiagnosticDeprecated',        { 'attr': strikethrough })
   hi! link DiagnosticUnderlineUnnecessary  DiagnosticUnnecessary
@@ -311,7 +309,6 @@ function! s:setup() " NOTE: not abort
   hi! link FoldColumn         WinSeparator
   call Hi('CursorLineFold', { 'fg': gray[3], 'bg': gray[1] })
   call Hi('QuickFixLine',   { 'fg': magenta, 'attr': 'underline', 'sp': magenta })
-  call HiClear('qfText')
 
   call Hi('StatusLine',   { 'fg': fg,      'bg': gray[1] })
   call Hi('StatusLineNC', { 'fg': gray[4], 'bg': gray[1] })
@@ -430,6 +427,9 @@ function! s:setup() " NOTE: not abort
   call Hi('healthWarning', { 'fg': bg, 'bg': yellow, 'attr': 'bold' })
   call Hi('healthError',   { 'fg': bg, 'bg': red,    'attr': 'bold' })
 
+  " vim tutor
+  call Hi('tutorLink', { 'fg': blue, 'attr': 'underline' })
+
   " Vimspector
   call Hi('vimspectorBP',         { 'fg': red })
   call Hi('vimspectorBPCond',     { 'fg': orange })
@@ -459,7 +459,7 @@ function! s:setup() " NOTE: not abort
 
   if has('nvim')
     " Semantic highlighting of comments messes with the my highlights of TODOs and such
-    call HiClear('CocSemTypeComment')
+    hi! link CocSemTypeComment NONE
   else
     " Unfortunately, I cannot disable a single type of semantic token in regular Vim.
     hi! link CocSemTypeComment Comment
@@ -508,7 +508,6 @@ function! s:setup() " NOTE: not abort
   let ansi_colors = g:dotfiles#colorscheme#ansi_colors_mapping
   if has('nvim')
     call Hi('TermCursor', { 'attr': 'reverse' })
-    call HiClear('TermCursorNC')
     for color in range(16)
       let g:terminal_color_{color} = base16[ansi_colors[color]].gui
     endfor
@@ -734,7 +733,7 @@ function! s:setup() " NOTE: not abort
   hi! link typescriptCall                Variable
   hi! link typescriptArrowFuncArg        typescriptCall
   hi! link typescriptFuncType            typescriptCall
-  call HiClear('typescriptMessage')
+  hi! link typescriptMessage             NONE
   hi! link typescriptVariable            jsStorageClass
   hi! link typescriptAmbientDeclaration  typescriptVariable
   hi! link typescriptVariableDeclaration Variable
@@ -762,7 +761,7 @@ function! s:setup() " NOTE: not abort
   hi! link typescriptTemplateSB          PreProc
   hi! link typescriptDebugger            Keyword
   hi! link typescriptRegexpString        Special
-  call HiClear('typescriptFuncCallArg')
+  hi! link typescriptFuncCallArg         NONE
   " }}}
 
   " Markdown {{{
@@ -810,7 +809,7 @@ function! s:setup() " NOTE: not abort
   " Lua {{{
   hi! link luaFuncCall       Function
   hi! link luaFuncName       Function
-  call HiClear('luaFuncId')
+  hi! link luaFuncId         NONE
   hi! link luaBraces         Delimiter
   hi! link luaFunction       Keyword
   hi! link luaSymbolOperator Operator
@@ -832,8 +831,10 @@ function! s:setup() " NOTE: not abort
   hi! link shQuote        StringDelimiter
   hi! link zshFunction    Function
   hi! link zshVariable    Variable
-  call HiClear('shArithmetic')
-  call HiClear('shCommandSub')
+  hi! link shArithmetic   NONE
+  hi! link shCommandSub   NONE
+  hi! link shForPP        NONE
+  hi! link shTestOpr      Operator
   hi! link shEscape       Special
   hi! link shOption       Special
   hi! link zshOption      Special
@@ -861,10 +862,6 @@ function! s:setup() " NOTE: not abort
 
   " Haskell {{{
   hi! link haskellOperators Keyword
-  " }}}
-
-  " TOML {{{
-  call HiClear('tomlDotInKey')
   " }}}
 
   " Java {{{
