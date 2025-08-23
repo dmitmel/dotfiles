@@ -142,7 +142,7 @@ let g:coc_user_config['clangd.arguments'] = s:clangd_args
 
 let s:use_emmylua = v:false
 if has('nvim-0.5.0')
-  let g:coc_user_config['Lua'] = v:lua.dotfiles.nvim_lua_dev.make_lua_ls_settings(
+  let g:coc_user_config['Lua'] = v:lua.dotfiles.nvim_lua_dev.make_settings(
         \ s:use_emmylua ? 'emmylua_ls' : 'lua_ls', s:nvim_dotfiles_dir)
 endif
 

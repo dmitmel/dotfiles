@@ -190,6 +190,8 @@
       BUFFER="man $manpage"
       zle redisplay
       zle accept-line
+    else
+      zle redisplay
     fi
   }
   zle -N find-man-page _widget_find_man_page

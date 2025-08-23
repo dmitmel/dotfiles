@@ -366,13 +366,13 @@ endif
   let g:coc_selectmode_mapping = 0
 
   function! s:backup_isk() abort
-    let s:iskeyword = &iskeyword
-    set iskeyword&vim
+    let s:iskeyword = &l:iskeyword
+    setlocal iskeyword&vim
     return ''
   endfunction
 
   function! s:restore_isk() abort
-    let &iskeyword = s:iskeyword
+    let &l:iskeyword = s:iskeyword
     unlet s:iskeyword
     return ''
   endfunction

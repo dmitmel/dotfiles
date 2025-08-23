@@ -14,7 +14,9 @@ endif
 " <https://github.com/neovim/neovim/issues/6289>
 " <https://github.com/neovim/neovim/labels/defaults>
 
-let s:dotfiles_dir = expand('<sfile>:p:h')
+" `resolve()` is needed to support installation by symlinking this file directly
+" into `~/.config/nvim/init.vim`.
+let s:dotfiles_dir = resolve(expand('<sfile>:p:h'))
 
 " 0 - no IDE features
 " 1 - use coc.nvim as the IDE backend

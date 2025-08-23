@@ -89,5 +89,9 @@
       "fileMatch": ["*.vimspector.json"],
       "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
     }
-  ]
+  ],
+
+  "yaml.schemas": {
+    "https://json.schemastore.org/clangd.json": [".clangd"]
+  }
 }

@@ -10,7 +10,7 @@ snippet vimspector-launch vimspector: launch configuration
 		"adapter": "${2:adapter}",
 		"configuration": {
 			"request": "launch",
-			"program": "$${workspaceFolder}/${3:<program>}",
+			"program": "\${workspaceFolder}/${3:<program>}",
 			"args": []$0
 		}
 	}
@@ -19,7 +19,7 @@ snippet vimspector-attach vimspector: attach configuration
 		"adapter": "${2:adapter}",
 		"configuration": {
 			"request": "attach",
-			"program": "$${workspaceFolder}/${3:<program>}"$0
+			"program": "\${workspaceFolder}/${3:<program>}"$0
 		}
 	}
 snippet snippet

@@ -314,11 +314,11 @@ function M.hover(opts)
     local renderer = require('dotfiles.markdown').renderer.new()
 
     local many_clients = #vim.tbl_keys(results) > 1
-    for client_id, result in pairs(results) do
+    for client_id, hover in pairs(results) do
       renderer:push_separator()
       local client = assert(lsp.get_client_by_id(client_id))
       if many_clients then renderer:parse_markdown_section('# ' .. client.name) end
-      renderer:parse_documentation_sections(result.contents)
+      if hover.contents then renderer:parse_documentation_sections(hover.contents) end
     end
 
     if renderer:is_empty() then

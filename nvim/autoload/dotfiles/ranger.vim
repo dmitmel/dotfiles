@@ -77,7 +77,7 @@ function! dotfiles#ranger#run(ranger_args) abort
 
   if has('nvim')
     enew
-    let self.terminal_buf = bufnr()
+    let self.terminal_buf = bufnr('%')
     if has('nvim-0.11')
       let self.term = v:true
       call jobstart(cmd, self)
