@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -eu
+
+for cmd in diff-so-fancy diff-highlight; do
+  if command -v "$cmd" &>/dev/null; then
+    exec "$cmd" "$@"
+  fi
+done
+
+try_prefix() {
+  local prefix="$1"
+  contrib_dirs=(
+    "${prefix}/git"               # Arch Linux
+    "${prefix}/git/contrib"       # NixOS
+    "${prefix}/doc/git/contrib"   # Debian/Ubuntu
+    "${prefix}/git-core/contrib"  # Homebrew on macOS
+  )
+  for contrib in "${contrib_dirs[@]}"; do
+    script="${contrib}/diff-highlight/diff-highlight"
+    if [ -x "$script" ]; then
+      exec "$script"
+    elif [ -r "$script" ] && command -v perl &>/dev/null; then
+      exec perl "$script"
+    fi
+  done
+}
+
+if git_exe="$(command -v git 2>/dev/null)"; then
+  # `readlink -f` seems to be more portable than `realpath`.
+  # <https://unix.stackexchange.com/questions/136494/whats-the-difference-between-realpath-and-readlink-f>
+  git_exe="$(readlink -f "$git_exe")"
+  git_bin_dir="$(dirname "$git_exe")"
+  try_prefix "${git_bin_dir}/../share"     # when `git` resolves to `$prefix/bin/git`
+  try_prefix "${git_bin_dir}/../../share"  # when `git` resolves to `$prefix/libexec/git-core/git`
+fi
+
+# Try some well-known paths if the above didn't work.
+for prefix in "/usr/local/share" "/usr/share"; do
+  if [ -d "$prefix" ]; then
+    try_prefix "$prefix"
+  fi
+done
+
+# Just pass the input through unchanged as a last effort.
+exec cat -
