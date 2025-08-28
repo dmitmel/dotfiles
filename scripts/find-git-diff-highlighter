@@ -2,27 +2,31 @@
 set -eu
 
 for cmd in diff-so-fancy diff-highlight; do
-  if command -v "$cmd" &>/dev/null; then
+  if command -v "$cmd" >/dev/null 2>&1; then
     exec "$cmd" "$@"
   fi
 done
 
-try_prefix() {
-  local prefix="$1"
-  contrib_dirs=(
-    "${prefix}/git"               # Arch Linux
-    "${prefix}/git/contrib"       # NixOS
-    "${prefix}/doc/git/contrib"   # Debian/Ubuntu
-    "${prefix}/git-core/contrib"  # Homebrew on macOS
-  )
-  for contrib in "${contrib_dirs[@]}"; do
+try_contrib_dir() {
+  local contrib="$1"
+  if [ -d "${contrib}/diff-highlight" ]; then
     script="${contrib}/diff-highlight/diff-highlight"
     if [ -x "$script" ]; then
       exec "$script"
-    elif [ -r "$script" ] && command -v perl &>/dev/null; then
+    elif [ -r "$script" ] && command -v perl >/dev/null 2>&1; then
       exec perl "$script"
     fi
-  done
+  fi
+}
+
+try_prefix() {
+  local prefix="$1"
+  if [ -d "$prefix" ]; then
+    try_contrib_dir "${prefix}/git"               # Arch Linux
+    try_contrib_dir "${prefix}/git/contrib"       # NixOS
+    try_contrib_dir "${prefix}/doc/git/contrib"   # Debian/Ubuntu
+    try_contrib_dir "${prefix}/git-core/contrib"  # Homebrew on macOS
+  fi
 }
 
 if git_exe="$(command -v git 2>/dev/null)"; then
@@ -35,11 +39,8 @@ if git_exe="$(command -v git 2>/dev/null)"; then
 fi
 
 # Try some well-known paths if the above didn't work.
-for prefix in "/usr/local/share" "/usr/share"; do
-  if [ -d "$prefix" ]; then
-    try_prefix "$prefix"
-  fi
-done
+try_prefix "/usr/local/share"
+try_prefix "/usr/share"
 
 # Just pass the input through unchanged as a last effort.
 exec cat -
