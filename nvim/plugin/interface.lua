@@ -262,10 +262,9 @@ if dotplug.has('fzf-lua') then
         winopts.width = utils.clamp(
           num_width + item_width + 1, -- +1 for the scrollbar
           vim.o.pumwidth,
-          vim.o.columns * 0.5
+          utils.round(vim.o.columns * 0.5)
         )
-        local list_height = math.min(#items, vim.o.pumheight)
-        winopts.height = (list_height <= 2) and (list_height / vim.o.lines) or (list_height - 1)
+        winopts.height = utils.clamp(#items + 1, 2, vim.o.pumheight)
       else
         local list_height = math.min(#items + 1, utils.round(vim.o.lines * 0.4))
         winopts.split = string.format('botright %dnew', list_height)
