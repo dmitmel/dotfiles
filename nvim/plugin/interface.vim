@@ -103,7 +103,7 @@ set history=10000
   " The character used for filling deleted lines in diffs, will create a
   " crossed-out pattern. Idea taken from <https://github.com/sindrets/diffview.nvim#tips-and-faq>.
   set fillchars+=diff:╱
-  if has('nvim')
+  if has('nvim-0.3.0')
     " This is a Neovim-only feature -- `msgsep` defines the border above the
     " output of shell commands issued with `:!`.
     set fillchars+=msgsep:▔
@@ -111,7 +111,9 @@ set history=10000
     " Mirror the slick UI of Neovim in plain Vim.
     set fillchars+=vert:│
     set fillchars+=fold:·
-    set fillchars+=foldsep:│
+    if has('patch-8.2.2524')
+      set fillchars+=foldsep:│
+    endif
   endif
 
   " Don't print filename and cursor position when switching between files.

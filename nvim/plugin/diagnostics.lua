@@ -76,11 +76,13 @@ vim_diagnostic.config({
   },
 })
 
-utils.augroup('dotfiles_diagnostics'):autocmd(
-  'DiagnosticChanged',
-  utils.schedule_once_per_tick(function() vim.cmd('redrawstatus!') end),
-  { desc = 'redraw the statusline on diagnostics updates' }
-)
+if vim.api.nvim_create_autocmd ~= nil then
+  utils.augroup('dotfiles_diagnostics'):autocmd(
+    'DiagnosticChanged',
+    utils.schedule_once_per_tick(function() vim.cmd('redrawstatus!') end),
+    { desc = 'redraw the statusline on diagnostics updates' }
+  )
+end
 
 local handlers = vim_diagnostic.handlers
 handlers.signs._old_show = handlers.signs._old_show or handlers.signs.show

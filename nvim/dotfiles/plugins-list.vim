@@ -135,7 +135,7 @@ exe dotplug#define_plug_here()
   " The core library for integration calling fzf from Vim (also handles
   " installation of fzf when it's not already available on the system).
   Plug 'https://github.com/junegunn/fzf', { 'do': './install --bin' }
-  if g:vim_ide == 2
+  if g:vim_ide == 2 && has('nvim-0.9.0')
     Plug 'https://github.com/folke/snacks.nvim', { 'if': has('nvim-0.9.4') }
     Plug 'https://github.com/ibhagwan/fzf-lua', { 'if': has('nvim-0.9.0'), 'requires': 'fzf' }
   else
