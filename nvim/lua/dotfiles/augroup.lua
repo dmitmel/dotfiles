@@ -21,14 +21,14 @@ function augroup.create(name, opts)
 end
 
 function augroup:delete() --
-  vim.api.nvim_del_augroup_by_id(self.id)
+  return vim.api.nvim_del_augroup_by_id(self.id)
 end
 
 ---@param opts? vim.api.keyset.clear_autocmds
 function augroup:clear(opts)
   opts = opts or {}
   opts.group = self.id
-  vim.api.nvim_clear_autocmds(opts)
+  return vim.api.nvim_clear_autocmds(opts)
 end
 
 ---@alias dotfiles.autocmd_callback string | fun(args: vim.api.keyset.create_autocmd.callback_args): boolean?
@@ -54,6 +54,15 @@ function augroup:autocmd(event, pattern, callback, opts)
     opts.command = callback
   end
   opts.group = self.id
+  -- NOTE: This is the one place where LuaJIT's inability to produce correct
+  -- stack traces after tail-called functions is a feature, not a bug.
+  -- Basically, when a function is called in the `return` position, it will
+  -- re-use the current stack frame, so from the viewpoint of the called
+  -- function it was called directly at the callsite of its wrapper. In other
+  -- words, if function A calls B, and B tail-calls C, then C will observe the
+  -- stack trace as if it was called directly from A. This helps here because
+  -- `nvim_create_autocmd` will record the location of the caller of this
+  -- wrapper as the place where the autocommand was defined.
   return vim.api.nvim_create_autocmd(event, opts)
 end
 
@@ -62,7 +71,7 @@ end
 function augroup:exec_autocmds(event, opts)
   opts = opts or {}
   opts.group = self.id
-  vim.api.nvim_exec_autocmds(event, opts)
+  return vim.api.nvim_exec_autocmds(event, opts)
 end
 
 ---@param opts? vim.api.keyset.get_autocmds

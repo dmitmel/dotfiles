@@ -14,11 +14,12 @@ endfunction
 
 " This is my own reimagining of the various plugins for closing buffers while
 " keeping the window layout. This function takes a command to execute, either
-" |bdelete| or |bwipeout|, with or without a bang at the end and a pattern to
-" find the buffer, and returns the command to execute for closing it. The
-" command is returned so that any errors will be displayed at the callsite,
-" without a stack trace, so that it looks nicer in the UI. |gettext()| is used
-" everywhere so that the error messages will get translated appropriately.
+" |:bdelete| or |:bwipeout|, with or without a bang at the end, and a pattern to
+" find a buffer, and returns another command to execute for actually closing the
+" buffer. The command is returned so that any errors which may appear are
+" displayed at the callsite, without a stack trace, making it look nicer in the
+" UI. |gettext()| is used everywhere so that the error messages can be
+" translated appropriately.
 function! dotfiles#bufclose#cmd(cmd, name) abort
   if empty(a:name)
     let buf_to_close = bufnr('%')
@@ -45,28 +46,47 @@ function! dotfiles#bufclose#cmd(cmd, name) abort
   endif
 
   " Now, let's get down to business. To preserve the layout we want to find all
-  " windows which display the given buffer, hide it in every one of them by
-  " switching to some other buffer, and then safely execute |:bd| or |:bw| on
-  " the original buffer.
+  " windows which display the given buffer, hide it in every single one of them
+  " by switching to some other buffer, and then safely execute |:bd| or |:bw| on
+  " the original buffer. Thing is, though, the |bufhidden| option may cause the
+  " buffer to be deleted while we are hiding it, before we get the chance to do
+  " the deletion ourselves. Therefore, change its value to `hide` such that the
+  " buffer will stay loaded when it becomes completely hidden, and act out on
+  " the previous setting of |bufhidden| afterwards.
 
   let prev_bufhidden = getbufvar(buf_to_close, '&bufhidden', '')
-  " Thing is, though, |bufhidden| may cause the buffer to be deleted while we
-  " are hiding it, before we get the chance to do the deletion ourselves.
-  " Therefore, change the behavior such that the buffer will stay loaded when it
-  " becomes completely hidden.
   call setbufvar(buf_to_close, '&bufhidden', 'hide')
 
+  call dotfiles#bufclose#hide(buf_to_close)
+
+  if !empty(win_findbuf(buf_to_close))
+    " Exit without doing anything if the buffer is still displayed in some
+    " window. This may happen, for example, if |:enew| chose to reuse an empty
+    " buffer.
+    return ''
+  elseif prev_bufhidden ==# 'wipe'
+    return 'bwipeout' . bang . ' ' . buf_to_close
+  elseif prev_bufhidden ==# 'delete'
+    return 'bdelete' . bang . ' ' . buf_to_close
+  else
+    return a:cmd . bang . ' ' . buf_to_close
+  endif
+endfunction
+
+" Hides the given buffer in every window where it is visible by switching to a
+" different buffer or creating a new empty one. This function is exported
+" publicly for use by my other scripts.
+function! dotfiles#bufclose#hide(buf) abort
   let original_winid = win_getid()
 
-  let new_empty_buffers = []
-  for winid in win_findbuf(buf_to_close)
+  for winid in win_findbuf(a:buf)
     if win_getid() != winid
       " |win_gotoid()| calls are guarded by an `if` because otherwise regular
       " Vim shows that we are in the PROMPT mode when this function finishes.
       call win_gotoid(winid)
     endif
 
-    if buflisted(bufnr('#')) && bufnr('#') != buf_to_close
+    if buflisted(bufnr('#')) && bufnr('#') != a:buf
       buffer #
     else
       try
@@ -75,34 +95,21 @@ function! dotfiles#bufclose#cmd(cmd, name) abort
       endtry
     endif
 
-    if bufnr('%') == buf_to_close
+    if bufnr('%') == a:buf
       " Could not find another buffer to switch to? Create a new, empty one.
-      " Beware, though, that if the buffer was already empty, `enew` will not
-      " create a new one! The bang at the end allows discarding unsaved changes.
-      execute 'enew' . bang
+      " Beware, though, that if the buffer was already empty, `enew` will just
+      " re-use it instead of creating a new one! See |buffer-reuse|.
+      enew
       " An empty |buftype| is used instead of `nofile`, so that if something was
-      " typed in the buffer, the user will be notified about that when closing
-      " it. |nobuflisted| is needed so that `bprevious` above does not find this
-      " empty buffer.
+      " typed in the buffer, the user will be notified about the buffer being
+      " modified when closing it. |nobuflisted| is needed so that `:bprevious`
+      " above does not find this empty buffer.
       setlocal buftype= bufhidden=wipe nobuflisted noswapfile nomodeline
-      call add(new_empty_buffers, bufnr('%'))
     endif
   endfor
 
   if win_getid() != original_winid
     call win_gotoid(original_winid)
-  endif
-
-  " Check that our buffer was not cleared and replaced by an empty one, created
-  " by |:enew|. Deleting it now will disrupt the window layout.
-  if index(new_empty_buffers, buf_to_close) >= 0
-    return ''
-  elseif prev_bufhidden ==# 'wipe'
-    return 'bwipeout' . bang . ' ' . buf_to_close
-  elseif prev_bufhidden ==# 'delete'
-    return 'bdelete' . bang . ' ' . buf_to_close
-  else
-    return a:cmd . bang . ' ' . buf_to_close
   endif
 endfunction
 

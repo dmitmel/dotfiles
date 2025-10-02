@@ -136,14 +136,15 @@ set history=10000
     \  &previewwindow || dotutils#is_floating_window(0)
       close
     else
+      " NOTE: Don't use :Bwipeout, it breaks quickfix/loclists! When these lists
+      " are initialized, they also create (but not load) buffers for all files
+      " referenced by the list, and <CR> in a quickfix list expects the
+      " corresponding buffer to already exist. Jumping to a list entry whose
+      " buffer was wiped out fails with |E92|.
       Bdelete
     endif
   endfunction
 
-  " NOTE: Don't use :Bwipeout! For example, it breaks qflist/loclist switching
-  " because when these lists are loaded, they also create (but not load) buffers
-  " for all of the mentioned files, and jumping to an entry in the list whose
-  " buffer was wiped out fails with |E92|.
   nnoremap <silent> <BS> :<C-u>call <SID>close_buffer()<CR>
   " Delete the buffer, but also close the window (that is, if it's not the last one).
   nnoremap <silent> <Del> :<C-u>bdelete<CR>
@@ -456,27 +457,55 @@ if exists('*api_info')
 endif
 
 
-augroup dotfiles_terminal
-  autocmd!
-  " autocmd WinEnter * if &buftype == 'terminal' | startinsert | endif
+" Terminal {{{
 
-  let s:fix_terminal_win = 'setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no'
-  if has('patch-8.2.3227') || has('nvim-0.7.0')  " `virtualedit` used to be a global-only option
-    let s:fix_terminal_win .= ' virtualedit=none'
+  function! s:fix_terminal_window() abort
+    setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no
+    " `virtualedit` used to be a global-only option
+    if has('patch-8.2.3227') || has('nvim-0.7.0') | setlocal virtualedit=none | endif
+    if dotplug#has('indentLine') | IndentLinesDisable | endif
+  endfunction
+
+  augroup dotfiles_terminal
+    autocmd!
+    if has('nvim')
+      autocmd TermOpen * call s:fix_terminal_window()
+      autocmd TermOpen * startinsert
+      "autocmd TermClose * stopinsert
+      if has('nvim-0.3.0')  " <Cmd> mappings were added in v0.3.0
+        tnoremap <silent> <SID>close <Cmd>Bwipeout!<CR>
+      else
+        tnoremap <silent> <SID>close <C-\><C-n>:<C-u>Bwipeout!<CR>
+      endif
+      " Make a few mappings on some obvious keys for closing the terminal buffer
+      " without disrupting the window layout after the message `[Process exited
+      " 123]` appears. This is an alternative to the terrible hack in the file
+      " `./terminal.lua` which is more straightforward and reliable, and works
+      " even in ancient versions of Neovim, before v0.5.0. The only downside of
+      " this method is that it won't work for *any* keycode, it needs explicit
+      " mappings to be set up.
+      autocmd TermClose * tmap <buffer> <CR>  <SID>close
+      autocmd TermClose * tmap <buffer> <Esc> <SID>close
+      autocmd TermClose * tmap <buffer> <BS>  <SID>close
+    elseif has('terminal')
+      autocmd TerminalWinOpen * call s:fix_terminal_window()
+    endif
+  augroup END
+
+  " Disable the default autocommand which auto-closes the terminal buffers
+  " started without any explicit arguments, as it uses the command `:bdelete` to
+  " do its job, which breaks the window layout. <https://github.com/neovim/neovim/pull/15440>
+  if exists('#nvim_terminal#TermClose')
+    autocmd! nvim_terminal TermClose *
+  endif
+  " They changed the naming scheme for built-in autocommands in v0.11.0:
+  " <https://github.com/neovim/neovim/commit/09e01437c968be4c6e9f6bb3ac8811108c58008c>
+  if exists('#nvim.terminal#TermClose')
+    autocmd! nvim.terminal TermClose *
   endif
 
-  if has('nvim')
-    autocmd TermOpen * execute s:fix_terminal_win
-    autocmd TermOpen * startinsert
-  elseif has('terminal')
-    autocmd TerminalWinOpen * execute s:fix_terminal_win
-    autocmd TerminalWinOpen * IndentLinesDisable
-  endif
-augroup END
+" }}}
 
-if has('nvim')
-  exe dotutils#cmd_alias('term', 'split<Bar>term')
-endif
 
 if exists('*nvim_get_proc_children')
   function! s:all_proc_children(pid, arr) abort
@@ -497,10 +526,10 @@ endif
 
 
 " This is a fix for an ancient bug that exists ever since Neovim v0.3.1
-" (introduced by this PR: <https://github.com/neovim/neovim/pull/8578>): when
-" `cursorline` is enabled, the cursor line background is not drawn over hlgroups
-" on the current line which are linked to `Normal`. Such links occasionally
-" appear in syntax files, and it looks super ugly:
+" (introduced by this PR: <https://github.com/neovim/neovim/pull/8578>): when an
+" hlgroup is linked to `Normal`, the cursor line/column background will not be
+" drawn over it. Such linked groups occasionally appear in syntax files, and it
+" looks super ugly:
 " 1. <https://github.com/neovim/neovim/issues/9019>
 " 2. <https://github.com/neovim/neovim/issues/35017>
 " I work around this by simply finding all hlgroups linked to `Normal` and
@@ -521,7 +550,8 @@ if has('nvim-0.3.1')
 EOF
     endfunction
   else
-    " Okay, so the fallback implementation is really jank, but it works and pretty fast
+    " Okay, so the fallback implementation is really jank, but it works well and
+    " is pretty fast.
     function! s:patch_highlights() abort
       let lines = split(execute('highlight'), "\n")
       let idx = 0
