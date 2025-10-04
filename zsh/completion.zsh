@@ -51,4 +51,46 @@ _completion_get_hosts() {
 }
 zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")'
 
-autoload -U +X bashcompinit && bashcompinit
+autoload -Uz compinit
+
+run_compdump=1
+# glob qualifiers description:
+#   N    turn on NULL_GLOB for this expansion
+#   .    match only plain files
+#   m-1  check if the file was modified today
+# see "Filename Generation" in zshexpn(1)
+for match in "${ZSH_CACHE_DIR}/zcompdump"(N.m-1); do
+  run_compdump=0
+  break
+done; unset match
+
+# In both branches, -u disables the "security" (see the manpage) check and -d
+# specifies the path to a completion dump.
+if (( $run_compdump )); then
+  print -r -- "$0: rebuilding zsh completion dump"
+  # -D flag turns off compdump loading
+  compinit -u -D -d "${ZSH_CACHE_DIR}/zcompdump"
+  compdump
+else
+  # -C flag disables some checks performed by compinit - they are not needed
+  # because we already have a fresh compdump
+  compinit -u -C -d "${ZSH_CACHE_DIR}/zcompdump"
+fi
+unset run_compdump
+
+if ! is_function _rustup && command_exists rustup; then
+  lazy_load _rustup 'source <(rustup completions zsh)'
+  compdef _rustup rustup
+fi
+
+if ! is_function _cargo && command_exists rustup && command_exists rustc; then
+  lazy_load _cargo 'source "$(rustc --print sysroot)/share/zsh/site-functions/_cargo"'
+  compdef _cargo cargo
+fi
+
+_wrapper_completion() {
+  shift words
+  (( CURRENT-- ))
+  _normal
+}
+compdef _wrapper_completion prime-run allow-ptrace
