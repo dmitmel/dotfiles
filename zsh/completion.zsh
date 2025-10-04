@@ -8,7 +8,7 @@ zstyle ':completion:*' menu select
 zstyle ':completion:*' verbose yes
 
 zstyle ':completion:*' use-cache yes
-zstyle ':completion::*' cache-path "$ZSH_CACHE_DIR"
+zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR"
 
 # group completion result based on their categories
 zstyle ':completion:*' group-name ''
@@ -51,4 +51,28 @@ _completion_get_hosts() {
 }
 zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")'
 
-autoload -U +X bashcompinit && bashcompinit
+# Delete the completion dump if it is stale. Description of the glob qualifiers:
+#   N    turn on NULL_GLOB for this expansion
+#   .    match only plain files
+#   m+0  check if the file was modified more than a day ago
+# see "Filename Generation" in zshexpn(1).
+for stale in "${ZSH_CACHE_DIR}/zcompdump"(N.m+0); do
+  command rm -v "$stale"
+done; unset stale
+
+# -u disables the "security check", see "Use of compinit" in zshcompsys(1), and
+# -d specifies the path to a completion dump file.
+autoload -Uz compinit && compinit -u -d "${ZSH_CACHE_DIR}/zcompdump"
+
+if ! is_function _rustup && command_exists rustup; then
+  lazy_load _rustup 'source <(rustup completions zsh)'
+  compdef _rustup rustup
+fi
+
+if ! is_function _cargo && command_exists rustup && command_exists rustc; then
+  lazy_load _cargo 'source "$(rustc --print sysroot)/share/zsh/site-functions/_cargo"'
+  compdef _cargo cargo
+fi
+
+# Complete any commands as arguments for simple wrapper functions.
+compdef 'shift words; (( CURRENT-- )); _normal' prime-run allow-ptrace

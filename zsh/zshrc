@@ -1,16 +1,16 @@
 #!/usr/bin/env zsh
 
-ZSH_DOTFILES="${0:h}"
+ZSH_DOTFILES="${0:A:h}"
 
 # Among other things, used for compatibility with OMZ plugins.
 ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
-mkdir -pv -- "$ZSH_CACHE_DIR" "${ZSH_CACHE_DIR}/site-functions"
+mkdir -pv -- "$ZSH_CACHE_DIR"
 
-autoload -U colors && colors
+autoload -Uz colors && colors
 
 # Performance {{{
 
-  zmodload zsh/datetime
+  zmodload zsh/datetime  # to read `$EPOCHREALTIME`
   typeset -A _perf_timers
 
   _perf_timer_start() {
@@ -57,7 +57,13 @@ for script in functions options path env zplg plugins aliases completion zle ali
   _perf_timer_start "$script.zsh"
   source "$ZSH_DOTFILES/$script.zsh"
   _perf_timer_stop "$script.zsh"
-done
+done; unset script
+
+for name in "${omz_plugins[@]}"; do
+  _perf_timer_start "$name.plugin.zsh"
+  source "${ZSH}/plugins/${name}/${name}.plugin.zsh"
+  _perf_timer_stop "$name.plugin.zsh"
+done; unset name
 
 if is_function _dotfiles_customizations; then
   _dotfiles_customizations

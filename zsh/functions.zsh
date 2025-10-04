@@ -30,13 +30,12 @@ is_command() { whence -p -- "$@" &>/dev/null; }
 command_locate() { whence -p -- "$@"; }
 
 lazy_load() {
-  local command="$1"
-  local init_command="$2"
-
-  eval "$command() {
-    unfunction $command
-    $init_command
-    $command \$@
+  local name="$1"
+  local init="$2"
+  eval "$name() {
+    unfunction $name
+    $init
+    $name \"\$@\"
   }"
 }
 

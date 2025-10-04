@@ -92,7 +92,7 @@ if [[ -f "$rustup_home"/settings.toml ]]; then
   if [[ -n "$rust_toolchain" ]]; then
     rust_sysroot="$rustup_home"/toolchains/"$rust_toolchain"
     # path_append path "$rust_sysroot"/bin
-    path_prepend fpath "$rust_sysroot"/zsh/site-functions
+    # path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
   fi
 
@@ -107,12 +107,7 @@ unset rustup_home rust_toolchain rust_sysroot
 
 path_prepend path ~/.cargo/bin
 
-# add my binaries and completions
 path_prepend path "${ZSH_DOTFILES:h}/scripts"
-path_prepend fpath "${ZSH_DOTFILES}/completions"
-path_prepend fpath "${ZSH_CACHE_DIR}/site-functions"
-
-# add user binaries
 path_prepend path ~/.local/bin
 
 unfunction path_prepend
