@@ -38,18 +38,18 @@ zstyle ':completion:*:processes' command "ps xo pid,user,cmd"
 zstyle ':completion:*:processes-names' command "ps xho comm="
 zstyle ':completion:*:processes' force-list always
 
-_completion_get_hosts() {
-  print -r -- localhost
+_complete_ssh_hosts() {
+  reply=( localhost )
   local line
   if [[ -r ~/.ssh/config ]]; then
     < ~/.ssh/config while IFS= read -r line; do
       if [[ "$line" =~ '^Host[[:blank:]]+(.*)[[:blank:]]*' ]]; then
-        print -r -- "${match[1]}"
+        reply+=("${match[1]}")
       fi
     done
   fi
 }
-zstyle -e ':completion:*:hosts' hosts 'reply=("${(@f)$(_completion_get_hosts)}")'
+zstyle -e ':completion:*:hosts' hosts '_complete_ssh_hosts'
 
 # Delete the completion dump if it is stale. Description of the glob qualifiers:
 #   N    turn on NULL_GLOB for this expansion
@@ -61,8 +61,11 @@ for stale in "${ZSH_CACHE_DIR}/zcompdump"(N.m+0); do
 done; unset stale
 
 # -u disables the "security check", see "Use of compinit" in zshcompsys(1), and
-# -d specifies the path to a completion dump file.
-autoload -Uz compinit && compinit -u -d "${ZSH_CACHE_DIR}/zcompdump"
+# -d specifies the path to a completion dump file. -w was only added in a recent
+# version of Zsh and prints the reason for updating the compdump if that happens
+# (<https://github.com/zsh-users/zsh/commit/6f4cf791405e74925c497bf3493bcd834918cf85>).
+autoload -Uz compinit is-at-least && \
+  compinit -u -d "${ZSH_CACHE_DIR}/zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
 
 if ! is_function _rustup && command_exists rustup; then
   lazy_load _rustup 'source <(rustup completions zsh)'
@@ -74,5 +77,6 @@ if ! is_function _cargo && command_exists rustup && command_exists rustc; then
   compdef _cargo cargo
 fi
 
-# Complete any commands as arguments for simple wrapper functions.
+# Complete any commands following simple wrapper functions.
+# <https://stackoverflow.com/a/13547531>
 compdef 'shift words; (( CURRENT-- )); _normal' prime-run allow-ptrace
