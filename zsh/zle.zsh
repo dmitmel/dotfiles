@@ -201,7 +201,8 @@
 
 # other keybindings {{{
 
-  bindkey '\ee' edit-command-line
+  autoload -Uz edit-command-line && bindkey '\ee' edit-command-line
+
   bindkey '\eu' undo
   bindkey '\eU' redo
 

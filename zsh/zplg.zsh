@@ -93,8 +93,8 @@ ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 # arrays that have IDs as their keys. It is implemented this way because you
 # can't put associative arrays (or any other alternative to "objects") into
 # another associative array.
-typeset -A ZPLG_LOADED_PLUGINS
-typeset -A ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
+typeset -gA ZPLG_LOADED_PLUGINS
+typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
 
 # Takes name of a variable with an array (array is passed by variable name
 # because this reduces boilerplate) and runs every command in it, exits
@@ -129,8 +129,7 @@ _zplg_expand_pattern() {
 # Wrapper around `source` for simpler profiling and debugging. You can override
 # this function to change plugin loading strategy
 _zplg_load() {
-  local script_path="$1"
-  source "$script_path"
+  source "$@"
 }
 
 # plugin sources {{{

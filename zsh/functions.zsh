@@ -39,8 +39,8 @@ lazy_load() {
   }"
 }
 
-if (( ! _is_macos )); then
-  if (( _is_android )); then
+if [[ "$OSTYPE" != darwin* ]]; then
+  if [[ "$OSTYPE" == linux-android* ]]; then
     open_cmd='termux-open'
   elif command_exists xdg-open; then
     open_cmd='nohup xdg-open &> /dev/null'
@@ -53,14 +53,14 @@ if (( ! _is_macos )); then
   unset open_cmd
 fi
 
-if (( _is_macos )); then
+if [[ "$OSTYPE" == darwin* ]]; then
   copy_cmd='pbcopy' paste_cmd='pbpaste'
+elif [[ "$OSTYPE" == linux-android* ]]; then
+  copy_cmd='termux-clipboard-set' paste_cmd='termux-clipboard-get'
 elif command_exists xclip; then
   copy_cmd='xclip -in -selection clipboard' paste_cmd='xclip -out -selection clipboard'
 elif command_exists xsel; then
   copy_cmd='xsel --clipboard --input' paste_cmd='xsel --clipboard --output'
-elif command_exists termux-clipboard-set && command_exists termux-clipboard-get; then
-  copy_cmd='termux-clipboard-set' paste_cmd='termux-clipboard-get'
 else
   error_msg='Platform $OSTYPE is not supported'
   copy_cmd='print >&2 -r -- "clipcopy: '"$error_msg"'"; return 1'
@@ -100,7 +100,7 @@ done; unset format_name format
 
 unset date_formats
 
-if (( _is_linux )) && command_exists swapoff && command_exists swapon; then
+if is_command swapoff && is_command swapon; then
   deswap() { sudo sh -c 'swapoff --all && swapon --all'; }
 fi
 

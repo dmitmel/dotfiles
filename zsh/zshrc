@@ -11,7 +11,7 @@ autoload -Uz colors && colors
 # Performance {{{
 
   zmodload zsh/datetime  # to read `$EPOCHREALTIME`
-  typeset -A _perf_timers
+  typeset -gA _perf_timers
 
   _perf_timer_start() {
     local name="$1"
@@ -36,33 +36,22 @@ autoload -Uz colors && colors
     print -r -- "$(print -P '%F{8}==>%f') ${name}: ${duration}ms"
   }
 
+  _source() {
+    _perf_timer_start "${1:t}"
+    source "$@"
+    _perf_timer_stop "${1:t}"
+  }
+
 # }}}
 
 _perf_timer_start "total"
 
-# platform identification {{{
-  if [[ "$OSTYPE" == linux* ]]; then
-    _is_linux=1
-    if [[ "$OSTYPE" == linux-android ]]; then
-      _is_android=1
-    fi
-  fi
-
-  if [[ "$OSTYPE" == darwin* ]]; then
-    _is_macos=1
-  fi
-# }}}
-
 for script in functions options path env zplg plugins aliases completion zle alias_tips prompt colorscheme; do
-  _perf_timer_start "$script.zsh"
-  source "$ZSH_DOTFILES/$script.zsh"
-  _perf_timer_stop "$script.zsh"
+  _source "$ZSH_DOTFILES/$script.zsh"
 done; unset script
 
 for name in "${omz_plugins[@]}"; do
-  _perf_timer_start "$name.plugin.zsh"
-  source "${ZSH}/plugins/${name}/${name}.plugin.zsh"
-  _perf_timer_stop "$name.plugin.zsh"
+  _source "${ZSH}/plugins/${name}/${name}.plugin.zsh"
 done; unset name
 
 if is_function _dotfiles_customizations; then

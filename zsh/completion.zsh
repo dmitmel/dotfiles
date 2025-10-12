@@ -51,21 +51,37 @@ _complete_ssh_hosts() {
 }
 zstyle -e ':completion:*:hosts' hosts '_complete_ssh_hosts'
 
+zcompdump="${ZSH_CACHE_DIR}/zcompdump"
+
 # Delete the completion dump if it is stale. Description of the glob qualifiers:
 #   N    turn on NULL_GLOB for this expansion
 #   .    match only plain files
 #   m+0  check if the file was modified more than a day ago
 # see "Filename Generation" in zshexpn(1).
-for stale in "${ZSH_CACHE_DIR}/zcompdump"(N.m+0); do
-  command rm -v "$stale"
+for stale in "$zcompdump"(N.m+0); do
+  command rm -v -- "$stale"
 done; unset stale
+
+if is_function compdef; then
+  print >&2 -r -- "${fg[red]}\`compinit\` got called before running \`${0}\`!${reset_color}"
+fi
 
 # -u disables the "security check", see "Use of compinit" in zshcompsys(1), and
 # -d specifies the path to a completion dump file. -w was only added in a recent
 # version of Zsh and prints the reason for updating the compdump if that happens
 # (<https://github.com/zsh-users/zsh/commit/6f4cf791405e74925c497bf3493bcd834918cf85>).
 autoload -Uz compinit is-at-least && \
-  compinit -u -d "${ZSH_CACHE_DIR}/zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
+  compinit -u -d "$zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
+
+# Speed up shell initialization by compiling the compdump. The code is from
+# <https://github.com/sorin-ionescu/prezto/blob/c945922b2268ca1959a3ed29368b1c21a07950c1/runcoms/zlogin#L11-L17>.
+# See also: <https://github.com/sorin-ionescu/prezto/issues/2028>, <https://github.com/ohmyzsh/ohmyzsh/pull/11345>.
+if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc") ]]; then
+  if command mkdir -- "${zcompdump}.zwc.lock" 2>/dev/null; then
+    zcompile -R -- "$zcompdump"
+    command rmdir -- "${zcompdump}.zwc.lock" 2>/dev/null
+  fi
+fi
 
 if ! is_function _rustup && command_exists rustup; then
   lazy_load _rustup 'source <(rustup completions zsh)'

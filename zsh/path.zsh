@@ -27,7 +27,7 @@ path_prepend() {
 #
 # / - matches only directories
 
-if (( _is_macos )); then
+if [[ "$OSTYPE" == darwin* ]]; then
   # GNU counterparts of command line utilities
   path_prepend path /usr/local/opt/*/libexec/gnubin(N/)
   path_prepend manpath /usr/local/opt/*/libexec/gnuman(N/)
@@ -51,9 +51,7 @@ if (( _is_macos )); then
   # Use Python 3 executables by default, i.e. when a version suffix (`python3`)
   # is not specified.
   path_prepend path /usr/local/opt/python@3/libexec/bin
-fi
 
-if (( _is_macos )); then
   # Python packages (for some reason they don't go into ~/.local/bin, but
   # instead into the garbage ~/Library directory)
   path_prepend path ~/Library/Python/*/bin(N/)

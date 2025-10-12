@@ -14,7 +14,7 @@ setopt interactive_comments
 setopt extended_glob
 
 # enable support for multiple redirections in one command
-setopt multi_os
+setopt multios
 # disallow redirection to file (i.e. `>`) if the file already exists, this can
 # be overriden by using `>!` or `>|` redirection operators
 setopt no_clobber
