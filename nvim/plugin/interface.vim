@@ -568,15 +568,23 @@ EOF
     endfunction
   endif
 
-  augroup dotfiles_patch_highlights
-    autocmd!
+  let s:done_syntaxes = {}
+  function! s:on_syntax(name) abort
+    if !has_key(s:done_syntaxes, a:name)
+      try
+        call s:patch_highlights()
+      catch /^Vim\%((\a\+)\)\=:E12:/
+        " If the |'syntax'| option was set within a modeline, the |Syntax| event
+        " will still get triggered, but the autocommands for it will run within
+        " the |sandbox|, which causes stuff like |execute()| or |:highlight| to
+        " fail with |E12|. I don't have a good solution for that right now.
+      endtry
+      let s:done_syntaxes[a:name] = 1
+    endif
+  endfunction
 
+  function! s:on_colorscheme() abort
     let s:done_syntaxes = {}
-    autocmd Syntax *
-    \ if !has_key(s:done_syntaxes, expand('<amatch>'))
-    \|  call s:patch_highlights()
-    \|  let s:done_syntaxes[expand('<amatch>')] = 1
-    \|endif
 
     " The `Ignore` a built-in hlgroup that is used for concealed characters in
     " Vim Help files. In Nvim v0.10.0 it became linked to Normal in the C code:
@@ -584,9 +592,14 @@ EOF
     " I actually never knew this group even existed because it is always
     " concealed in the |:help| viewer, but this became a problem in Fzf-Lua's
     " |:Helptags| searcher.
-    autocmd VimEnter,Colorscheme *
-    \ let s:done_syntaxes = {}
-    \|hi! link Ignore NONE
-    \|call s:patch_highlights()
+    hi! link Ignore NONE
+
+    call s:patch_highlights()
+  endfunction
+
+  augroup dotfiles_patch_highlights
+    autocmd!
+    autocmd Syntax * call s:on_syntax(expand('<amatch>'))
+    autocmd Colorscheme,VimEnter * call s:on_colorscheme()
   augroup END
 endif

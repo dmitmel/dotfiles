@@ -10,12 +10,10 @@ local function scroll_page(distance)
       if #list.items == 0 or list.context == nil then
         return
       elseif list.selected_item_idx == nil then
-        return list.select(distance < 0 and #list.items or 1)
+        list.select(distance < 0 and #list.items or 1)
       else
         local page_size = require('blink.cmp.completion.windows.menu').win:get_height()
-        return list.select(
-          utils.clamp(list.selected_item_idx + page_size * distance, 1, #list.items)
-        )
+        list.select(utils.clamp(list.selected_item_idx + page_size * distance, 1, #list.items))
       end
     end)
     return true
@@ -100,7 +98,7 @@ local blink_cmp_config = {
   },
 
   sources = {
-    default = { 'lsp', 'path', 'snippets', 'buffer' },
+    default = { 'lsp', 'path', 'snippets', 'buffer', 'modelines' },
     per_filetype = {
       query = { 'omni', inherit_defaults = true },
     },
@@ -159,6 +157,11 @@ local blink_cmp_config = {
         opts = {
           show_hidden_files_by_default = true,
         },
+      },
+
+      modelines = {
+        name = 'modelines',
+        module = 'dotfiles.blink_cmp_modelines',
       },
     },
   },

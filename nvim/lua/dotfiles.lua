@@ -9,6 +9,8 @@ local M = require('dotfiles.autoload')('dotfiles', _G.dotfiles, {
   nvim_fzf_select = ..., ---@module 'dotfiles.nvim_fzf_select'
   augroup = ..., ---@module 'dotfiles.augroup'
   sane_indentline = ..., ---@module 'dotfiles.sane_indentline'
+  markdown = ..., ---@module 'dotfiles.markdown'
+  blink_cmp_modelines = ..., ---@module 'dotfiles.blink_cmp_modelines'
 })
 _G.dotfiles = M
 
