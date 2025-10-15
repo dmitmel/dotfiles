@@ -86,12 +86,12 @@
   }
 
   # This function parses "TLDR pages" for snippets using AWK. Fortunately, all
-  # "TLDR pages" files are use the same Markdown-like syntax so they're very easy
+  # "TLDR pages" files use the same Markdown-like syntax so they're very easy
   # to parse.
   _palette_parse_tldr_pages() {
     # I chose to use AWK here because it was designed specifically for text
-    # processing and includes all basic utilities that I need here.
-    awk '
+    # processing and includes all the basic utilities that I need here.
+    find "$PALETTE_TLDR_PAGES_DIR" -type f -name '*.md' -exec awk '
       # when we find a "description" line...
       match($0, /^- (.+):$/, match_groups) {
         # ...get actual description from it...
@@ -105,18 +105,20 @@
         # PALETTE_SNIPPET_COMMENT, and with some colors!
         printf "%s\x1b[90m'"$PALETTE_SNIPPET_COMMENT"'%s\x1b[0m\n", command, description
       }
-    ' "$PALETTE_TLDR_PAGES_DIR"/**/*.md
+    ' {} +
   }
 
   # This function downloads the "TLDR pages"
   _palette_download_tldr_pages() {
-    mkdir -pv "$PALETTE_TLDR_PAGES_DIR"
+    mkdir -pv -- "$PALETTE_TLDR_PAGES_DIR"
     print -r -- "Downloading tldr pages..."
 
-    if curl -Lf https://github.com/tldr-pages/tldr/archive/master.tar.gz |
-      tar -C "$PALETTE_TLDR_PAGES_DIR" --gzip --strip-components 2 --extract tldr-master/pages
+    if curl -Lf https://github.com/tldr-pages/tldr/archive/refs/heads/main.tar.gz |
+      tar -C "$PALETTE_TLDR_PAGES_DIR" --gzip --strip-components 2 --extract tldr-main/pages
     then
       print -r -- "Done!"
+    else
+      rmdir -v -- "$PALETTE_TLDR_PAGES_DIR"
     fi
   }
 
