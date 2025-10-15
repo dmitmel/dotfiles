@@ -44,11 +44,13 @@ _plugin completions 'zsh-users/zsh-completions'
 
 # }}}
 
-# _plugin fzf 'junegunn/fzf' \
-#   build='plugin-cfg-git-checkout-version "*"' \
-#   build='./install --bin' \
-#   after_load='plugin-cfg-path path prepend bin' \
-#   after_load='plugin-cfg-path manpath prepend man'
+if [[ -n "${DOTFILES_INSTALL_FZF}" ]]; then
+  _plugin fzf 'junegunn/fzf' \
+    build='plugin-cfg-git-checkout-version "*"' \
+    build='./install --bin' \
+    after_load='plugin-cfg-path path prepend bin' \
+    after_load='plugin-cfg-path manpath prepend man'
+fi
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
