@@ -163,6 +163,7 @@ if dotplug.has('fzf-lua') then
       previewer = 'man_native',
       -- The width of the preview window is specified in columns here.
       winopts = { preview = { horizontal = 'right:border-left:80' } },
+      fzf_opts = { ['--tiebreak'] = 'begin,chunk' },
     },
 
     lsp = {

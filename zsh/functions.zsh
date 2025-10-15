@@ -260,7 +260,7 @@ d() {
 
 fzf-man() {
   local selected
-  if selected="$(man -k . | fzf --tiebreak=begin --query="$*")"; then
+  if selected="$(man -k . | fzf --tiebreak=begin,chunk --query="$*")"; then
     if [[ $selected =~ '^[[:space:]]*([^[:space:]]+)[[:space:]]*\(([[:alnum:]]+)\)' ]]; then
       printf "%s %s\n" "${match[2]} ${match[1]}"
       return 0

@@ -134,7 +134,7 @@ function! dotfiles#fzf#manpage_search(fullscreen) abort
   let results = fzf#run(fzf#wrap('manpages', {
   \ 'source': 'man -k . | perl -n ' . fzf#shellescape(s:manpages_script),
   \ 'sink*': function('s:manpage_search_sink'),
-  \ 'options': ['--ansi', '--prompt=:Man ', '--tiebreak=begin', '--multi',
+  \ 'options': ['--ansi', '--prompt=:Man ', '--tiebreak=begin,chunk', '--multi',
   \   '--expect=' . join(keys(g:dotfiles#fzf#manpage_search_actions), ',')],
   \ }, a:fullscreen))
   return results

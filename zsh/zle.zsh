@@ -61,7 +61,7 @@
     # try to fill in a placeholder if there're any, otherwise pick a snippet
     if ! _palette_fill_in_placeholder; then
       local selected
-      if selected="$(_palette_parse_tldr_pages | fzf --ansi)"
+      if selected="$(_palette_parse_tldr_pages | fzf --ansi --tiebreak=begin,chunk)"
       then
         # paste selected snippet without its description
         zle -U "${selected%%$PALETTE_SNIPPET_COMMENT*}"
