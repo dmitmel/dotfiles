@@ -37,6 +37,7 @@ ignore = [
   "E731",     # use `def` instead of assigning `lambda` to a variable
   "B009",     # `getattr()` with a constant string
   "B010",     # `setattr()` with a constant string
+  "PLC0415",  # `import` should be at the top level
 ]
 
 [lint.flake8-quotes]
