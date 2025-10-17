@@ -59,7 +59,8 @@ zcompdump="${ZSH_CACHE_DIR}/zcompdump"
 #   m+0  check if the file was modified more than a day ago
 # see "Filename Generation" in zshexpn(1).
 for stale in "$zcompdump"(N.m+0); do
-  command rm -v -- "$stale"
+  print >&2 -r -- "deleting stale completion dump at ${(qq)stale}"
+  command rm -- "$stale"
 done; unset stale
 
 if is_function compdef; then

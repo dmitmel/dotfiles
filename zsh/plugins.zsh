@@ -11,7 +11,11 @@ _plugin completions 'zsh-users/zsh-completions'
 # Oh My Zsh {{{
 
   omz_features=(key-bindings termsupport)
-  omz_plugins=(git command-not-found)
+  omz_plugins=(git)
+
+  if ! is_function command_not_found_handler; then
+    omz_plugins+=(command-not-found)
+  fi
 
   _plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
     load='lib/'${^omz_features}'.zsh' \
@@ -40,7 +44,7 @@ _plugin completions 'zsh-users/zsh-completions'
     rm -f "$match"
   done; unset match
 
-  _plugin zsh-z 'agkozak/zsh-z'
+  _plugin zsh-z 'agkozak/zsh-z' build='zcompile -R zsh-z.plugin.zsh'
 
 # }}}
 
@@ -54,8 +58,17 @@ fi
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting'
-  set-my-syntax-theme() { fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"; }
+  # The first glob (the complicated-looking one) finds all files in the root
+  # directory without an extension after their name, excluding `LICENSE` and
+  # `.gitignore`. Additionally, Zsh is unable to write the compiled `zwc` files
+  # without `cd`ing into the `→chroma` directory first. Unicode problems, yay!
+  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
+    build='(for f in (^?*.*)~LICENSE~.gitignore(.D) **/*.zsh; zcompile -R -- "$f")' \
+    build='(cd -- →chroma; for f in *.ch; zcompile -R -- "$f")'
+
+  set-my-syntax-theme() {
+    fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"
+  }
   if [[ "$FAST_THEME_NAME" != "my-syntax-theme" && -z "$DOTFILES_DISABLE_MY_SYNTAX_THEME" ]]; then
     set-my-syntax-theme
   fi

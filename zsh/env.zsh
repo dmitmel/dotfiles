@@ -18,8 +18,19 @@ export CLICOLOR=1
 # BSD ls colors
 export LSCOLORS="Gxfxcxdxbxegedabagacad"
 # GNU ls colors
-if [[ -z "$LS_COLORS" ]] && command_exists dircolors; then
-  eval "$(dircolors --bourne-shell)"
+if is_command dircolors; then
+  # While not being a particularly complex task, executing `dircolors` still
+  # requires forking to an external binary to essentially just get an unchanging
+  # string of code to `eval`, and this is noticeable on systems where disk I/O
+  # is expensive. Hence, it is better to cache the piece of code produced by
+  # `dircolors` and regenerate it only when its binary gets updated together
+  # with the rest of coreutils.
+  cached_dircolors="${ZSH_CACHE_DIR}/dircolors.sh"
+  if [[ ! -s "$cached_dircolors" || "${commands[dircolors]}" -nt "$cached_dircolors" ]]; then
+    dircolors --bourne-shell > "$cached_dircolors"
+  fi
+  source "$cached_dircolors"
+  unset cached_dircolors
 fi
 
 # see COLORS in jq(1)
