@@ -33,8 +33,8 @@ let g:do_filetype_lua = has('nvim-0.7.0')
 " <https://github.com/vim/vim/issues/2286>
 if has('nvim-0.9')
   let g:editorconfig = v:true
-elseif !has('nvim')
-  packadd editorconfig
+elseif !has('nvim') && !empty(globpath(&packpath, 'pack/*/opt/editorconfig'))
+  packadd! editorconfig
 endif
 
 if has('nvim-0.11.3')

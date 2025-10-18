@@ -461,9 +461,12 @@ endif
 
   function! s:fix_terminal_window() abort
     setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no
-    " `virtualedit` used to be a global-only option
-    if has('patch-8.2.3227') || has('nvim-0.7.0') | setlocal virtualedit=none | endif
-    if dotplug#has('indentLine') | IndentLinesDisable | endif
+    if has('patch-8.2.3227') || has('nvim-0.7.0')  " `virtualedit` used to be a global-only option
+      setlocal virtualedit=none
+    endif
+    if dotplug#has('indentLine')
+      IndentLinesDisable
+    endif
   endfunction
 
   augroup dotfiles_terminal
@@ -487,7 +490,7 @@ endif
       autocmd TermClose * tmap <buffer> <CR>  <SID>close
       autocmd TermClose * tmap <buffer> <Esc> <SID>close
       autocmd TermClose * tmap <buffer> <BS>  <SID>close
-    elseif has('terminal')
+    elseif exists('##TerminalWinOpen')
       autocmd TerminalWinOpen * call s:fix_terminal_window()
     endif
   augroup END
