@@ -27,7 +27,7 @@ if is_command dircolors; then
   # with the rest of coreutils.
   cached_dircolors="${ZSH_CACHE_DIR}/dircolors.sh"
   if [[ ! -s "$cached_dircolors" || "${commands[dircolors]}" -nt "$cached_dircolors" ]]; then
-    dircolors --bourne-shell > "$cached_dircolors"
+    dircolors --bourne-shell >| "$cached_dircolors"
   fi
   source "$cached_dircolors"
   unset cached_dircolors

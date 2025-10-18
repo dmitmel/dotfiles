@@ -58,12 +58,11 @@ fi
 
 FAST_WORK_DIR="$ZSH_CACHE_DIR"
 if [[ "$TERM" != "linux" ]]; then
-  # The first glob (the complicated-looking one) finds all files in the root
-  # directory without an extension after their name, excluding `LICENSE` and
-  # `.gitignore`. Additionally, Zsh is unable to write the compiled `zwc` files
-  # without `cd`ing into the `→chroma` directory first. Unicode problems, yay!
+  # `*.ch` files are compiled in an extra step because Zsh is unable to write
+  # the compiled `zwc` files without `cd`ing into the `→chroma` directory first.
+  # Unicode problems in 2025, yay!
   _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
-    build='(for f in (^?*.*)~LICENSE~.gitignore(.D) **/*.zsh; zcompile -R -- "$f")' \
+    build='(for f in fast* .fast* **/*.zsh; zcompile -R -- "$f")' \
     build='(cd -- →chroma; for f in *.ch; zcompile -R -- "$f")'
 
   set-my-syntax-theme() {
