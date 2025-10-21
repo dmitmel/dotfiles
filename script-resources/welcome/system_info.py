@@ -1,3 +1,4 @@
+import itertools
 import os
 import platform
 import socket
@@ -93,9 +94,7 @@ def _get_users() -> str:
 
   result: List[str] = []
 
-  for name in users:
-    terminals = users[name]
-
+  for name, terminals in users.items():
     colored_name = bright_colored(name, Fore.BLUE)
     colored_terminals = [colored(str(term), Style.DIM, Fore.WHITE) for term in terminals]
 
@@ -132,18 +131,22 @@ def _get_memory() -> Tuple[str, str, str]:
 
 def _get_disks() -> List[Tuple[str, str, str, str]]:
   try:
-    disks = psutil.disk_partitions(all=False)
+    partitions = psutil.disk_partitions(all=False)
   except Exception as e:
     print("Error in _get_disks:", e)
     return []
 
   result: List[Tuple[str, str, str, str]] = []
 
-  for disk in disks:
+  # NOTE: groupby() creates groups of *consecutive* entries with the same key
+  for _, partitions_by_disk in itertools.groupby(partitions, lambda part: part.device):
+    # Linux can report many partitions with the same underlying device for file
+    # systems such as btrfs, for which we just pick the first mounted partition
+    # in the list and print out its metadata.
+    disk = next(partitions_by_disk)
     if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
-      # skip cd-rom drives with no disk in it on Windows; they may raise
-      # ENOENT, pop-up a Windows GUI error for a non-ready partition or
-      # just hang
+      # skip cd-rom drives with no disk in it on Windows; they may raise ENOENT,
+      # pop-up a Windows GUI error for a non-ready partition or just hang
       continue
     elif psutil.LINUX and (
       disk.mountpoint.startswith("/snap/") or disk.mountpoint.startswith("/var/snap/")
