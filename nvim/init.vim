@@ -71,7 +71,11 @@ if s:osv_port != 0 && has('nvim') && isdirectory(s:osv_dir)
   call luaeval('vim.opt.runtimepath:remove(_A)', s:osv_dir)
 endif
 
-if has('termguicolors')
+" Since v0.10.0, Neovim does automatic detection of 24-bit color support in the
+" terminal by querying its capabilities. In other cases, such as in older
+" versions of Nvim or in regular Vim, I only do a very rudimentary check as
+" described here: <https://github.com/termstandard/colors#truecolor-detection>.
+if has('termguicolors') && !has('nvim-0.10.0') && ($COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
   set termguicolors
 endif
 
