@@ -3,14 +3,29 @@ local M, module = require('dotfiles.autoload')('dotfiles.lsp_extras', {})
 local lsp = require('vim.lsp')
 local utils = require('dotfiles.utils')
 
----@param client_id integer
+---@param format string
+---@param client_ids (integer|vim.lsp.Client)[]|integer|vim.lsp.Client
+function M.format_lsp_message(format, client_ids, ...)
+  ---@cast client_ids any
+  if not utils.is_list(client_ids) then client_ids = { client_ids } end
+  local names = {}
+  for i, id in ipairs(client_ids) do
+    local client = type(id) ~= 'table' and lsp.get_client_by_id(id) or id
+    names[i] = client and client.name or ('id=' .. id)
+  end
+  if utils.is_empty(names) then
+    return string.format(format, 'LSP', ...)
+  else
+    return string.format(format, 'LSP[' .. table.concat(names, ',') .. ']', ...)
+  end
+end
+
+---@param client_ids integer|integer[]
 ---@param message string
 ---@param level? vim.log.levels
 ---@param opts? table
-function M.client_notify(client_id, message, level, opts)
-  local client = lsp.get_client_by_id(client_id)
-  local client_name = client and client.name or ('id=' .. client_id)
-  vim.notify(('LSP[%s]: %s'):format(client_name, message), level, opts)
+function M.client_notify(client_ids, message, level, opts)
+  vim.notify(M.format_lsp_message('%s: %s', client_ids, message), level, opts)
   vim.cmd('redraw')
 end
 
@@ -44,7 +59,10 @@ M.CURSOR_MOVE_EVENTS = {
 ---@param bufnr integer
 ---@param method vim.lsp.protocol.Method
 ---@param params? table | fun(client: vim.lsp.Client, bufnr: integer): table?
----@param handler fun(errors: table<integer, lsp.ResponseError>, results: table<integer, any>, context: lsp.HandlerContext, config?: table): ...
+---@param handler fun(errors: table<integer, lsp.ResponseError>,
+---                   results: table<integer, any>,
+---                   all_client_ids: integer[],
+---                   context: lsp.HandlerContext, config?: table): ...
 function M.cancellable_request(bufnr, method, params, handler)
   local augroup = utils.augroup(module.name .. '.cancellable_request', { clear = false })
   -- This will cancel any other requests that were already in progress.
@@ -63,8 +81,10 @@ function M.cancellable_request(bufnr, method, params, handler)
 
     local errors = {} ---@type table<integer, lsp.ResponseError>
     local results = {} ---@type table<integer, any>
+    local all_client_ids = {} ---@type integer[]
 
     for client_id, r in pairs(responses) do
+      table.insert(all_client_ids, client_id)
       if r.err then
         errors[client_id] = r.err
         lsp.log.error(module.name, method, r.err)
@@ -74,7 +94,7 @@ function M.cancellable_request(bufnr, method, params, handler)
       end
     end
 
-    return handler(errors, results, ...)
+    return handler(errors, results, all_client_ids, ...)
   end)
 
   autocmd_id = augroup:autocmd(M.CURSOR_MOVE_EVENTS, function()
@@ -111,21 +131,26 @@ function M.jump(method, list_type, opts)
   end
 
   ---@param results table<integer, lsp.Location|lsp.Location[]|lsp.LocationLink[]>
-  M.cancellable_request(0, method, make_params, function(_, results)
+  M.cancellable_request(0, method, make_params, function(_, results, all_clients)
     local items = {} ---@type vim.quickfix.entry[]
-    local clients = {} ---@type vim.lsp.Client[]
+    local clients_with_results = {} ---@type vim.lsp.Client[]
     for client_id, result in pairs(results) do
       local client = assert(lsp.get_client_by_id(client_id))
       local locations = not utils.is_list(result) and { result } or result
-      vim.list_extend(items, lsp.util.locations_to_items(locations, client.offset_encoding))
-      table.insert(clients, client)
+      local client_items = lsp.util.locations_to_items(locations, client.offset_encoding)
+      vim.list_extend(items, client_items)
+      if #client_items > 0 then table.insert(clients_with_results, client) end
     end
 
     if #items == 0 then
-      vim.notify(
-        ('%s: no %s found: %s'):format(module.name, list_type, symbol),
-        vim.log.levels.WARN
+      local renderer = require('dotfiles.markdown').renderer.new()
+      renderer:push_text_with_hl(
+        M.format_lsp_message('%s: no %s found', all_clients, list_type),
+        'WarningMsg'
       )
+      local float_opts = M.info_floating_preview_opts()
+      float_opts.focusable = false
+      M.open_markdown_floating_preview(renderer, float_opts)
       return
     end
 
@@ -151,13 +176,20 @@ function M.jump(method, list_type, opts)
 
     vim.api.nvim_set_current_win(current_win)
     vim.cmd('lclose')
-    if #items == 1 and #clients == 1 then
+    if #items == 1 and #clients_with_results == 1 then
       local location = items[1].user_data --[[@as lsp.Location | lsp.LocationLink]]
-      lsp.util.show_document(location, clients[1].offset_encoding, { focus = true })
+      lsp.util.show_document(location, clients_with_results[1].offset_encoding, { focus = true })
       vim.cmd('normal! zz')
     else
       vim.fn.setloclist(current_win, {}, ' ', {
-        title = ("[LSP] %s of '%s' from %s:%d"):format(list_type, symbol, short_path, line),
+        title = M.format_lsp_message(
+          "%s %s of '%s' from %s:%d",
+          clients_with_results,
+          list_type,
+          symbol,
+          short_path,
+          line
+        ),
         items = items,
         idx = current_index,
       })
@@ -263,7 +295,7 @@ function M.hover(opts)
   end
 
   ---@param results table<integer, lsp.Hover>
-  M.cancellable_request(src_buf, 'textDocument/hover', make_params, function(_, results)
+  M.cancellable_request(src_buf, 'textDocument/hover', make_params, function(_, results, clients)
     local highlight_ids = {} ---@type integer[]
 
     for client_id, hover in pairs(results) do
@@ -325,39 +357,67 @@ function M.hover(opts)
       if opts.silent then
         return
       else
-        renderer:push_text_with_hl('LSP: no information available', 'WarningMsg')
+        renderer:push_text_with_hl(
+          M.format_lsp_message('%s: no information available', clients),
+          'WarningMsg'
+        )
       end
     end
 
     opts.focus = false
-    local syntax = '' -- I am doing the highlighting myself
-    local float_buf, float_win = lsp.util.open_floating_preview(renderer:get_lines(), syntax, opts)
+    local float_buf, float_win = M.open_markdown_floating_preview(renderer, opts)
 
     allowed_bufs[float_buf] = true
     autocmd_ids[#autocmd_ids + 1] =
       augroup:autocmd('WinClosed', tostring(float_win), clear_highlights, { once = true })
-
-    local wo = vim.wo[float_win]
-    wo.wrap = true
-    wo.linebreak = true
-    wo.breakindent = true
-    wo.showbreak = 'NONE'
-    wo.smoothscroll = true
-    wo.virtualedit = 'none'
-    wo.winfixbuf = true
-    wo.foldenable = false
-    wo.spell = false
-    wo.conceallevel = 0
-
-    -- Add some pager-like mappings. `d` and `u` are normally used for editing
-    -- text, so they are perfect for remapping. `<nowait>` is necessary because
-    -- vim-surround maps `ds`.
-    vim.keymap.set('n', 'd', '<C-d>', { buffer = float_buf, nowait = true })
-    vim.keymap.set('n', 'u', '<C-u>', { buffer = float_buf })
-
-    renderer:highlight_markdown(float_buf, vim.api.nvim_win_get_width(float_win))
-    if utils.is_truthy(vim.g.syntax_on) then renderer:highlight_code_blocks(float_buf) end
   end)
+end
+
+--- Returns an options table for `vim.lsp.open_floating_preview()` with a common
+--- preset for creating informational popups across my dotfiles. This table
+--- can't be a constant, it has to instantiated anew every time because the
+--- functions in Neovim's Lua library mutate the contents of the given options
+--- table in the process of creating a popup.
+function M.info_floating_preview_opts()
+  return {
+    offset_x = -1,
+    max_width = 80,
+    max_height = 24,
+    border = utils.border_styles.hpad,
+  }
+end
+
+---@param renderer dotfiles.markdown.renderer
+---@param opts vim.lsp.util.open_floating_preview.Opts
+---@return integer bufnr
+---@return integer winid
+function M.open_markdown_floating_preview(renderer, opts)
+  opts.focus = false
+  local syntax = '' -- I am doing the highlighting myself
+  local bufnr, winid = lsp.util.open_floating_preview(renderer:get_lines(), syntax, opts)
+
+  local wo = vim.wo[winid]
+  wo.wrap = true
+  wo.linebreak = true
+  wo.breakindent = true
+  wo.showbreak = 'NONE'
+  wo.smoothscroll = true
+  wo.virtualedit = 'none'
+  wo.winfixbuf = true
+  wo.foldenable = false
+  wo.spell = false
+  wo.conceallevel = 0
+
+  -- Add some pager-like mappings. `d` and `u` are normally used for editing
+  -- text, so they are perfect for remapping. `<nowait>` is necessary because
+  -- vim-surround maps `ds`.
+  vim.keymap.set('n', 'd', '<C-d>', { buffer = bufnr, nowait = true })
+  vim.keymap.set('n', 'u', '<C-u>', { buffer = bufnr })
+
+  renderer:highlight_markdown(bufnr, vim.api.nvim_win_get_width(winid))
+  if utils.is_truthy(vim.g.syntax_on) then renderer:highlight_code_blocks(bufnr) end
+
+  return bufnr, winid
 end
 
 ---@param winid integer
@@ -365,7 +425,7 @@ end
 ---@param finish [integer,integer]
 ---@param hlgroup string
 ---@param priority integer
----@return integer match_id
+---@return integer|nil match_id
 function M.highlight_range(winid, start, finish, hlgroup, priority)
   local positions = {}
 
@@ -378,7 +438,8 @@ function M.highlight_range(winid, start, finish, hlgroup, priority)
     end
   end
 
-  return vim.fn.matchaddpos(hlgroup, positions, priority, -1, { window = winid } --[[@as any]])
+  local id = vim.fn.matchaddpos(hlgroup, positions, priority, -1, { window = winid } --[[@as any]])
+  return id > 0 and id or nil -- matchaddpos() returns -1 on error, convert that to `nil`
 end
 
 --- Based on <https://github.com/neovim/neovim/blob/v0.11.3/runtime/lua/vim/lsp/util.lua#L2135-L2167>.

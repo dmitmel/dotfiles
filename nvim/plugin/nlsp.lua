@@ -142,24 +142,13 @@ map({ 'n', 'x' }, '<space>f', function() --
   lsp_format({ async = false })
 end, { desc = 'lsp.buf.format()' })
 
--- A new table with floating options has to be created every time because the
--- functions that will be using it mutate its contents.
-local function floating_preview_opts()
-  return {
-    offset_x = -1,
-    max_width = 80,
-    max_height = 24,
-    border = utils.border_styles.hpad,
-  }
-end
-
 map('n', '<F2>', lsp.buf.rename, { desc = 'lsp.buf.rename()' })
 map({ 'n', 'x' }, '<A-CR>', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
 map({ 'n', 'x' }, '<space>a', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
-local function signature_help() lsp.buf.signature_help(floating_preview_opts()) end
+local function signature_help() lsp.buf.signature_help(lsp_extras.info_floating_preview_opts()) end
 map('n', '<space>s', signature_help, { desc = 'lsp.buf.signature_help()' })
 map('i', '<F1>', signature_help, { desc = 'lsp.buf.signature_help()' })
-map('n', '<space>K', function() lsp_extras.hover(floating_preview_opts()) end, {
+map('n', '<space>K', function() lsp_extras.hover(lsp_extras.info_floating_preview_opts()) end, {
   desc = 'lsp.buf.hover()',
 })
 
@@ -171,7 +160,7 @@ map('n', '<A-d>', function()
   if float_win then
     vim.api.nvim_win_call(float_win, function()
       -- Right now this is the easiest way of modifying `winhl`. Change my mind.
-      vim.cmd('setlocal winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder')
+      vim.cmd('set winhl+=NormalFloat:DiagnosticFloat,FloatBorder:DiagnosticFloatBorder')
     end)
   end
 end, { desc = 'vim.diagnostic.open_float()' })
