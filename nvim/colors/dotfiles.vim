@@ -141,13 +141,14 @@ function! s:setup() " NOTE: not abort
     " This group is used to reset highlighting in places like string interpolation.
     call Hi('@none', { 'fg': fg })
 
-    hi! link @variable                @none
-    hi! link @variable.builtin        Special
-    hi! link @variable.member         Variable
-    hi! link @variable.parameter      Variable
-    hi! link @variable.declaration    Variable
-    hi! link @variable.cmake          Variable
-    hi! link @variable.parameter.bash @none
+    hi! link @variable                  @none
+    hi! link @variable.builtin          Special
+    hi! link @variable.member           Variable
+    hi! link @variable.parameter        Variable
+    hi! link @variable.declaration      Variable
+    hi! link @variable.cmake            Variable
+    hi! link @variable.parameter.bash   @none
+    hi! link @variable.parameter.vimdoc Special
 
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
@@ -609,21 +610,23 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Vim scripts {{{
-  hi! link vimUserFunc      vimFuncName
-  hi! link vimBracket       vimMapModKey
-  hi! link vimFunction      vimFuncName
-  hi! link vimParenSep      Delimiter
-  hi! link vimSep           Delimiter
-  hi! link vimVar           Variable
-  hi! link vimFuncVar       Variable
-  hi! link vimScriptDelim   Special
-  hi! link vimSynType       vimCommand
-  hi! link vimSynOption     vimVar
-  hi! link vimSynReg        vimSynOption
-  hi! link vimSynKeyRegion  vimString
-  hi! link vimSyncLines     vimSynOption
-  hi! link vimCommentString vimComment
-  hi! link vimGroupName     vimGroup
+  hi! link vimUserFunc       vimFuncName
+  hi! link vimBracket        vimMapModKey
+  hi! link vimFunction       vimFuncName
+  hi! link vimParenSep       Delimiter
+  hi! link vimSep            Delimiter
+  hi! link vimVar            Variable
+  hi! link vimFuncVar        Variable
+  hi! link vimScriptDelim    Special
+  hi! link vimSynType        vimCommand
+  hi! link vimSynOption      vimVar
+  hi! link vimSynReg         vimSynOption
+  hi! link vimSynKeyRegion   vimString
+  hi! link vimSyncLines      vimSynOption
+  hi! link vimCommentString  vimComment
+  hi! link vimGroupName      vimGroup
+  hi! link vimLambdaOperator Keyword
+  hi! link vimVimVar         Special
   " }}}
 
   " C {{{
@@ -710,6 +713,7 @@ function! s:setup() " NOTE: not abort
   hi! link jsxTagName          xmlTagName
   hi! link jsxAttrib           xmlAttrib
   hi! link jsFuncArgs          Variable
+  hi! link jsFuncArgOperator   Operator
   hi! link jsVariableDef       Variable
   hi! link jsDocParam          Identifier
   " }}}
@@ -791,7 +795,7 @@ function! s:setup() " NOTE: not abort
   hi! link pythonBuiltinObj  pythonFunction
   hi! link pythonClassVar    Variable
   hi! link pythonStrTemplate PreProc
-  hi! link pythonStrFormat PreProc
+  hi! link pythonStrFormat   PreProc
   " }}}
 
   " Ruby {{{

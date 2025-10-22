@@ -25,7 +25,7 @@
 # <https://git-scm.com/docs/git-config#Documentation/git-config.txt-colordiffslot>
 [color "diff"]
   meta = yellow
-  frag = magenta bold
+  frag = blue bold
   commit = yellow bold
   old = red bold
   new = green bold

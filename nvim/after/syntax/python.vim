@@ -17,6 +17,7 @@ syn region pythonSqlString start=/\v\C\z("""|''')\zs\_s*<(sql|SQL|SELECT|INSERT|
 
 syn keyword pythonOperatorKeyword and in is not or
 hi def link pythonOperatorKeyword Keyword
+syn cluster pythonExpression add=pythonOperatorKeyword
 
 if hlexists('pythonTodo')
   syn clear pythonTodo
