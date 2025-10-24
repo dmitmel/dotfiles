@@ -87,7 +87,7 @@ function! dotfiles#ranger#run(ranger_args) abort
     setlocal nobuflisted
     startinsert
   elseif has('terminal')
-    let self.terminal_buf = term_start(cmd, { 'curwin': 1, 'exit_cb': function(self.on_exit) })
+    let self.terminal_buf = term_start(cmd, { 'curwin': 1, 'exit_cb': self.on_exit })
     call setbufvar(self.terminal_buf, '&buflisted', 0)
   else
     " Regular Vim executes commands in the TTY, so this will work just fine. The

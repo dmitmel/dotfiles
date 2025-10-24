@@ -242,7 +242,8 @@ endfunction
 
 function! dotutils#is_terminal_running(buf) abort
   if has('nvim')
-    return jobwait([getbufvar(a:buf, '&channel')], 0)[0] == -1
+    let job = getbufvar(a:buf, exists('&channel') ? '&channel' : 'terminal_job_id', 0)
+    return jobwait([job], 0)[0] == -1
   elseif has('terminal')
     return term_getstatus(a:buf) =~# '\<running\>'
   else

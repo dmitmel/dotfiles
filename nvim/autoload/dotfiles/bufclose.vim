@@ -3,9 +3,8 @@ let s:CLOSE_NORMALLY = 1
 let s:CLOSE_FORCIBLY = 2
 
 function! s:error(str) abort
-  " Hopefully this will be enough to escape all of the special characters in
-  " double-quoted Vim strings...
-  return 'echoerr ' . json_encode(a:str)
+  let v:errmsg = a:str
+  return 'echoerr v:errmsg'
 endfunction
 
 function! s:gettext(str) abort
@@ -53,40 +52,19 @@ function! dotfiles#bufclose#cmd(cmd, name) abort
   " the deletion ourselves. Therefore, change its value to `hide` such that the
   " buffer will stay loaded when it becomes completely hidden, and act out on
   " the previous setting of |bufhidden| afterwards.
-
   let prev_bufhidden = getbufvar(buf_to_close, '&bufhidden', '')
   call setbufvar(buf_to_close, '&bufhidden', 'hide')
 
-  call dotfiles#bufclose#hide(buf_to_close)
-
-  if !empty(win_findbuf(buf_to_close))
-    " Exit without doing anything if the buffer is still displayed in some
-    " window. This may happen, for example, if |:enew| chose to reuse an empty
-    " buffer.
-    return ''
-  elseif prev_bufhidden ==# 'wipe'
-    return 'bwipeout' . bang . ' ' . buf_to_close
-  elseif prev_bufhidden ==# 'delete'
-    return 'bdelete' . bang . ' ' . buf_to_close
-  else
-    return a:cmd . bang . ' ' . buf_to_close
-  endif
-endfunction
-
-" Hides the given buffer in every window where it is visible by switching to a
-" different buffer or creating a new empty one. This function is exported
-" publicly for use by my other scripts.
-function! dotfiles#bufclose#hide(buf) abort
   let original_winid = win_getid()
 
-  for winid in win_findbuf(a:buf)
+  for winid in win_findbuf(buf_to_close)
     if win_getid() != winid
       " |win_gotoid()| calls are guarded by an `if` because otherwise regular
       " Vim shows that we are in the PROMPT mode when this function finishes.
       call win_gotoid(winid)
     endif
 
-    if buflisted(bufnr('#')) && bufnr('#') != a:buf
+    if buflisted(bufnr('#')) && bufnr('#') != buf_to_close
       buffer #
     else
       try
@@ -95,7 +73,7 @@ function! dotfiles#bufclose#hide(buf) abort
       endtry
     endif
 
-    if bufnr('%') == a:buf
+    if bufnr('%') == buf_to_close
       " Could not find another buffer to switch to? Create a new, empty one.
       " Beware, though, that if the buffer was already empty, `enew` will just
       " re-use it instead of creating a new one! See |buffer-reuse|.
@@ -111,6 +89,18 @@ function! dotfiles#bufclose#hide(buf) abort
   if win_getid() != original_winid
     call win_gotoid(original_winid)
   endif
+
+  if !empty(win_findbuf(buf_to_close))
+    " Exit without doing anything if the buffer is still displayed in some window.
+    " This may happen, for instance, if |:enew| chose to reuse an empty buffer.
+    return ''
+  elseif prev_bufhidden ==# 'wipe'
+    return 'bwipeout' . bang . ' ' . buf_to_close
+  elseif prev_bufhidden ==# 'delete'
+    return 'bdelete' . bang . ' ' . buf_to_close
+  else
+    return a:cmd . bang . ' ' . buf_to_close
+  endif
 endfunction
 
 " Replicates the logic in <https://github.com/neovim/neovim/blob/v0.11.1/src/nvim/buffer.c#L1331-L1360>
@@ -118,7 +108,8 @@ function! s:check_close_preconditions(buf) abort
   let name = bufname(a:buf)
 
   if getbufvar(a:buf, '&buftype', '') ==# 'terminal'
-    if !dotutils#is_terminal_running(a:buf)
+    " <https://github.com/neovim/neovim/commit/55defa1a41baac65cd32dc499b330af9751d6c5b>
+    if !dotutils#is_terminal_running(a:buf) && has('nvim-0.6.0')
       return s:CLOSE_NORMALLY
     endif
     if &confirm

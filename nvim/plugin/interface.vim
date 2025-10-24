@@ -131,23 +131,28 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bdelete  exe dotfiles#bufclose#cmd('bdelete<bang>',  <q-args>)
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
-  function! s:close_buffer() abort
+  function! s:close_buffer(b) abort
     if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' ||
     \  &previewwindow || dotutils#is_floating_window(0)
-      close
+      return 'close'
+    elseif &buftype ==# 'terminal'
+      " Always wipe out the terminal buffers, so that they don't show up in the
+      " jump history, and close the stopped ones with `:bwipeout!`.
+      return a:b . (dotutils#is_terminal_running('%') ? 'wipeout' : 'wipeout!')
     else
-      " NOTE: Don't use :Bwipeout, it breaks quickfix/loclists! When these lists
-      " are initialized, they also create (but not load) buffers for all files
-      " referenced by the list, and <CR> in a quickfix list expects the
-      " corresponding buffer to already exist. Jumping to a list entry whose
-      " buffer was wiped out fails with |E92|.
-      Bdelete
+      " NOTE: Don't use `:bwipeout` for closing normal buffers, it breaks
+      " quickfix/loclists! When these lists are initialized, they also create
+      " (but not load) buffers for all files referenced in the list, and <CR> in
+      " a quickfix list expects the corresponding buffer to already exist.
+      " Jumping to a list entry whose buffer has been wiped out fails with |E92|.
+      return a:b . 'delete'
     endif
   endfunction
 
-  nnoremap <silent> <BS> :<C-u>call <SID>close_buffer()<CR>
-  " Delete the buffer, but also close the window (that is, if it's not the last one).
-  nnoremap <silent> <Del> :<C-u>bdelete<CR>
+  " Delete the buffer without closing any windows.
+  nnoremap <silent> <BS>  :<C-u>execute <SID>close_buffer('B')<CR>
+  " Delete the buffer, but also close the window (that is, if it is not the last one).
+  nnoremap <silent> <Del> :<C-u>execute <SID>close_buffer('b')<CR>
 
   augroup dotfiles_special_buffers
     autocmd!
@@ -200,7 +205,7 @@ set history=10000
   nnoremap <A-t> :<C-u>tabclose<CR>
 
   function! s:close_floating_popup(rhs) abort
-    if dotutils#is_floating_window(0)
+    if dotutils#is_floating_window(0) && !exists('w:fzf_lua_preview')
       return "\<C-w>c"
     elseif exists('b:lsp_floating_preview') && nvim_win_is_valid(b:lsp_floating_preview)
       " Can't close a window within an |<expr>| mapping because of textlock.
@@ -449,7 +454,7 @@ function! s:run_file() abort
   endif
 endfunction
 command! -bar -nargs=* Run execute s:run_file() . (!empty(<q-args>) ? ' ' : '') . <q-args>
-nnoremap <F5> :<C-r>=<SID>run_file()<CR><CR>
+nnoremap <F5> :<C-u><C-r>=<SID>run_file()<CR><CR>
 
 
 if exists('*api_info')
@@ -459,14 +464,18 @@ endif
 
 " Terminal {{{
 
+  " Start a terminal with the default shell in the current window.
+  if has('nvim')
+    nnoremap ! :<C-u>terminal<CR>
+  else
+    nnoremap ! :<C-u>terminal ++curwin ++noclose<CR>
+  endif
+
   function! s:fix_terminal_window() abort
     setlocal nolist nonumber norelativenumber colorcolumn= signcolumn=no
-    if has('patch-8.2.3227') || has('nvim-0.7.0')  " `virtualedit` used to be a global-only option
-      setlocal virtualedit=none
-    endif
-    if dotplug#has('indentLine')
-      IndentLinesDisable
-    endif
+    " `virtualedit` used to be a global-only option
+    if (has('patch-8.2.3227') || has('nvim-0.7.0')) | setlocal virtualedit=none | endif
+    if dotplug#has('indentLine') | exe 'IndentLinesDisable' | endif
   endfunction
 
   augroup dotfiles_terminal
@@ -474,34 +483,28 @@ endif
     if has('nvim')
       autocmd TermOpen * call s:fix_terminal_window()
       autocmd TermOpen * startinsert
-      "autocmd TermClose * stopinsert
-      if has('nvim-0.3.0')  " <Cmd> mappings were added in v0.3.0
-        tnoremap <silent> <SID>close <Cmd>Bwipeout!<CR>
-      else
-        tnoremap <silent> <SID>close <C-\><C-n>:<C-u>Bwipeout!<CR>
+      " An elegant solution to <https://github.com/neovim/neovim/issues/5176> -
+      " simply keep the user out of the terminal after its job has stopped! Once
+      " the process within the terminal exits, I have the choice to close the
+      " buffer either with <BS> or <Del>. Needs v0.4.0 for the `TermEnter`
+      " autocommand and for `stopinsert` to be able to leave the TERMINAL mode[1].
+      " [1]: <https://github.com/neovim/neovim/commit/d928b036dc2be8f043545c0d7e2a2b2285528aaa>
+      if has('nvim-0.4.0')
+        autocmd TermClose * if expand('<abuf>') == bufnr('%') | stopinsert | endif
+        autocmd TermEnter * if !dotutils#is_terminal_running('%') | stopinsert | endif
       endif
-      " Make a few mappings on some obvious keys for closing the terminal buffer
-      " without disrupting the window layout after the message `[Process exited
-      " 123]` appears. This is an alternative to the terrible hack in the file
-      " `./terminal.lua` which is more straightforward and reliable, and works
-      " even in ancient versions of Neovim, before v0.5.0. The only downside of
-      " this method is that it won't work for *any* keycode, it needs explicit
-      " mappings to be set up.
-      autocmd TermClose * tmap <buffer> <CR>  <SID>close
-      autocmd TermClose * tmap <buffer> <Esc> <SID>close
-      autocmd TermClose * tmap <buffer> <BS>  <SID>close
     elseif exists('##TerminalWinOpen')
       autocmd TerminalWinOpen * call s:fix_terminal_window()
     endif
   augroup END
 
-  " Disable the default autocommand which auto-closes the terminal buffers
-  " started without any explicit arguments, as it uses the command `:bdelete` to
-  " do its job, which breaks the window layout. <https://github.com/neovim/neovim/pull/15440>
+  " Disable the default autocommand which auto-closes terminal buffers started
+  " without any explicit arguments, as it uses `:bdelete` to do its job, which
+  " breaks the window layout. <https://github.com/neovim/neovim/pull/15440>
   if exists('#nvim_terminal#TermClose')
     autocmd! nvim_terminal TermClose *
   endif
-  " They changed the naming scheme for built-in autocommands in v0.11.0:
+  " They changed the naming scheme of built-in autocommands in v0.11.0:
   " <https://github.com/neovim/neovim/commit/09e01437c968be4c6e9f6bb3ac8811108c58008c>
   if exists('#nvim.terminal#TermClose')
     autocmd! nvim.terminal TermClose *
@@ -517,14 +520,18 @@ if exists('*nvim_get_proc_children')
     return a:arr
   endfunction
 
-  let s:ps_columns = ['user', 'pid', 'pcpu', 'pmem', 'rss', 'etime', 'cmd']
-  command! -bar Process execute
-  \ '!ps --forest --format' join(s:ps_columns, ',') join(s:all_proc_children(getpid(), []), ' ')
-  \ '| numfmt --header=1 --field='.(index(s:ps_columns, 'rss') + 1).' --to=iec --from-unit=1024'
-  \ '| column --table'
-  \          '--table-columns-limit='.len(s:ps_columns)
-  \          '--table-truncate='.(index(s:ps_columns, 'cmd') + 1)
-  \          '--output-width='.(&columns - 1)
+  function! s:list_editor_processes() abort
+    let ps_columns = ['user', 'pid', 'pcpu', 'pmem', 'rss', 'etime', 'cmd']
+    execute
+    \ '!ps --forest --format' join(ps_columns, ',') join(s:all_proc_children(getpid(), []), ' ')
+    \ '| numfmt --header=1 --field='.(index(ps_columns, 'rss') + 1).' --to=iec --from-unit=1024'
+    \ '| column --table'
+    \          '--table-columns-limit='.len(ps_columns)
+    \          '--table-truncate='.(index(ps_columns, 'cmd') + 1)
+    \          '--output-width='.(&columns - 1)
+  endfunction
+
+  command! -bar Process call s:list_editor_processes()
 endif
 
 
