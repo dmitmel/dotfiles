@@ -11,7 +11,7 @@
 # other aliases are really uncommon, and my config currently includes zero of
 # those.
 
-autoload -Uz add-zsh-hook colors
+autoload -Uz add-zsh-hook && add-zsh-hook preexec _preexec_alias_tips
 
 # Paradoxically, this function, written in possibly the slowest programming
 # language on the planet (assuming that this atrocity deserves to be called a
@@ -124,5 +124,3 @@ _alias_tips_expand_aliases() {
     reply=("${(@z)${aliases[${reply[1]}]}}" "${(@)reply[2,-1]}")
   done
 }
-
-add-zsh-hook preexec _preexec_alias_tips

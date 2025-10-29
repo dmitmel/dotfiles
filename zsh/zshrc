@@ -1,13 +1,5 @@
 #!/usr/bin/env zsh
 
-ZSH_DOTFILES="${0:A:h}"
-
-# Among other things, used for compatibility with OMZ plugins.
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
-mkdir -pv -- "$ZSH_CACHE_DIR"
-
-autoload -Uz colors && colors
-
 # Performance {{{
 
   zmodload zsh/datetime  # to read `$EPOCHREALTIME`
@@ -31,28 +23,44 @@ autoload -Uz colors && colors
       return 1
     fi
     local start_time="${_perf_timers[$name]}"
-    unset "_perf_timers[${(qq)name}]"
+    unset "_perf_timers[$name]"
     local -i duration="$(( (stop_time - start_time) * 1000 ))"
     print -r -- "$(print -P '%F{8}==>%f') ${name}: ${duration}ms"
-  }
-
-  _source() {
-    _perf_timer_start "${1:t}"
-    source "$@"
-    _perf_timer_stop "${1:t}"
   }
 
 # }}}
 
 _perf_timer_start "total"
 
+ZSH_DOTFILES="${0:A:h}"
+
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+mkdir -pv -- "$ZSH_CACHE_DIR"
+
+# Zsh can define a function under multiple different names, apparently
+function _source _zplg_load {
+  _perf_timer_start "${1:t}"
+  builtin source "$@"
+  _perf_timer_stop "${1:t}"
+}
+
+if (( ${+functions[compdef]} )); then
+  print >&2 -P '%F{red}`compinit` must not be called before loading the dotfiles!%f'
+else
+  # This idea was borrowed from zinit: to simplify the loading sequence, if any
+  # scripts or plugins call `compdef` before the completion system is properly
+  # initialized, then record those calls in an array to replay them later.
+  typeset -ga _deferred_compdefs
+  compdef() {
+    _deferred_compdefs+=("$0 ${(j: :)${(q)@}}")
+  }
+fi
+
+autoload -Uz colors && colors
+
 for script in functions options path env zplg plugins aliases completion zle alias_tips prompt colorscheme; do
   _source "$ZSH_DOTFILES/$script.zsh"
 done; unset script
-
-for name in "${omz_plugins[@]}"; do
-  _source "${ZSH}/plugins/${name}/${name}.plugin.zsh"
-done; unset name
 
 if is_function _dotfiles_customizations; then
   _dotfiles_customizations

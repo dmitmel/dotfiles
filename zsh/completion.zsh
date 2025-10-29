@@ -63,16 +63,15 @@ for stale in "$zcompdump"(N.m+0); do
   command rm -- "$stale"
 done; unset stale
 
-if is_function compdef; then
-  print >&2 -r -- "${fg[red]}\`compinit\` got called before running \`${0}\`!${reset_color}"
-fi
-
 # -u disables the "security check", see "Use of compinit" in zshcompsys(1), and
 # -d specifies the path to a completion dump file. -w was only added in a recent
 # version of Zsh and prints the reason for updating the compdump if that happens
 # (<https://github.com/zsh-users/zsh/commit/6f4cf791405e74925c497bf3493bcd834918cf85>).
 autoload -Uz compinit is-at-least && \
   compinit -u -d "$zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
+
+eval "${(j:\n:)_deferred_compdefs}"
+unset _deferred_compdefs
 
 # Speed up shell initialization by compiling the compdump. The code is from
 # <https://github.com/sorin-ionescu/prezto/blob/c945922b2268ca1959a3ed29368b1c21a07950c1/runcoms/zlogin#L11-L17>.

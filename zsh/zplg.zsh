@@ -126,11 +126,13 @@ _zplg_expand_pattern() {
   eval "$out_var_name=(\${~pattern})"
 }
 
-# Wrapper around `source` for simpler profiling and debugging. You can override
-# this function to change plugin loading strategy
-_zplg_load() {
-  source "$@"
-}
+if (( ! ${+functions[_zplg_load]} )); then
+  # Wrapper around `source` for simpler profiling and debugging. You can override
+  # this function to change plugin loading strategy
+  _zplg_load() {
+    source "$@"
+  }
+fi
 
 # plugin sources {{{
 # See documentation of the `plugin` function for description.
@@ -348,12 +350,10 @@ plugin() {
 
     # HORRIBLE HACK: because you can't store arrays as values in associative
     # arrays, I simply quote every element with the (@q) modifier, then join
-    # quoted ones into a string and put this "encoded" string into the
-    # associative array. Terrible idea? Maybe. Does it work? YES!!!
+    # quoted ones into a string with (j: :) and put this "encoded" string into
+    # the associative array. Terrible idea? Maybe. Does it work? YES!!!
     if (( ${#plugin_build} > 0 )); then
-      # extra ${...} is needed to turn array into a string by joining it with
-      # spaces
-      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${${(@q)plugin_build}}"
+      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${(j: :)${(@q)plugin_build}}"
     fi
 
   } always {

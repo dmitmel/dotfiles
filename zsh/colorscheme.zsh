@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # partially based on https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
 
-source "$ZSH_DOTFILES/../colorschemes/out/zsh.zsh"
+source "${ZSH_DOTFILES:h}/colorschemes/out/zsh.zsh"
 
 if [[ -n "$TMUX" ]]; then
   # tmux

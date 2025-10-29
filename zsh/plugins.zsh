@@ -1,12 +1,6 @@
 #!/usr/bin/env zsh
 
-_plugin() {
-  _perf_timer_start "plugin $1"
-  plugin "$@"
-  _perf_timer_stop "plugin $1"
-}
-
-_plugin completions 'zsh-users/zsh-completions'
+plugin completions 'zsh-users/zsh-completions'
 
 # Oh My Zsh {{{
 
@@ -17,10 +11,11 @@ _plugin completions 'zsh-users/zsh-completions'
     omz_plugins+=(command-not-found)
   fi
 
-  _plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
+  plugin ohmyzsh 'ohmyzsh/ohmyzsh' \
     load='lib/'${^omz_features}'.zsh' \
+    load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
     before_load='ZSH="$plugin_dir"' \
-    after_load='plugin-cfg-path fpath prepend plugins/'${^omz_plugins} \
+    before_load='plugin-cfg-path fpath prepend plugins/'${^omz_plugins} \
     after_load='plugin-cfg-path fpath prepend plugins/rust' # completion script for `rustc`
 
 # }}}
@@ -44,12 +39,12 @@ _plugin completions 'zsh-users/zsh-completions'
     rm -f "$match"
   done; unset match
 
-  _plugin zsh-z 'agkozak/zsh-z' build='zcompile -R zsh-z.plugin.zsh'
+  plugin zsh-z 'agkozak/zsh-z' build='zcompile -R zsh-z.plugin.zsh'
 
 # }}}
 
 if [[ -n "${DOTFILES_INSTALL_FZF}" ]]; then
-  _plugin fzf 'junegunn/fzf' \
+  plugin fzf 'junegunn/fzf' \
     build='plugin-cfg-git-checkout-version "*"' \
     build='./install --bin' \
     after_load='plugin-cfg-path path prepend bin' \
@@ -61,7 +56,7 @@ if [[ "$TERM" != "linux" ]]; then
   # `*.ch` files are compiled in an extra step because Zsh is unable to write
   # the compiled `zwc` files without `cd`ing into the `→chroma` directory first.
   # Unicode problems in 2025, yay!
-  _plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
+  plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
     build='(for f in fast* .fast* **/*.zsh; zcompile -R -- "$f")' \
     build='(cd -- →chroma; for f in *.ch; zcompile -R -- "$f")'
 
@@ -74,7 +69,7 @@ if [[ "$TERM" != "linux" ]]; then
 fi
 
 if [[ "$OSTYPE" == darwin* ]]; then
-  _plugin retina 'https://raw.githubusercontent.com/lunixbochs/meta/master/utils/retina/retina.m' from=url \
+  plugin retina 'https://raw.githubusercontent.com/lunixbochs/meta/master/utils/retina/retina.m' from=url \
     build='mkdir -p bin && gcc retina.m -framework Foundation -framework AppKit -o bin/retina' \
     after_load='plugin-cfg-path path prepend "bin"'
 fi
