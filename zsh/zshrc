@@ -15,7 +15,7 @@
   }
 
   _perf_timer_stop() {
-    # Record the stop time as precisely as possible even in the case of an error
+    # Record the stop time as precisely as possible even in case of an error
     local stop_time="$EPOCHREALTIME"
     local name="$1"
     if [[ -z "$name" ]]; then
@@ -58,23 +58,49 @@ fi
 
 autoload -Uz colors && colors
 
-for script in functions options path env zplg plugins aliases completion zle alias_tips prompt colorscheme; do
-  _source "$ZSH_DOTFILES/$script.zsh"
+for script in functions options path env; do
+  _source "${ZSH_DOTFILES}/${script}.zsh"
 done; unset script
 
-if is_function _dotfiles_customizations; then
-  _dotfiles_customizations
-fi
+integer welcome_fd=-1
+{
 
-_perf_timer_stop "total"
+  if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
+    # Once the basic shell environment has been configured, start the `welcome`
+    # script in the background and open a pipe to read its output. The script
+    # will collect information about the system in parallel with the heavier
+    # part of the Zsh startup procedure, and once that's done we can read its
+    # output from this pipe to display it to the user.
+    exec {welcome_fd}< <(welcome)
+  fi
 
-if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
-  welcome
-fi
+  for script in zplg plugins aliases completion zle alias_tips prompt colorscheme; do
+    _source "${ZSH_DOTFILES}/${script}.zsh"
+  done; unset script
 
-if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "${#dirstack}" -eq 0 ]]; then
-  dirstack_load
-fi
+  if is_function _dotfiles_customizations; then
+    _dotfiles_customizations
+  fi
+
+  if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "${#dirstack}" -eq 0 ]]; then
+    dirstack_load
+  fi
+
+  _perf_timer_stop "total"
+
+  if (( welcome_fd >= 0 )); then
+    # A pure-Zsh version of `cat`. `-u` specifies the file descriptor to read
+    # from, `-r` disables special processing of backslashes, `-e` tells `read`
+    # to print the read text to stdout, without saving it in a variable. See:
+    # <https://github.com/zsh-users/zsh/blob/zsh-5.9/Functions/Example/cat>
+    while IFS= read -u "$welcome_fd" -r -e; do; done
+  fi
+
+} always {
+  if (( welcome_fd >= 0 )); then
+    exec {welcome_fd}<&-  # close our pipe with this ugly-ass syntax
+  fi
+}
 
 if [[ -n "$DOTFILES_RUN_HTOP_AFTER_START" ]]; then
   # Make it look as if the command was typed in interactively
