@@ -44,7 +44,7 @@ function! s:Hi(group, def) abort
 endfunction
 
 function! s:setup() " NOTE: not abort
-  let Hi      = function('s:Hi')
+  let Hi = function('s:Hi')
 
   let base16 = g:dotfiles#colorscheme#base16_colors
   let [red, orange, yellow, green, cyan, blue, magenta, brown] = base16[8:15]
@@ -162,6 +162,7 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.typemod.function.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.global         PreProc
+    hi! link @lsp.typemod.variable.readonly       Constant
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
     hi! link @markup.raw            String
@@ -610,23 +611,56 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Vim scripts {{{
-  hi! link vimUserFunc       vimFuncName
-  hi! link vimBracket        vimMapModKey
-  hi! link vimFunction       vimFuncName
-  hi! link vimParenSep       Delimiter
-  hi! link vimSep            Delimiter
-  hi! link vimVar            Variable
-  hi! link vimFuncVar        Variable
-  hi! link vimScriptDelim    Special
-  hi! link vimSynType        vimCommand
-  hi! link vimSynOption      vimVar
-  hi! link vimSynReg         vimSynOption
-  hi! link vimSynKeyRegion   vimString
-  hi! link vimSyncLines      vimSynOption
-  hi! link vimCommentString  vimComment
-  hi! link vimGroupName      vimGroup
-  hi! link vimLambdaOperator Keyword
-  hi! link vimVimVar         Special
+  hi! link vimVar            Variable     " highlight ALL variables (this makes the code very red)
+  hi! link vimVimVar         Special      " special `v:` variables: `v:count`, `v:progpath` etc
+  hi! link vimVimVarName     vimVimVar    " the name after `v:`, see |vim-variable|
+  hi! link vimVarNameError   Error        " `nonexistent` in `&nonexistent` or `v:nonexistent`
+  hi! link vimOptionVar      vimOption    " `&columns`, `&l:spell`, `&g:undofile`, |expr-option|
+  hi! link vimOptionVarName  vimOption    " the option name after `&` in |expr-option|
+
+  hi! link vimUserFunc       vimFuncName  " calls to user-defined and autoloaded functions
+  hi! link vimFuncVar        Variable     " `arg` and `other` in `:function UserFunc(arg, other)`
+  hi! link vimFunctionParam  Variable     " same, but for newer `$VIMRUNTIME/syntax/vim.vim`
+  hi! link vimFunctionName   vimFuncName  " `name` in `:function s:name()` with the new syntax file
+  hi! link vimLambdaOperator Keyword      " highlight `->` in lambdas like `=>` is in JavaScript
+
+  " A patch[1] was added recently which FINALLY improves highlighting of user
+  " function names both in definitions and calls. Before it there wasn't really
+  " a syntax group for the name of the function in a `:function` definition, so
+  " instead I would just link the whole region that starts after `:function` and
+  " ends at the beginning of function arguments.
+  " [1]: <https://github.com/vim/vim/commit/51289207f81772592a5a34f1576f2aeb7d5530b7>
+  if !(has('nvim-0.12.0') || has('patch-9.1.1455')) | hi! link vimFunction vimFuncName | endif
+
+  hi! link vimBracket        vimMapModKey " highlight `<` and `>` around key names in mappings
+  hi! link vimParenSep       Delimiter    " parentheses in function calls and expressions
+  hi! link vimSep            Delimiter    " brackets and braces in array and dictionary literals
+  hi! link vimScriptDelim    Special      " heredoc markers for `:lua`, `:python` and so on
+  hi! link vimCommentString  vimComment   " don't let doubly-quoted strings stand out in comments
+
+  hi! link vimSynType        vimCommand   " `match`/`cluster`/`region`/`case` etc after `:syntax`
+  hi! link vimSynOption      Identifier   " `containedin=...`, `skipwhite` and others in `:syntax`
+  hi! link vimSynReg         vimSynOption " `start=...` and `end=...` in `:syntax region ...`
+  hi! link vimSynKeyRegion   vimString    " `keepend` in `:syntax region ...`
+  hi! link vimSyncLines      vimSynOption " keyword strings in `:syntax keyword ...`
+  hi! link vimGroupName      vimGroup     " custom hlgroups in `:hi` commands after Nvim v0.12.0
+  hi! link vimGroupList      vimGroup     " hlgroup names in various places in `:syntax` commands
+  hi! link vimHiTerm         Identifier   " `term` in `hi Group term=bold` (any `:hi` option, really)
+  hi! link vimHiAttrib       Constant     " `bold` in `hi Group term=bold`
+
+  " <https://github.com/vim/vim/commit/ddbb6fe2d0344e93436c5602b7a06169f49a9b52>
+  if has('nvim-0.11.0') || has('patch-9.1.0613')
+    hi! link vimSetEqual       vimString    " `make` in `setl ft=make` and `F` in `set shortmess+=F`
+    hi! link vimSetEscape      vimEscape    " see |option-backslash|
+    hi! link vimSetBarEscape   vimSetEscape " `\|` in `:set ...`
+    hi! link vimSetQuoteEscape vimSetEscape " `\"` in `:set ...`
+  endif
+
+  hi! link vimSetMod         Special      " `&vim` in `set cpo&vim` and `&` in `set fillchars&`
+  hi! link vimBang           Special      " `!` after all sorts of commands. Make it stand out.
+  hi! link vimCatchPattern   vimString    " `pat` in `:catch /pat/`
+  hi! link vimAugroupEnd     Special      " `END` in `augroup END`
+  hi! link vimSpecFile       Special      " `<sfile>`, `%:h`, `#` etc
   " }}}
 
   " C {{{
