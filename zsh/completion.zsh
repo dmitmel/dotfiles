@@ -88,6 +88,20 @@ if ! is_function _rustup && command_exists rustup; then
   compdef _rustup rustup
 fi
 
+if is_function _rustup; then
+  # For some reason, the completions provided by the default script for Rustup
+  # are off-by-one: you get an autocompletion for a subcommand twice, i.e. the
+  # first argument, and arguments after that are completed just fine. Fix that
+  # by tricking the existing `_rustup` function into thinking that a word has
+  # already been typed. See <https://github.com/rust-lang/rustup/issues/2268>.
+  _rustup_fixed() {
+    words=(rustup "${words[@]}")
+    (( CURRENT += 1 ))
+    _rustup "$@"
+  }
+  compdef _rustup_fixed rustup
+fi
+
 if ! is_function _cargo && command_exists rustup && command_exists rustc; then
   lazy_load _cargo 'source "$(rustc --print sysroot)/share/zsh/site-functions/_cargo"'
   compdef _cargo cargo
