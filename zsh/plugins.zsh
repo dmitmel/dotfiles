@@ -4,8 +4,12 @@ plugin completions 'zsh-users/zsh-completions'
 
 # Oh My Zsh {{{
 
-  omz_features=(key-bindings termsupport)
+  omz_features=(key-bindings)
   omz_plugins=(git)
+
+  if [[ -z "$KITTY_INSTALLATION_DIR" || " $KITTY_SHELL_INTEGRATION " == *' no-title '* ]]; then
+    omz_features+=(termsupport)
+  fi
 
   if ! is_function command_not_found_handler; then
     omz_plugins+=(command-not-found)

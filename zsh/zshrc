@@ -99,12 +99,15 @@ integer welcome_fd=-1
   unset welcome_fd
 }
 
-if [[ -n "$DOTFILES_RUN_HTOP_AFTER_START" ]]; then
-  # Make it look as if the command was typed in interactively
+if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" ]]; then
+  autoload -Uz -- "${KITTY_INSTALLATION_DIR}/shell-integration/zsh/kitty-integration"
+  kitty-integration
+  unfunction kitty-integration
+fi
+
+if is_function _ksi_deferred_init && [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
+  # Render the prompt to make it look as if the command was typed in interactively
   print -Pn -- "$PROMPT"
-  print "htop"
-  if is_function omz_termsupport_preexec; then
-    omz_termsupport_preexec htop htop htop
-  fi
-  htop
+  # The (V) modifier escapes non-printable characters in the string to make them visible
+  print -r -- "${(V)KITTY_SI_RUN_COMMAND_AT_STARTUP}"
 fi
