@@ -61,7 +61,7 @@ if [[ "$TERM" != "linux" ]]; then
   # the compiled `zwc` files without `cd`ing into the `→chroma` directory first.
   # Unicode problems in 2025, yay!
   plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
-    build='(for f in fast* .fast* **/*.zsh; zcompile -R -- "$f")' \
+    build='(for f in (fast*|.fast*)~*.zwc **/*.zsh; zcompile -R -- "$f")' \
     build='(cd -- →chroma; for f in *.ch; zcompile -R -- "$f")'
 
   set-my-syntax-theme() {
