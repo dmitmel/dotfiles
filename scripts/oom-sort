@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# This script is a rewrite of <https://github.com/hakavlad/nohang/blob/72ced0a0c4cc0c5fc1c8fa8778e9499e80c6ada9/src/oom-sort>
+
+join() {
+  local IFS="$1"
+  shift
+  printf '%s' "$*"
+}
+
+# Source: <https://www.reddit.com/r/bash/comments/8nau9m/comment/dzuj7a0/>
+trim() {
+  local out="$1" str="$2"
+  str=${str#"${str%%[![:space:]]*}"}
+  str=${str%"${str##*[![:space:]]}"}
+  eval "${out}=\"\$str\""
+}
+
+columns=( score adj UID PID Name RSS Swap cmdline )
+
+declare -A columns_lookup
+for i in "${!columns[@]}"; do
+  columns_lookup["${columns[$i]}"]=$((i+1))
+done
+
+sort_by="${1-score}"
+
+if [[ -z "$sort_by" || -z "${columns_lookup[$sort_by]+1}" ]]; then
+  echo >&2 "usage: $0 <$(join '|' "${columns[@]}")>"
+  exit 1
+fi
+
+for proc in /proc/*; do
+  col_PID="${proc##*/}"
+  if [[ -d "$proc" && "$col_PID" != *[![:digit:]]* && "$col_PID" != 1 ]]; then
+    readarray -t -d '' cmdline < "$proc/cmdline"
+
+    # Probably a kernel thread if the command line is empty
+    # <https://stackoverflow.com/questions/12213445/identifying-kernel-threads>
+    [[ "${#cmdline[@]}" -eq 0 ]] && continue
+
+    col_cmdline="${cmdline[*]}"
+
+    read -r col_score < "$proc/oom_score" || true
+    read -r col_adj < "$proc/oom_score_adj" || true
+
+    while IFS=$'\t' read -r -a items; do
+      case "${items[0]-}" in
+        (Name:) col_Name=${items[1]:0:15} ;;
+        (Uid:) col_UID=${items[2]} ;;
+        (VmRSS:) col_RSS=$(( ${items[1]% kB} * 1024 )) ;;
+        (VmSwap:) col_Swap=$(( ${items[1]% kB} * 1024 )) ;;
+      esac
+    done < "$proc/status"
+
+    for var in "${columns[@]}"; do
+      var="col_${var}"
+      printf '%s\t' "${!var-}"
+    done
+
+    printf '\n'
+  fi
+done |
+  sort --field-separator=$'\t' --numeric-sort --reverse --key="${columns_lookup[$sort_by]}" |
+  numfmt --delimiter=$'\t' --to=iec --field="${columns_lookup[RSS]},${columns_lookup[Swap]}" |
+  column --table --separator=$'\t' \
+    --table-columns="$(join ',' "${columns[@]}")" \
+    --table-columns-limit="${#columns[@]}" \
+    --table-truncate="${columns_lookup[cmdline]}" \
+    --output-width="$(tput cols)"
