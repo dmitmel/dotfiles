@@ -90,8 +90,10 @@
   # to parse.
   _palette_parse_tldr_pages() {
     # I chose to use AWK here because it was designed specifically for text
-    # processing and includes all the basic utilities that I need here.
-    find "$PALETTE_TLDR_PAGES_DIR" -type f -name '*.md' -exec awk '
+    # processing and includes all the basic utilities that I need here. The
+    # backslash after the argument to find(1) is necessary so that it still
+    # searches the directory if it is symlinked.
+    find "$PALETTE_TLDR_PAGES_DIR/" -type f -name '*.md' -exec awk '
       # when we find a "description" line...
       match($0, /^- (.+):$/, match_groups) {
         # ...get actual description from it...
