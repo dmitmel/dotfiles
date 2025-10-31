@@ -129,25 +129,9 @@
   bindkey '\eP' _palette_widget
 # }}}
 
-# expand-or-complete-with-dots {{{
-  # expand-or-complete-with-dots() {
-  #   local wrap_ctrl_supported
-  #   if (( ${+terminfo[rmam]} && ${+terminfo[smam]} )); then
-  #     wrap_ctrl_supported=1
-  #   fi
-  #   # toggle line-wrapping off and back on again
-  #   if [[ -n "$wrap_ctrl_supported" ]]; then echoti rmam; fi
-  #   print -Pn "%F{red}...%f"
-  #   if [[ -n "$wrap_ctrl_supported" ]]; then echoti smam; fi
-  #   zle expand-or-complete
-  #   zle redisplay
-  # }
-  # zle -N expand-or-complete-with-dots
-  # bindkey "^I" expand-or-complete-with-dots
-# }}}
-
 # find man page widget {{{
-  _widget_find_man_page() {
+  _find_man_page_widget() {
+    setopt local_options extended_glob
     local words=("${(@z)BUFFER}")
 
     local reply=("${words[@]}")
@@ -158,19 +142,28 @@
 
     local -A command_manpage_name_overrides=(
       [hub]=git
+      [systemctl]=systemd
+    )
+
+    local -a precommands=(
+      noglob nocorrect exec command builtin nohup disown sudo time gtime prime-run
+    )
+
+    local -a commands_with_subcommands=(
+      git hub gh npm apt docker pip perf kitten systemctl
     )
 
     local cmd_name arg i is_subcommand
     for (( i = 1; i <= ${#words}; i++ )); do
       arg="${words[$i]}"
 
-      # Skip flags
-      if [[ "$arg" == '-'* ]]; then
+      # Skip flags and variable assignments
+      if [[ "$arg" == '-'* || "$arg" == ([[:IDENT:]]##)=* ]]; then
         continue
       fi
 
       # Skip command prefixes
-      if [[ -z "$is_subcommand" && "$arg" == (noglob|nocorrect|exec|command|builtin|nohup|disown|sudo|time|gtime|prime-run) ]]; then
+      if [[ -z "$is_subcommand" && -n "${arg:*precommands}" ]]; then
         continue
       fi
 
@@ -180,7 +173,7 @@
         cmd_name="${cmd_name}-${arg}"
       fi
 
-      if [[ -z "$is_subcommand" && "$arg" == (git|hub|gh|npm|apt|docker|pip|perf) ]]; then
+      if [[ -z "$is_subcommand" && -n "${arg:*commands_with_subcommands}" ]]; then
         is_subcommand=1
         continue
       fi
@@ -198,14 +191,18 @@
       zle redisplay
     fi
   }
-  zle -N find-man-page _widget_find_man_page
+  zle -N _find_man_page_widget
   # bind to F1
-  bindkey '\eOP' find-man-page
+  bindkey '\eOP' _find_man_page_widget
 # }}}
 
 # other keybindings {{{
 
-  autoload -Uz edit-command-line && bindkey '\ee' edit-command-line
+  autoload -Uz edit-command-line
+  if [[ "$EDITOR" == *vim ]]; then
+    zstyle ':zle:edit-command-line' editor "$EDITOR" -c 'set ft=zsh wrap'
+  fi
+  bindkey '\ee' edit-command-line
 
   bindkey '\eu' undo
   bindkey '\eU' redo
