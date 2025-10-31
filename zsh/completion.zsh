@@ -67,8 +67,10 @@ done; unset stale
 # -d specifies the path to a completion dump file. -w was only added in a recent
 # version of Zsh and prints the reason for updating the compdump if that happens
 # (<https://github.com/zsh-users/zsh/commit/6f4cf791405e74925c497bf3493bcd834918cf85>).
-autoload -Uz compinit is-at-least && \
-  compinit -u -d "$zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
+# Actually, I don't even need to check the Zsh version to see if this option is
+# supported, since the argument parser of `compinit` just ignores unknown flags:
+# <https://github.com/zsh-users/zsh/blob/15f4567148943c5b733922d59b9c3eea26e26a42/Completion/compinit#L80-L111>.
+autoload -Uz compinit && compinit -u -d "$zcompdump" -w
 
 # Speed up shell initialization by compiling the compdump. The code is from
 # <https://github.com/sorin-ionescu/prezto/blob/c945922b2268ca1959a3ed29368b1c21a07950c1/runcoms/zlogin#L11-L17>.
