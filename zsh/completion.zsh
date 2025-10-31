@@ -107,4 +107,11 @@ if ! is_function _cargo && command_exists rustup && command_exists rustc; then
   compdef _cargo cargo
 fi
 
+if ! is_function _rustc && ! is_function _rust; then
+  # Load the completion script included with Oh-My-Zsh, without loading the
+  # entirety of its `rust` plugin.
+  autoload -Uz -- "${ZSH}/plugins/rust/_rustc"
+  compdef _rustc rustc
+fi
+
 compdef _precommand prime-run allow-ptrace

@@ -5,8 +5,11 @@ plugin completions 'zsh-users/zsh-completions' \
 
 # Oh My Zsh {{{
 
-  omz_features=(key-bindings)
-  omz_plugins=(git)
+  # define these arrays if they have not been defined already
+  typeset -ga omz_features omz_plugins
+
+  omz_features+=(key-bindings)
+  omz_plugins+=(git)
 
   if [[ -z "$KITTY_INSTALLATION_DIR" || " $KITTY_SHELL_INTEGRATION " == *' no-title '* ]]; then
     omz_features+=(termsupport)
@@ -20,8 +23,7 @@ plugin completions 'zsh-users/zsh-completions' \
     load='lib/'${^omz_features}'.zsh' \
     load='plugins/'${^omz_plugins}'/*.plugin.zsh' \
     before_load='ZSH="$plugin_dir"' \
-    before_load='plugin-cfg-path fpath prepend plugins/'${^omz_plugins} \
-    after_load='plugin-cfg-path fpath prepend plugins/rust' # completion script for `rustc`
+    before_load='plugin-cfg-path fpath prepend plugins/'${^omz_plugins}
 
 # }}}
 
