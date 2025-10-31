@@ -73,7 +73,7 @@ integer welcome_fd=-1
     exec {welcome_fd}< <(welcome)
   fi
 
-  for script in zplg plugins aliases completion zle alias_tips prompt colorscheme; do
+  for script in prompt zplg plugins aliases completion zle alias_tips colorscheme; do
     _source "${ZSH_DOTFILES}/${script}.zsh"
   done; unset script
 
