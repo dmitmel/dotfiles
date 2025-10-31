@@ -27,26 +27,19 @@
 #    I do this instead of `setopt local_options err_exit` because some plugins
 #    may not be compatitable with ERREXIT.
 
-
-_ZPLG_SCRIPT_PATH="${(%):-%N}"
-
-
 # $ZPLG_HOME is a directory where all your plugins are downloaded, it also
 # might contain in the future some kind of state/lock/database files. It is
 # recommended to change it before `source`-ing this script because you may end
 # up with a broken plugin directory.
-if [[ -z "$ZPLG_HOME" ]]; then
-  ZPLG_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zplg"
-fi
+ZPLG_HOME="${ZPLG_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zplg}"
 
 # Default plugin source, see the `plugin` function for description.
-if [[ -z "$ZPLG_DEFAULT_SOURCE" ]]; then
-  ZPLG_DEFAULT_SOURCE="github"
-fi
+ZPLG_DEFAULT_SOURCE="${ZPLG_DEFAULT_SOURCE:-github}"
 
 # Directory in which plugins are stored. It is separate from $ZPLG_HOME for
-# compatitability with future versions.
-ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
+# compatitability with future versions, in case I decide to put more stuff in
+# $ZPLG_HOME later.
+ZPLG_PLUGINS_DIR="${ZPLG_HOME}/plugins"
 
 # basic logging {{{
 
@@ -65,7 +58,8 @@ ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
     local external_caller
     local i; for (( i=1; i<=${#funcfiletrace}; i++ )); do
       # $funcfiletrace contains file paths and line numbers
-      if [[ "${funcfiletrace[$i]}" != "$_ZPLG_SCRIPT_PATH"* ]]; then
+      # $functions_source tells in which file a function was defined
+      if [[ "${funcfiletrace[$i]}" != "${functions_source[_zplg_error]}":* ]]; then
         # $functrace contains "ugly" call sites, the line numbers are
         # relative to the beginning of a function/file here. I use it here
         # only for consistency with the shell, TODO might change this in the
@@ -96,43 +90,9 @@ ZPLG_PLUGINS_DIR="$ZPLG_HOME/plugins"
 typeset -gA ZPLG_LOADED_PLUGINS
 typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
 
-# Takes name of a variable with an array (array is passed by variable name
-# because this reduces boilerplate) and runs every command in it, exits
-# immediately with an error code if any command fails. This snippet was
-# extracted in a function because it's often used to run plugin loading hooks
-# (before_load/after_load) or build commands.
-_zplg_run_commands() {
-  local var_name="$1"
-  # (P) modifier lets you access the variable dynamically by its name stored in
-  # another variable
-  local cmd; for cmd in "${(@P)var_name}"; do
-    eval "$cmd" || return "$?"
-  done
-}
-
-# Expands a glob pattern with the NULL_GLOB flag from the first argument and
-# puts all matched filenames into a variable from the second argument because
-# shell functions can't return arrays. This function is needed to simplify
-# handling of user-provided glob expressions because I can use LOCAL_OPTIONS
-# inside a function which reverts NULL_GLOB to its previous value as soon as
-# the function returns.
-_zplg_expand_pattern() {
-  setopt local_options null_glob
-  local pattern="$1" out_var_name="$2"
-  # ${~var_name} turns on globbing for this expansion, note lack of quotes: as
-  # it turns out glob expansions are automatically quoted by design, and when
-  # you explicitly write `"${~pattern}"` it is basically the same as
-  # `"$pattern"`
-  eval "$out_var_name=(\${~pattern})"
-}
-
-if (( ! ${+functions[_zplg_load]} )); then
-  # Wrapper around `source` for simpler profiling and debugging. You can override
-  # this function to change plugin loading strategy
-  _zplg_load() {
-    source "$@"
-  }
-fi
+# A wrapper around `source` for easier profiling and debugging. You can override
+# this function to change the plugin loading strategy.
+(( ${+functions[_zplg_load]} )) || function _zplg_load { source "$@"; }
 
 # plugin sources {{{
 # See documentation of the `plugin` function for description.
@@ -152,19 +112,9 @@ fi
   }
 
   _zplg_source_git_upgrade() {
-    local plugin_url="$1" plugin_dir="$2"
-    ( cd "$plugin_dir" && (git pull || git fetch) && git submodule update --init --recursive )
-  }
-
-  # small helper for the git source
-  plugin-git-checkout-latest-version() {
-    local latest_tag
-    git tag --list --sort -version:refname | read -r latest_tag
-    if (( ${#tags} == 0 )); then
-      _zplg_error "$0: no tags in the Git repository"
-      return 1
-    fi
-    # git checkout
+    local plugin_url="$1" dir="$2"
+    { git -C "$plugin_dir" pull || git -C "$plugin_dir" fetch } && \
+      git -C "$plugin_dir" submodule update --init --recursive
   }
 
   _zplg_source_github_download() {
@@ -190,7 +140,7 @@ fi
 #   hyphens and periods, mustn't start with a period.
 #
 # <url>
-#   I guess this is self-descreptive.
+#   I guess this is self-descriptive.
 #
 # Some options can be repeated (marked with a plus). Available options:
 #
@@ -204,14 +154,14 @@ fi
 #   `_zplg_source_${name}_download` and `_zplg_source_${name}_upgrade`. Both
 #   functions take two arguments: plugin URL and plugin directory. Download
 #   function must, well, download a plugin from the given URL into the given
-#   directory, ugrade one, obviously, upgrades plugin inside of the given
+#   directory, upgrade one, obviously, upgrades plugin inside of the given
 #   directory. Please note that neither of these functions is executed INSIDE
 #   of the plugin directory (i.e. current working directory is not changed).
 #
 # build (+)
-#   Command which builds/compiles the plugin, executed INSIDE of $plugin_dir
-#   (i.e. cd $plugin_dir) once after downloading. Plugin directory can be
-#   accessed through the $plugin_dir variable.
+#   Command which builds/compiles the plugin, executed just once in a subshell
+#   within $plugin_dir (i.e. after cd $plugin_dir) after downloading. Plugin
+#   directory is accessible through the $plugin_dir variable.
 #
 # before_load (+) and after_load (+)
 #   Execute commands before and after loading of the plugin, useful when you
@@ -245,12 +195,13 @@ plugin() {
     return 1
   fi
 
-  local plugin_id="$1"
-  local plugin_url="$2"
+  local plugin_id="$1" plugin_url="$2"; shift 2
+
   if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
     _zplg_error "invalid plugin ID"
     return 1
   fi
+
   if [[ -z "$plugin_url" ]]; then
     _zplg_error "invalid plugin URL"
     return 1
@@ -259,7 +210,7 @@ plugin() {
   # Don't even try to continue if the plugin has already been loaded. This is
   # not or problem. Plugin manager loads plugins and shouldn't bother
   # unloading them.
-  if _zplg_is_plugin_loaded "$plugin_id"; then
+  if (( ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
     _zplg_error "plugin $plugin_id has already been loaded"
     return 1
   fi
@@ -268,16 +219,19 @@ plugin() {
 
   # parse options {{{
 
+  # `${arr:#pat}` filters out all elements from an array which match a given pattern.
+  local -a invalid_options=( "${@:#*?=?*}" )
+  if (( ${#invalid_options} != 0 )); then
+    _zplg_error "options must have the following format: <key>=<value>"
+    return 1
+  fi
+  unset invalid_options
+
   local plugin_from="$ZPLG_DEFAULT_SOURCE"
   local -a plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
 
-  local option key value; shift 2; for option in "$@"; do
-    # globs are faster than regular expressions
-    if [[ "$option" != *?=?* ]]; then
-      _zplg_error "options must have the following format: <key>=<value>"
-      return 1
-    fi
-
+  local option key value
+  for option in "$@"; do
     # split 'option' at the first occurence of '='
     key="${option%%=*}" value="${option#*=}"
     case "$key" in
@@ -289,7 +243,8 @@ plugin() {
         _zplg_error "unknown option: $key"
         return 1 ;;
     esac
-  done; unset option key value
+  done
+  unset option key value
 
   # }}}
 
@@ -312,7 +267,7 @@ plugin() {
 
     if (( ${#plugin_build} > 0 )); then
       _zplg_log "building $plugin_id"
-      ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
+      ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
     fi
   fi
 
@@ -322,26 +277,21 @@ plugin() {
 
   {
 
-    _zplg_run_commands plugin_before_load || return "$?"
+    _zplg_run_commands "${plugin_before_load[@]}" || return "$?"
 
-    local load_pattern ignore_pattern script_path; local -a script_paths
-    for load_pattern in "${plugin_load[@]}"; do
-      _zplg_expand_pattern "$plugin_dir/$load_pattern" script_paths
-      for script_path in "${script_paths[@]}"; do
-        for ignore_pattern in "${plugin_ignore[@]}"; do
-          if [[ "$script_path" == "$plugin_dir/"${~ignore_pattern} ]]; then
-            # continue outer loop
-            continue 2
-          fi
-        done
+    local -a reply
+    _zplg_expand_load_patterns plugin_load plugin_ignore "$plugin_dir"
+
+    if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
+      local script_path
+      for script_path in "${reply[@]}"; do
         _zplg_debug "sourcing $script_path"
-        if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
-          _zplg_load "$script_path" || return "$?"
-        fi
+        _zplg_load "$script_path" || return "$?"
       done
-    done; unset load_pattern ignore_pattern script_path
+      unset script_path
+    fi
 
-    _zplg_run_commands plugin_after_load || return "$?"
+    _zplg_run_commands "${plugin_after_load[@]}" || return "$?"
 
     # plugin has finally been loaded, we can add it to $ZPLG_LOADED_PLUGINS
     ZPLG_LOADED_PLUGINS[$plugin_id]="$plugin_dir"
@@ -364,6 +314,43 @@ plugin() {
 
   # }}}
 
+}
+
+# Takes the name of a variable with a list of `load=...` patterns, another name
+# for a list of `ignore=...` patterns, and a plugin directory relative to which
+# these patterns will be evaluated. Returns a list of file paths matched by the
+# `load=...` patterns, excluding those matched by `ignore=...`, in the variable
+# `$reply` (because shell functions can't return arrays, argh).
+_zplg_expand_load_patterns() {
+  # Set the option NULL_GLOB so that patterns that generate no matches don't
+  # throw an error. This is the only reason for moving this code into a separate
+  # function, so that we can use LOCAL_OPTIONS to have Zsh take care of
+  # restoring the previous value of NULL_GLOB set by the user or other scripts.
+  setopt local_options null_glob
+
+  local load_patterns_var="$1" ignore_patterns_var="$2" plugin_dir="$3"
+
+  # The (P) modifier lets you refer to a variable by a name stored in another variable
+  local -a load_patterns=("${(@P)load_patterns_var}")
+  # ${~var_name} turns on globbing from the expansion of ${var_name}. Note the
+  # lack of double quotes -- that is intentional and necessary. ${^array} makes
+  # it so that a prefix is prepended to all values of an array (Zsh performs
+  # this BEFORE the glob expansion step).
+  reply=( "${plugin_dir}/"${~^load_patterns} )
+
+  local ignore_pat
+  for ignore_pat in "${(@P)ignore_patterns_var}"; do
+    # ${array:#pattern} removes all elements from the array matching the pattern
+    reply=( "${reply[@]:#${plugin_dir}/${~ignore_pat}}" )
+  done
+}
+
+# Runs a list of commands within the context of an isolated function. Exits
+# immediately with an error if any command fails.
+_zplg_run_commands() {
+  setopt local_options err_exit
+  # (F) modifier joins an array with newlines
+  eval "${(F)1}"
 }
 
 # helper functions for plugin configuration {{{
@@ -393,16 +380,13 @@ plugin() {
       return 1
     fi
 
-    local value; for value in "$@"; do
-      if [[ -z "$value" ]]; then
-        value="${plugin_dir}"
-      else
-        value="${plugin_dir}/${value}"
-      fi
-      if eval "(( \${${var_name}[(ie)\$value]-1} > \${#${var_name}} ))"; then
+    local value
+    for value in "$@"; do
+      value="${plugin_dir}${value:+/}${value}"
+      if (( ${${(P)var_name}[(ie)$value]-1} > ${#${(P)var_name}} )); then
         case "$operator" in
-          prepend) eval "$var_name=(\"\$value\" \${$var_name[@]})" ;;
-           append) eval "$var_name=(\${$var_name[@]} \"\$value\")" ;;
+          prepend) set -A "$var_name" "$value" "${(@P)var_name}" ;;
+           append) set -A "$var_name" "${(@P)var_name}" "$value" ;;
         esac
       fi
     done
@@ -414,29 +398,22 @@ plugin() {
       return 1
     fi
 
-    local pattern="$1" tag no_tags=1
+    local pattern="$1" tag="" found=0
 
-    command git tag --sort=-version:refname | while IFS= read -r tag; do
-      no_tags=0
+    while IFS= read -r tag; do
       if [[ "$tag" == ${~pattern} ]]; then
+        found=1
         break
       fi
-    done
+    done < <(command git tag --sort=-version:refname)
 
-    if (( ! no_tags )); then
+    if (( found )); then
       _zplg_log "the latest version is $tag"
       command git checkout --quiet "$tag"
     fi
   }
 
 # }}}
-
-# Exits with success code 0 if the plugin is loaded, otherwise exits with error
-# code 1. To be used in `if` statements.
-_zplg_is_plugin_loaded() {
-  local plugin_id="$1"
-  (( ${+ZPLG_LOADED_PLUGINS[$plugin_id]} ))
-}
 
 # Useful commands for managing plugins {{{
 
@@ -448,7 +425,11 @@ _zplg_is_plugin_loaded() {
 
   # Prints IDs of all loaded plugins.
   zplg-list() {
-    # (F) modifier joins an array with newlines
+    if (( $# != 0 )); then
+      _zplg_error "usage: $0"
+      return 1
+    fi
+    # (k) picks the keys, (F) joins them with newlines
     print -r -- "${(Fk)ZPLG_LOADED_PLUGINS}"
   }
 
@@ -464,7 +445,7 @@ _zplg_is_plugin_loaded() {
 
     local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
     for plugin_id in "${plugin_ids_var[@]}"; do
-      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+      if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
         return 1
       fi
@@ -476,16 +457,7 @@ _zplg_is_plugin_loaded() {
       _zplg_log "upgrading $plugin_id"
       _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
 
-      if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
-        # TERRIBLE HACK continued: this monstrosity is used to "decode" build
-        # commands. See ending of the `plugin` function for "encoding" procedure.
-        # First, I get encoded string. Then with the (z) modifier I split it into
-        # array taking into account quoting. Then with the (Q) modifier I unquote
-        # every value.
-        plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
-        _zplg_log "building $plugin_id"
-        ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
-      fi
+      zplg-rebuild "$plugin_id"
     done
   }
 
@@ -498,7 +470,7 @@ _zplg_is_plugin_loaded() {
 
     local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
     for plugin_id in "$@"; do
-      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+      if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
         return 1
       fi
@@ -513,12 +485,29 @@ _zplg_is_plugin_loaded() {
       _zplg_log "downloading $plugin_id"
       _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
 
+      zplg-rebuild "$plugin_id"
+    done
+  }
+
+  zplg-rebuild() {
+    if (( $# == 0 )); then
+      _zplg_error "usage: $0 <plugin...>"
+      return 1
+    fi
+
+    local plugin_id plugin_dir; local -a plugin_build
+    for plugin_id in "$@"; do
+      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
+
       if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
-        # for description of this terrible hack see the ending of the
-        # `zplg-upgrade` function
+        # TERRIBLE HACK continued: this monstrosity is used to "decode" build
+        # commands. See ending of the `plugin` function for "encoding"
+        # procedure. First, I get encoded string. Then with the (z) modifier I
+        # split it into array taking into account quoting. Then with the (Q)
+        # modifier I unquote every value.
         plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
         _zplg_log "building $plugin_id"
-        ( cd "$plugin_dir" && _zplg_run_commands plugin_build ) || return "$?"
+        ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
       fi
     done
   }
@@ -530,8 +519,9 @@ _zplg_is_plugin_loaded() {
       return 1
     fi
 
+    local plugin_id
     for plugin_id in "$@"; do
-      if ! _zplg_is_plugin_loaded "$plugin_id"; then
+      if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
         return 1
       fi
@@ -542,5 +532,19 @@ _zplg_is_plugin_loaded() {
       rm -rf "$plugin_dir"
     done
   }
+
+# }}}
+
+# completion for the plugin management commands {{{
+
+  _zplg_plugins() {
+    local expl
+    _wanted zplg-plugins expl 'plugin ID' compadd "$@" -k - ZPLG_LOADED_PLUGINS
+  }
+
+  compdef _zplg_plugins zplg-{upgrade,reinstall,rebuild,purge}
+
+  # This will complete nothing after the `zplg-list` command
+  compdef 'compadd -' zplg-list
 
 # }}}

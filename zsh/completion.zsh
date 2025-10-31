@@ -70,9 +70,6 @@ done; unset stale
 autoload -Uz compinit is-at-least && \
   compinit -u -d "$zcompdump" $(if is-at-least '5.8.1.2'; then print -- '-w'; fi)
 
-eval "${(j:\n:)_deferred_compdefs}"
-unset _deferred_compdefs
-
 # Speed up shell initialization by compiling the compdump. The code is from
 # <https://github.com/sorin-ionescu/prezto/blob/c945922b2268ca1959a3ed29368b1c21a07950c1/runcoms/zlogin#L11-L17>.
 # See also: <https://github.com/sorin-ionescu/prezto/issues/2028>, <https://github.com/ohmyzsh/ohmyzsh/pull/11345>.
@@ -82,6 +79,9 @@ if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdu
     command rmdir -- "${zcompdump}.zwc.lock" 2>/dev/null
   fi
 fi
+
+eval "${(F)_deferred_compdefs}"  # the (F) flag joins all items of an array with newlines
+unset _deferred_compdefs
 
 if ! is_function _rustup && command_exists rustup; then
   lazy_load _rustup 'source <(rustup completions zsh)'
@@ -107,6 +107,4 @@ if ! is_function _cargo && command_exists rustup && command_exists rustc; then
   compdef _cargo cargo
 fi
 
-# Complete any commands following simple wrapper functions.
-# <https://stackoverflow.com/a/13547531>
-compdef 'shift words; (( CURRENT-- )); _normal' prime-run allow-ptrace
+compdef _precommand prime-run allow-ptrace

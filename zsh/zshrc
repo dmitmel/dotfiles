@@ -28,9 +28,12 @@
 
 _perf_timer_start "total"
 
-ZSH_DOTFILES="${0:A:h}"
+# How this weird abomination for getting the path to the current script works:
+# <https://unix.stackexchange.com/questions/386113/zsh-expansion-syntax>
+# <https://github.com/zdharma-continuum/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc#1-standardized-0-handling>
+ZSH_DOTFILES="${${(%):-%N}:A:h}"
 
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/dotfiles"
 mkdir -pv -- "$ZSH_CACHE_DIR"
 
 # Zsh can define a function under multiple different names, apparently
