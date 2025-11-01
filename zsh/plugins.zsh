@@ -56,15 +56,17 @@ if [[ -n "${DOTFILES_INSTALL_FZF}" ]]; then
     after_load='plugin-cfg-path manpath prepend man'
 fi
 
-FAST_WORK_DIR="$ZSH_CACHE_DIR"
-if [[ "$TERM" != "linux" ]]; then
-  # `*.ch` files are compiled in an extra step because Zsh is unable to write
-  # the compiled `zwc` files without `cd`ing into the `→chroma` directory first.
-  # Unicode problems in 2025, yay!
-  plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
-    build='for f in (fast*|.fast*)~*.zwc **/*.zsh; zcompile -R -- "$f"' \
-    build='cd -- →chroma; for f in *.ch; zcompile -R -- "$f"'
+# `*.ch` files are compiled in an extra step because Zsh is unable to write
+# the compiled `zwc` files without `cd`ing into the `→chroma` directory first.
+# Unicode problems in 2025, yay!
+plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
+  build='for f in (fast*|.fast*)~*.zwc **/*.zsh; zcompile -R -- "$f"' \
+  build='cd -- →chroma; for f in *.ch; zcompile -R -- "$f"' \
+  before_load='FAST_WORK_DIR="$ZSH_CACHE_DIR"' \
+  before_load='plugin-cfg-path fpath prepend .' \
+  ${${(M)TERM:#linux}:+"ignore=*"}  # a shitty ternary operator, adds ignore=* if $TERM == "linux"
 
+if is_function fast-theme; then
   set-my-syntax-theme() {
     fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"
   }

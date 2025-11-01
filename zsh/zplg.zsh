@@ -348,7 +348,7 @@ _zplg_expand_load_patterns() {
 _zplg_run_commands() {
   setopt local_options err_exit
   # (F) modifier joins an array with newlines
-  eval "${(F)1}"
+  eval "${(F)@}"
 }
 
 # helper functions for plugin configuration {{{
@@ -380,7 +380,11 @@ _zplg_run_commands() {
 
     local value
     for value in "$@"; do
-      value="${plugin_dir}${value:+/}${value}"
+      if [[ "${value:-.}" == "." ]]; then
+        value="${plugin_dir}"
+      else
+        value="${plugin_dir}/${value}"
+      fi
       if (( ${${(P)var_name}[(ie)$value]-1} > ${#${(P)var_name}} )); then
         case "$operator" in
           prepend) set -A "$var_name" "$value" "${(@P)var_name}" ;;
