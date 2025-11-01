@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # find editor
 export EDITOR="nvim"
 export VISUAL="$EDITOR"

@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # My re-implementation of the excellent alias-tips plugin:
 # <https://github.com/djui/alias-tips/blob/45e4e97ba4ec30c7e23296a75427964fc27fb029/alias-tips.plugin.zsh>
 # <https://github.com/djui/alias-tips/blob/45e4e97ba4ec30c7e23296a75427964fc27fb029/alias-tips.py>

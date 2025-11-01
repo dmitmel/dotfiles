@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 count() { print -r -- "$#"; }
 
 bytecount() { wc -c "$@" | numfmt --to=iec-i --suffix=B; }

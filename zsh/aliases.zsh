@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # this alias removes leading dollar sign (useful when copying code from Stackoverflow)
 alias '$'=''
 

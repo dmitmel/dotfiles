@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 export PATH
 export MANPATH
 

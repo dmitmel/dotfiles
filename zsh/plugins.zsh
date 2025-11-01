@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 plugin completions 'zsh-users/zsh-completions' \
   after_load='plugin-cfg-path fpath append src'
 

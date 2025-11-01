@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # This... is my DIY plugin manager for Zsh. "Why did I reinvent the wheel yet
 # again and created my own plugin manager?" you might ask. Well, some of them
 # are too slow (antigen, zplug), some are too complicated (antigen-hs, zplugin)
