@@ -108,17 +108,25 @@ _preexec_alias_tips() {
   fi
 }
 
-# This routine repeatedly expands aliases in the original string. A hashtable
-# is used to track the already expanded aliases, so that we don't end up
-# running in circles on self-references (for example, `alias ls="ls -hF"`). For
-# future reference, no quoting is necessary in array/hash subscripts (adding
-# quotes actually changes the key). Input and result is supplied via the
-# `reply` array.
+# This routine repeatedly expands aliases in the original string. A hashtable is
+# used to track the already expanded aliases, so that we don't end up running in
+# circles on self-references (for example, `alias ls="ls -hF"`). For future
+# reference, no quoting is necessary in array/hash subscripts (adding quotes
+# actually changes the key). Input and result is stored in the `reply` array.
 _alias_tips_expand_aliases() {
   setopt local_options err_return
+  local word expansion
   local -A used_aliases=()
-  while (( ${+aliases[${reply[1]}]} && ! ${+used_aliases[${reply[1]}]} )); do
-    used_aliases[${reply[1]}]=1
-    reply=("${(@z)${aliases[${reply[1]}]}}" "${(@)reply[2,-1]}")
+  local -i pos=1 next_word=1
+  for (( ; pos <= ${#reply[@]} && next_word; pos++ )); do
+    next_word=0
+    while word="${reply[$pos]}" && (( ${+aliases[$word]} && ! ${+used_aliases[$word]} )); do
+      expansion="${aliases[$word]}"
+      used_aliases[$word]=1
+      reply[$pos]=("${(@z)expansion}")
+      if [[ "${expansion[-1]}" == ' ' ]]; then
+        next_word=1
+      fi
+    done
   done
 }
