@@ -278,7 +278,7 @@ POSSIBILITY OF SUCH DAMAGE.
   <xsl:text>newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(</xsl:text>
   <xsl:text>createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)}))}}window.addEventListener("keydown",(event=&gt;{if(!(event.shiftKey||event.altKey||event.ctrlKey||event.metaKey)){</xsl:text>
   <xsl:text>let dir;switch(event.code){case"ArrowUp":case"KeyK":dir=-1;break;case"ArrowDown":case"KeyJ":dir=1;break;default:return}event.preventDefault();let focusable=Array.from(document.querySelectorAll("tbody </xsl:text>
-  <xsl:text>a")),current=focusable.indexOf(document.activeElement);if(current&lt;0)(dir&gt;0?focusable[0]:focusable[focusable.length-1]).focus();else{let elem=focusable[current+dir];elem&amp;&amp;elem.focus()}}}))})();</xsl:text>
+  <xsl:text>a")),idx=focusable.indexOf(document.activeElement);idx&lt;0?idx=dir&gt;0?0:focusable.length-1:idx+=dir,null!=focusable[idx]&amp;&amp;focusable[idx].focus()}}))})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>

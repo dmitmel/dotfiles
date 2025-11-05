@@ -128,12 +128,15 @@
       event.preventDefault();
 
       let focusable = Array.from(document.querySelectorAll('tbody a'));
-      let current = focusable.indexOf(document.activeElement);
-      if (current < 0) {
-        (dir > 0 ? focusable[0] : focusable[focusable.length - 1]).focus();
+      let idx = focusable.indexOf(document.activeElement);
+      if (idx < 0) {
+        idx = dir > 0 ? 0 : focusable.length - 1;
       } else {
-        let elem = focusable[current + dir];
-        if (elem) elem.focus();
+        idx += dir;
+      }
+
+      if (focusable[idx] != null) {
+        focusable[idx].focus();
       }
     }
   });
