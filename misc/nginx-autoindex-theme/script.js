@@ -41,7 +41,7 @@
         if (a < b) return -1;
         return 0;
       };
-      let getValue = (td) => null;
+      let getValue = (_td) => null;
       let nan2null = (x) => (!isNaN(x) ? x : null);
 
       if (sortCol === 'name') {
@@ -108,4 +108,33 @@
       });
     }
   }
+
+  window.addEventListener('keydown', (event) => {
+    if (!(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
+      let dir;
+      switch (event.code) {
+        case 'ArrowUp':
+        case 'KeyK':
+          dir = -1;
+          break;
+        case 'ArrowDown':
+        case 'KeyJ':
+          dir = 1;
+          break;
+        default:
+          return;
+      }
+
+      event.preventDefault();
+
+      let focusable = Array.from(document.querySelectorAll('tbody a'));
+      let current = focusable.indexOf(document.activeElement);
+      if (current < 0) {
+        (dir > 0 ? focusable[0] : focusable[focusable.length - 1]).focus();
+      } else {
+        let elem = focusable[current + dir];
+        if (elem) elem.focus();
+      }
+    }
+  });
 })();

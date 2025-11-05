@@ -270,13 +270,15 @@ POSSIBILITY OF SUCH DAMAGE.
   <xsl:text>(()=&gt;{"use strict";for(let table of document.getElementsByTagName("table")){for(let td of table.getElementsByTagName("td")){let data=td.dataset;if("mtime"===data.col&amp;&amp;null!=data.val){let date=new Date</xsl:text>
   <xsl:text>(data.val||td.innerText);if(isNaN(date))delete data.val;else{data.val=date.getTime();let x="2-digit";td.innerText=date.toLocaleString([],{year:x,month:x,day:x,hour:x,minute:x,second:x})}}}let tBody=</xsl:text>
   <xsl:text>table.tBodies[1],tRows=Array.from(tBody.rows),tHeaders=table.tHead.getElementsByTagName("th"),createSorterFn=(sortCol,sortDir)=&gt;{let findCol=tr=&gt;{for(let td of tr.getElementsByTagName("td"))if(td.</xsl:text>
-  <xsl:text>dataset.col===sortCol)return td;return null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0,getValue=td=&gt;null,nan2null=x=&gt;isNaN(x)?null:x;return"name"===sortCol?(getValue=td=&gt;td.innerText,compare="undefined"!=typeof </xsl:text>
+  <xsl:text>dataset.col===sortCol)return td;return null},compare=(a,b)=&gt;a&gt;b?1:a&lt;b?-1:0,getValue=_td=&gt;null,nan2null=x=&gt;isNaN(x)?null:x;return"name"===sortCol?(getValue=td=&gt;td.innerText,compare="undefined"!=typeof </xsl:text>
   <xsl:text>Intl?new Intl.Collator(void 0,{numeric:!0}).compare:(a,b)=&gt;a.localeCompare(b)):("size"===sortCol||"mtime"===sortCol)&amp;&amp;(getValue=td=&gt;nan2null(parseInt(td.dataset.val,10))),(a,b)=&gt;compare(getValue(</xsl:text>
   <xsl:text>findCol(a)),getValue(findCol(b)))*sortDir},updateSortIcons=(clickedTh,sortDir)=&gt;{for(let th of tHeaders){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"</xsl:text>
   <xsl:text>none",icon="sort-"+sortDirStr),th.dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of tHeaders){th.classList.</xsl:text>
   <xsl:text>add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let </xsl:text>
   <xsl:text>newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(</xsl:text>
-  <xsl:text>createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)}))}}})();</xsl:text>
+  <xsl:text>createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)}))}}window.addEventListener("keydown",(event=&gt;{if(!(event.shiftKey||event.altKey||event.ctrlKey||event.metaKey)){</xsl:text>
+  <xsl:text>let dir;switch(event.code){case"ArrowUp":case"KeyK":dir=-1;break;case"ArrowDown":case"KeyJ":dir=1;break;default:return}event.preventDefault();let focusable=Array.from(document.querySelectorAll("tbody </xsl:text>
+  <xsl:text>a")),current=focusable.indexOf(document.activeElement);if(current&lt;0)(dir&gt;0?focusable[0]:focusable[focusable.length-1]).focus();else{let elem=focusable[current+dir];elem&amp;&amp;elem.focus()}}}))})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>
