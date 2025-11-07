@@ -32,13 +32,18 @@ _perf_timer_start "total"
 ZSH_DOTFILES="${${(%):-%N}:A:h}"
 
 ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/dotfiles"
-mkdir -pv -- "$ZSH_CACHE_DIR"
+if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
+  command mkdir -pv -- "$ZSH_CACHE_DIR"
+fi
 
 # Zsh can define a function under multiple different names, apparently
-function _source _zplg_load {
-  _perf_timer_start "${1:t}"
-  builtin source "$@"
-  _perf_timer_stop "${1:t}"
+function perf_source _zplg_load {
+  {
+    _perf_timer_start "${1:t}"
+    builtin source "$@"
+  } always {
+    _perf_timer_stop "${1:t}"
+  }
 }
 
 if (( ${+functions[compdef]} )); then
@@ -55,8 +60,8 @@ fi
 
 autoload -Uz colors && colors
 
-for script in options functions path env; do
-  _source "${ZSH_DOTFILES}/${script}.zsh"
+for script in options functions path; do
+  perf_source "${ZSH_DOTFILES}/${script}.zsh"
 done; unset script
 
 integer welcome_fd=-1
@@ -71,8 +76,8 @@ integer welcome_fd=-1
     exec {welcome_fd}< <(welcome)
   fi
 
-  for script in prompt zplg plugins aliases completion zle alias_tips colorscheme; do
-    _source "${ZSH_DOTFILES}/${script}.zsh"
+  for script in env prompt zplg plugins aliases completion zle alias_tips colorscheme; do
+    perf_source "${ZSH_DOTFILES}/${script}.zsh"
   done; unset script
 
   if is_function _dotfiles_customizations; then
