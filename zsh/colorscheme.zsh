@@ -2,87 +2,74 @@
 
 source "${ZSH_DOTFILES:h}/colorschemes/out/zsh.zsh"
 
+# When a terminal multiplexer is detected the control sequences for changing the
+# colors need to be wrapped, so that they get passed through to the real terminal.
 if [[ -n "$TMUX" ]]; then
-  # tmux
-  terminal_wrapper=tmux
+  # The ESC characters in the wrapped OSC command must be escaped with another ESC.
+  # https://github.com/tmux/tmux/wiki/FAQ#what-is-the-passthrough-escape-sequence-and-how-do-i-use-it
+  _colorscheme_send_ctrl_seq() { 1=${1//$'\e'/$'\e\e'}; printf '\ePtmux;\e%s\e\\' "$1"; }
 elif [[ -n "$STY" ]]; then
-  # GNU Screen
-  terminal_wrapper=screen
-fi
-
-if [[ -z "$terminal_wrapper" ]]; then
-  case "$TERM" in
-    linux*) terminal="linux" ;;
-         *) terminal="xterm" ;;
-  esac
-  export _COLORSCHEME_TERMINAL="$terminal"
+  # <https://www.gnu.org/software/screen/manual/screen.html#Control-Sequences>
+  # GNU screen uses the standard DCS (Device Control String) sequence, see
+  # console_codes(4). It provides no means of escaping the ST sequence at the
+  # end of an OSC though, but fortunately, xterm also recognizes OSC terminated
+  # with the BEL character instead of ST. See also:
+  # https://github.com/akinomyoga/ble.sh/blob/2f564e636f7b5dd99c4d9793277a93db29e81adf/src/util.sh#L7510-L7514
+  _colorscheme_send_ctrl_seq() { 1=${1//$'\e\\'/$'\a'}; printf '\eP%s\e\\' "$1"; }
 else
-  terminal="${_COLORSCHEME_TERMINAL:-xterm}"
+  _colorscheme_send_ctrl_seq() { printf '%s' "$1"; }
+  # If a terminal multiplexer is now started in this terminal, the shell inside
+  # will inherit this env variable, which tells it the real $TERM
+  export DOTFILES_REAL_TERM="$TERM"
 fi
 
-# when a terminal wrapper is detected certain control sequences are used to
-# send color change control sequences directly to the terminal
-case "$terminal_wrapper" in
-  tmux)
-    # http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324
-    _colorscheme_print_ctrl_seq() { print -rn -- $'\ePtmux;\e'"$1"$'\e\\'; }
-    ;;
-  screen)
-    # GNU screen uses the standard DCS (Device Control String) sequence (see
-    # console_codes(4) manpage)
-    _colorscheme_print_ctrl_seq() { print -rn -- $'\eP'"$1"$'\e\\'; }
-    ;;
-  *)
-    _colorscheme_print_ctrl_seq() { print -rn -- "$1"; }
-    ;;
-esac; unset terminal_wrapper
+_colorscheme_send_osc() {}
+_colorscheme_set_attr() {}
+_colorscheme_set_color() {}
 
-case "$terminal" in
-  linux)
-    _colorscheme_print_osc_seq() {}
-    _colorscheme_set_attr_to_color() {}
-    _colorscheme_set_ansi_color() {
+case "${DOTFILES_REAL_TERM:-$TERM}" in
+  (linux*)
+    _colorscheme_set_color() {
       # Linux console supports setting only 16 ANSI colors and interestingly
       # enough uses only 8 of them
       if (( $1 >= 0 && $1 < 16 )); then
-        _colorscheme_print_ctrl_seq $'\e]P'"$(([##16]$1))$2"
+        _colorscheme_send_ctrl_seq $'\e]P'"$(([##16]$1))$2"
       fi
     }
     ;;
-  xterm)
-    _colorscheme_print_osc_seq() {
-      _colorscheme_print_ctrl_seq $'\e]'"$1"$'\e\\';
-    }
-    _colorscheme_set_attr_to_color() {
-      _colorscheme_print_osc_seq "$1;rgb:${2[1,2]}/${2[3,4]}/${2[5,6]}";
-    }
-    _colorscheme_set_ansi_color() {
-      _colorscheme_set_attr_to_color "4;$1" "$2";
-    }
+  (?*)
+    _colorscheme_send_osc() { _colorscheme_send_ctrl_seq $'\e]'"$1"$'\e\\'; }
+    _colorscheme_set_attr() { _colorscheme_send_osc "$1;rgb:${2[1,2]}/${2[3,4]}/${2[5,6]}"; }
+    _colorscheme_set_color() { _colorscheme_set_attr "4;$1" "$2"; }
     ;;
-esac; unset terminal
+esac
 
 set-my-colorscheme() {
   local i; for (( i = 1; i <= ${#colorscheme_ansi_colors}; i++ )); do
-    _colorscheme_set_ansi_color "$((i-1))" "${colorscheme_ansi_colors[$i]}"
+    _colorscheme_set_color "$((i-1))" "${colorscheme_ansi_colors[$i]}"
   done
 
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     # iTerm2 proprietary escape codes
     # https://www.iterm2.com/documentation-escape-codes.html
-    _colorscheme_print_osc_seq Pg"$colorscheme_fg"
-    _colorscheme_print_osc_seq Ph"$colorscheme_bg"
-    _colorscheme_print_osc_seq Pi"$colorscheme_fg" # bold
-    _colorscheme_print_osc_seq Pj"$colorscheme_selection_bg"
-    _colorscheme_print_osc_seq Pk"$colorscheme_selection_fg"
-    _colorscheme_print_osc_seq Pl"$colorscheme_cursor_bg"
-    _colorscheme_print_osc_seq Pm"$colorscheme_cursor_fg"
-  else
-    _colorscheme_set_attr_to_color 10 "$colorscheme_fg"
-    _colorscheme_set_attr_to_color 11 "$colorscheme_bg"
-    if [[ "$TERM" = rxvt* ]]; then
+    _colorscheme_send_osc Pg"$colorscheme_fg"
+    _colorscheme_send_osc Ph"$colorscheme_bg"
+    _colorscheme_send_osc Pi"$colorscheme_fg" # bold
+    _colorscheme_send_osc Pj"$colorscheme_selection_bg"
+    _colorscheme_send_osc Pk"$colorscheme_selection_fg"
+    _colorscheme_send_osc Pl"$colorscheme_cursor_bg"
+    _colorscheme_send_osc Pm"$colorscheme_cursor_fg"
+  elif [[ -z "$VIM_TERMINAL" ]]; then
+    _colorscheme_set_attr 10 "$colorscheme_fg"
+    _colorscheme_set_attr 11 "$colorscheme_bg"
+    # _colorscheme_set_attr 12 "$colorscheme_cursor_bg"
+    # _colorscheme_set_attr 13 "$colorscheme_cursor_fg"
+    # _colorscheme_set_attr 14 "$colorscheme_cursor_bg"
+    _colorscheme_set_attr 17 "$colorscheme_selection_bg"
+    _colorscheme_set_attr 19 "$colorscheme_selection_fg"
+    if [[ "$DOTFILES_REAL_TERM" = rxvt* ]]; then
       # internal window border
-      _colorscheme_set_attr_to_color 708 "$colorscheme_bg"
+      _colorscheme_set_attr 708 "$colorscheme_bg"
     fi
   fi
 }
