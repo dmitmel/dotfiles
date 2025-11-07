@@ -55,7 +55,7 @@ fi
 
 autoload -Uz colors && colors
 
-for script in functions options path env; do
+for script in options functions path env; do
   _source "${ZSH_DOTFILES}/${script}.zsh"
 done; unset script
 
