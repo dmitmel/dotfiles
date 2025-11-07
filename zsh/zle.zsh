@@ -144,34 +144,32 @@
     )
 
     local -a precommands=(
-      noglob nocorrect exec command builtin nohup disown sudo time gtime prime-run
+      noglob nocorrect exec command builtin nohup disown sudo time gtime prime-run allow-ptrace
     )
 
     local -a commands_with_subcommands=(
       git hub gh npm apt docker pip perf kitten systemctl
     )
 
-    local cmd_name arg i is_subcommand
-    for (( i = 1; i <= ${#words}; i++ )); do
-      arg="${words[$i]}"
-
+    local cmd_name arg is_subcommand=0
+    for arg in "${words[@]}"; do
       # Skip flags and variable assignments
       if [[ "$arg" == '-'* || "$arg" == ([[:IDENT:]]##)=* ]]; then
         continue
       fi
 
       # Skip command prefixes
-      if [[ -z "$is_subcommand" && -n "${arg:*precommands}" ]]; then
+      if (( ! is_subcommand )) && contains precommands "$arg"; then
         continue
       fi
 
-      if [[ -z "$is_subcommand" ]]; then
+      if (( ! is_subcommand )); then
         cmd_name="${command_manpage_name_overrides[$arg]-$arg}"
       else
         cmd_name="${cmd_name}-${arg}"
       fi
 
-      if [[ -z "$is_subcommand" && -n "${arg:*commands_with_subcommands}" ]]; then
+      if (( ! is_subcommand )) && contains commands_with_subcommands "$arg"; then
         is_subcommand=1
         continue
       fi

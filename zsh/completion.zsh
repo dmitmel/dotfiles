@@ -72,17 +72,17 @@ done; unset stale
 # <https://github.com/zsh-users/zsh/blob/15f4567148943c5b733922d59b9c3eea26e26a42/Completion/compinit#L80-L111>.
 autoload -Uz compinit && compinit -u -d "$zcompdump" -w
 
-# Speed up shell initialization by compiling the compdump. The code is from
+# Speed up shell initialization by compiling the zcompdump. The locking code is from
 # <https://github.com/sorin-ionescu/prezto/blob/c945922b2268ca1959a3ed29368b1c21a07950c1/runcoms/zlogin#L11-L17>.
 # See also: <https://github.com/sorin-ionescu/prezto/issues/2028>, <https://github.com/ohmyzsh/ohmyzsh/pull/11345>.
-if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc") ]]; then
+if should_rebuild "${zcompdump}.zwc" "$zcompdump"; then
   if command mkdir -- "${zcompdump}.zwc.lock" 2>/dev/null; then
     zcompile -R -- "$zcompdump"
     command rmdir -- "${zcompdump}.zwc.lock" 2>/dev/null
   fi
 fi
 
-eval "${(F)_deferred_compdefs}"  # the (F) flag joins all items of an array with newlines
+eval "${(F)_deferred_compdefs}"  # the (F) flag joins all elements of an array with newlines
 unset _deferred_compdefs
 
 if ! is_function _rustup && command_exists rustup; then
@@ -115,5 +115,3 @@ if ! is_function _rustc && ! is_function _rust; then
   autoload -Uz -- "${ZSH}/plugins/rust/_rustc"
   compdef _rustc rustc
 fi
-
-compdef _precommand prime-run allow-ptrace

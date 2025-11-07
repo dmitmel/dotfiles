@@ -13,10 +13,9 @@ fi
 
 export CLICOLOR=1
 
-# BSD ls colors
-export LSCOLORS="Gxfxcxdxbxegedabagacad"
-# GNU ls colors
-if is_command dircolors; then
+export LSCOLORS="Gxfxcxdxbxegedabagacad"  # BSD ls colors
+export -T LS_COLORS ls_colors             # GNU ls colors
+if is_command dircolors; then   # (this program is also part of GNU coreutils)
   # While not being a particularly complex task, executing `dircolors` still
   # requires forking to an external binary to essentially just get an unchanging
   # string of code to `eval`, and this is noticeable on systems where disk I/O
@@ -24,8 +23,9 @@ if is_command dircolors; then
   # `dircolors` and regenerate it only when its binary gets updated together
   # with the rest of coreutils.
   cached_dircolors="${ZSH_CACHE_DIR}/dircolors.sh"
-  if [[ ! -s "$cached_dircolors" || "${commands[dircolors]}" -nt "$cached_dircolors" ]]; then
-    dircolors --bourne-shell >| "$cached_dircolors"
+  if should_rebuild "$cached_dircolors" "${commands[dircolors]}"; then
+    command dircolors --bourne-shell >| "${cached_dircolors}.$$"
+    command mv -f -- "${cached_dircolors}.$$" "$cached_dircolors"
   fi
   source "$cached_dircolors"
   unset cached_dircolors

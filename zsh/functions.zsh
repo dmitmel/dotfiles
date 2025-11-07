@@ -1,8 +1,64 @@
+# Prints the number of received arguments.
 count() { print -r -- "$#"; }
+# Prints all arguments on separate lines. Useful for inspecting the contents of
+# arrays, like this: `print_lines $fpath`.
+print_lines() { print -rC1 -- "$@"; }
+# Prints the arguments as a NUL-terminated list.
+print_null() { print -rNC1 -- "$@"; }
+# Prints an associative array as a 2-column table for its keys and values.
+# Intended for debugging. Explanations of the used parameter expansion flags:
+#   P   reference another variable by its name, in this case taken from `$1`
+#  @kv  assuming this variable refers to an associative array, expand it into a
+#       list of consecutive key-value pairs
+#   q+  quote the expanded items when necessary, the same way as `declare -p`
+# Explanations of the `print` flags:
+#  -r   print raw strings, don't expand backslash-escape sequences
+#  -C2  format the output into two columns
+#  -a   in a row-major order
+print_table() { print -raC2 -- "${(P@kvq+)1}"; }
+# complete the names of associative array variables for `print_table`
+compdef '_parameters -g "association*"' print_table
+# Checks if the array referred to by the name in the 1st argument contains the
+# string in the 2nd argument. The condition is a more complicated form of
+# `${array[(re)$elem]+1}`, which expands to `1` if `$array` contains `$elem`.
+contains() { [[ -n "${${(P)1}[(re)${2}]+1}" ]]; }
 
-bytecount() { wc -c "$@" | numfmt --to=iec-i --suffix=B; }
+# Checks if a word can be meaningfully executed as a command (aliases, functions
+# and builtins also count).
+command_exists() { whence -- "$@" &>/dev/null; }
+# Searches the command binary in PATH.
+command_locate() { whence -p -- "$@"; }
 
-mkcd() { mkdir -p -- "$@" && cd -- "${@[-1]}"; }
+is_function() { typeset -f -- "$@" &>/dev/null; }
+is_alias() { alias -- "$@" &>/dev/null; }
+is_command() { whence -p -- "$@" &>/dev/null; }
+
+lazy_load() {
+  local name="$1"
+  local init="$2"
+  functions[$name]="
+    unfunction ${(q)name}
+    eval ${(q+)init}
+    ${(q)name} \"\$@\"
+  "
+}
+
+# A helper for writing code for caching stuff that might change depending on
+# some inputs. Inspired by the syntax of makefiles: `target: dep1 dep2 dep3`.
+should_rebuild() {
+  local target="$1" dependency=""; shift 1
+  # no if any dependency does not exist
+  for dependency; do if [[ ! -e "$dependency" ]]; then return 1; fi; done
+  # yes if the target does not exist
+  if [[ ! -e "$target" ]]; then return 0; fi
+  # yes if any dependency is newer than the target
+  for dependency; do if [[ "$dependency" -nt "$target" ]]; then return 0; fi; done
+  return 1  # no, the target is up-to-date
+}
+
+bytecount() { wc -c -- "$@" | numfmt --to=iec-i --suffix=B; }
+
+mkcd() { mkdir -pv -- "$@" && cd -- "${@[-1]}"; }
 
 viscd() {
   setopt local_options err_return
@@ -16,25 +72,6 @@ viscd() {
   } always {
     rm -f -- "$temp_file"
   }
-}
-
-# Checks if a word can be meaningfully executed as a command (aliases,
-# functions and builtins also count).
-command_exists() { whence -- "$@" &>/dev/null; }
-is_function() { typeset -f -- "$@" &>/dev/null; }
-is_alias() { alias -- "$@" &>/dev/null; }
-is_command() { whence -p -- "$@" &>/dev/null; }
-# Searches the command binary in PATH.
-command_locate() { whence -p -- "$@"; }
-
-lazy_load() {
-  local name="$1"
-  local init="$2"
-  eval "$name() {
-    unfunction $name
-    $init
-    $name \"\$@\"
-  }"
 }
 
 if [[ "$OSTYPE" != darwin* ]]; then
@@ -159,18 +196,6 @@ discord-avatar() {
   open "$avatar_url"
 }
 
-read_line() {
-  IFS= read -r -- "$@"
-}
-
-print_lines() {
-  print -rC1 -- "$@"
-}
-
-print_null() {
-  print -rNC1 -- "$@"
-}
-
 zmodload zsh/langinfo
 # Based on <https://gist.github.com/lucasad/6474224> and
 # <https://github.com/ohmyzsh/ohmyzsh/blob/aca048814b2462501ab82938ff2473661182fffb/lib/functions.zsh#L130-L209>.
@@ -229,6 +254,7 @@ allow-ptrace() {
     --caps="cap_setpcap,cap_setuid,cap_setgid+ep cap_sys_ptrace+eip" \
     --keep=1 --user="$USER" --addamb="cap_sys_ptrace" --shell="$program" -- "$@"
 }
+compdef _precommand allow-ptrace
 
 check-ssd-health() {
   sudo smartctl -l devstat "$1" | grep --color=always 'Percentage Used Endurance Indicator\|$'
@@ -266,3 +292,10 @@ fzf-man() {
   fi
   return 1
 }
+
+# A tool for debugging whether a given user can access the provided path.
+access() {
+  local user="${1?:need a username}"; shift
+  sudo -u "$user" namei --owners --modes --mountpoints -- "$@"
+}
+compdef 'if (( CURRENT > 2 )); then _files; else _users; fi' access

@@ -10,7 +10,7 @@
 # 1. The syntax of the shell language, to put it simply, utter trash designed
 #    40 (!!!) years ago.
 # 2. The shell language, especially when it comes to Zsh, is rather slow, so I
-#    had to use as less abstractions as possible.
+#    had to use as little abstraction as possible.
 #
 # But, read my comments and they'll guide you through this jungle of shell
 # script mess.
@@ -301,7 +301,7 @@ plugin() {
     # quoted ones into a string with (j: :) and put this "encoded" string into
     # the associative array. Terrible idea? Maybe. Does it work? YES!!!
     if (( ${#plugin_build} > 0 )); then
-      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${(j: :)${(@q)plugin_build}}"
+      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${(j: :)${(@q+)plugin_build}}"
     fi
 
   } always {
@@ -385,7 +385,7 @@ _zplg_run_commands() {
       else
         value="${plugin_dir}/${value}"
       fi
-      if (( ${${(P)var_name}[(ie)$value]-1} > ${#${(P)var_name}} )); then
+      if [[ -z "${${(P)var_name}[(re)${value}]+1}" ]]; then
         case "$operator" in
           prepend) set -A "$var_name" "$value" "${(@P)var_name}" ;;
            append) set -A "$var_name" "${(@P)var_name}" "$value" ;;

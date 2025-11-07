@@ -7,12 +7,12 @@ export -T LD_LIBRARY_PATH ld_library_path ':'
 
 path_prepend() {
   if (( $# < 1 )); then
-    print >&2 -r -- "usage: $0 <var_name> <value...>"
+    print >&2 -r -- "usage: $0 <var_name> [value...]"
     return 1
   fi
   local var_name="$1"; shift
   local value; for value in "$@"; do
-  if (( ${${(P)var_name}[(ie)$value]-1} > ${#${(P)var_name}} )); then
+    if ! contains "$var_name" "$value"; then
       set -A "$var_name" "$value" "${(@P)var_name}"
     fi
   done
