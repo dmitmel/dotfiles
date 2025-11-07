@@ -2,18 +2,71 @@
 # http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Zle-Builtins
 # http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets
 
-# _fzf_history_widget {{{
-  # taken from https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh
+# FZF {{{
+  # Based on <https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh>
   _fzf_history_widget() {
     local selected
     if selected=( $(fc -rl 1 | fzf --nth=2.. --scheme=history --query="$LBUFFER") ); then
       zle vi-fetch-history -n "${selected[1]}"
     fi
+    # Can't use `zle redisplay` here, it may cause multiline prompts to move up
+    # and "eat" the preceding text. More info here: <https://github.com/junegunn/fzf/pull/1397>.
+    zle reset-prompt
+  }
+
+  # A brilliant HACK stolen from <https://github.com/junegunn/fzf/blob/4d563c6dfaf854260314cb5cdc9df577ec512805/shell/completion.zsh#L144-L150>.
+  # This is a fake completion widget that does nothing but `eval` a string of
+  # code passed to it. It has no effect on the state of the completion system,
+  # besides letting us inspect its state from other functions, primarily to
+  # access the completion-related variables described in zshcompwid(1).
+  _fzf_eval_in_completion_widget() {
+    eval "$@"
+    compstate[insert]=""
+    compstate[list]=""
+  }
+  zle -C _fzf_eval_in_completion_widget .complete-word _fzf_eval_in_completion_widget
+
+  # Uses FZF to find a file and insert its path at the cursor position.
+  # <https://github.com/lincheney/fzf-tab-completion/blob/master/zsh/fzf-zsh-completion.sh>
+  _fzf_file_widget() {
+    local word
+    # Use the parser of the completion system to extract the word preceding the
+    # cursor -- it handles all of the complexity of parsing partially typed in
+    # code for us. This word will be used as a starting directory for FZF to
+    # search files in, so that if you do e.g. `e /usr/bin/` and invoke this
+    # widget, it will search for files in /usr/bin instead of the PWD.
+    zle _fzf_eval_in_completion_widget -- 'word="$PREFIX"'
+
+    local selected
+    if selected="$(
+
+      word="${word/#\~/$HOME}"  # expand a leading `~`
+      if [[ -n "$word" ]]; then
+        # don't invoke any chpwd handlers (-q) and ignore any errors from `cd`
+        cd -q -- "$word" 2>/dev/null || true
+      fi
+
+      local prompt="%~"      # see EXPANSION OF PROMPT SEQUENCES in zshmisc(1)
+      prompt="${(%)prompt}"  # perform prompt expansion
+      prompt="${prompt%/}/"  # add a trailing slash if necessary
+
+      # redirecting the /dev/tty to stdin is needed becaues of ZLE shenanigans
+      # <https://unix.stackexchange.com/a/595386>
+      fzf --prompt="$prompt" --scheme=path < /dev/tty
+
+    )" && [[ -n "$selected" ]]; then
+      # add syntactically-appropriate quoting for inserting ${selected}
+      zle _fzf_eval_in_completion_widget -- 'compquote selected'
+      LBUFFER+="${selected}"
+    fi
+
     zle reset-prompt
   }
 
   zle -N _fzf_history_widget
+  zle -N _fzf_file_widget
   bindkey '\er' _fzf_history_widget
+  bindkey '\ef' _fzf_file_widget
 # }}}
 
 # palette {{{
@@ -67,7 +120,7 @@
     fi
 
     # immediately redraw
-    zle redisplay
+    zle reset-prompt
   }
 
   # This function deletes the first placeholder from the buffer and places the
@@ -181,10 +234,10 @@
     if manpage="$(fzf-man "$cmd_name")"; then
       zle push-line
       BUFFER="man $manpage"
-      zle redisplay
+      zle reset-prompt
       zle accept-line
     else
-      zle redisplay
+      zle reset-prompt
     fi
   }
   zle -N _find_man_page_widget
@@ -195,8 +248,8 @@
 # other keybindings {{{
 
   autoload -Uz edit-command-line
-  if [[ "$EDITOR" == *vim ]]; then
-    zstyle ':zle:edit-command-line' editor "$EDITOR" -c 'set ft=zsh wrap'
+  if [[ $EDITOR == *vim ]]; then
+    zstyle ':zle:edit-command-line' editor ${=EDITOR} -c 'set ft=zsh wrap'
   fi
   bindkey '\ee' edit-command-line
 

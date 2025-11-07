@@ -41,14 +41,14 @@ plugin completions 'zsh-users/zsh-completions' \
   # atomically updating its database, so we find and delete them ourselves. The
   # glob selects files which were modified older than a week ago.
   for match in "${ZSHZ_DATA}".*(N.mw+1); do
-    rm -f "$match"
+    command rm -f -- "$match"
   done; unset match
 
   plugin zsh-z 'agkozak/zsh-z' build='zcompile -R zsh-z.plugin.zsh'
 
 # }}}
 
-if [[ -n "${DOTFILES_INSTALL_FZF}" ]]; then
+if [[ -n "$DOTFILES_INSTALL_FZF" ]]; then
   plugin fzf 'junegunn/fzf' \
     build='plugin-cfg-git-checkout-version "*"' \
     build='./install --bin' \

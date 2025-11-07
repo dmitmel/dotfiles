@@ -235,11 +235,11 @@ omz_urlencode() {
 }
 
 nvim-startuptime() {
-  "$EDITOR" =(nvim --startuptime /dev/stdout --headless -c 'qall!')
+  ${=EDITOR:-nvim} =(nvim --startuptime /dev/stdout --headless -c 'qall!')
 }
 
 vim-startuptime() {
-  "$EDITOR" =(vim --startuptime /dev/stdout --not-a-term -c 'qall!')
+  ${=EDITOR:-vim} =(vim --startuptime /dev/stdout --not-a-term -c 'qall!')
 }
 
 allow-ptrace() {
@@ -286,7 +286,7 @@ fzf-man() {
   local selected
   if selected="$(man -k . | fzf --tiebreak=begin,chunk --query="$*")"; then
     if [[ $selected =~ '^[[:space:]]*([^[:space:]]+)[[:space:]]*\(([[:alnum:]]+)\)' ]]; then
-      printf "%s %s\n" "${match[2]} ${match[1]}"
+      printf "%s %s\n" "${match[2]}" "${match[1]}"
       return 0
     fi
   fi
