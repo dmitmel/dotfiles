@@ -88,6 +88,17 @@ if dotplug.has('fzf-lua') then
     vim.fn.win_execute(self.fzf_winid, 'redrawstatus')
   end
 
+  FzfLua.win._old_update_statusline = FzfLua.win._old_update_statusline
+    or FzfLua.win.update_statusline
+  function FzfLua.win:update_statusline(...)
+    if
+      vim.fn.exists('#airline') == 0
+      and not utils.is_truthy(vim.call('airline#util#stl_disabled', self.fzf_winid))
+    then
+      return self:_old_update_statusline(...)
+    end
+  end
+
   FzfLua.setup({
     'fzf-vim',
 
@@ -261,7 +272,7 @@ if dotplug.has('fzf-lua') then
       local winopts = {}
       if opts.kind == 'codeaction' then
         winopts.width = utils.clamp(
-          num_width + item_width + 1, -- +1 for the scrollbar
+          num_width + item_width + 3, -- +1 for the scrollbar
           vim.o.pumwidth,
           utils.round(vim.o.columns * 0.5)
         )
@@ -279,6 +290,10 @@ if dotplug.has('fzf-lua') then
           ['--cycle'] = true,
           ['--info'] = 'hidden',
           ['--no-separator'] = true,
+          ['--raw'] = true,
+        },
+        keymap = {
+          fzf = { ['result'] = 'best' },
         },
       }
     end

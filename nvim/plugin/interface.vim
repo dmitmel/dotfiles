@@ -346,6 +346,7 @@ set history=10000
   \ 'spinner':   ['fg', 'String'],
   \ 'query':     ['fg', 'Normal'],
   \ 'prompt':    ['fg', 'Title'],
+  \ 'nomatch':   ['fg', 'Comment'],
   \ }
 
   command! -bar -bang -nargs=0 FilesRuntime Files<bang> $VIMRUNTIME
