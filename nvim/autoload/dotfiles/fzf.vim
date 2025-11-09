@@ -26,14 +26,14 @@ function! dotfiles#fzf#hlgroup_to_ansi(group) abort
   let bg = synIDattr(id, 'bg#')
   " let sp = synIDattr(id, 'sp#')
   if !empty(fg)
-    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(fg,'3'))
+    call add(sgr, s:vim_color_to_ansi(fg,'3'))
   endif
   if !empty(bg)
-    call add(sgr, dotfiles#fzf#_vim_color_str_to_ansi(bg,'4'))
+    call add(sgr, s:vim_color_to_ansi(bg,'4'))
   endif
   " Sets the underline color, but is non-standard.
   " if !empty(sp)
-  "   call add(sgr, '58;' . dotfiles#fzf#vim_color_str_to_ansi(fg, ''))
+  "   call add(sgr, '58;' . s:vim_color_to_ansi(fg, ''))
   " endif
 
   if !empty(synIDattr(id, 'bold'))
@@ -55,7 +55,7 @@ function! dotfiles#fzf#hlgroup_to_ansi(group) abort
   return "\e[" . join(sgr, ';') . 'm'
 endfunction
 
-function! dotfiles#fzf#_vim_color_str_to_ansi(color, cmd_start) abort
+function! s:vim_color_to_ansi(color, cmd_start) abort
   if a:color =~# '^#\x\{6}$'
     let str = '2;'.str2nr(a:color[1:2],16).';'.str2nr(a:color[3:4],16).';'.str2nr(a:color[5:6],16)
     return !empty(a:cmd_start) ? a:cmd_start.'8;'.str : str
@@ -67,8 +67,12 @@ function! dotfiles#fzf#_vim_color_str_to_ansi(color, cmd_start) abort
     els
       return a:cmd_start.'8;5;'.idx
     endif
-  elseif a:color ==# 'fg' || a:color ==# 'bg'
-    throw 'TODO, ' . a:color . ' color references are not supported'
+  elseif a:color ==# 'fg'
+    let fg = synIDattr(synIDtrans(hlID('Normal')), 'fg#')
+    return s:vim_color_to_ansi(fg, a:cmd_start)
+  elseif a:color ==# 'bg'
+    let bg = synIDattr(synIDtrans(hlID('Normal')), 'bg#')
+    return s:vim_color_to_ansi(bg, a:cmd_start)
   else
     throw 'Invalid color: ' . string(a:color)
   endif
@@ -92,8 +96,10 @@ function! dotfiles#fzf#hlgroup_to_fzf_color(group, group_attr) abort
       call add(attrs, color)
     elseif color =~# '^\d'
       call add(attrs, str2nr(color, 10) % 0x100)
-    elseif color ==# 'fg' || color ==# 'bg'
-      throw 'TODO, ' . color . ' color references are not supported'
+    elseif color ==# 'fg'
+      return dotfiles#fzf#hlgroup_to_fzf_color('Normal', 'fg')
+    elseif color ==# 'bg'
+      return dotfiles#fzf#hlgroup_to_fzf_color('Normal', 'bg')
     else
       throw 'Invalid color: ' . string(color)
     endif
@@ -169,13 +175,13 @@ function! dotfiles#fzf#qflist_fuzzy(is_loclist, fullscreen) abort
   let initial_winid = win_getid()
   let list = a:is_loclist ? getloclist(initial_winid, get_list_opts) : getqflist(get_list_opts)
 
-  let l:to_ansi = function('dotfiles#fzf#hlgroup_to_ansi')
-  let hl_path  = hlexists('qfFileName') ? l:to_ansi('qfFileName') : l:to_ansi('Directory')
-  let hl_range = hlexists('qfLineNr')   ? l:to_ansi('qfLineNr')   : l:to_ansi('LineNr')
-  let hl_error = hlexists('qfError')    ? l:to_ansi('qfError')    : l:to_ansi('Error')
-  let hl_warn  = hlexists('qfWarning')  ? l:to_ansi('qfWarning')  : ''
-  let hl_info  = hlexists('qfInfo')     ? l:to_ansi('qfInfo')     : ''
-  let hl_note  = hlexists('qfNote')     ? l:to_ansi('qfNote')     : ''
+  let Hl2ansi  = function('dotfiles#fzf#hlgroup_to_ansi')
+  let hl_path  = hlexists('qfFileName') ? Hl2ansi('qfFileName') : Hl2ansi('Directory')
+  let hl_range = hlexists('qfLineNr')   ? Hl2ansi('qfLineNr')   : Hl2ansi('LineNr')
+  let hl_error = hlexists('qfError')    ? Hl2ansi('qfError')    : Hl2ansi('Error')
+  let hl_warn  = hlexists('qfWarning')  ? Hl2ansi('qfWarning')  : ''
+  let hl_info  = hlexists('qfInfo')     ? Hl2ansi('qfInfo')     : ''
+  let hl_note  = hlexists('qfNote')     ? Hl2ansi('qfNote')     : ''
   let type_lookup = {
   \ 'e': hl_error . 'error',   'E': hl_error . 'error',
   \ 'w': hl_warn  . 'warning', 'W': hl_warn  . 'warning',
