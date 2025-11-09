@@ -84,10 +84,6 @@ integer welcome_fd=-1
     _dotfiles_customizations
   fi
 
-  if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "${#dirstack}" -eq 0 ]]; then
-    dirstack_load
-  fi
-
   _perf_timer_stop "total"
 
   if (( welcome_fd >= 0 )); then

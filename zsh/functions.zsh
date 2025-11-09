@@ -172,16 +172,18 @@ dirstack_save() {
   # declare a local array with unique elements (only the first occurence of
   # each word is persisted)
   local -aU saved_dirs=("$PWD" "${dirstack[@]}")
-  print_lines "${saved_dirs[@]}" >| "$DIRSTACK_FILE"
+  integer length="${DIRSTACKSIZE:-${#saved_dirs[@]}}"
+  print_lines "${saved_dirs[@]:0:${length}}" >| "$DIRSTACK_FILE"
 }
 
 dirstack_load() {
   local saved_dirs
   if saved_dirs="$(<"$DIRSTACK_FILE")" 2>/dev/null; then
     # remove PWD from the saved dirstack using the array uniqueness feature
-    local -aU saved_dirs=("$PWD" "${(@f)saved_dirs}")
-    # skip the first entry in the saved dirstack
-    dirstack=("${saved_dirs[@]:1}")
+    local -aU saved_dirs=("$PWD" "${(@f)saved_dirs:#$PWD}")
+    integer length="${DIRSTACKSIZE:-${#saved_dirs[@]}}"
+    # skip the first entry in the loaded list, which corresponds to $PWD
+    dirstack=("${saved_dirs[@]:1:${length}-1}")
   fi
 }
 
@@ -270,15 +272,15 @@ scan-local-network() {
 
 j() {
   local selected
-  if selected=( $(z -l | fzf --with-nth=2.. --tac --tiebreak=index --query="$*") ); then
+  if selected=( $(z -l | fzf --with-nth=2.. --tac --scheme=path --query="$*" --tiebreak=index) ); then
     cd -- "${selected[2]}"
   fi
 }
 
 d() {
   local selected
-  if selected="$(builtin dirs -pl | fzf --tiebreak=index --query="$*")"; then
-    cd -- "$selected"
+  if selected=( $(builtin dirs -plv | fzf --scheme=path --query="$*" --cycle) ); then
+    cd -- "${selected[2]}"
   fi
 }
 

@@ -28,6 +28,8 @@ setopt auto_cd
 # automatically push directories onto the stack when doing a `cd`, but remove
 # older duplicates (this works like history of a single tab in a web browser)
 setopt auto_pushd pushd_ignore_dups
+# limit the number of items on the dirstack
+DIRSTACKSIZE="${DIRSTACKSIZE:-10}"
 
 # do not autoselect the first completion entry
 setopt no_menu_complete
