@@ -1,5 +1,3 @@
-let s:filetypes = ['cmake']
-
 let g:vimspector_adapters['cmake'] = {
 \ 'name': 'cmake',
 \ 'command': ['socat', '-', 'UNIX-CONNECT:${workspaceRoot}/cmake-nvim-debug'],
@@ -9,7 +7,8 @@ let g:vimspector_adapters['cmake'] = {
 let g:vimspector_configurations['cmake'] = {
 \ 'autoselect': v:false,
 \ 'adapter': 'cmake',
+\ 'filetypes': ['cmake'],
 \ 'configuration': {
 \   'request': 'launch',
-\ }
+\ },
 \}

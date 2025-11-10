@@ -762,6 +762,17 @@ endif
   let g:javascript_plugin_jsdoc = 1
   let g:vim_jsx_pretty_disable_js = 1
 
+  " Why is none of this stuff enabled out-of-the-box?
+  let g:go_highlight_functions = 1
+  let g:go_highlight_function_parameters = 1
+  let g:go_highlight_function_calls = 1
+  let g:go_highlight_fields = 1
+  let g:go_highlight_types = 1
+  let g:go_highlight_build_constraints = 1
+  let g:go_highlight_generate_tags = 1
+  let g:go_highlight_variable_assignments = 0
+  let g:go_highlight_variable_declarations = 1
+
 " }}}
 
 

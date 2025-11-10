@@ -3,7 +3,7 @@
 
 " NOTE: Rewriting this in Lua is not worth it. I have already optimized the
 " logic in this file well enough --- the `:hi` commands take up the most
-" execution time anyway. As of 2022-04-16, in nvim v0.11.0, the Vimscript
+" execution time anyway. As of 2025-04-16, in nvim v0.11.0, the Vimscript
 " colorscheme consumes about 4 ms of startup time, and a Lua version (that
 " implements 95% of the functionality) lowers that to ~2 ms. This is a very
 " maginal improvement, plus we lose compatibility with regular Vim (apparently
@@ -911,6 +911,13 @@ function! s:setup() " NOTE: not abort
 
   " C# {{{
   hi! link csNewType Type
+  " }}}
+
+  " Golang {{{
+  hi! link goFunctionCall Function
+  hi! link goBuiltins     Special
+  hi! link goVarAssign    NONE
+  hi! link goVarDefs      NONE
   " }}}
 
 endfunction
