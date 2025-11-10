@@ -93,5 +93,7 @@
 
   "yaml.schemas": {
     "https://json.schemastore.org/clangd.json": [".clangd"]
-  }
+  },
+
+  "gopls.semanticTokens": true
 }

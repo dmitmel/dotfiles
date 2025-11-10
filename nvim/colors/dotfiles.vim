@@ -159,8 +159,10 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.type.variable                   NONE
     hi! link @lsp.type.operator                   NONE
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
+    hi! link @lsp.typemod.variable.definition     @variable.declaration
     hi! link @lsp.typemod.function.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
+    hi! link @lsp.typemod.variable.defaultLibrary.go NONE
     hi! link @lsp.typemod.variable.global         PreProc
     hi! link @lsp.typemod.variable.readonly       Constant
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
