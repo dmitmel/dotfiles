@@ -45,10 +45,12 @@ jq_colors=(
 export JQ_COLORS="${(j.:.)jq_colors}"
 unset jq_colors
 
-export HOMEBREW_NO_EMOJI=1
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_NO_INSTALL_UPGRADE=1
-export HOMEBREW_NO_INSTALL_CLEANUP=1
+if is_command brew; then
+  export HOMEBREW_NO_EMOJI=1
+  export HOMEBREW_NO_AUTO_UPDATE=1
+  export HOMEBREW_NO_INSTALL_UPGRADE=1
+  export HOMEBREW_NO_INSTALL_CLEANUP=1
+fi
 
 # https://github.com/junegunn/fzf/blob/764316a53d0eb60b315f0bbcd513de58ed57a876/src/tui/tui.go#L496-L515
 export FZF_DEFAULT_OPTS="--height=40% --reverse --bind=change:first"
