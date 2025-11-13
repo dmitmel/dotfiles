@@ -3,6 +3,33 @@ set fileformats=unix,dos,mac
 
 set wildignore+=.git,.svn,.hg,.DS_Store,*~
 
+if !has('nvim')
+  " Use global directories for storing undo/swap/backup files in plain ol' Vim.
+  " Neovim does this out-of-the-box and that is so much nicer than cluttering
+  " directories with random `*un~`, `.*.swp` and `*~` files! Apparently, on Arch
+  " Linux they also configure Vim to do that by default:
+  " <https://gitlab.archlinux.org/archlinux/packaging/packages/vim/-/blob/b9e5d92ac3e9cb865dc821ce9c18f6305108d02a/archlinux.vim#L22-40>
+  function! s:set_dir_option(option_name, dir_name) abort
+    " Only adjust those options which don't have the current directory as the first element.
+    if split(eval('&'.a:option_name), ',')[0] !=# '.' | return | endif
+
+    let dir = expand(has('win32') ? '$HOME/vimfiles' : '~/.vim') . '/' . a:dir_name
+    if !isdirectory(dir)
+      " These directories are created with restricted permissions as a mitigation for CVE-2017-1000382
+      silent! call mkdir(dir, 'p', 0700)
+    endif
+
+    let dir .= '//'   " See |'directory'| for the meaning of the trailing double-backslash
+    exe 'let &'.a:option_name.' = dir'
+  endfunction
+
+  call s:set_dir_option('directory', 'swap')
+  call s:set_dir_option('undodir', 'undo')
+  if has('patch-8.1.0251')  " <https://github.com/vim/vim/commit/b782ba475a3f8f2b0be99dda164ba4545347f60f>
+    call s:set_dir_option('backupdir', 'backup')
+  endif
+endif
+
 " Definitely one of my most useful mappings. Writes the current buffer and all
 " other modified buffers to the disk. With regards to the implementation, I
 " shold point out three major things:
