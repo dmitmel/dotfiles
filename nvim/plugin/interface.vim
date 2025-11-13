@@ -204,19 +204,23 @@ set history=10000
   nnoremap <C-t> :<C-u>tab split<CR>
   nnoremap <A-t> :<C-u>tabclose<CR>
 
-  function! s:close_floating_popup(rhs) abort
-    if dotutils#is_floating_window(0) && !exists('w:fzf_lua_preview')
-      return "\<C-w>c"
-    elseif exists('b:lsp_floating_preview') && nvim_win_is_valid(b:lsp_floating_preview)
-      " Can't close a window within an |<expr>| mapping because of textlock.
-      return "\<Cmd>call nvim_win_close(b:lsp_floating_preview, v:false)\<CR>"
-    else
-      return a:rhs
-    endif
-  endfunction
+  " Check if this floating windows are supported (or, rather,
+  " `dotutils#is_floating_window` can detect them in any way).
+  if exists('*win_gettype') || exists('*nvim_win_get_config')
+    function! s:close_floating_popup(rhs) abort
+      if dotutils#is_floating_window(0) && !exists('w:fzf_lua_preview')
+        return "\<C-w>c"
+      elseif exists('b:lsp_floating_preview') && nvim_win_is_valid(b:lsp_floating_preview)
+        " Can't close a window within an |<expr>| mapping because of textlock.
+        return "\<Cmd>call nvim_win_close(b:lsp_floating_preview, v:false)\<CR>"
+      else
+        return a:rhs
+      endif
+    endfunction
 
-  nnoremap <expr> <Esc> <SID>close_floating_popup("\<Esc>")
-  nnoremap <expr>   q   <SID>close_floating_popup("q")
+    nnoremap <expr> <Esc> <SID>close_floating_popup("\<Esc>")
+    nnoremap <expr>   q   <SID>close_floating_popup("q")
+  endif
 
 " }}}
 
