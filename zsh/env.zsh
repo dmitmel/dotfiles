@@ -1,6 +1,14 @@
-# find editor
-export EDITOR="nvim"
-export VISUAL="$EDITOR"
+if [[ -z "$EDITOR" ]]; then
+  for EDITOR in nvim vim nano; do
+    if is_command "$EDITOR"; then
+      export EDITOR
+      export VISUAL="${VISUAL:-EDITOR}"
+      break
+    else
+      unset EDITOR
+    fi
+  done
+fi
 
 export PAGER='less'
 export LESS='--RAW-CONTROL-CHARS'
