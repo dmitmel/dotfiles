@@ -8,18 +8,18 @@ BEGIN {
 function test_true_color() {
   for (y = 0; y < HEIGHT; y++) {
     for (x = 0; x < WIDTH; x++) {
-      angle = pi - atan2(x + 0.5 - WIDTH/2, y + 0.5 - HEIGHT/2);
-      hsv2rgb(angle / (2*pi), 1, 1, rgb);
-
-      for (i = 0; i < 3; i++) rgb[i] = int(rgb[i] * 255);
-      r = rgb[0];
-      g = rgb[1];
-      b = rgb[2];
-      printf "\033[48;2;%d;%d;%dm", r,g,b;
-      printf "  \033[0m";
+      cx = x + 0.5 - WIDTH / 2;
+      cy = y + 0.5 - HEIGHT / 2;
+      printf "\033[48;2;%s;38;2;%sm▀\033[0m", color(cx, cy + 0.25), color(cx, cy - 0.25);
     }
     print "";
   }
+}
+
+function color(x, y) {
+  angle = pi - atan2(x, y);
+  hsv2rgb(angle / (2*pi), 1, 1, rgb);
+  return sprintf("%d;%d;%d", rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
 }
 
 function hsv2rgb(h, s, v, rgb) {

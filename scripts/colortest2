@@ -6,4 +6,4 @@ script_dir="$(dirname "$0")"
 cols="$(tput cols)"
 lines="$(tput lines)"
 
-exec awk -v WIDTH="$((cols/2))" -v HEIGHT="$lines" -f "${script_dir}/../script-resources/colortest2.awk"
+exec awk -v WIDTH="$cols" -v HEIGHT="$lines" -f "${script_dir}/../script-resources/colortest2.awk"
