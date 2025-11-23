@@ -7,10 +7,6 @@ function! s:error(str) abort
   return 'echoerr v:errmsg'
 endfunction
 
-function! s:gettext(str) abort
-  return exists('*gettext') ? gettext(a:str) : a:str
-endfunction
-
 " This is my own reimagining of the various plugins for closing buffers while
 " keeping the window layout. This function takes a command to execute, either
 " |:bdelete| or |:bwipeout|, with or without a bang at the end, and a pattern to
@@ -28,7 +24,7 @@ function! dotfiles#bufclose#cmd(cmd, name) abort
     let buf_to_close = bufnr(a:name)
   endif
   if buf_to_close < 0
-    return s:error(printf(s:gettext('E94: No matching buffer for %s'), a:name))
+    return s:error(printf(dotutils#gettext('E94: No matching buffer for %s'), a:name))
   endif
 
   let bang = ''
@@ -115,20 +111,20 @@ function! s:check_close_preconditions(buf) abort
     if &confirm
       if has('nvim')
         " <https://github.com/neovim/neovim/blob/v0.11.1/src/nvim/ex_cmds2.c#L265-L279>
-        let question = printf(s:gettext('Close "%s"?'), name)
-        let answer = confirm(question, s:gettext("&Yes\n&No\n&Cancel"))
+        let question = printf(dotutils#gettext('Close "%s"?'), name)
+        let answer = confirm(question, dotutils#gettext("&Yes\n&No\n&Cancel"))
       else
         " <https://github.com/vim/vim/blob/v9.1.1401/src/terminal.c#L1809-L1826>
-        let question = printf(s:gettext('Kill job in "%s"?'), name)
-        let answer = confirm(question, s:gettext("&Yes\n&No"))
+        let question = printf(dotutils#gettext('Kill job in "%s"?'), name)
+        let answer = confirm(question, dotutils#gettext("&Yes\n&No"))
       endif
       return answer == 1 ? s:CLOSE_FORCIBLY : s:CLOSE_CANCELED
     else
       if has('nvim')
-        return printf(s:gettext('E89: %s will be killed (add ! to override)'), name)
+        return printf(dotutils#gettext('E89: %s will be killed (add ! to override)'), name)
       else
         " <https://github.com/vim/vim/blob/v9.1.1401/src/buffer.c#L2084-L2094>
-        return s:gettext('E948: Job still running (add ! to end the job)')
+        return dotutils#gettext('E948: Job still running (add ! to end the job)')
       endif
     endif
   endif
@@ -136,10 +132,10 @@ function! s:check_close_preconditions(buf) abort
   if getbufvar(a:buf, '&modified', 0)
     if &confirm
       " <https://github.com/neovim/neovim/blob/v0.11.1/src/nvim/ex_docmd.c#L7570-L7578>
-      let name = empty(name) ? s:gettext('Untitled') : name
+      let name = empty(name) ? dotutils#gettext('Untitled') : name
       " <https://github.com/neovim/neovim/blob/v0.11.1/src/nvim/ex_cmds2.c#L208-L213>
-      let question = printf(s:gettext('Save changes to "%s"?'), name)
-      let answer = confirm(question, s:gettext("&Yes\n&No\n&Cancel"))
+      let question = printf(dotutils#gettext('Save changes to "%s"?'), name)
+      let answer = confirm(question, dotutils#gettext("&Yes\n&No\n&Cancel"))
       if answer == 1  " Yes
         write
         return s:CLOSE_NORMALLY

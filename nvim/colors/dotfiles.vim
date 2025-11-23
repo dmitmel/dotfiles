@@ -922,6 +922,10 @@ function! s:setup() " NOTE: not abort
   hi! link goVarDefs      NONE
   " }}}
 
+  " lfrc {{{
+  hi! link lfIgnore NONE
+  " }}}
+
 endfunction
 
 call s:setup()

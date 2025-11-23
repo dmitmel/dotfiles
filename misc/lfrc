@@ -1,0 +1,75 @@
+# <https://github.com/gokcehan/lf/blob/master/doc.md>
+# <https://github.com/gokcehan/lf/blob/master/CHANGELOG.md>
+# <https://github.com/gokcehan/lf/wiki/Tips>
+# <https://github.com/gokcehan/lf/wiki/Integrations>
+
+set hidden
+set mouse
+set incsearch
+set tabstop 4
+
+# The following options are set to mimic the appearance and behavior of Ranger.
+# <https://github.com/gokcehan/lf/wiki/Ranger>
+set ratios 1:3:4
+set scrolloff 8
+set incfilter
+set dircounts
+set info size         # will get accepted in versions older than r36
+set info size:custom  # will get accepted in versions newer than r36
+set watch
+
+# List of ANSI color codes that lf recognizes:
+# <https://github.com/gokcehan/lf/blob/c84e4456621481e1d1ae295a9dbc6e510e2ed049/colors.go#L127-L220>
+
+set errorfmt  "\033[31m"        # red fg, same as ErrorMsg in Vim
+set borderfmt "\033[38;5;239m"  # light gray fg, same appearance as WinSeparator in Vim
+
+set cursoractivefmt  "\033[7;1m"  # bold + reverse
+set cursorparentfmt  "\033[7;1m"  # bold + reverse
+set cursorpreviewfmt "\033[7m"    # reverse
+
+set menufmt       "\033[48;5;237m"       # light gray bg, same as Pmenu in Vim
+set menuheaderfmt "\033[48;5;237;33;1m"  # light gray bg + yellow fg
+set menuselectfmt "\033[47;30m"          # white bg + black fg, same as WildMenu in Vim
+
+# <https://github.com/gokcehan/lf/wiki/Troubleshoot#displaying-current-settings>
+cmd settings $env | grep '^lf_' | sort | LESS="$LESS --+RAW-CONTROL-CHARS" ${PAGER}
+
+cmd q  quit
+cmd qa quit
+cmd x  quit
+
+cmd touch %touch "$@"
+cmd mkdir %mkdir "$@"
+cmd chmod %IFS=$'\n'; chmod "$@" -- $fx
+cmd chown %IFS=$'\n'; chown "$@" -- $fx
+cmd vidir $vidir "$@"
+
+cmap <tab>     cmd-menu-complete
+cmap <backtab> cmd-menu-complete-back
+
+map D delete
+map T trash
+map <f-1> help
+map <f-2> rename
+map zf filter
+map <enter> open
+map \\ : clear; unselect
+map p : paste; clear
+map ZZ quit
+map ZQ quit
+# Suspends lf and puts it into background using job control feature of the shell
+map <c-z> $kill -TSTP "$id"
+
+set previewer lf-preview
+set cleaner   lf-cleaner
+
+cmd less ${{
+  inside_any_terminal_multiplexer="${NVIM}${VIM_TERMINAL}${TMUX}"
+  LESSOPEN='| lf-preview %s' less \
+    --RAW-CONTROL-CHARS --tabs=4 --tilde --ignore-case --LONG-PROMPT --chop-long-lines --shift=4 \
+    ${inside_any_terminal_multiplexer:+ --mouse --wheel-lines=5} --quiet --no-vbell \
+    --lesskey-content='i quit; h left-scroll; l right-scroll' +g -- "${@:-$f}"
+}}
+
+map i less

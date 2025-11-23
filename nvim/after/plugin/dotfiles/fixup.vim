@@ -12,12 +12,14 @@ if exists('g:loaded_fzf_vim')
   delcommand Snippets
 endif
 
-" Disable netrw's autocommands. Note that I don't disable the entirety of netrw
-" by setting `g:netrw_loadedPlugin` - that is because I use its `gx` mapping and
-" its helper functions for opening URLs in the browser. And also, its
-" functionality for downloading a file by editing a URL is super useful.
-silent! autocmd! FileExplorer *
-silent! augroup! FileExplorer
+if exists('#dotfiles_ranger')
+  " Disable netrw's autocommands. Note that I don't disable the entirety of
+  " netrw by setting `g:netrw_loadedPlugin` - that is because I use its `gx`
+  " mapping and its helper functions for opening URLs in the browser. And also,
+  " its functionality for downloading a file by editing a URL is super useful.
+  silent! autocmd! FileExplorer *
+  silent! augroup! FileExplorer
+endif
 
 augroup dotfiles_session
   autocmd!

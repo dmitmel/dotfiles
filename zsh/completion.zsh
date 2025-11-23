@@ -25,14 +25,10 @@ zstyle ':completion:*:options' auto-description '%d'
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
 
 zstyle ':completion:*' list-dirs-first yes
-# complete . and .. directories
-# This is very useful when I just want to quickly look around inside a
-# directory without running `ls`
+# complete `.` and `..` directories
 zstyle ':completion:*' special-dirs yes
 
-if [[ -n "$LS_COLORS" ]]; then
-  zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
-fi
+zstyle -e ':completion:*' list-colors 'reply=( "${ls_colors[@]}" )'
 
 zstyle ':completion:*:processes' command "ps xo pid,user,cmd"
 zstyle ':completion:*:processes-names' command "ps xho comm="

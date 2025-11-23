@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec kitten icat --stdin no --transfer-mode memory --clear </dev/null >/dev/tty

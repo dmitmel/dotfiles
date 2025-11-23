@@ -60,18 +60,11 @@ bytecount() { wc -c -- "$@" | numfmt --to=iec-i --suffix=B; }
 
 mkcd() { mkdir -pv -- "$@" && cd -- "${@[-1]}"; }
 
-viscd() {
-  setopt local_options err_return
-  local temp_file chosen_dir
-  temp_file="$(mktemp -t ranger_cd.XXXXXXXXXX)"
-  {
-    ranger --choosedir="$temp_file" -- "${@:-$PWD}"
-    if chosen_dir="$(<"$temp_file")" && [[ -n "$chosen_dir" && "$chosen_dir" != "$PWD" ]]; then
-      cd -- "$chosen_dir"
-    fi
-  } always {
-    rm -f -- "$temp_file"
-  }
+lfcd() {
+  local dir
+  if dir="$(command lf -print-last-dir "$@")" && [[ -n "$dir" && "$dir" != "$PWD" ]]; then
+    cd -- "$dir"
+  fi
 }
 
 if [[ "$OSTYPE" != darwin* ]]; then
@@ -272,7 +265,7 @@ scan-local-network() {
 
 j() {
   local selected
-  if selected=( $(z -l | fzf --with-nth=2.. --tac --scheme=path --query="$*" --tiebreak=index) ); then
+  if selected=( $(z -l | fzf --with-nth=2.. --tac --scheme=path --query="$*" --tiebreak=pathname) ); then
     cd -- "${selected[2]}"
   fi
 }

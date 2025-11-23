@@ -10,7 +10,7 @@ if !has('nvim')
   " Linux they also configure Vim to do that by default:
   " <https://gitlab.archlinux.org/archlinux/packaging/packages/vim/-/blob/b9e5d92ac3e9cb865dc821ce9c18f6305108d02a/archlinux.vim#L22-40>
   function! s:set_dir_option(option_name, dir_name) abort
-    " Only adjust those options which don't have the current directory as the first element.
+    " Only adjust those options whose first entry points to the current directory
     if split(eval('&'.a:option_name), ',')[0] !=# '.' | return | endif
 
     let dir = expand(has('win32') ? '$HOME/vimfiles' : '~/.vim') . '/' . a:dir_name
@@ -151,45 +151,56 @@ set nofixendofline
 " }}}
 
 
-" Ranger {{{
+" Ranger/lf {{{
 
-  function! s:maybe_open_ranger(bufnr, path)
-    if isdirectory(a:path)
-      " I'm going to use :Bwipeout here precisely because it removes entries
-      " related to the deleted buffer in the jumplist. When, let's say, a `gf`
-      " command is ran over a directory name, then an entry will be added to
-      " the jumplist corresponding to the directory. When the directory buffer
-      " is wiped out, going backwards in the jumplist will instead take you to
-      " the file from where `gf` was executed.
-      execute 'Bwipeout' a:bufnr
-      call dotfiles#ranger#run(['+edit', '--', a:path])
-    endif
-  endfunction
+  command! -nargs=? -complete=file -bang Ranger call dotfiles#ranger#run_ranger({
+        \ 'select': <q-args>, 'choose': 'files', 'open_with': '<mods> edit' })
 
-  augroup dotfiles_ranger
-    autocmd!
-    " The `nested` is a fix for <https://github.com/neovim/neovim/issues/34004>.
-    " Also see <https://vi.stackexchange.com/questions/4521/when-exactly-does-afile-differ-from-amatch>.
-    autocmd BufEnter * nested call s:maybe_open_ranger(expand('<abuf>'), expand('<amatch>'))
-  augroup END
+  command! -nargs=? -complete=file -bang RangerCD call dotfiles#ranger#run_ranger({
+        \ 'select': <q-args>, 'choose': 'dir', 'open_with': '<mods> cd',
+        \ 'extra_args': ['--cmd=cd ' . getcwd()] })
 
-  " If a user command defined with `-complete=file` is invoked, Vim handles the
-  " expansion of `%` for us, but doesn't process |backtick-expansion|s.
-  command! -nargs=* -complete=file -bang Ranger call dotfiles#ranger#run(
-  \ map(['+<mods> edit<bang>', <f-args>], "v:val =~# '^`.*`$' ? expand(v:val) : v:val"))
+  command! -nargs=? -complete=file -bang LF call dotfiles#ranger#run_lf({
+        \ 'select': <q-args>, 'open_with': '<mods> edit' })
 
-  " |`=| is so useful and I didn't know about it for years! It is essentially a
-  " command substitution, similar to `$(...)` in the shell, it expands to the
-  " result of the expression in the backticks. It works for all commands
-  " expecting a |{file}|, such as |:edit|, and the returned string can contain
-  " any |cmdline-special| characters without the need for escaping. Note that I
-  " can't use just `--selectfile=%` here because that fails in buffers with an
-  " empty name, whereas `expand('%')` returns an empty string just fine.
+  command! -nargs=? -complete=file -bang LFCD call dotfiles#ranger#run_lf({
+        \ 'extra_args': ['-command=cmd open %echo "${lf_errorfmt}You must navigate to a directory and close lf"'],
+        \ 'select': <q-args>, 'open_chosen_dir_with': '<mods> cd' })
 
-  " Open Ranger in the parent directory of the current buffer.
-  nnoremap <silent> <Leader>o :<C-u>Ranger `='--selectfile='.expand('%')`<CR>
-  " `cd` to the directory selected in Ranger.
-  nnoremap <silent> <Leader>O :<C-u>Ranger `='--selectfile='.expand('%')` --choosedir +cd --cmd `='cd\ '.getcwd()`<CR>
+  if executable('lf')
+    let s:file_manager = 'lf'
+    nnoremap <silent> <Leader>o :<C-u>LF<CR>
+    nnoremap <silent> <Leader>O :<C-u>LFCD<CR>
+  elseif executable('ranger')
+    let s:file_manager = 'ranger'
+    nnoremap <silent> <Leader>o :<C-u>Ranger<CR>
+    nnoremap <silent> <Leader>O :<C-u>RangerCD<CR>
+  else
+    let s:file_manager = 'netrw'
+    nnoremap <silent> <Leader>o :<C-u>Explore<CR>
+  endif
+
+  if s:file_manager !=# 'netrw'
+    function! s:open_directory(bufnr, path) abort
+      if isdirectory(a:path)
+        " I'm going to use :Bwipeout here precisely because it removes jumplist
+        " entries related to the deleted buffer. When, let's say, you press `gf`
+        " with the cursor over a directory name, an entry will be added to the
+        " jumplist corresponding to the directory. When the directory buffer is
+        " wiped out, going backwards in the jumplist will instead take you to the
+        " file in which `gf` was executed.
+        execute 'Bwipeout' a:bufnr
+        call dotfiles#ranger#run_{s:file_manager}({ 'select': a:path, 'open_with': 'edit' })
+      endif
+    endfunction
+
+    augroup dotfiles_ranger
+      autocmd!
+      " The `nested` flag is a fix for <https://github.com/neovim/neovim/issues/34004>.
+      " Also see <https://vi.stackexchange.com/questions/4521/when-exactly-does-afile-differ-from-amatch>.
+      autocmd BufEnter * nested call s:open_directory(expand('<abuf>'), expand('<amatch>'))
+    augroup END
+  endif
 
 " }}}
 
@@ -213,11 +224,15 @@ set nofixendofline
   " }}}
 
   " EditGlob {{{
-    " Yes, I do know about the existence of :args, however, it modifies the
-    " argument list, which for some reason is saved into the session file.
     function! s:EditGlob(...) abort
       for glob in a:000
         for name in expand(glob, 0, 1)
+          " |`=| is so useful and I didn't know about its existance for years!
+          " It works like `$(...)` command substitution in the shell, but
+          " expands to the result of a VimL expression in the backticks. It
+          " works for all commands expecting a |{file}|, such as |:edit|, and
+          " the returned string can contain any |cmdline-special| characters
+          " without the need for escaping.
           edit `=name`
         endfor
       endfor
@@ -341,6 +356,10 @@ call s:SudoEditInit()
 
 
 nnoremap <leader>r :<C-u>Rename <C-r>=expand('%:t')<CR>
+" copy relative path
+nnoremap <silent> yp :<C-u>call setreg(v:register, expand('%:.'))<CR>
+" copy absolute path
+nnoremap <silent> yP :<C-u>call setreg(v:register, expand('%:p'))<CR>
 
 
 " Open the URL under cursor {{{

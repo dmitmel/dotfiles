@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+# <https://github.com/gokcehan/lf/wiki/Previews#with-kitty-and-pistol>
+# <https://github.com/gokcehan/lf/issues/1537#issuecomment-1854956183>
+# <https://github.com/ranger/ranger/blob/08913377c968d39f11fa2d546aa8d53a99bb5e98/ranger/core/actions.py#L1054-L1140>
+
+file="$1" w="$2" h="$3" x="$4" y="$5"
+
+previewer="${DOTFILES_RANGER_PREVIEWER:-"$HOME/.config/ranger/scope.sh"}"
+if [ ! -x "$previewer" ]; then
+  cat -- "$file"
+  exit 0
+fi
+
+cachedir="${XDG_CACHE_HOME:-$HOME/.cache}/lf"
+mkdir -p -- "$cachedir"
+
+cacheimg=
+if [ $# -gt 1 ] && sha="$(sha256sum -- "$file")"; then
+  cacheimg="${cachedir}/${sha%% *}"
+  trap 'rm -f -- "$cacheimg"' EXIT
+fi
+
+draw() {
+  kitten icat --stdin no --transfer-mode memory --align left \
+    --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
+  exit 1
+}
+
+# This mess of redirections is used to swap the stdout and stderr around, so
+# that the output of the subprocess to stderr is captured into a string, and
+# output to stdout goes straight to the real stdout. This is done so that errors
+# from `scope.sh` are displayed only if it fails to produce any sort of preview.
+exec 3>&1
+stderr="$("$previewer" "$file" "$w" "$h" "$cacheimg" "${cacheimg:+True}" 2>&1 1>&3 3>&-)"
+code="$?"
+exec 3>&-
+
+# Meanings of exit codes of ranger's `scope.sh`:
+# 0 - success, a (colored) preview was printed to stdout
+# 1 - there was an error, no preview could be generated
+# 2 - no preview was generated, the file should be displayed as plain text
+# 3 - success, same as 0, but there is no need to reload the preview when screen width changes
+# 4 - same as 3, but don't reload when screen height chanes
+# 5 - same as 3, but don't ever reload, the preview can be cached indefinitely
+# 6 - a thumbnail image was generated and written into $cacheimg, display it
+# 7 - no preview was generated, display the file itself as an image
+# <https://github.com/ranger/ranger/blob/08913377c968d39f11fa2d546aa8d53a99bb5e98/ranger/data/scope.sh#L18-L28>
+case "$code" in
+  (1) printf '%s\n' "$stderr";;
+  (2) cat -- "$1";;
+  (6) [ "$cacheimg" -nt "$file" ] && draw "$cacheimg";;
+  (7) draw "$file";;
+esac
+
+exit 0

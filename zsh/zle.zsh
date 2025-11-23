@@ -256,4 +256,12 @@
   bindkey '\eu' undo
   bindkey '\eU' redo
 
+  _zle_lfcd() {
+    lfcd
+    zle reset-prompt
+  }
+
+  zle -N _zle_lfcd
+  bindkey '\eo' _zle_lfcd
+
 # }}}

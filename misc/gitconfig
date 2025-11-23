@@ -13,7 +13,7 @@
   autoStash = true
 
 [core]
-  pager = find-git-diff-highlighter | less --tabs=4 --RAW-CONTROL-CHARS
+  pager = find-git-diff-highlighter | less --RAW-CONTROL-CHARS
 
 # Settings for <https://github.com/git/git/tree/master/contrib/diff-highlight>
 [color "diff-highlight"]

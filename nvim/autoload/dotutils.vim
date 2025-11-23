@@ -183,7 +183,7 @@ function! dotutils#reveal_file(path) abort
     \ '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
     \ 'array:string:' . ('file://' . dotutils#url_encode(path,'/')), "string:''" ])
     if v:shell_error
-      echoerr output
+      throw output
     endif
   else
     " for other systems let's just open the file's parent directory
@@ -193,6 +193,10 @@ endfunction
 
 function! dotutils#list_runtime_paths() abort
   return exists('*nvim_list_runtime_paths') ? nvim_list_runtime_paths() : split(&runtimepath, ',')
+endfunction
+
+function! dotutils#gettext(str) abort
+  return exists('*gettext') ? gettext(a:str) : a:str
 endfunction
 
 function! dotutils#literal_regex(pat) abort

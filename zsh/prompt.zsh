@@ -125,6 +125,9 @@ VIRTUAL_ENV_DISABLE_PROMPT=true
 PROMPT+='${PYENV_VERSION:+" %F{blue}pyenv:%F{magenta}${PYENV_VERSION//\%/%%}%f"}'
 PYENV_VIRTUAL_ENV_DISABLE_PROMPT=true
 
+# lf
+PROMPT+='${LF_LEVEL:+" %F{blue}lf:%F{magenta}${LF_LEVEL//\%/%%}%f"}'
+
 PROMPT+=' '
 
 # command execution time
