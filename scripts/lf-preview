@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # <https://github.com/gokcehan/lf/wiki/Previews#with-kitty-and-pistol>
 # <https://github.com/gokcehan/lf/issues/1537#issuecomment-1854956183>
 # <https://github.com/ranger/ranger/blob/08913377c968d39f11fa2d546aa8d53a99bb5e98/ranger/core/actions.py#L1054-L1140>
