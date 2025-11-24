@@ -1,7 +1,93 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-set -eu
+import colorsys
+import math
+import os.path
+import sys
 
-script_dir="$(dirname "$0")"
+NO_COLOR_CODES = False
 
-exec awk -f "${script_dir}/../script-resources/colortest.awk"
+
+def print_color(color: int, idx: int) -> None:
+  if NO_COLOR_CODES:
+    print(f"\033[48;5;{color}m  \033[0m", end="")
+  else:
+    print(f"\033[1;30;48;5;{color}m {idx:02X} \033[0m", end="")
+
+
+def test_standard_colors() -> None:
+  print("16 standard colors:")
+  for color in range(16):
+    print_color(color, color)
+  print()
+
+
+def test_base16_colorscheme() -> None:
+  print("base16 colorscheme:")
+  for i, color in enumerate([0, 18, 19, 8, 20, 7, 21, 15, 1, 16, 3, 2, 6, 4, 5, 17]):
+    print_color(color, i)
+  print()
+
+
+def test_6x6x6_cube() -> None:
+  print("6x6x6 cube (216 colors):")
+  block_grid_w, block_grid_h = 3, 2
+  for block_y in range(block_grid_h):
+    for row in range(6):
+      for block_x in range(block_grid_w):
+        for col in range(6):
+          color = col + 6 * row + 36 * block_x + block_grid_w * 36 * block_y
+          print_color(16 + color, color)
+      print()
+
+
+def test_grayscale() -> None:
+  print("grayscale from black to white in 24 steps:")
+  for color in range(24):
+    print_color(16 + 6 * 6 * 6 + color, color)
+  print()
+
+
+def test_true_color() -> None:
+  print("24-bit true color test:")
+  colors_count = 360
+  for h in range(colors_count):
+    r, g, b = map(lambda x: round(x * 255), colorsys.hsv_to_rgb(h / colors_count, 1, 1))
+    print(f"\033[48;2;{r};{g};{b}m \033[0m", end="")
+  print()
+
+
+def fullscreen_rgb_test() -> None:
+  import shutil
+
+  width, height = shutil.get_terminal_size()
+
+  def color(x: float, y: float) -> str:
+    angle = math.pi - math.atan2(x, y)
+    h = angle / (2 * math.pi)
+    r, g, b = map(lambda x: round(x * 255), colorsys.hsv_to_rgb(h, 1, 1))
+    return f"{r};{g};{b}"
+
+  for y in range(height):
+    for x in range(width):
+      cx = x + 0.5 - width / 2
+      cy = y + 0.5 - height / 2
+      print(f"\033[48;2;{color(cx, cy + 0.25)}m\033[38;2;{color(cx, cy - 0.25)}m▀\033[0m", end="")
+    print()
+
+
+if __name__ == "__main__":
+  if os.path.basename(sys.argv[0]) == "colortest2":
+    fullscreen_rgb_test()
+  else:
+    print()
+    test_standard_colors()
+    print()
+    test_base16_colorscheme()
+    print()
+    test_6x6x6_cube()
+    print()
+    test_grayscale()
+    print()
+    test_true_color()
+    print()
