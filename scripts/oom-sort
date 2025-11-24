@@ -30,6 +30,11 @@ if [[ -z "$sort_by" || -z "${columns_lookup[$sort_by]+1}" ]]; then
   exit 1
 fi
 
+if [[ -t 1 ]]; then
+  exec "${BASH_SOURCE[0]}" | LESS="$LESS --header=1" ${PAGER:-less}
+  exit "$?"
+fi
+
 for proc in /proc/*; do
   col_PID="${proc##*/}"
   if [[ -d "$proc" && "$col_PID" != *[![:digit:]]* && "$col_PID" != 1 ]]; then
