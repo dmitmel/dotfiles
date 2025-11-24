@@ -120,16 +120,26 @@ endif
         echo printf('set %set sw=%d ts=%d sts=%d', &l:et ? '' : 'no', &l:sw, &l:ts, &l:sts)
       endif
     else
-      let width          = +(a:arg)
       let &l:expandtab   = !a:use_tabs
-      let &l:shiftwidth  = width
-      let &l:tabstop     = width
+      let &l:shiftwidth  = !a:use_tabs ? a:arg : 0
+      let &l:tabstop     = a:arg
       let &l:softtabstop = -1
     endif
   endfunction
   command! -nargs=? -bar Indent      call s:indent_cmd(0, <q-args>, <q-mods>)
   command! -nargs=? -bar IndentTabs  call s:indent_cmd(1, <q-args>, <q-mods>)
   command! -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
+
+  function! s:reindent(use_tabs, arg) abort
+    let sw = shiftwidth()
+    let indent = a:use_tabs ? "\t" : repeat(' ', a:arg)
+    let pos = getcurpos()
+    keeppatterns %s:^\s\+:\=repeat(indent, indent('.') / sw):e
+    call setpos('.', pos)
+    call s:indent_cmd(a:use_tabs, a:arg, '')
+  endfunction
+  command! -nargs=1 -bar Reindent     call s:reindent(0, <q-args>)
+  command! -nargs=1 -bar ReindentTabs call s:reindent(1, <q-args>)
 
   let g:indentLine_char = '│'
   let g:indentLine_first_char = g:indentLine_char
