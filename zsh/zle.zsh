@@ -167,7 +167,7 @@
     print -r -- "Downloading tldr pages..."
 
     if curl -Lf https://github.com/tldr-pages/tldr/archive/refs/heads/main.tar.gz |
-      tar -C "$PALETTE_TLDR_PAGES_DIR" --gzip --strip-components 2 --extract tldr-main/pages
+      tar -C "$PALETTE_TLDR_PAGES_DIR" --gzip --strip-components 2 --no-same-owner --extract tldr-main/pages
     then
       print -r -- "Done!"
     else
