@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -eu
+
+if (( $# > 1 )); then
+  echo "usage: $0 [file]"
+  exit 1
+fi
+
+input_file="${1:-"-"}"
+PAGER="${PAGER:-less}"
+
+if [[ "$PAGER" == *less ]] && tag_file="$(mktemp -t man-tags.XXXXXXXXXX)"; then
+  trap 'rm -f -- "$tag_file"' EXIT
+
+  if [[ "$input_file" == '-' ]]; then
+    if input_file="$(mktemp -t man.XXXXXXXXXX)"; then
+      trap 'rm -f -- "$tag_file" "$input_file"' EXIT
+      cat - > "$input_file"
+    else
+      echo >&2 "$0: Failed to create a temporary file to slurp the stdin into"
+      exit 1
+    fi
+  fi
+
+  generate_tags() {
+    perl -ne '
+      if (s/^\s*\e\[1m([^\e\s][^\e]*).*$/\1/ || s/^\s+([-+][^\e\s]+).*$/\1/) {
+        s/\s+$//; s/\s/_/g;
+        print "$_ $ARGV $.\n";
+      }
+    ' "$@"
+  }
+
+  # for bat in batcat bat; do
+  #   if command -v "$bat" &>/dev/null; then
+  #     export LESSOPEN="| ${bat} --style=plain --language=man --color=always --strip-ansi=always -- %s"
+  #     break
+  #   fi
+  # done
+
+  # cat -- "$@" | tee >(generate_tags - > "$tag_file") | ${PAGER} -T"$tag_file" --file-size
+
+  generate_tags -- "$input_file" > "$tag_file"
+  ${PAGER} -T"$tag_file" -- "$input_file"
+else
+  exec -- ${PAGER} "$@"
+fi
