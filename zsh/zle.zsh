@@ -41,16 +41,20 @@
     if selected="$(
 
       word="${word/#\~/$HOME}"  # expand a leading `~`
-      if [[ -n "$word" ]]; then
-        # don't invoke any chpwd handlers (-q) and ignore any errors from `cd`
-        cd -q -- "$word" 2>/dev/null || true
+
+      # We are in a subshell, so `cd` applies only within it. `-q` skips invocation
+      # of chpwd hooks, which is still done in subshells for some reason.
+      if [[ -n "$word" ]] && cd -q -- "$word" 2>/dev/null; then
+        # If the word was indeed a valid directory, then prepend a slash to
+        # whatever will be outputted by fzf.
+        if [[ "$word" != */ ]]; then printf '/'; fi
       fi
 
       local prompt="%~"      # see EXPANSION OF PROMPT SEQUENCES in zshmisc(1)
       prompt="${(%)prompt}"  # perform prompt expansion
       prompt="${prompt%/}/"  # add a trailing slash if necessary
 
-      # redirecting the /dev/tty to stdin is needed becaues of ZLE shenanigans
+      # redirecting /dev/tty to the stdin is necessary due to ZLE shenanigans:
       # <https://unix.stackexchange.com/a/595386>
       fzf --prompt="$prompt" --scheme=path < /dev/tty
 
