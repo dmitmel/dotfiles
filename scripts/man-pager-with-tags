@@ -1,47 +1,98 @@
-#!/usr/bin/env bash
-set -eu
+#!/usr/bin/env python3
+import os
+import queue
+import re
+import subprocess
+import sys
+import tempfile
+import threading
 
-if (( $# > 1 )); then
-  echo "usage: $0 [file]"
-  exit 1
-fi
 
-input_file="${1:-"-"}"
-PAGER="${PAGER:-less}"
+def main() -> int:
+  if len(sys.argv) > 2:
+    sys.exit(f"usage: {sys.argv[0]} [file]")
 
-if [[ "$PAGER" == *less ]] && tag_file="$(mktemp -t man-tags.XXXXXXXXXX)"; then
-  trap 'rm -f -- "$tag_file"' EXIT
+  input_path = sys.argv[1] if len(sys.argv) == 2 else "-"
+  pager_cmd = os.environ.get("PAGER", "less").split()
 
-  if [[ "$input_file" == '-' ]]; then
-    if input_file="$(mktemp -t man.XXXXXXXXXX)"; then
-      trap 'rm -f -- "$tag_file" "$input_file"' EXIT
-      cat - > "$input_file"
-    else
-      echo >&2 "$0: Failed to create a temporary file to slurp the stdin into"
-      exit 1
-    fi
-  fi
+  if "less" not in os.path.basename(pager_cmd[0]):
+    os.execvp(pager_cmd[0], pager_cmd + [input_path])
 
-  generate_tags() {
-    perl -ne '
-      if (s/^\s*\e\[1m([^\e\s][^\e]*).*$/\1/ || s/^\s+([-+][^\e\s]+).*$/\1/) {
-        s/\s+$//; s/\s/_/g;
-        print "$_ $ARGV $.\n";
-      }
-    ' "$@"
-  }
+  with open(input_path, "rb") if input_path != "-" else sys.stdin.buffer as input_file:
+    with tempfile.NamedTemporaryFile(prefix="man-tags.") as tag_file:
+      stdin_queue = queue.SimpleQueue()
+      stop_tags_thread = threading.Event()
 
-  # for bat in batcat bat; do
-  #   if command -v "$bat" &>/dev/null; then
-  #     export LESSOPEN="| ${bat} --style=plain --language=man --color=always --strip-ansi=always -- %s"
-  #     break
-  #   fi
-  # done
+      def generate_tags() -> None:
+        output = tag_file.file
+        with output:
+          bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
+          flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
+          whitespace_re = re.compile(rb"\s")
 
-  # cat -- "$@" | tee >(generate_tags - > "$tag_file") | ${PAGER} -T"$tag_file" --file-size
+          for i, line in enumerate(input_file):
+            if stop_tags_thread.is_set():
+              break
 
-  generate_tags -- "$input_file" > "$tag_file"
-  ${PAGER} -T"$tag_file" -- "$input_file"
-else
-  exec -- ${PAGER} "$@"
-fi
+            if input_path == "-":
+              stdin_queue.put(line)
+
+            match = bold_text_re.match(line) or flag_re.match(line)
+            if match:
+              tag = match.group(1).strip()
+              if tag:
+                tag = whitespace_re.sub(b"_", tag)
+                output.write(tag)
+                output.write(f" {input_path} {i + 1}\n".encode())
+
+        stdin_queue.put(b"")  # signal to the main thread that an EOF has been reached
+
+      tags_thread = threading.Thread(target=generate_tags)
+      tags_thread.start()
+
+      pager_cmd.append(f"-T{tag_file.name}")
+      if input_path != "-":
+        if input_path.startswith("-"):
+          pager_cmd.append("--")
+        pager_cmd.append(input_path)
+
+      with subprocess.Popen(
+        pager_cmd,
+        stdin=subprocess.PIPE if input_path == "-" else None,
+      ) as pager:
+        if pager.stdin:
+          try:
+            while True:
+              line: bytes = stdin_queue.get()
+              if not line:
+                break
+              try:
+                pager.stdin.write(line)
+              except BrokenPipeError:
+                break
+          except KeyboardInterrupt:
+            pass
+
+          while True:
+            try:
+              pager.stdin.close()  # implies flush()
+              break
+            except BrokenPipeError:
+              break
+            except KeyboardInterrupt:
+              continue
+
+        while True:
+          try:
+            code = pager.wait()
+            break
+          except KeyboardInterrupt:
+            continue
+
+      stop_tags_thread.set()
+      tags_thread.join()
+      return code
+
+
+if __name__ == "__main__":
+  sys.exit(main())
