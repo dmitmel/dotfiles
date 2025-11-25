@@ -72,4 +72,26 @@ cmd less ${{
     --lesskey-content='i quit; h left-scroll; l right-scroll' +g -- "${@:-$f}"
 }}
 
+cmd jump ${{
+  DOTFILES_ZSHRC_SILENT=1 DOTFILES_DISABLE_MY_COLORSCHEME=1 exec zsh -i -c '
+    FZF_DEFAULT_OPTS+=" --border --border-label=\" Jump to a directory \" --border-label-pos=4"
+    if j "$@"; then
+      zshz --add "$PWD"
+      "$lf" -remote "send $id cd \"${${PWD//\\/\\\\}//\"/\\\"}\""
+    fi
+    exit
+  ' -c "$@"
+}}
+
+cmd fzf ${{
+  DOTFILES_ZSHRC_SILENT=1 DOTFILES_DISABLE_MY_COLORSCHEME=1 exec zsh -i -c '
+    if selected="$(fzf --border --border-label=" Find a file " --border-label-pos=4 --query="$*")"; then
+      "$lf" -remote "send $id select \"${${selected//\\/\\\\}//\"/\\\"}\""
+    fi
+    exit
+  ' -c "$@"
+}}
+
 map i less
+map J jump
+map S fzf

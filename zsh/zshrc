@@ -18,8 +18,10 @@
     integer duration
     (( duration = (stop_time - start_time) * 1000 ))
 
-    local arrow='%F{8}==>%f'
-    print >&2 -r -- "${(%)arrow} ${name}: ${duration}ms"
+    if [[ -z "$DOTFILES_ZSHRC_SILENT" ]]; then
+      local arrow='%F{8}==>%f'
+      print >&2 -r -- "${(%)arrow} ${name}: ${duration}ms"
+    fi
   }
 
 # }}}
@@ -67,7 +69,7 @@ done; unset script
 integer welcome_fd=-1
 {
 
-  if [[ -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
+  if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
     # Once the basic shell environment has been configured, start the `welcome`
     # script in the background and open a pipe to read its output. The script
     # will collect information about the system in parallel with the heavier
@@ -87,11 +89,9 @@ integer welcome_fd=-1
   _perf_timer_stop "total"
 
   if (( welcome_fd >= 0 )); then
-    # A pure-Zsh version of `cat`. `-u` specifies the file descriptor to read
-    # from, `-r` disables special processing of backslashes, `-e` tells `read`
-    # to print the read text to stdout, without saving it in a variable. See:
-    # <https://github.com/zsh-users/zsh/blob/zsh-5.9/Functions/Example/cat>
-    while IFS= read -u "$welcome_fd" -r -e; do; done >&2
+    # A pure-Zsh version of `cat`. The flag `-u` of `read` and `print` specifies
+    # the file descriptor to read from or write to.
+    while IFS= read -r -u "$welcome_fd"; do print -r -u2 -- "$REPLY"; done
   fi
 
 } always {
