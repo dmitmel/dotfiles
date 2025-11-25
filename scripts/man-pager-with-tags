@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import os
-import queue
 import re
+import signal
 import subprocess
 import sys
 import tempfile
-import threading
+from contextlib import contextmanager
+from typing import Generator
 
 
 def main() -> int:
@@ -18,80 +19,96 @@ def main() -> int:
   if "less" not in os.path.basename(pager_cmd[0]):
     os.execvp(pager_cmd[0], pager_cmd + [input_path])
 
-  with open(input_path, "rb") if input_path != "-" else sys.stdin.buffer as input_file:
-    with tempfile.NamedTemporaryFile(prefix="man-tags.") as tag_file:
-      stdin_queue = queue.SimpleQueue()
-      stop_tags_thread = threading.Event()
+  with (
+    open(input_path, "rb") if input_path != "-" else sys.stdin.buffer as input_file,
+    tempfile.NamedTemporaryFile(prefix="man-tags.") as tag_file,
+  ):
+    pager_cmd.append(f"-T{tag_file.name}")
+    if input_path != "-":
+      if input_path.startswith("-"):
+        pager_cmd.append("--")
+      pager_cmd.append(input_path)
 
-      def generate_tags() -> None:
-        output = tag_file.file
-        with output:
-          bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
-          flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
-          whitespace_re = re.compile(rb"\s")
-
-          for i, line in enumerate(input_file):
-            if stop_tags_thread.is_set():
-              break
-
-            if input_path == "-":
-              stdin_queue.put(line)
-
-            match = bold_text_re.match(line) or flag_re.match(line)
-            if match:
-              tag = match.group(1).strip()
-              if tag:
-                tag = whitespace_re.sub(b"_", tag)
-                output.write(tag)
-                output.write(f" {input_path} {i + 1}\n".encode())
-
-        stdin_queue.put(b"")  # signal to the main thread that an EOF has been reached
-
-      tags_thread = threading.Thread(target=generate_tags)
-      tags_thread.start()
-
-      pager_cmd.append(f"-T{tag_file.name}")
-      if input_path != "-":
-        if input_path.startswith("-"):
-          pager_cmd.append("--")
-        pager_cmd.append(input_path)
-
-      with subprocess.Popen(
+    with (
+      # Ignore SIGINT and SIGQUIT, like system(3) does.
+      set_signal_handler(signal.SIGINT, signal.SIG_IGN),
+      set_signal_handler(signal.SIGQUIT, signal.SIG_IGN),
+      subprocess.Popen(
         pager_cmd,
         stdin=subprocess.PIPE if input_path == "-" else None,
-      ) as pager:
-        if pager.stdin:
-          try:
-            while True:
-              line: bytes = stdin_queue.get()
-              if not line:
-                break
+      ) as pager,
+    ):
+      buffered_lines: "list[bytes]" = []
+
+      if pager.stdin:
+        os.set_blocking(pager.stdin.fileno(), False)
+
+      with tag_file.file:
+        bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
+        flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
+        whitespace_re = re.compile(rb"\s")
+
+        buffer_size = 0
+        last_checked_buffer_size = 0
+        # The 2nd argument of `enumerate()` specifies the starting value for the counter. Handy!
+        for linenr, line in enumerate(input_file, 1):
+          if pager.stdin:
+            buffered_lines.append(line)
+            buffer_size += len(line)
+
+            # Making write(2) syscalls too often will slow down this whole loop.
+            # Instead, use a simple heuristic: make one write attempt roughly
+            # per every 4 KiB read from the input pipe.
+            if buffer_size - last_checked_buffer_size > 4096:
+              last_checked_buffer_size = buffer_size
+
+              written_lines = 0
               try:
-                pager.stdin.write(line)
+                while written_lines < len(buffered_lines):
+                  pager.stdin.write(buffered_lines[written_lines])
+                  written_lines += 1
+              except BlockingIOError:
+                pass
               except BrokenPipeError:
-                break
-          except KeyboardInterrupt:
-            pass
+                break  # no need to continue generating tags if the pager has exited
+              finally:
+                del buffered_lines[0:written_lines]
 
-          while True:
-            try:
-              pager.stdin.close()  # implies flush()
-              break
-            except BrokenPipeError:
-              break
-            except KeyboardInterrupt:
-              continue
+          match = bold_text_re.match(line) or flag_re.match(line)
+          if match:
+            tag = match.group(1).strip()
+            if tag:
+              tag = whitespace_re.sub(b"_", tag)
+              tag_file.write(tag)
+              tag_file.write(f" {input_path} {linenr}\n".encode())
 
-        while True:
+      if pager.stdin:
+        os.set_blocking(pager.stdin.fileno(), True)
+
+        for line in buffered_lines:
           try:
-            code = pager.wait()
+            pager.stdin.write(line)
+          except BrokenPipeError:
             break
-          except KeyboardInterrupt:
-            continue
 
-      stop_tags_thread.set()
-      tags_thread.join()
+        try:
+          pager.stdin.close()  # implies flush()
+        except BrokenPipeError:
+          pass
+
+      code = pager.wait()
       return code
+
+
+@contextmanager
+def set_signal_handler(
+  signum: "signal._SIGNUM", handler: "signal._HANDLER"
+) -> "Generator[None, None, None]":
+  original_handler = signal.signal(signum, handler)
+  try:
+    yield
+  finally:
+    signal.signal(signum, original_handler)
 
 
 if __name__ == "__main__":
