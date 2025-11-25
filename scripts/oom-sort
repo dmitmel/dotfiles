@@ -31,7 +31,11 @@ if [[ -z "$sort_by" || -z "${columns_lookup[$sort_by]+1}" ]]; then
 fi
 
 if [[ -t 1 ]]; then
-  exec "${BASH_SOURCE[0]}" | LESS="$LESS --header=1" ${PAGER:-less}
+  PAGER="${PAGER:-less}"
+  if [[ "$PAGER" == *less && "$(${PAGER} --help)" == *" --header="* ]]; then
+    PAGER+=' --header=1'
+  fi
+  "${BASH_SOURCE[0]}" | ${PAGER}
   exit "$?"
 fi
 
