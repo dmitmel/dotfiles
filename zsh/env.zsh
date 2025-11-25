@@ -105,7 +105,9 @@ export PYPY_IRC_TOPIC=1
 
 if [[ ! -v KITTY_INSTALLATION_DIR ]]; then
   for KITTY_INSTALLATION_DIR in \
-    ${commands[kitty]:+"${commands[kitty]:A:h:h}/lib/kitty"} /usr/lib/kitty /usr/local/lib/kitty
+    ${commands[kitty]:+"${commands[kitty]:A:h:h}/lib/kitty"} \
+    /usr/lib/kitty /usr/local/lib/kitty \
+    "${XDG_DATA_HOME:-${HOME}/.local/share}/kitty-ssh-kitten"
   do
     if [[ -d "${KITTY_INSTALLATION_DIR}/shell-integration/zsh" ]]; then
       export KITTY_INSTALLATION_DIR
