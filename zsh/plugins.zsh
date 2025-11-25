@@ -48,6 +48,10 @@ plugin completions 'zsh-users/zsh-completions' \
 
 # }}}
 
+# The `${var=default}` syntax sets a variable only if it was not defined.
+if ! is_command fzf; then : ${DOTFILES_INSTALL_FZF=yes}; fi
+if ! is_command lf;  then : ${DOTFILES_INSTALL_LF=yes};  fi
+
 if [[ -n "$DOTFILES_INSTALL_FZF" ]]; then
   plugin fzf 'junegunn/fzf' \
     build='plugin-cfg-git-checkout-version "*"' \
