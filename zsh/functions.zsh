@@ -181,21 +181,21 @@ dirstack_load() {
 }
 
 discord-avatar() {
-  setopt local_options err_return
   if (( $# != 1 )); then
     print >&2 "Usage: $0 [user_snowflake]"
     return 1
   fi
-  local avatar_url
-  avatar_url="$(discord-whois --image-size 4096 --get 'Avatar' "$1")"
-  open "$avatar_url"
+  local url
+  if url="$(discord-whois --image-size 4096 --get 'Avatar' "$1")"; then
+    open "$url"
+  fi
 }
 
 zmodload zsh/langinfo
 # Based on <https://gist.github.com/lucasad/6474224> and
 # <https://github.com/ohmyzsh/ohmyzsh/blob/aca048814b2462501ab82938ff2473661182fffb/lib/functions.zsh#L130-L209>.
 omz_urlencode() {
-  emulate -L zsh -o extendedglob
+  emulate -L zsh -o extended_glob
 
   local -A opts
   # -D: Remove all parsed options from the list of arguments, i.e. $@
@@ -264,16 +264,34 @@ scan-local-network() {
 }
 
 j() {
-  local selected
-  if selected=( $(z -l | fzf --with-nth=2.. --tac --scheme=path --query="$*" --tiebreak=pathname) ); then
-    cd -- "${selected[2]}"
+  # Capture the output of `z -l` into an array of lines.
+  local lines=("${(@f)$(z -l)}")
+  # Apply a replacement on every element of `$lines`, removing the first column
+  # with numeric scores. `(*)` enables `EXTENDED_GLOB` for this substitution.
+  local paths=("${(*)lines[@]/#[0-9]## ##/}")
+  # Format the paths for display in the picker. The `(D)` will try to shorten
+  # every path in the array by replacing the leading part with `~` or `~name` if
+  # it corresponds to $HOME or a named directory. `(Q)` removes unnecessary
+  # quoting and escapes introduced by `(D)`, and `(V)` will format unprintable
+  # characters (if a path contains them) in such a way as to make them visible.
+  local choices=("${(@QV)${(@D)paths}}")
+  integer selected
+  # Pipe `choices` into fzf as a list of lines.
+  if selected="$(fzf <<<"${(F)choices}" --accept-nth='{n}' --tac --scheme=path --query="$*")"; then
+    # Indexes returned by fzf are zero-based, while in Zsh they are one-based.
+    cd -- "${paths[selected + 1]}"
   fi
 }
 
 d() {
-  local selected
-  if selected=( $(builtin dirs -plv | fzf --scheme=path --query="$*" --cycle) ); then
-    cd -- "${selected[2]}"
+  integer selected
+  # `dirs -pv` prints a numbered list of directories in the dirstack. Notice the
+  # abscence of the flag `-l` -- it would cause $HOME and named directories to
+  # be expanded into full paths instead of being displayed with `~` shorthands.
+  if selected="$(builtin dirs -pv | fzf --accept-nth=1 --scheme=path --query="$*" --cycle)"; then
+    # fzf will return the number from the first column of the output of `dirs`,
+    # which neatly corresponds to 1-based indexes in the `$dirstack`.
+    if (( selected > 0 )); then cd -- "${dirstack[selected]}"; fi
   fi
 }
 
