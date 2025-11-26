@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-set -euo pipefail
 # This script is a rewrite of <https://github.com/hakavlad/nohang/blob/72ced0a0c4cc0c5fc1c8fa8778e9499e80c6ada9/src/oom-sort>
+
+set -euo pipefail
+# Don't update $LINES and $COLUMNS automatically, though they can still be used
+# if provided via environment variables.
+shopt -u checkwinsize
 
 join() {
   local IFS="$1"
@@ -32,8 +36,11 @@ fi
 
 if [[ -t 1 ]]; then
   PAGER="${PAGER:-less}"
-  if [[ "$PAGER" == *less && "$(${PAGER} --help)" == *" --header="* ]]; then
-    PAGER+=' --header=1'
+  if [[ "$PAGER" == *less* ]]; then
+    PAGER+=' -S'  # --chop-long-lines
+    if [[ "$(${PAGER} --help)" == *" --header="* ]]; then
+      PAGER+=' --header=1'
+    fi
   fi
   "${BASH_SOURCE[0]}" | ${PAGER}
   exit "$?"
@@ -48,7 +55,9 @@ for proc in /proc/*; do
     # <https://stackoverflow.com/questions/12213445/identifying-kernel-threads>
     [[ "${#cmdline[@]}" -eq 0 ]] && continue
 
-    col_cmdline="${cmdline[*]}"
+    # Replace unprintable characters (notably newlines and tabs, which would
+    # break the formatting of the table) with U+FFFD �  REPLACEMENT CHARACTER.
+    col_cmdline="${cmdline[*]//[![:print:]]/$'\ufffd'}"
 
     read -r col_score < "$proc/oom_score" || true
     read -r col_adj < "$proc/oom_score_adj" || true
@@ -75,5 +84,5 @@ done |
   column --table --separator=$'\t' \
     --table-columns="$(join ',' "${columns[@]}")" \
     --table-columns-limit="${#columns[@]}" \
-    --table-truncate="${columns_lookup[cmdline]}" \
-    --output-width="$(tput cols)"
+    ${COLUMNS:+"--table-truncate=${columns_lookup[cmdline]}"} \
+    ${COLUMNS:+"--output-width=${COLUMNS}"}
