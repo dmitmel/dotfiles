@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 import colorsys
-import math
-import os.path
-import sys
 
 NO_COLOR_CODES = False
 
@@ -57,40 +54,15 @@ def test_true_color() -> None:
   print()
 
 
-def fullscreen_rgb_test() -> None:
-  import shutil
-
-  width, height = shutil.get_terminal_size()
-
-  def float2byte(x: float) -> int:
-    return round(min(max(x, 0), 1) * 255)
-
-  def color(x: float, y: float) -> str:
-    angle = math.pi - math.atan2(x, y)
-    hue = angle / (2 * math.pi) + (math.hypot(x, y) / 20) ** 0.5
-    r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
-    return f"{float2byte(r)};{float2byte(g)};{float2byte(b)}"
-
-  for y in range(height):
-    for x in range(width):
-      cx = (x + 0.5 - width / 2) / 2
-      cy = y + 0.5 - height / 2
-      print(f"\033[48;2;{color(cx, cy + 0.25)}m\033[38;2;{color(cx, cy - 0.25)}m▀\033[0m", end="")
-    print()
-
-
 if __name__ == "__main__":
-  if os.path.basename(sys.argv[0]) == "colortest2":
-    fullscreen_rgb_test()
-  else:
-    print()
-    test_standard_colors()
-    print()
-    test_base16_colorscheme()
-    print()
-    test_6x6x6_cube()
-    print()
-    test_grayscale()
-    print()
-    test_true_color()
-    print()
+  print()
+  test_standard_colors()
+  print()
+  test_base16_colorscheme()
+  print()
+  test_6x6x6_cube()
+  print()
+  test_grayscale()
+  print()
+  test_true_color()
+  print()

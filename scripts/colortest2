@@ -1,1 +1,31 @@
-colortest
+#!/usr/bin/env python3
+
+import colorsys
+import math
+import shutil
+
+
+def float2byte(x: float) -> int:
+  return round(min(max(x, 0), 1) * 255)
+
+
+def color(x: float, y: float) -> str:
+  angle = math.pi - math.atan2(x, y)
+  hue = angle / (2 * math.pi) + (math.hypot(x, y) / 20) ** 0.5
+  r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
+  return f"{float2byte(r)};{float2byte(g)};{float2byte(b)}"
+
+
+def main() -> None:
+  width, height = shutil.get_terminal_size()
+
+  for y in range(height):
+    for x in range(width):
+      cx = (x + 0.5 - width / 2) / 2
+      cy = y + 0.5 - height / 2
+      print(f"\033[48;2;{color(cx, cy + 0.25)}m\033[38;2;{color(cx, cy - 0.25)}m▀\033[0m", end="")
+    print()
+
+
+if __name__ == "__main__":
+  main()
