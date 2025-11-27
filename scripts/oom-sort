@@ -34,33 +34,23 @@ if [[ -z "$sort_by" || -z "${columns_lookup[$sort_by]+1}" ]]; then
   exit 1
 fi
 
-if [[ -t 1 ]]; then
-  PAGER="${PAGER:-less}"
-  if [[ "$PAGER" == *less* ]]; then
-    PAGER+=' -S'  # --chop-long-lines
-    if [[ "$(${PAGER} --help)" == *" --header="* ]]; then
-      PAGER+=' --header=1'
-    fi
-  fi
-  "${BASH_SOURCE[0]}" | ${PAGER}
-  exit "$?"
-fi
+my_pid="$$"
 
 for proc in /proc/*; do
   col_PID="${proc##*/}"
-  if [[ -d "$proc" && "$col_PID" != *[![:digit:]]* && "$col_PID" != 1 ]]; then
+  if [[ -d "$proc" && "$col_PID" != *[![:digit:]]* ]]; then
+    # Don't include the init process and this shell script in the output table.
+    (( col_PID == 1 || col_PID == my_pid )) && continue
+
     readarray -t -d '' cmdline < "$proc/cmdline"
 
     # Probably a kernel thread if the command line is empty
     # <https://stackoverflow.com/questions/12213445/identifying-kernel-threads>
-    [[ "${#cmdline[@]}" -eq 0 ]] && continue
+    (( ${#cmdline[@]} == 0 )) && continue
 
     # Replace unprintable characters (notably newlines and tabs, which would
     # break the formatting of the table) with U+FFFD �  REPLACEMENT CHARACTER.
     col_cmdline="${cmdline[*]//[![:print:]]/$'\ufffd'}"
-
-    read -r col_score < "$proc/oom_score" || true
-    read -r col_adj < "$proc/oom_score_adj" || true
 
     while IFS=$'\t' read -r -a items; do
       case "${items[0]-}" in
@@ -68,8 +58,13 @@ for proc in /proc/*; do
         (Uid:) col_UID=${items[2]} ;;
         (VmRSS:) col_RSS=$(( ${items[1]% kB} * 1024 )) ;;
         (VmSwap:) col_Swap=$(( ${items[1]% kB} * 1024 )) ;;
+        # Also leave out this script's subprocesses from the output.
+        (PPid:) (( ${items[1]} == my_pid )) && continue 2;;
       esac
     done < "$proc/status"
+
+    read -r col_score < "$proc/oom_score" || true
+    read -r col_adj < "$proc/oom_score_adj" || true
 
     for var in "${columns[@]}"; do
       var="col_${var}"
@@ -79,10 +74,24 @@ for proc in /proc/*; do
     printf '\n'
   fi
 done |
+
   sort --field-separator=$'\t' --numeric-sort --reverse --key="${columns_lookup[$sort_by]}" |
   numfmt --delimiter=$'\t' --to=iec --field="${columns_lookup[RSS]},${columns_lookup[Swap]}" |
   column --table --separator=$'\t' \
     --table-columns="$(join ',' "${columns[@]}")" \
     --table-columns-limit="${#columns[@]}" \
     ${COLUMNS:+"--table-truncate=${columns_lookup[cmdline]}"} \
-    ${COLUMNS:+"--output-width=${COLUMNS}"}
+    ${COLUMNS:+"--output-width=${COLUMNS}"} |
+
+  if [[ -t 1 ]]; then
+    PAGER="${PAGER:-less}"
+    if [[ "$PAGER" == *less* ]]; then
+      PAGER+=' -S'  # --chop-long-lines
+      if [[ "$(${PAGER} --help)" == *" --header="* ]]; then
+        PAGER+=' --header=1'
+      fi
+    fi
+    ${PAGER}
+  else
+    cat -
+  fi
