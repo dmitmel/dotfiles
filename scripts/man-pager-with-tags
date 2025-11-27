@@ -43,44 +43,56 @@ def main() -> int:
       if pager.stdin:
         os.set_blocking(pager.stdin.fileno(), False)
 
-      with tag_file.file:
-        bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
-        flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
-        whitespace_re = re.compile(rb"\s")
+      bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
+      flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
+      whitespace_re = re.compile(rb"\s")
 
-        buffer_size = 0
-        last_checked_buffer_size = 0
-        # The 2nd argument of `enumerate()` specifies the starting value for the counter. Handy!
-        for linenr, line in enumerate(input_file, 1):
-          if pager.stdin:
-            buffered_lines.append(line)
-            buffer_size += len(line)
+      # start_time = time.time()
 
-            # Making write(2) syscalls too often will slow down this whole loop.
-            # Instead, use a simple heuristic: make one write attempt roughly
-            # per every 4 KiB read from the input pipe.
-            if buffer_size - last_checked_buffer_size > 4096:
-              last_checked_buffer_size = buffer_size
+      buffer_size = 0
+      last_checked_buffer_size = 0
+      # The 2nd argument of `enumerate()` specifies the starting value for the counter. Handy!
+      for linenr, line in enumerate(input_file, 1):
+        if b"\b" in line:
+          line = line.decode(errors="replace")
+          line = process_backspaces(line)
+          line = line.encode(errors="replace")
 
-              written_lines = 0
-              try:
-                while written_lines < len(buffered_lines):
-                  pager.stdin.write(buffered_lines[written_lines])
-                  written_lines += 1
-              except BlockingIOError:
-                pass
-              except BrokenPipeError:
-                break  # no need to continue generating tags if the pager has exited
-              finally:
-                del buffered_lines[0:written_lines]
+        if pager.stdin:
+          buffered_lines.append(line)
+          buffer_size += len(line)
 
-          match = bold_text_re.match(line) or flag_re.match(line)
-          if match:
-            tag = match.group(1).strip()
-            if tag:
-              tag = whitespace_re.sub(b"_", tag)
-              tag_file.write(tag)
-              tag_file.write(f" {input_path} {linenr}\n".encode())
+          # Making write(2) syscalls too often will slow down this whole loop.
+          # Instead, a simple heuristic is employed: make one write attempt
+          # roughly per every 4 KiB read from the input pipe.
+          if buffer_size - last_checked_buffer_size > 4096:
+            last_checked_buffer_size = buffer_size
+
+            written_lines = 0
+            try:
+              while written_lines < len(buffered_lines):
+                pager.stdin.write(buffered_lines[written_lines])
+                written_lines += 1
+            except BlockingIOError:
+              pass
+            except BrokenPipeError:
+              break  # no need to continue generating tags if the pager has exited
+            finally:
+              del buffered_lines[0:written_lines]
+
+        match = bold_text_re.match(line) or flag_re.match(line)
+        if match:
+          tag = match.group(1).strip()
+          if tag:
+            tag = whitespace_re.sub(b"_", tag)
+            tag_file.write(tag)
+            tag_file.write(f" {input_path} {linenr}\n".encode())
+
+      # We are done with the tag file, don't leave its file descriptor lingering around.
+      tag_file.file.close()
+
+      # end_time = time.time()
+      # buffered_lines.append(f"done in {(end_time - start_time) * 1000} ms\n".encode())
 
       if pager.stdin:
         os.set_blocking(pager.stdin.fileno(), True)
@@ -98,6 +110,58 @@ def main() -> int:
 
       code = pager.wait()
       return code
+
+
+def process_backspaces(line: str) -> str:
+  is_bold = 0
+  is_underlined = 0
+
+  output: "list[str]" = []
+  colnr = 0
+  max_col = 0
+
+  for char in line:
+    if char == "\b":
+      colnr -= 1
+    elif colnr == max_col:
+      output.append(char)
+      colnr += 1
+      max_col += 1
+    else:
+      prev_char = output[colnr]
+      output[colnr] = char
+
+      if prev_char == char:
+        is_bold |= 1 << colnr
+      elif prev_char == "_":
+        is_underlined |= 1 << colnr
+      elif char == "_":
+        is_underlined |= 1 << colnr
+        output[colnr] = prev_char
+      else:
+        is_bold &= ~(1 << colnr)
+
+      colnr += 1
+
+  bold_changes = is_bold ^ (is_bold << 1)
+  underlined_changes = is_underlined ^ (is_underlined << 1)
+
+  shift = 0
+  all_changes = bold_changes | underlined_changes
+  while all_changes != 0:
+    column_mask = all_changes & -all_changes
+    colnr = column_mask.bit_length() - 1
+    all_changes &= ~column_mask
+
+    if bold_changes & column_mask:
+      output.insert(shift + colnr, "\x1b[1m" if is_bold & column_mask else "\x1b[22m")
+      shift += 1
+
+    if underlined_changes & column_mask:
+      output.insert(shift + colnr, "\x1b[4m" if is_underlined & column_mask else "\x1b[24m")
+      shift += 1
+
+  return "".join(output)
 
 
 @contextmanager
