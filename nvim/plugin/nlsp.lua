@@ -263,7 +263,7 @@ vim.keymap.set('n', 'K', function()
   elseif lsp_supports('textDocument/hover') then
     return '<space>K'
   else
-    return 'K'
+    return '<Plug>dotfilesKeywordprg'
   end
 end, { expr = true, remap = true })
 

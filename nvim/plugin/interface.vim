@@ -495,13 +495,35 @@ endif
       " autocommand and for `stopinsert` to be able to leave the TERMINAL mode[1].
       " [1]: <https://github.com/neovim/neovim/commit/d928b036dc2be8f043545c0d7e2a2b2285528aaa>
       if has('nvim-0.4.0')
-        autocmd TermClose * if expand('<abuf>') == bufnr('%') | stopinsert | endif
-        autocmd TermEnter * if !dotutils#is_terminal_running('%') | stopinsert | endif
+        autocmd TermClose * if !exists('b:terminal_for_keywordprg')
+              \ && expand('<abuf>') == bufnr('%') | stopinsert | endif
+        autocmd TermEnter * if !exists('b:terminal_for_keywordprg')
+              \ && !dotutils#is_terminal_running('%') | stopinsert | endif
       endif
     elseif exists('##TerminalWinOpen')
       autocmd TerminalWinOpen * call s:fix_terminal_window()
     endif
   augroup END
+
+  if has('nvim-0.6.0')
+    " Since Nvim v0.6.0, the output of |'keywordprg'| is displayed in a terminal
+    " buffer, and I actually want that buffer to close itself with `:bwipeout`
+    " when any key is pressed because Nvim opens a new window for the terminal
+    " for |'keywordprg'| output (see `:help K`). Basically, I execute the
+    " built-in action of the |K| key, see if it has created a new terminal
+    " buffer, and if it indeed has, disable the terminal-closing hack for that
+    " particular buffer.
+    command! -bar Keywordprg
+          \ let s:prev_buflist = nvim_list_bufs()
+          \|exe 'normal! ' . (v:count != 0 ? v:count : '') . 'K'
+          \|if index(s:prev_buflist, nvim_get_current_buf()) < 0 && &buftype ==# 'terminal'
+          \|  let b:terminal_for_keywordprg = 1
+          \|endif
+          \|unlet! s:prev_buflist
+    nnoremap <Plug>dotfilesKeywordprg <Cmd>Keywordprg<CR>
+  else
+    nnoremap <Plug>dotfilesKeywordprg K
+  endif
 
   " Disable the default autocommand which auto-closes terminal buffers started
   " without any explicit arguments, as it uses `:bdelete` to do its job, which

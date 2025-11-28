@@ -78,7 +78,7 @@ function! s:coc_hover_mapping() abort
   elseif s:coc_buf_supports('hover')
     return "\<Cmd>call CocActionAsync('doHover')\<CR>"
   else
-    return 'K'
+    return "\<Plug>dotfilesKeywordprg"
   endif
 endfunction
 nmap <expr> K <SID>coc_hover_mapping()
