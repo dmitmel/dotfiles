@@ -252,7 +252,12 @@ allow-ptrace() {
 compdef _precommand allow-ptrace
 
 check-ssd-health() {
-  sudo smartctl -l devstat "$1" | grep --color=always 'Percentage Used Endurance Indicator\|$'
+  if (( $# == 0 )); then
+    print >&2 -r "$0 needs a device name (like /dev/sd* or /dev/nvme*)"
+    return 1
+  fi
+  # This `grep` invocation will pass all text through and highlight what matches the pattern
+  sudo smartctl -x "$@" | grep -E --color=always 'Percentage Used( Endurance Indicator)?|$'
 }
 
 scan-local-network() {
@@ -315,7 +320,7 @@ fzf-man() {
 
 # A tool for debugging whether a given user can access the provided path.
 access() {
-  local user="${1?:need a username}"; shift
+  local user="${1:?need a username}"; shift
   sudo -u "$user" namei --owners --modes --mountpoints -- "$@"
 }
 compdef 'if (( CURRENT > 2 )); then _files; else _users; fi' access
