@@ -118,7 +118,7 @@ PROMPT+=' [%F{red}%D %*%f]'
 PROMPT+='$(prompt_vcs_info 2>/dev/null)'
 
 # Python's virtualenv
-PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}${VIRTUAL_ENV:t//\%/%%}%f"}'
+PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}${${VIRTUAL_ENV:t}//\%/%%}%f"}'
 VIRTUAL_ENV_DISABLE_PROMPT=true
 
 # pyenv
