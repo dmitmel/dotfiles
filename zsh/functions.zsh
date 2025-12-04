@@ -324,3 +324,47 @@ access() {
   sudo -u "$user" namei --owners --modes --mountpoints -- "$@"
 }
 compdef 'if (( CURRENT > 2 )); then _files; else _users; fi' access
+
+# Inserts thousands separators into a number contained in the variable whose
+# name is given in the 1st argument. The 2nd argument specifies the separator to
+# use. Based on this Perl script: <https://unix.stackexchange.com/a/398493>.
+# I love how concise this it is!
+format_thousands() {
+  local var="${1:?needs a variable name}"
+  local sep="${2- }"  # use a space character if the separator is not specified
+  local str="${(P)var}"  # indirect variable access
+  local replaced=''
+  local -a match mbegin mend  # these will be mutated because of the (#b) flag on the next line
+  # (*) enables EXTENDED_GLOB for this pattern, (#b) gives access to captured groups via $match[i]
+  while replaced="${(*)str/(#b)([0-9]##)([0-9][0-9][0-9])/${match[1]}${sep}${match[2]}}" && \
+    [[ "$replaced" != "$str" ]]; do str="$replaced"; done
+  : "${(P)var::=${replaced}}"  # write the result back into $var
+}
+
+# Wrapper for sync(1) with some sort of activity indication. Based on the info
+# from this thread: <https://unix.stackexchange.com/questions/48235/can-i-watch-the-progress-of-a-sync-operation>.
+# Note that the sync(1) command can't really be stopped with Ctrl-C or `kill`
+# since all it does is make a single sync(2) syscall and wait for it to
+# complete, and signals sent to a process are not processed while a syscall is
+# in progress. As a workaround for that, I spawn sync(1) as a background job.
+sync() {
+  # Use a subshell so that we don't get messages from job control.
+  (
+    command sync "$@" & local sync_pid=$!
+    # `kill -0` checks if a given process still exists, without actually sending any signal.
+    while builtin kill -0 "$sync_pid" &>/dev/null; do
+      local key='' value='' unit='' dirty='0 kB' writeback='0 kB'
+      while IFS=' ' read -r key value unit; do
+        case "$key" in
+          (Dirty:) dirty="${value} ${unit}";;
+          (Writeback:) writeback="${value} ${unit}";;
+        esac
+      done < /proc/meminfo
+      format_thousands dirty
+      format_thousands writeback
+      printf '\rdirty: %11s%12swriteback: %10s%3s' "$dirty" '' "$writeback" ''
+      sleep 0.5
+    done
+    printf '\n'
+  )
+}
