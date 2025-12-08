@@ -2,7 +2,7 @@ if [[ -z "$EDITOR" ]]; then
   for EDITOR in nvim vim nano; do
     if is_command "$EDITOR"; then
       export EDITOR
-      export VISUAL="${VISUAL:-EDITOR}"
+      export VISUAL="${VISUAL:-$EDITOR}"
       break
     else
       unset EDITOR
