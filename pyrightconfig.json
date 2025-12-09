@@ -2,14 +2,7 @@
   "typeCheckingMode": "standard",
   "executionEnvironments": [
     {
-      "root": "scripts",
-      "extraPaths": ["./script-resources"]
-    },
-    {
-      "root": "script-resources"
-    },
-    {
-      "root": "script-resources/welcome"
+      "root": "scripts"
     },
     {
       "root": "colorschemes"

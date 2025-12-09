@@ -5,17 +5,13 @@
 # <https://github.com/credomane/factoriomodsettings/blob/master/src/FactorioModSettings.js>
 
 import json
-import os
 import struct
-import sys
 from pathlib import Path
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
-import factorio.property_tree
+from dotfiles.factorio import property_tree
 
 if __name__ == "__main__":
   with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
-
     version_main: int
     version_major: int
     version_minor: int
@@ -24,7 +20,7 @@ if __name__ == "__main__":
       "<HHHH", f.read(8)
     )
 
-    always_false_flag = factorio.property_tree.read_bool(f)
+    always_false_flag = property_tree.read_bool(f)
     if always_false_flag:
       raise Exception("the always-False-flag is True for some reason")
 
@@ -35,7 +31,7 @@ if __name__ == "__main__":
         "minor": version_minor,
         "developer": version_developer,
       },
-      "data": factorio.property_tree.read(f),
+      "data": property_tree.read(f),
     }
 
     print(json.dumps(deserialized_data, indent=2))

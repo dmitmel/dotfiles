@@ -2,21 +2,19 @@
 
 import json
 import os
-import sys
 import urllib.parse
 import urllib.request
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Union
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), "..", "script-resources"))
-import common_script_utils
+from dotfiles import common_script_utils
 
 DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.openkrosskod.org/~ccbot/emote-registry.json"
 
 if os.name == "posix":
-  config_path: Path = (common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini")
-  default_registry_dump_file: Path = (common_script_utils.DOTFILES_CACHE_DIR / "dotfiles")
+  config_path: Path = common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini"
+  default_registry_dump_file: Path = common_script_utils.DOTFILES_CACHE_DIR / "dotfiles"
 else:
   common_script_utils.platform_not_supported_error()
 config = ConfigParser(interpolation=None)
@@ -28,8 +26,9 @@ emotes: List[Dict[str, Any]] = []
 def emote_downloader_and_iterator() -> Generator[str, None, None]:
   global emotes
 
-  registry_dump_file: Optional[Union[
-    str, Path]] = config.get("default", "ccbot_emote_registry_dump_file", fallback=None)
+  registry_dump_file: Optional[Union[str, Path]] = config.get(
+    "default", "ccbot_emote_registry_dump_file", fallback=None
+  )
   if registry_dump_file is not None:
     registry_dump_file = os.path.expanduser(registry_dump_file)
   else:

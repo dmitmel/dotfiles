@@ -7,8 +7,9 @@ from getpass import getuser
 from typing import Dict, List, Optional, Tuple, cast
 
 import psutil
-from colors import Fore, Style, bright_colored, colored, colorize_percent
-from humanize import humanize_bytes, humanize_timedelta
+
+from .colors import Fore, Style, bright_colored, colored, colorize_percent
+from .humanize import humanize_bytes, humanize_timedelta
 
 
 def get_system_info() -> Tuple[str, List[str]]:
