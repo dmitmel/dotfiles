@@ -107,7 +107,7 @@
   },
 
   // Markdown
-  "markdown.styles": ["/home/dmitmel/dotfiles/script-resources/markdown2htmldoc/themes-out/my.css"],
+  "markdown.styles": ["/home/dmitmel/dotfiles/misc/markdown2htmldoc/themes-out/my.css"],
 
   "[markdown]": {
     "editor.quickSuggestions": {
