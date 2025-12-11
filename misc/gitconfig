@@ -31,5 +31,12 @@
   new = green bold
   whitespace = red reverse
 
+# Default tig(1) settings: <https://github.com/jonas/tig/blob/master/tigrc>
+[tig "color"]
+  cursor      = black white bold
+  cursor-blur = black white
+  title-focus = black blue bold
+  title-blur  = black blue
+
 [alias]
   initial-commit = commit --message 'initial commit' --allow-empty
