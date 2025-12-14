@@ -6,7 +6,16 @@
   # Based on <https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh>
   _fzf_history_widget() {
     local selected
-    if selected=( $(fc -rl 1 | fzf --nth=2.. --scheme=history --query="$LBUFFER") ); then
+    if selected=( $(
+      sep="[[:space:]]\{1,\}" col="[^[:space:]]\{1,\}"
+      pat="^\([[:space:]]*\)\(${col}\)\(${sep}\)\(${col}${sep}${col}\)\(${sep}\)\(.*\)$"
+      rep="\1${fg[yellow]}\2${reset_color}\3${fg[blue]}\4${reset_color}\5\6"
+      # `-l` - list all history events
+      # `-r` - reverse the order, list everything from newest to oldest
+      # `-i` - print timestamps next to history entries
+      #  `1` - the event number to start from
+      fc -lri 1 | sed "s/${pat}/${rep}/" | fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
+    ) ) && [[ -n "${selected[1]}" ]]; then
       zle vi-fetch-history -n "${selected[1]}"
     fi
     # Can't use `zle redisplay` here, it may cause multiline prompts to move up
