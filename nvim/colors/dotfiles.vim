@@ -686,6 +686,9 @@ function! s:setup() " NOTE: not abort
   " HTML {{{
   hi! link htmlBold           Bold
   hi! link htmlItalic         Italic
+  hi! link htmlStrike         Strikethrough
+  call Hi('htmlBoldItalic', { 'fg': magenta, 'attr': 'bold,italic' })
+  hi! link htmlH1             Identifier
   hi! link htmlTag            xmlTag
   hi! link htmlTagName        xmlTagName
   hi! link htmlSpecialTagName PreProc
@@ -811,9 +814,15 @@ function! s:setup() " NOTE: not abort
   hi! link markdownCodeDelimiter   markdownCode
   hi! link markdownUrl             htmlString
   hi! link markdownAutomaticLink   htmlLink
-  hi! link mkdLinkDef              TypeDef
-  hi! link mkdID                   Type
-  hi! link mkdRule                 PreProc
+  call Hi('mkdBlockquote', { 'fg': gray[4] })
+  hi! link mkdLinkDef    TypeDef
+  hi! link mkdID         Type
+  hi! link mkdRule       PreProc
+  hi! link mkdHeading    Keyword
+  hi! link mkdBold       htmlBold
+  hi! link mkdItalic     htmlItalic
+  hi! link mkdBoldItalic htmlBoldItalic
+  hi! link mkdStrike     htmlStrike
   " }}}
 
   " Mail {{{
