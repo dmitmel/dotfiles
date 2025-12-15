@@ -11,7 +11,8 @@ def float2byte(x: float) -> int:
 
 def color(x: float, y: float) -> str:
   angle = math.pi - math.atan2(x, y)
-  hue = angle / (2 * math.pi) + (math.hypot(x, y) / 20) ** 0.5
+  distance = math.hypot(x, y)
+  hue = angle / (2 * math.pi) + (distance / 20) ** 0.5
   r, g, b = colorsys.hsv_to_rgb(hue, 1, 1)
   return f"{float2byte(r)};{float2byte(g)};{float2byte(b)}"
 
