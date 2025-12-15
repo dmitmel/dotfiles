@@ -62,9 +62,11 @@ path_prepend path ~/.local/share/gem/ruby/*/bin(N/)
 # Yarn global packages
 path_prepend path ~/.yarn/bin
 
-# Go
-export GOPATH=~/go
-path_prepend path "$GOPATH/bin"
+# <https://go.dev/wiki/GOPATH>
+# <https://www.reddit.com/r/golang/comments/10psufn/avoid_having_a_go_directory/>
+export GOPATH="${XDG_CACHE_HOME:-$HOME/.cache}/go"
+export GOBIN="${HOME}/.local/bin"
+path_prepend path "${GOBIN:-$GOPATH/bin}"
 
 # Rust
 rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
