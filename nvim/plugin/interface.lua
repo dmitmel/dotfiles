@@ -77,27 +77,32 @@ end
 
 if dotplug.has('fzf-lua') then
   local FzfLua = require('fzf-lua')
+  local FzfWin = FzfLua.win
 
-  FzfLua.win._old_redraw_preview = FzfLua.win._old_redraw_preview or FzfLua.win.redraw_preview
-  FzfLua.win.redraw_preview = utils.schedule_once_per_tick(FzfLua.win._old_redraw_preview)
+  FzfWin._real_new = FzfWin._real_new or FzfWin.new
+  rawset(FzfWin, 'new', function(...)
+    local self = FzfWin._real_new(...)
 
-  FzfLua.win._old_update_preview_title = FzfLua.win._old_update_preview_title
-    or FzfLua.win.update_preview_title
-  function FzfLua.win:update_preview_title(title)
-    self:_old_update_preview_title(title)
-    vim.fn.win_execute(self.fzf_winid, 'redrawstatus')
-  end
+    self.redraw_preview = utils.schedule_once_per_tick(self.redraw_preview)
 
-  FzfLua.win._old_update_statusline = FzfLua.win._old_update_statusline
-    or FzfLua.win.update_statusline
-  function FzfLua.win:update_statusline(...)
-    if
-      vim.fn.exists('#airline') == 0
-      and not utils.is_truthy(vim.call('airline#util#stl_disabled', self.fzf_winid))
-    then
-      return self:_old_update_statusline(...)
+    local update_preview_title = self.update_preview_title
+    function self:update_preview_title(title)
+      update_preview_title(title)
+      vim.fn.win_execute(self.fzf_winid, 'redrawstatus')
     end
-  end
+
+    local update_statusline = self.update_statusline
+    function self:update_statusline(...)
+      if
+        vim.fn.exists('#airline') == 0
+        and not utils.is_truthy(vim.call('airline#util#stl_disabled', self.fzf_winid))
+      then
+        return update_statusline(...)
+      end
+    end
+
+    return self
+  end)
 
   FzfLua.setup({
     'fzf-vim',
