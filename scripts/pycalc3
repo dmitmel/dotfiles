@@ -1,9 +1,2 @@
 #!/bin/sh
-
-for python in bpython python3; do
-  if python="$(command -v "$python")"; then
-    break
-  fi
-done
-echo "using Python '$python'"
-PYTHONSTARTUP="$(dirname "$0")/dotfiles/pycalc_startup.py" "$python" "$@"
+PYTHONSTARTUP="$(dirname "$0")/dotfiles/pycalc_startup.py" exec python3 "$@"
