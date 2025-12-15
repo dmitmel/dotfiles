@@ -12,6 +12,7 @@ let g:gitgutter_sign_removed                 = '_'
 let g:gitgutter_sign_removed_first_line      = '‾'
 let g:gitgutter_sign_removed_above_and_below = g:gitgutter_sign_removed . g:gitgutter_sign_removed_first_line
 let g:gitgutter_sign_modified_removed        = g:gitgutter_sign_modified . g:gitgutter_sign_removed
+
 " Mirror the look of gitgutter here.
 let g:signify_sign_show_count = 0
 let g:signify_sign_add               = g:gitgutter_sign_added
@@ -19,6 +20,14 @@ let g:signify_sign_delete            = g:gitgutter_sign_removed
 let g:signify_sign_delete_first_line = g:gitgutter_sign_removed_first_line
 let g:signify_sign_change            = g:gitgutter_sign_modified
 let g:signify_sign_change_delete     = g:gitgutter_sign_modified_removed
+
+if dotplug#has('gitsigns.nvim')
+  call v:lua.require'gitsigns'.setup({
+  \ 'signs_staged_enable': v:false,
+  \ 'sign_priority': g:gitgutter_sign_priority,
+  \ 'preview_config': { 'border': 'none', 'col': 0, 'row': 1 },
+  \})
+endif
 
 let g:gitgutter_map_keys = 0
 
