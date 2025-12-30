@@ -109,9 +109,9 @@ exe dotplug#define_plug_here()
 " }}}
 
 " Git {{{
+  " A very, very high-quality UI for Git.
+  Plug 'https://github.com/tpope/vim-fugitive'
   if g:vim_ide
-    " A very, very high-quality UI for Git.
-    Plug 'https://github.com/tpope/vim-fugitive'
     " Support for GitHub and GitLab (`:GBrowse`, ticket autocomplete in
     " `.git/COMMIT_EDITMSG`).
     Plug 'https://github.com/tpope/vim-rhubarb', { 'requires': 'vim-fugitive' }
