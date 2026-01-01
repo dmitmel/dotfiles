@@ -157,3 +157,10 @@ if command_exists vscodium && ! command_exists code; then
 fi
 
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'
+
+if [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
+  alias man='man -O width="$((COLUMNS - 1))"'
+else
+  # Search for some string in all man pages
+  alias mangrep='man -wK'
+fi

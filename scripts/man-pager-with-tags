@@ -1,156 +1,546 @@
 #!/usr/bin/env python3
+
+# This script is designed to be set as $MANPAGER for man(1). It implements a
+# wonderful feature present in mandoc, BSD's implementation of man(1): it
+# generates a file in the format used by ctags(1) which lists the locations of
+# every term, option or subsection present in the requested manual page, sort of
+# like a table of contents, which can then be loaded by less(1) when viewing
+# said manpage. Within less(1), this enables the usage of the `:t` command to
+# jump directly to the definition of any desired term or option, which is
+# insanely useful when browsing long manpages such as bash(1) or zshall(1).
+# Unlike the normal search command `/`, `:t` requires a full-word match and
+# takes you to the exact location of the requested term without requiring to
+# jump through all of its references and unrelated matches within the text of
+# the manpage, which is *extremely* helpful for looking up generic words like
+# `read` in bash(1). The term has to be specified in full though, so looking up
+# `read` will not yield e.g. `readarray` and looking up `version` will not yield
+# the description for `--version`. Also, less(1) does not offer any
+# Tab-completion for `:t` because of its minimalistic design, so you have to
+# know what you're looking for beforehand. If a certain term appears multiple
+# times in the manpage, the `t` and `T` keys can be used to jump to its next or
+# previous location.
+#
+# How mandoc generates tag files:
+# <https://cvsweb.bsd.lv/mandoc/tag.c?rev=1.38&content-type=text/x-cvsweb-markup>
+# How less(1) loads and searches those tags:
+# <https://github.com/gwsw/less/blob/v688/tags.c>
+#
+# My script relies on a bunch of hacks and heuristics to achieve this, though.
+# Since it sits in between the man(1) and less(1) programs, it can only see the
+# formatted text of the manpage that will be shown to the user, generated from
+# its groff(7) source code, and apply some post-processing to it. Unlike
+# mandoc's man(1), which generates a list of searchable tags during the process
+# of parsing and rendering the groff(7) code, my script does not have a grasp on
+# the structure of the rendered document, i.e. where do paragraphs begin or
+# section headers are located, or which pieces of text have special meaning
+# (like being the names of CLI flags, env variables, subcommands etc) and should
+# therefore be tagged. Instead, it relies on a very simple heuristic: if the
+# first word on a line is formatted in the bold font, then it is most likely a
+# name of some term or section that is emphasized, and a tag is generated
+# pointing to that line. This is a very simple method, but it works surprisingly
+# well, though it can't tell if the emboldened word is really an important term
+# or just some word in the middle of a paragraph.
+#
+# After man(1) starts my script, together they will create a pipeline that looks
+# sort of like this: `man | groff | python $my_script | less`. To generate the
+# full tag list for the entire manpage, the script needs to process the entirety
+# of the formatted document produced by man(1) and groff(1). However, less(1)
+# reads its input on-demand, only when the user scrolls downwards in the
+# document, which stalls the whole pipeline. To counteract this, my script will
+# need to "slurp up" the whole input up to the EOF, keep it in memory and feed
+# that into the pager. However, since groff(1) takes some noticeable time to
+# render long manpages, my script doesn't wait to read the entire document into
+# memory, instead it reads input line-by-line and immediately starts feeding the
+# processed lines to the input of less(1) until the buffer of the OS pipe gets
+# completely filled, at which point we know that less(1) has displayed a single
+# page and will pause reading from its end of the pipe for now. From that point
+# we start buffering the processed lines into memory, until less(1) needs to
+# read more. This makes the `man` command feel as snappy with my tagger script
+# as without it, and makes the pager pop up immediately, as it normally does,
+# while the script is generating tags asynchronously in the background.
+#
+# Additionally, my script also performs some basic colorization of manpages in a
+# very rudimentary way: it just looks at words in bold font, and highlights them
+# in different colors based on simple rules. Like, if the word is in all-caps -
+# it's probably part of a header, if it starts with a dash - that's most likely
+# an option name, and so on and so on. Surprisingly, this produces pretty decent
+# results. I tried using bat(1) for colorization, but it had a major downside:
+# it discards ANSI formatting codes from its input, for setting bold font or
+# underlining text and such, which strips a lot of visual information (i.e.
+# intentionally emphasized text) from the rendered manpage.
+#
+# This script targets Python versions 3.6 and newer.
+
+import functools
 import os
 import re
 import signal
 import subprocess
 import sys
 import tempfile
-from contextlib import contextmanager
-from typing import Generator
+import time
+from contextlib import ExitStack
+from typing import IO, TYPE_CHECKING, Iterable, List, NoReturn, Optional
+
+from dotfiles.common_script_utils import set_signal_handler
 
 
-def main() -> int:
-  if len(sys.argv) > 2:
+def main() -> NoReturn:
+  if len(sys.argv) == 2:
+    input_path = sys.argv[1]
+  elif len(sys.argv) == 1:
+    input_path = "-"
+  else:
     sys.exit(f"usage: {sys.argv[0]} [file]")
 
-  input_path = sys.argv[1] if len(sys.argv) == 2 else "-"
   pager_cmd = os.environ.get("PAGER", "less").split()
 
-  if "less" not in os.path.basename(pager_cmd[0]):
-    os.execvp(pager_cmd[0], pager_cmd + [input_path])
+  with ExitStack() as stack:
+    input_file = (
+      stack.enter_context(open(input_path, "rb")) if input_path != "-" else sys.stdin.buffer
+    )
 
-  with (
-    open(input_path, "rb") if input_path != "-" else sys.stdin.buffer as input_file,
-    tempfile.NamedTemporaryFile(prefix="man-tags.") as tag_file,
-  ):
-    pager_cmd.append(f"-T{tag_file.name}")
-    if input_path != "-":
-      if input_path.startswith("-"):
-        pager_cmd.append("--")
-      pager_cmd.append(input_path)
+    if "less" in os.path.basename(pager_cmd[0]):
+      tags_file = stack.enter_context(tempfile.NamedTemporaryFile(prefix="man-tags."))
+      pager_cmd.append("-T" + tags_file.name)
+    else:
+      tags_file = None
 
-    with (
-      # Ignore SIGINT and SIGQUIT, like system(3) does.
-      set_signal_handler(signal.SIGINT, signal.SIG_IGN),
-      set_signal_handler(signal.SIGQUIT, signal.SIG_IGN),
-      subprocess.Popen(
-        pager_cmd,
-        stdin=subprocess.PIPE if input_path == "-" else None,
-      ) as pager,
-    ):
-      buffered_lines: "list[bytes]" = []
+    # Turns out that properly running a subprocess as a foreground job in the
+    # terminal on UNIX is not as trivial as I thought! The main concern here is
+    # correctly responding to user-triggered signals. Pressing, say, `CTRL+C` in
+    # the terminal will send a SIGINT signal to all processes in the process
+    # group currently attached to the TTY (what process groups are is described
+    # in credentials(7)). When a new process is created with fork(2), it
+    # inherits the process group ID of its parent, so the child process we
+    # create for the real pager will be in the same group as us and thus receive
+    # a SIGINT if `CTRL+C` is pressed. However, we don't want *our* process to
+    # exit upon reception of such a signal, we want to defer the decision of
+    # what to do to the pager, so we just ignore any SIGINT signals that our
+    # process might receive while its child process is running. Same thing must
+    # be done to the SIGQUIT signal, which can be generated by pressing `CTRL+\`
+    # (it causes the process to perform a core dump). In fact, the C function
+    # system(3) must ignore those two by design:
+    # <https://pubs.opengroup.org/onlinepubs/9799919799/functions/system.html>,
+    # <https://github.com/kraj/musl/blob/v1.2.5/src/process/system.c>.
+    #
+    # This should be enough to match what interactive shells do when running a
+    # command as a foreground job. I learned this while looking through the code
+    # of man-db, which calls pipeline_ignore_signals(3) before invoking the
+    # $MANPAGER here:
+    # <https://gitlab.com/man-db/man-db/-/blob/2.13.1/src/man.c#L1709>, which
+    # causes the following to be done:
+    # <https://gitlab.com/libpipeline/libpipeline/-/blob/1.5.8/lib/pipeline.c#L1452-1466>,
+    # <https://gitlab.com/libpipeline/libpipeline/-/blob/1.5.8/lib/pipeline.c#L1609-1613>.
+    # And the documentation for pipeline_ignore_signals(3) explicitly references
+    # the behavior of the system(3) function.
+    #
+    # Here are some other links that I encountered while searching for a
+    # solution, which did not turn out to be useful, but which may come in handy
+    # in some other project:
+    #
+    # 1. <https://stackoverflow.com/a/66727983/12005228>,
+    #    <https://stackoverflow.com/a/61437443/12005228>,
+    #    <https://stackoverflow.com/a/15257702/12005228>,
+    #    <https://stackoverflow.com/a/41428313/12005228> - using setpgid(2) to
+    #    create a new process group and tcsetpgrp(3) to assign it as a
+    #    foreground process group of the current TTY (overkill).
+    # 2. <https://stackoverflow.com/a/71330357/12005228> and
+    #    <https://stackoverflow.com/a/76926639/12005228> - an intricate context
+    #    manager that acts as a "signal fence", i.e. it delays handling of a
+    #    received signal until the end of a block of code. Might be useless
+    #    since POSIX defines a function exactly for this purpose, which is
+    #    exposed in Python: `signal.pthread_sigmask()`.
+    #
+    # P.S. Here's how Python's `help()` function invokes a pager:
+    # <https://github.com/python/cpython/blob/v3.13.9/Lib/_pyrepl/pager.py>
+    pager = stack.enter_context(subprocess.Popen(pager_cmd, stdin=subprocess.PIPE))
+    # Technically, the dispositions of SIGINT and SIGQUIT must be changed before
+    # spawning the child process, but this requires an intricate dance using
+    # sigaction(2) and sigprocmask(2) to set them back to `SIG_DFL` in the child
+    # process, to block and unblock signals in such a way as to ensure that only
+    # our child process catches them, and to make sure that should a signal be
+    # delivered in the short time window while we are forking into a new
+    # process, it is still caught and not ignored. For the full algorithm see
+    # <https://pubs.opengroup.org/onlinepubs/9799919799/functions/system.html>.
+    # This is necessary due to the fact that child processes inherit the signal
+    # dispositions and the signals mask of their parent, more info here:
+    # <https://pubs.opengroup.org/onlinepubs/9799919799/functions/exec.html>.
+    #
+    # Note that the `restore_signals` option of `subprocess.Popen()` does not
+    # help us here: it resets the dispositions to `SIG_DFL` only of those
+    # signals which the Python interpreter itself changes internally, which are
+    # currently just SIGPIPE, SIGXFZ and SIGXFSZ.
+    #
+    # I decided not to bother with blocking SIGINT and SIGQUIT in the absolutely
+    # correct way as that requires usage of `Popen`'s `preexec_fn` argument,
+    # which comes with a lot of caveats and is slated for deprecation at some
+    # unknown point in the future:
+    # <https://github.com/python/cpython/issues/82616>. Which leaves us with a
+    # small time window between the point where `Popen()`'s constructor calls
+    # fork(2) and where SIGINT and SIGQUIT are set to `SIG_IGN`, when pressing
+    # `CTRL+C` or `CTRL+\` will deliver a signal to both the current process and
+    # its child. Whether this is a real problem that I should bother with is
+    # unclear and is left as an exercise to the reader.
+    stack.enter_context(set_signal_handler(signal.SIGINT, signal.SIG_IGN))
+    stack.enter_context(set_signal_handler(signal.SIGQUIT, signal.SIG_IGN))
 
-      if pager.stdin:
-        os.set_blocking(pager.stdin.fileno(), False)
+    if tags_file:
+      # Pass the file descriptor of `tags_file`, not the `NamedTemporaryFile`
+      # object itself, as closing the former will just close the opened file
+      # descriptor, while doing the same to the latter will also delete the
+      # underlying file.
+      generate_tags_and_feed_into_less(pager.stdin, input_file, tags_file.file)
+    elif pager.stdin:
+      # The `map()` function allows transforming the stream of lines coming from
+      # `input_file` in a very Pythonic manner!
+      feed_input_into_pager(pager.stdin, map(colorize_line, map(perform_overstriking, input_file)))
 
-      bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b\s][^\x1b]*)")
-      flag_re = re.compile(rb"^\s+([-+][^\x1b\s]+)")
-      whitespace_re = re.compile(rb"\s")
+    code = pager.wait()
 
-      # start_time = time.time()
+  if code < 0:
+    signal_nr = -code
+    if signal_nr in (signal.SIGINT, signal.SIGQUIT):
+      # If the child process has died to due receiving SIGINT or SIGQUIT (which
+      # normally shouldn't happen, as less(1) catches those), we must propagate
+      # this information to the parent of our process. More information here:
+      # <https://www.cons.org/cracauer/sigint.html>.
+      signal.signal(signal_nr, signal.SIG_DFL)
+      signal.raise_signal(signal_nr)
+    sys.exit(0x80 + signal_nr)
+  else:
+    sys.exit(code)
 
-      buffer_size = 0
-      last_checked_buffer_size = 0
-      # The 2nd argument of `enumerate()` specifies the starting value for the counter. Handy!
-      for linenr, line in enumerate(input_file, 1):
-        if b"\b" in line:
-          line = line.decode(errors="replace")
-          line = process_backspaces(line)
-          line = line.encode(errors="replace")
 
-        if pager.stdin:
-          buffered_lines.append(line)
-          buffer_size += len(line)
+def generate_tags_and_feed_into_less(
+  pager_stdin: Optional[IO[bytes]], input_file: IO[bytes], tags_file: IO[bytes]
+) -> None:
+  buffered_bytes = bytearray()
+  buffered_bytes_counter = 0
 
-          # Making write(2) syscalls too often will slow down this whole loop.
-          # Instead, a simple heuristic is employed: make one write attempt
-          # roughly per every 4 KiB read from the input pipe.
-          if buffer_size - last_checked_buffer_size > 4096:
-            last_checked_buffer_size = buffer_size
+  # Matches lines which begin with text in the bold font, optionally preceded by some whitespace.
+  bold_text_re = re.compile(rb"^\s*\x1b\[1m([^\x1b]+)")
+  # Some manpages don't format the names of command-line flags in the bold font,
+  # e.g.: less(1). Try to also generate tags for lines which begin with a dash
+  # or a plus. This heuristic was taken from
+  # <https://github.com/neovim/neovim/blob/v0.11.5/runtime/lua/man.lua#L799>.
+  flag_re = re.compile(rb"^\s+([-+][^\x1b\s,=]+)")
 
-            written_lines = 0
-            try:
-              while written_lines < len(buffered_lines):
-                pager.stdin.write(buffered_lines[written_lines])
-                written_lines += 1
-            except BlockingIOError:
-              pass
-            except BrokenPipeError:
-              break  # no need to continue generating tags if the pager has exited
-            finally:
-              del buffered_lines[0:written_lines]
+  whitespace_re = re.compile(rb"\s")
 
-        match = bold_text_re.match(line) or flag_re.match(line)
-        if match:
-          tag = match.group(1).strip()
-          if tag:
-            tag = whitespace_re.sub(b"_", tag)
-            tag_file.write(tag)
-            tag_file.write(f" {input_path} {linenr}\n".encode())
+  try:
+    if pager_stdin:
+      os.set_blocking(pager_stdin.fileno(), False)
 
-      # We are done with the tag file, don't leave its file descriptor lingering around.
-      tag_file.file.close()
+    start_time = time.perf_counter()
 
-      # end_time = time.time()
-      # buffered_lines.append(f"done in {(end_time - start_time) * 1000} ms\n".encode())
+    # The 2nd argument of `enumerate()` specifies the starting value for the counter. Handy!
+    for linenr, line in enumerate(input_file, 1):
+      line = perform_overstriking(line)
 
-      if pager.stdin:
-        os.set_blocking(pager.stdin.fileno(), True)
+      match = bold_text_re.match(line) or flag_re.match(line)
+      if match:
+        tag = match.group(1).strip()
+        if tag:
+          tag = whitespace_re.sub(b"_", tag)
+          tag_path = "-"
+          tags_file.write(tag)
+          tags_file.write(f" {tag_path} {linenr}\n".encode())
 
-        for line in buffered_lines:
+      if pager_stdin:
+        line = colorize_line(line)
+        buffered_bytes.extend(line)
+
+        # Making write(2) syscalls too often will slow down this whole loop.
+        # Instead, a simple heuristic is employed: make one write attempt
+        # roughly per every 4 KiB read from the input pipe.
+        buffered_bytes_counter += len(line)
+        if buffered_bytes_counter > 4096:
+          buffered_bytes_counter = 0
           try:
-            pager.stdin.write(line)
+            written = pager_stdin.write(buffered_bytes)
+          except BlockingIOError as err:
+            written = err.characters_written
           except BrokenPipeError:
-            break
+            break  # no need to continue generating tags if the pager has exited
+          del buffered_bytes[:written]
 
-        try:
-          pager.stdin.close()  # implies flush()
-        except BrokenPipeError:
-          pass
+    tags_file.flush()
 
-      code = pager.wait()
-      return code
+    end_time = time.perf_counter()
+    if os.environ.get("DOTFILES_MANPAGER_TIME"):
+      elapsed_ms = (end_time - start_time) * 1000
+      buffered_bytes.extend(f"done in {elapsed_ms:.03f} ms\n".encode())
+
+  finally:
+    if pager_stdin:
+      os.set_blocking(pager_stdin.fileno(), True)
+
+    # We are done with the tags file, don't leave its file descriptor lingering around.
+    tags_file.close()
+
+  if pager_stdin:
+    feed_input_into_pager(pager_stdin, [buffered_bytes])
 
 
-def process_backspaces(line: str) -> str:
-  is_bold = 0
-  is_underlined = 0
+def feed_input_into_pager(pager_stdin: IO[bytes], stream: Iterable["bytes | bytearray"]) -> None:
+  for line in stream:
+    try:
+      pager_stdin.write(line)
+    except BrokenPipeError:
+      break  # Not `return`, our end of the pipe needs to be closed even if the pipe gets broken
 
-  output: "list[str]" = []
+  try:
+    pager_stdin.close()  # also flushes the stream
+  except BrokenPipeError:
+    pass  # the stream will become closed even if we get EPIPE
+
+
+# `re.compile()` has its own cache, but wrapping it in `lru_cache()` somehow leads to a speedup.
+regex = functools.lru_cache(maxsize=None)(re.compile) if not TYPE_CHECKING else re.compile
+
+ANSI_BEGIN_BOLD = b"\x1b[1m"
+ANSI_BEGIN_UNDERLINE = b"\x1b[4m"
+ANSI_END_BOLD = b"\x1b[22m"
+ANSI_END_UNDERLINE = b"\x1b[24m"
+
+ANSI_RED = b"\x1b[31m"
+ANSI_GREEN = b"\x1b[32m"
+ANSI_YELLOW = b"\x1b[33m"
+ANSI_BLUE = b"\x1b[34m"
+ANSI_MAGENTA = b"\x1b[35m"
+ANSI_CYAN = b"\x1b[36m"
+ANSI_GRAY = b"\x1b[90m"
+RESET_COLOR = b"\x1b[39m"
+
+
+# The colorization algorithm was inspired by the script from this comment:
+# <https://github.com/sharkdp/bat/issues/652#issuecomment-3243823886>.
+# Here is the source code of grotty(1), the program that groff(1) uses to render
+# its output for display in a terminal:
+# <https://cgit.git.savannah.gnu.org/cgit/groff.git/tree/src/devices/grotty/tty.cpp?h=1.23.0>
+# (you can check all ANSI control sequences that it uses).
+def colorize_line(line: bytes) -> bytes:
+  # Highlight Unicode box-drawing characters used for drawing tables in a bright
+  # gray color, to make them slightly dimmer than regular white-colored text.
+  # Fortunately, all of them are neatly packed in a single area of the Unicode
+  # table in such a way that we can trivially match them based on their encoded
+  # bytes, without needing to decode the whole line (assuming, of course, that
+  # it is encoded with UTF-8).
+  # <https://en.wikipedia.org/wiki/Box-drawing_characters#Box_Drawing>
+  if b"\xe2" in line and (b"\xe2\x94" in line or b"\xe2\x95" in line):
+    # Try to find uninterrupted runs of these characters
+    line = regex(rb"((?:\xe2[\x94-\x95][\x80-\xbf])+)").sub(ANSI_GRAY + rb"\1" + RESET_COLOR, line)
+
+  # Since the whole point of my colorization algorithm is that it relies on
+  # parsing the ANSI control sequences, which must start with the ESC character,
+  # we can avoid wasting time on evaluation of the regular expressions used to
+  # find them if the line doesn't contain any ESC characters in the first place.
+  if b"\x1b" not in line:
+    return line
+
+  # Remove redundant control sequences which cancel each other out:
+  line = line.replace(ANSI_END_BOLD + ANSI_BEGIN_BOLD, b"")
+  line = line.replace(ANSI_END_UNDERLINE + ANSI_BEGIN_UNDERLINE, b"")
+
+  # Sometimes grotty(1) and my `process_backspaces()` function will output
+  # control sequences in an unintuitive manner: if, say, a piece of underlined
+  # text follows some bold text, they will first output the sequence to turn
+  # underlining on, which applies to the following text and then add a sequence
+  # to turn off the bold font, which was used for the preceding piece of text.
+  # In other words, if we visualize control sequences as HTML tags, they would
+  # be analogous to: `<b>bold text<u></b>underlined text</u>`. Due to how ANSI
+  # sequences work, this ordering makes no difference to the terminal, but
+  # breaks my simplistic parser - this can be easily observed in manpages such
+  # as printf(3). To fix this, I just untangle such combinations of sequences.
+  # TODO: This bug still manifests itself in roff(7)
+  line = line.replace(ANSI_BEGIN_BOLD + ANSI_END_UNDERLINE, ANSI_END_UNDERLINE + ANSI_BEGIN_BOLD)
+  line = line.replace(ANSI_BEGIN_UNDERLINE + ANSI_END_BOLD, ANSI_END_BOLD + ANSI_BEGIN_UNDERLINE)
+
+  # Colorize references to other manpages
+  line = regex(rb"(\x1b\[[134]m)([^\x1b\s]+)(\x1b\[2[234]m)\(([0-9]+[a-zA-Z]*)\)").sub(
+    rb"\1" + ANSI_CYAN + rb"\2" + RESET_COLOR + rb"\3" + ANSI_YELLOW + rb"(\4)" + RESET_COLOR,
+    line,
+  )
+
+  # Make all italic and underlined text green
+  line = regex(rb"(\x1b\[[34]m)([^\x1b]+)").sub(rb"\1" + ANSI_GREEN + rb"\2" + RESET_COLOR, line)
+
+  line = regex(rb"\x1b\[1m([^\x1b]+)").sub(bold_text_highlighter, line)
+
+  return line
+
+
+def bold_text_highlighter(match: "re.Match[bytes]") -> bytes:
+  text_bytes: bytes = match.group(1)
+  color = ANSI_BLUE  # by default, all bold text is colored blue
+  flag_re = regex(rb"^[-+][^\s]")
+  if flag_re.match(text_bytes.strip()):
+    color = ANSI_RED  # flags and options
+  else:
+    text = text_bytes.decode(errors="replace").strip()
+    if len(text) >= 3 and (text[0].isalpha() or text[-1].isalpha()):
+      if text.isupper():
+        color = ANSI_MAGENTA  # SECTION HEADER or ENV_VARIABLE_NAME
+      elif text.replace(" and ", " And ").replace("-", "").istitle():
+        color = ANSI_YELLOW  # Probably a Subsection Header
+      elif text[0].isupper() and text[1:].islower():
+        color = ANSI_YELLOW  # Subsection header where only the first letter is capitalized
+      else:
+        # Otherwise, split the piece of text into words and try to find flags in them
+        text_bytes = b" ".join(
+          ANSI_RED + word + color if flag_re.match(word) else word
+          for word in text_bytes.split(b" ")
+        )
+  return ANSI_BEGIN_BOLD + color + text_bytes + RESET_COLOR
+
+
+# Mandoc's man(1) and old versions of groff(1) use a legacy method of text
+# formatting called "overstriking", which exploits the characteristics of old
+# paper-based teletype terminals (for which the first roff system was originally
+# developed). Those teletypers lacked text formatting capabilities offered by
+# modern terminal emulators, but one could emulate some effects by "combining"
+# characters: for example, printing `<character> <BACKSPACE> <same character>`
+# would type a character in the same cell twice, making it appear bold.
+# Underlining could be performed by sending `<underscore> <BACKSPACE> <char>` to
+# the terminal, and you could stack those two sequences to get bold underlined
+# text with `<underscore> <BACKSPACE> <character> <BACKSPACE> <same character>`.
+# <https://man.archlinux.org/man/grotty.1#Legacy_output_format>
+#
+# These overstruck sequences can be rendered in modern terminals by piping text
+# containing them through the ul(1) program, which will translate them into ANSI
+# SGR sequences, or they can be stripped out of the text with `col -bx` (both
+# programs are provided by the util-linux package available on virtually all
+# Linux distros). The less(1) program also recognizes those sequences and
+# renders them as bold or underlined text (this is controlled by its `-u` and
+# `-U` options). In fact, a lot of man-colorization scripts you can find online
+# rely on this feature of less(1) to work: they request the usage of this legacy
+# formatting from groff(1) by setting `GROFF_NO_SGR=1`, which causes grotty(1)
+# (groff's output driver for displaying documents in the terminal) to use
+# overstriking instead of outputting ANSI escape sequences directly, which
+# shifts the responsibility of rendering the text in the terminal using the
+# appropriate ANSI sequences onto less(1), which allows changing the exact
+# sequences used with `$LESS_TERMCAP_xx` environment variables (for instance,
+# `$LESS_TERMCAP_md` specifies the sequence for starting the bold mode, and it
+# can be set to, e.g. `ESC [ 1 ; 31 m`, to color all bold text red in less(1)).
+#
+# Since my script relies on parsing the formatting sequences embedded in the
+# rendered manpage, I must translate usages of overstriking into ANSI codes, to
+# ensure compatibility with man(1) from mandoc and man(1) from man-db running
+# with `GROFF_NO_SGR=1`.
+#
+# How man(1) uses overstriking:
+# <https://github.com/sharkdp/bat/issues/652#issuecomment-528998521>
+# <https://github.com/sharkdp/bat/issues/2568#issuecomment-1938074324>
+#
+# Source code of ul(1) and col(1):
+# <https://github.com/util-linux/util-linux/blob/v2.41.3/text-utils/ul.c>
+# <https://github.com/util-linux/util-linux/blob/v2.41.3/text-utils/col.c>
+#
+# How less(1) handles overstriking:
+# <https://github.com/gwsw/less/blob/v688/line.c#L1266-L1330>
+#
+# TODO: this function does not handle combining characters
+def perform_overstriking(line: bytes) -> bytes:
+  if b"\b" not in line:
+    return line  # Don't bother if the text does not contain backspaces.
+
+  # These two variables are arrays of logical values which represent the bold
+  # and underlined states of every cell in the current line. And what better way
+  # to represent what is effectively a list of booleans than a bitset!
+  # Conveniently enough, integers in Python can act as a bitset of an arbitrary
+  # length, since they themselves are arbitrary-length since Python 3.0. These
+  # bitsets are a bit unwieldy to use, but turn out to be *much* faster than
+  # processing a list of booleans in Python.
+  is_bold: int = 0
+  is_underlined: int = 0
+
+  output: List[str] = []
   colnr = 0
   max_col = 0
 
-  for char in line:
+  # `process(some_bytes.decode("surrogateescape")).encode("surrogateescape")`
+  # allows passing invalid bytes that could not be decoded through unchanged.
+  # More information here:
+  # <https://docs.python.org/3/howto/unicode.html#files-in-an-unknown-encoding>
+  for char in line.decode(errors="surrogateescape"):
     if char == "\b":
       colnr -= 1
+
     elif colnr == max_col:
+      # Try to combine spaces between emboldened words into the same run of bold text
+      if colnr >= 1 and char == " " and is_bold & (1 << (colnr - 1)):
+        is_bold |= 1 << colnr
+
       output.append(char)
       colnr += 1
       max_col += 1
+
     else:
       prev_char = output[colnr]
-      output[colnr] = char
 
+      this_col_mask = 1 << colnr
       if prev_char == char:
-        is_bold |= 1 << colnr
-      elif prev_char == "_":
-        is_underlined |= 1 << colnr
+        if prev_char == "_" and colnr >= 1:
+          # Overstriking an underscore with itself is inherently ambiguous. It
+          # may mean that the underscore is a part either of a bold word or an
+          # underlined word (examples of both can be seen in sigaction(2)). Try
+          # to decide what to do with it by looking at the state of the previous
+          # character.
+          prev_col_mask = 1 << (colnr - 1)
+          prev_char_bold = is_bold & prev_col_mask
+          prev_char_underlined = is_underlined & prev_col_mask
+          if prev_char_bold != 0 or prev_char_underlined != 0:
+            # Copy attributes from the previous character
+            is_underlined |= prev_char_underlined << 1
+            is_bold |= prev_char_bold << 1
+          else:
+            is_bold |= this_col_mask
+        else:
+          is_bold |= this_col_mask
+
       elif char == "_":
-        is_underlined |= 1 << colnr
-        output[colnr] = prev_char
+        is_underlined |= this_col_mask
+      elif prev_char == "_":
+        output[colnr] = char
+        is_underlined |= this_col_mask
+
       else:
-        is_bold &= ~(1 << colnr)
+        output[colnr] = char
+        # Reset the attributes of the character that we've just replaced
+        is_bold &= ~this_col_mask
+        is_underlined &= ~this_col_mask
 
       colnr += 1
 
+  # Now comes the bit-twiddling magic that makes this piece of code blazingly
+  # fast. XORing a bitset with a shifted version of itself makes a new bitset
+  # that shows all places where contiguous runs of bits are interrupted, i.e.
+  # where a sequence of ones changes into zeroes or vice versa. In other words,
+  # this lets us quickly know all places where a chunk of bold or underlined
+  # text starts and ends. And, since these operations are done in C, they are
+  # *much* faster than a mere loop in Python.
   bold_changes = is_bold ^ (is_bold << 1)
   underlined_changes = is_underlined ^ (is_underlined << 1)
+  # Bitwise OR creates a union of these two masks
+  all_changes = bold_changes | underlined_changes
 
   shift = 0
-  all_changes = bold_changes | underlined_changes
   while all_changes != 0:
+    # This expression extracts a bit mask with the lowest set bit in the
+    # combined `all_changes` bitset. This lets us quickly iterate the set bits
+    # in the `all_changes` bitset by skipping the intermediate zeroes.
     column_mask = all_changes & -all_changes
+    # Getting the number of bits in the mask we've just extracted will return
+    # the number of zeroes that have been skipped from the start of
+    # `all_changes`, in other words, giving the index of the first set bit. In
+    # practical terms, this index corresponds to the column in the line where an
+    # attribute got changed from on to off or vice versa.
     colnr = column_mask.bit_length() - 1
+    # And finally, clear the bit we've just extracted from the `all_changes`
+    # bitset, so that we can extract the next one in the next iteration of the
+    # loop. This whole process makes the loop much more efficient than checking
+    # all bits from the start of the bitset individually.
     all_changes &= ~column_mask
 
     if bold_changes & column_mask:
@@ -161,19 +551,8 @@ def process_backspaces(line: str) -> str:
       output.insert(shift + colnr, "\x1b[4m" if is_underlined & column_mask else "\x1b[24m")
       shift += 1
 
-  return "".join(output)
-
-
-@contextmanager
-def set_signal_handler(
-  signum: "signal._SIGNUM", handler: "signal._HANDLER"
-) -> "Generator[None, None, None]":
-  original_handler = signal.signal(signum, handler)
-  try:
-    yield
-  finally:
-    signal.signal(signum, original_handler)
+  return "".join(output).encode(errors="surrogateescape")
 
 
 if __name__ == "__main__":
-  sys.exit(main())
+  main()
