@@ -14,7 +14,7 @@ export PAGER="${PAGER:-less}"
 export LESS="--RAW-CONTROL-CHARS --tabs=4 --tilde --ignore-case --LONG-PROMPT"
 if [[ -n "$NVIM" || -n "$VIM_TERMINAL" || -n "$TMUX" ]]; then LESS+=" --mouse --wheel-lines=5"; fi
 export SYSTEMD_LESS="$LESS --quit-if-one-screen --chop-long-lines"
-export MANPAGER="man-pager-with-tags"
+export MANPAGER="${ZSH_DOTFILES:h}/scripts/fancy-man-pager"
 
 export CLICOLOR=1
 

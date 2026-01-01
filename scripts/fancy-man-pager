@@ -359,8 +359,7 @@ def colorize_line(line: bytes) -> bytes:
 
   # Colorize references to other manpages
   line = regex(rb"(\x1b\[[134]m)([^\x1b\s]+)(\x1b\[2[234]m)\(([0-9]+[a-zA-Z]*)\)").sub(
-    rb"\1" + ANSI_CYAN + rb"\2" + RESET_COLOR + rb"\3" + ANSI_YELLOW + rb"(\4)" + RESET_COLOR,
-    line,
+    rb"\1" + ANSI_CYAN + rb"\2" + RESET_COLOR + rb"\3" + ANSI_YELLOW + rb"(\4)" + RESET_COLOR, line
   )
 
   # Make all italic and underlined text green
