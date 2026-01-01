@@ -2,9 +2,21 @@
 
 import json
 import os
-from collections.abc import Iterator
 from configparser import ConfigParser
-from typing import IO, BinaryIO, Callable, Literal, Protocol, TextIO, overload
+from typing import (
+  Any,
+  BinaryIO,
+  Callable,
+  Dict,
+  Iterator,
+  List,
+  Literal,
+  Protocol,
+  TextIO,
+  Tuple,
+  Union,
+  overload,
+)
 
 __dir__ = os.path.dirname(__file__)
 
@@ -40,7 +52,7 @@ class Color:
     return ((self.r & 0xFF) << 16) | ((self.g & 0xFF) << 8) | (self.b & 0xFF)
 
   @property
-  def float_rgb(self) -> tuple[float, float, float]:
+  def float_rgb(self) -> Tuple[float, float, float]:
     return float(self.r) / 0xFF, float(self.g) / 0xFF, float(self.b) / 0xFF
 
   def __getitem__(self, index: int) -> int:
@@ -59,13 +71,13 @@ class Color:
     yield self.b
 
 
-ANSI_TO_BASE16_MAPPING: list[int] = [
+ANSI_TO_BASE16_MAPPING: List[int] = [
   0x0, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x5,  # 0x0
   0x3, 0x8, 0xB, 0xA, 0xD, 0xE, 0xC, 0x7,  # 0x8
   0x9, 0xF, 0x1, 0x2, 0x4, 0x6,            # 0x10
 ]  # yapf: disable
 
-BASE16_TO_ANSI_MAPPING: list[int] = [ANSI_TO_BASE16_MAPPING.index(i) for i in range(16)]
+BASE16_TO_ANSI_MAPPING: List[int] = [ANSI_TO_BASE16_MAPPING.index(i) for i in range(16)]
 BASE16_BG_COLOR_IDX = 0x0
 BASE16_FG_COLOR_IDX = 0x5
 BASE16_SELECTION_BG_COLOR_IDX = 0x2
@@ -77,7 +89,7 @@ ANSI_COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan"
 class Theme(Protocol):
   base16_name: str
   is_dark: bool
-  base16_colors: list[Color]
+  base16_colors: List[Color]
 
   @property
   def name(self) -> str:
@@ -108,7 +120,7 @@ class Theme(Protocol):
     return self.fg
 
   @property
-  def ansi_colors(self) -> list[Color]:
+  def ansi_colors(self) -> List[Color]:
     return [self.base16_colors[i] for i in ANSI_TO_BASE16_MAPPING]
 
   @property
@@ -116,7 +128,7 @@ class Theme(Protocol):
     return self.ansi_colors[BASE16_LINK_COLOR_IDX]
 
   @property
-  def css_variables(self) -> dict[str, Color]:
+  def css_variables(self) -> Dict[str, Color]:
     d = {
       "bg": self.bg,
       "fg": self.fg,
@@ -142,8 +154,8 @@ class IniTheme(Theme):
     ]
 
 
-TEXT_THEME_GENERATORS: dict[str, Callable[[Theme, TextIO], None]] = {}
-BINARY_THEME_GENERATORS: dict[str, Callable[[Theme, BinaryIO], None]] = {}
+TEXT_THEME_GENERATORS: Dict[str, Callable[[Theme, TextIO], None]] = {}
+BINARY_THEME_GENERATORS: Dict[str, Callable[[Theme, BinaryIO], None]] = {}
 
 
 @overload
@@ -160,7 +172,7 @@ def add_theme_generator(
 
 def add_theme_generator(
   file_name: str, binary: bool = False
-) -> Callable[[Callable[[Theme, IO], None]], None]:
+) -> Callable[[Callable[[Theme, Union[BinaryIO, TextIO]], None]], None]:
   if binary:
     return lambda fn: BINARY_THEME_GENERATORS.__setitem__(file_name, fn)
   else:
@@ -299,7 +311,7 @@ def generate_vscode(theme: Theme, output: TextIO) -> None:
 def generate_iterm2(theme: Theme, output: BinaryIO) -> None:
   import plistlib
 
-  colors = {}
+  colors: Dict[str, Dict[str, object]] = {}
 
   def write_color(key_name: str, color: Color) -> None:
     r, g, b = color.float_rgb
@@ -399,7 +411,7 @@ def generate_lua(theme: Theme, output: TextIO) -> None:
 def generate_apple_terminal(theme: Theme, output: BinaryIO) -> None:
   import plistlib
 
-  profile = {
+  profile: dict[str, Any] = {
     "ProfileCurrentVersion": 2.07,
     "name": "dotfiles",
     "type": "Window Settings",

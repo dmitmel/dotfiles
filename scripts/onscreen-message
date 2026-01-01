@@ -25,21 +25,19 @@ scrolled_window.add(label)
 
 # This code is based on <https://github.com/GNOME/gtk/blob/3.24.34/gtk/gtkwindow.c#L1583-L1643>
 # and <https://github.com/GNOME/gtk/blob/4.9.1/gtk/gtkwindowhandle.c#L416-L456>.
-def on_drag_gesture_update(gesture, offset_x, offset_y) -> None:
+def on_drag_gesture_update(gesture: Gtk.GestureDrag, offset_x: int, offset_y: int) -> None:
   widget = gesture.props.widget
   if not widget.drag_check_threshold(0, 0, offset_x, offset_y):
     return
   gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-  start_pos = gesture.get_start_point()
+  _, start_x, start_y = gesture.get_start_point()
   window = widget.get_toplevel().get_window()
-  root_pos = window.get_root_coords(start_pos.x, start_pos.y)
-  window.begin_move_drag_for_device(
-    gesture.get_device(),
-    gesture.get_current_button(),
-    root_pos.root_x,
-    root_pos.root_y,
-    Gtk.get_current_event_time(),
-  )
+  assert window
+  root_x, root_y = window.get_root_coords(int(start_x), int(start_y))
+  device = gesture.get_device()
+  assert device
+  button = gesture.get_current_button()
+  window.begin_move_drag_for_device(device, button, root_x, root_y, Gtk.get_current_event_time())
   gesture.reset()
 
 
@@ -49,18 +47,18 @@ drag_gesture.connect("drag-update", on_drag_gesture_update)
 window.add(scrolled_window)
 
 
-def on_key_release(_target, event) -> None:
-  key = event.keyval
-  if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
-    window.close()
+def on_key_release(_target: Gtk.Widget, event: Gdk.Event) -> None:
+  if isinstance(event, Gdk.EventKey):
+    key = event.keyval
+    if key in [Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q]:
+      window.close()
 
 
-def on_configure(target, event) -> None:
-  if target != window or event.type != Gdk.EventType.CONFIGURE:
-    return
-  font_desc = Pango.FontDescription()
-  font_desc.set_size(Pango.SCALE * event.height * 2 / 3)
-  label.override_font(font_desc)
+def on_configure(target: Gtk.Widget, event: Gdk.Event) -> None:
+  if target is window and isinstance(event, Gdk.EventConfigure):
+    font_desc = Pango.FontDescription()
+    font_desc.set_size(Pango.SCALE * event.height * 2 // 3)
+    label.override_font(font_desc)
 
 
 window.connect("configure-event", on_configure)

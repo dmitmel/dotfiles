@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# type: ignore
 
 # A simple graphical menu to control MPRIS-compatible players through Playerctl.
 # <https://wiki.archlinux.org/index.php/MPRIS>
@@ -11,7 +10,7 @@ import math
 import posixpath
 import sys
 import urllib.parse
-from typing import Callable, Optional, Tuple, TypeVar, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 import gi
 
@@ -57,7 +56,7 @@ class Application(Gtk.Application):
     self.is_already_activated = True
 
     self.root_menu = Gtk.Menu()
-    self.player_items = []
+    self.player_items: List[Tuple[Playerctl.Player, Gtk.MenuItem]] = []
     self.empty_players_menu_item = Gtk.MenuItem(label="No players were detected!", sensitive=False)
     self.root_menu.append(self.empty_players_menu_item)
 
@@ -68,9 +67,9 @@ class Application(Gtk.Application):
     for player_name in self.player_manager.props.player_names:
       self.on_player_name_appeared(self.player_manager, player_name)
 
-    self.root_menu.connect("selection_done", lambda _: self.quit())
-    self.root_menu.connect("deactivate", lambda _: self.quit())
-    self.root_menu.connect("destroy", lambda _: self.quit())
+    self.root_menu.connect("selection_done", lambda *_: self.quit())
+    self.root_menu.connect("deactivate", lambda *_: self.quit())
+    self.root_menu.connect("destroy", lambda *_: self.quit())
 
     self.root_menu.show_all()
     self.root_menu.popup(None, None, None, None, 0, Gdk.CURRENT_TIME)
@@ -101,7 +100,9 @@ class Application(Gtk.Application):
     item.show_all()
 
   @staticmethod
-  def players_items_sort_key(player_and_item: Tuple[Playerctl.Player, Gtk.MenuItem]) -> object:
+  def players_items_sort_key(
+    player_and_item: Tuple[Playerctl.Player, Gtk.MenuItem],
+  ) -> Tuple[object, ...]:
     player, _ = player_and_item
     return (
       player.props.playback_status != Playerctl.PlaybackStatus.PLAYING,
@@ -141,7 +142,7 @@ class Application(Gtk.Application):
 class PlayerMenu(Gtk.Menu):
   def __init__(self, player: Playerctl.Player) -> None:
     super().__init__()
-    self.connect("destroy", self.on_destroy)
+    self.connect("destroy", lambda *_: self.position_check_timer.destroy())
 
     self.player = player
 
@@ -170,9 +171,7 @@ class PlayerMenu(Gtk.Menu):
 
     self.position_item = self.create_item(label=self.position_label_text, is_track_info=True)
     self.prev_checked_position = None
-    self.position_check_timer = TimerSource(
-      self.next_position_check_time(), self.position_timer_fn
-    )
+    self.position_check_timer = TimerSource(self.next_position_check_time(), self.position_timer_fn)
     player.connect("metadata", self.on_position_changed)
     player.connect("playback_status", self.on_position_changed)
     player.connect("seeked", self.on_position_changed)
@@ -193,13 +192,13 @@ class PlayerMenu(Gtk.Menu):
     }
     self.play_pause_item = self.create_item(
       label=lambda: playback_item_labels[player.props.playback_status],
-      icon=(
-        lambda: "media-playback-start"
+      icon=lambda: (
+        "media-playback-start"
         if player.props.playback_status != PlaybackStatus.PLAYING
         else "media-playback-pause"
       ),
-      sensitive=(
-        lambda: player.props.can_play
+      sensitive=lambda: (
+        player.props.can_play
         if player.props.playback_status != PlaybackStatus.PLAYING
         else player.props.can_pause
       ),
@@ -286,7 +285,7 @@ class PlayerMenu(Gtk.Menu):
       Playerctl.LoopStatus.TRACK: "Repeat _one",
       Playerctl.LoopStatus.PLAYLIST: "Repeat _all",
     }
-    self.loop_items = {}
+    self.loop_items: Dict[Playerctl.LoopStatus, PlayerMenu._Item] = {}
     for status, label in loop_item_labels.items():
       self.loop_items[status] = (
         lambda status=status: self.create_item(
@@ -302,12 +301,9 @@ class PlayerMenu(Gtk.Menu):
       label="Play a_gain",
       icon="go-first",
       sensitive=lambda: player.props.can_seek,
-      action=lambda: (player.set_position(0), player.play()),
+      action=lambda: (player.set_position(0), player.play())[1],
     )
     player.connect("metadata", self.play_again_item.on_player_update)
-
-  def on_destroy(self, _: None) -> None:
-    self.position_check_timer = None
 
   def position_timer_fn(self) -> int:
     self.position_item.on_player_update()
@@ -365,34 +361,39 @@ class PlayerMenu(Gtk.Menu):
   _T = TypeVar("_T")
   _Thunk = Union[_T, Callable[[], _T]]
 
+  class _Item(Gtk.MenuItem):
+    def on_player_update(*_: object) -> None: ...
+
   def create_item(
     self,
     *,
-    label: _Thunk[str] = None,
+    label: Optional[_Thunk[str]] = None,
     is_track_info: bool = False,
-    icon: _Thunk[Optional[str]] = None,
-    sensitive: _Thunk[bool] = None,
-    visible: _Thunk[bool] = None,
+    icon: Optional[_Thunk[Optional[str]]] = None,
+    sensitive: Optional[_Thunk[bool]] = None,
+    visible: Optional[_Thunk[bool]] = None,
     action: Optional[Callable[[], None]] = None,
-  ) -> Gtk.MenuItem:
+  ) -> _Item:
     item = Gtk.ImageMenuItem() if icon is not None else Gtk.MenuItem()
 
     # This function will also implicitly create the label widget for us.
     item.set_use_underline(not is_track_info)
     if is_track_info:
-      item_label: Gtk.Label = item.get_child()
+      item_label = item.get_child()
+      assert isinstance(item_label, Gtk.Label)
       item_label.set_ellipsize(Pango.EllipsizeMode.END)
       item_label.set_max_width_chars(20)
       if sensitive is None and action is None:
         sensitive = False
 
     if callable(action):
-      item.connect("activate", lambda _: action())
+      item.connect("activate", lambda *_: action())
 
     if visible is not None:
       item.set_no_show_all(True)
 
     def item_set_icon(name: Optional[str]) -> None:
+      assert isinstance(item, Gtk.ImageMenuItem)
       item.set_image(Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU) if name else None)
 
     thunks = {
@@ -411,7 +412,7 @@ class PlayerMenu(Gtk.Menu):
     def update(*_: object) -> None:
       for name, thunk in thunks.items():
         if thunk is not None:
-          apply = thunks_appliers[name]
+          apply = cast(Callable[[object], None], thunks_appliers[name])
           if callable(thunk):
             apply(thunk())
           else:
@@ -419,20 +420,22 @@ class PlayerMenu(Gtk.Menu):
             thunks[name] = None
 
     update()
-    item.on_player_update = update
+    cast(PlayerMenu._Item, item).on_player_update = update
 
     self.append(item)
-    return item
+    return cast(PlayerMenu._Item, item)
 
 
 class TimerSource(GLib.Source):
-  def __init__(self, timeout: int, callback: Callable, *user_data: object) -> None:
+  _Callback = Callable[..., int]
+
+  def __init__(self, timeout: int, callback: _Callback, *user_data: object) -> None:
     super().__init__()
     self.schedule(timeout)
-    self.set_callback(callback, user_data)
+    self.set_callback(callback, user_data)  # pyright: ignore[reportUnknownMemberType]
     self.attach()
 
-  def schedule(self, timeout: int) -> bool:
+  def schedule(self, timeout: Optional[int]) -> bool:
     if timeout is not None and timeout >= 0:
       self.set_ready_time(GLib.get_monotonic_time() + timeout)
       return True
@@ -445,7 +448,7 @@ class TimerSource(GLib.Source):
   def check(self) -> None:
     pass
 
-  def dispatch(self, callback: Callable, user_data: Tuple[Tuple]) -> bool:
+  def dispatch(self, callback: _Callback, user_data: Tuple[Tuple[object, ...]]) -> bool:
     next_timeout = callback(*user_data[0])
     return self.schedule(next_timeout)
 

@@ -4,7 +4,7 @@ import subprocess
 import sys
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, Iterable, NoReturn, Optional, Set
+from typing import Generator, Iterable, Optional, Set
 
 if os.name == "posix":
   DOTFILES_CONFIG_DIR: Path = Path.home() / ".config" / "dotfiles"

@@ -11,7 +11,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import colorama
 
@@ -74,7 +74,7 @@ if cli_args.api_response:
   sys.stdout.write("\n")
   sys.exit()
 
-data: Dict[str, str] = {}
+data: Dict[str, Union[str, bool]] = {}
 
 data["ID"] = raw_data["id"]
 data["Name"] = "{}#{}".format(raw_data["username"], raw_data["discriminator"])
@@ -87,7 +87,9 @@ avatar_url = (
     raw_data["id"],
     raw_data["avatar"],
     "gif" if raw_data["avatar"].startswith("a_") else "png",
-  ) if raw_data["avatar"] is not None else default_avatar_url
+  )
+  if raw_data["avatar"] is not None
+  else default_avatar_url
 )
 if image_size is not None:
   avatar_url += "?size={}".format(image_size)
@@ -118,7 +120,6 @@ else:
 if cli_args.get_prop is None:
   max_name_length = max(map(len, data.keys()))
   for name, value in data.items():
-
     if value is True:
       value = "yes"
     elif value is False:

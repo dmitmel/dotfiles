@@ -43,7 +43,7 @@ def cmd_pipe_decrypt(args: argparse.Namespace) -> None:
   encrypted = input_file.read()
   if not encrypted.startswith(CC_ENCRYPTION_MARKER_BYTES):
     raise Exception()
-  encrypted = encrypted[len(CC_ENCRYPTION_MARKER_BYTES):]
+  encrypted = encrypted[len(CC_ENCRYPTION_MARKER_BYTES) :]
   decrypted = CryptoJsBridge.decrypt(encrypted, CC_ENCRYPTION_PASSPHRASE)
   output_file.write(decrypted)
 
@@ -81,7 +81,7 @@ class CryptoJsBridge:
 
   @classmethod
   def unpad(cls, data: bytes) -> bytes:
-    return data[:-data[-1]]
+    return data[: -data[-1]]
 
   @classmethod
   def bytes_to_key(cls, data: bytes, salt: bytes, output: int) -> bytes:
@@ -105,8 +105,8 @@ class CryptoJsBridge:
     """
     salt = Random.new().read(cls.SALT_SIZE)
     key_iv = cls.bytes_to_key(passphrase, salt, cls.KEY_SIZE + cls.IV_SIZE)
-    key, iv = key_iv[:cls.KEY_SIZE], key_iv[cls.KEY_SIZE:]
-    aes = AES.new(key, AES.MODE_CBC, iv)
+    key, iv = key_iv[: cls.KEY_SIZE], key_iv[cls.KEY_SIZE :]
+    aes = AES.new(key, AES.MODE_CBC, iv)  # pyright: ignore[reportUnknownMemberType]
     ciphertext = aes.encrypt(cls.pad(message))
     return base64.b64encode(cls.SALTED_MARKER + salt + ciphertext)
 
@@ -118,11 +118,11 @@ class CryptoJsBridge:
     encrypted = base64.b64decode(encrypted)
     if not encrypted.startswith(cls.SALTED_MARKER):
       raise Exception("expected salt marker")
-    encrypted = encrypted[len(cls.SALTED_MARKER):]
-    salt, ciphertext = encrypted[:cls.SALT_SIZE], encrypted[cls.SALT_SIZE:]
+    encrypted = encrypted[len(cls.SALTED_MARKER) :]
+    salt, ciphertext = encrypted[: cls.SALT_SIZE], encrypted[cls.SALT_SIZE :]
     key_iv = cls.bytes_to_key(passphrase, salt, cls.KEY_SIZE + cls.IV_SIZE)
-    key, iv = key_iv[:cls.KEY_SIZE], key_iv[cls.KEY_SIZE:]
-    aes = AES.new(key, AES.MODE_CBC, iv)
+    key, iv = key_iv[: cls.KEY_SIZE], key_iv[cls.KEY_SIZE :]
+    aes = AES.new(key, AES.MODE_CBC, iv)  # pyright: ignore[reportUnknownMemberType]
     return cls.unpad(aes.decrypt(ciphertext))
 
 

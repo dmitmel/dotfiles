@@ -1,3 +1,6 @@
+# pyright: standard
+#          ^-- because `psutil` doesn't have type stubs
+
 import itertools
 import os
 import platform

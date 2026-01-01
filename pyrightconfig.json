@@ -1,5 +1,7 @@
 {
-  "typeCheckingMode": "standard",
+  "typeCheckingMode": "strict",
+  "reportPrivateUsage": "none",
+  "reportMissingModuleSource": "none", // erroneously generated for imports from `gi.repository`
 
   // I want to be conservative with the versions of Python I am targetting for
   // my scripts, so that they are usable even on older versions of distros like
@@ -33,6 +35,33 @@
   // Support status of Python versions: <https://devguide.python.org/versions/>.
   // As of writing (2025-12-25), 3.9 is the release that has reached EOL most recently.
   "pythonVersion": "3.8",
+
+  // Scripts without the `.py` extension must be included explicitly. This
+  // command may be used to regenerate this list:
+  // $ rg -l '^\#\!.*python' --glob='\!*.py' | jq -nR '["."] + ([inputs] | map("./" + .) | sort)'
+  "include": [
+    ".",
+    "./scripts/=",
+    "./scripts/colortest",
+    "./scripts/colortest2",
+    "./scripts/copy-crosscode-emoji-url",
+    "./scripts/crosscode-saved",
+    "./scripts/discord-snowflake",
+    "./scripts/discord-stream-desktop-audio",
+    "./scripts/discord-whois",
+    "./scripts/factorio-dump-blueprint",
+    "./scripts/factorio-dump-mod-settings",
+    "./scripts/fancy-man-pager",
+    "./scripts/leveldb-dump",
+    "./scripts/mark-as-recently-used",
+    "./scripts/mediawiki-preview",
+    "./scripts/onscreen-message",
+    "./scripts/playerctl-simple-menu",
+    "./scripts/query-bookmarks",
+    "./scripts/random-local-ipv4",
+    "./scripts/random-unused-port",
+    "./scripts/welcome"
+  ],
 
   "executionEnvironments": [
     {

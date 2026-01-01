@@ -5,7 +5,7 @@
 # <https://www.devdungeon.com/content/working-binary-data-python>
 
 import struct
-from typing import IO, Any
+from typing import IO, Any, Dict, List
 
 
 def read_bool(buf: IO[bytes]) -> bool:
@@ -30,7 +30,7 @@ def read_string(buf: IO[bytes]) -> str:
   return buf.read(len_).decode("utf8")
 
 
-def read_dictionary(buf: IO[bytes]) -> dict[str, Any]:
+def read_dictionary(buf: IO[bytes]) -> Dict[str, Any]:
   len_ = _read_length(buf)
   value: dict[str, Any] = {}
   for _ in range(len_):
@@ -39,7 +39,7 @@ def read_dictionary(buf: IO[bytes]) -> dict[str, Any]:
   return value
 
 
-def read_list(buf: IO[bytes]) -> list[Any]:
+def read_list(buf: IO[bytes]) -> List[Any]:
   len_ = _read_length(buf)
   value: list[Any] = []
   for _ in range(len_):

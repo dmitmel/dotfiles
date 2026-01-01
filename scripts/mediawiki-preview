@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# pyright: standard
+#          ^-- because there are no type stubs for `mwclient`
 
 # This script is based on <https://github.com/m-pilia/vim-mediawiki/blob/266d7ab9c7d4d7924e16f527c109c65851da0164/scripts/preview.py>
 
@@ -152,11 +154,7 @@ def get_load_script_url(**args: object) -> str:
   return "{path}load{ext}?{args}".format(
     path=site.path,
     ext=site.ext,
-    args=urlencode({
-      "lang": LANG,
-      "skin": cli_args.skin,
-      **args
-    }),
+    args=urlencode({"lang": LANG, "skin": cli_args.skin, **args}),
   )
 
 
@@ -181,7 +179,7 @@ result = site.post(
 def get_modules(
   page_modules: List[str],
   added_modules_dict: Dict[str, List[str]],
-  blocked_modules_dict: Dict[str, List[str]] = {}
+  blocked_modules_dict: Dict[str, List[str]] = {},
 ) -> List[str]:
   modules = page_modules + added_modules_dict[cli_args.skin]
   for blocked_module in blocked_modules_dict.get(cli_args.skin, []):
@@ -281,7 +279,8 @@ rendered_html = """\
   indicators_html="\n".join([
     '<div id="mw-indicator-{}" class="mw-indicator">{}</div>'.format(
       indicator["name"], indicator["*"]
-    ) for indicator in result["indicators"]
+    )
+    for indicator in result["indicators"]
   ]),
   content_html=result["text"]["*"],
   categories_html=result["categorieshtml"]["*"],

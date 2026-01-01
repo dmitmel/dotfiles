@@ -23,7 +23,7 @@ if sys.platform == "darwin":
 elif os.name == "posix":
   firefox_home = Path.home() / ".mozilla" / "firefox"
 else:
-  common_script_utils.platform_not_supported_error()
+  raise common_script_utils.platform_not_supported_error()
 
 profiles_config = ConfigParser(interpolation=None)
 profiles_config.read(firefox_home / "profiles.ini")
@@ -58,7 +58,7 @@ try:
   for url_id, url in db.execute("SELECT id, url FROM urls"):
     urls[url_id] = url
 
-  folders: Dict[str, Tuple[Optional[str], str]] = {}
+  folders: Dict[str, Tuple[Optional[str], Optional[str]]] = {}
   folder_id: str
   parent_folder_id: str
   folder_title: str
@@ -71,9 +71,9 @@ try:
     )
 
   url_title: str
-  url_id: int
-  url_keyword: str
-  parent_folder_id: str
+  # url_id: int
+  url_keyword: Optional[str]
+  # parent_folder_id: str
   for url_title, url_id, url_keyword, parent_folder_id in db.execute(
     "SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
   ):
@@ -87,9 +87,9 @@ try:
         # broken folder structure?
         folder_path.clear()
         break
-      parent_folder_id_2, folder_title = folder
-      if folder_title is not None:
-        folder_path.append(folder_title)
+      parent_folder_id_2, folder_title_2 = folder
+      if folder_title_2 is not None:
+        folder_path.append(folder_title_2)
 
     folder_path_str = ("/" + "/".join(reversed(folder_path))) if len(folder_path) > 0 else None
 
