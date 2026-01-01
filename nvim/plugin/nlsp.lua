@@ -85,6 +85,7 @@ lsp_ignition.enable({
   'ruff',
   'prettier',
   'gopls',
+  'taplo',
 })
 
 if dotplug.has('conform.nvim') then
