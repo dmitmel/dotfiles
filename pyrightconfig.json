@@ -1,5 +1,39 @@
 {
   "typeCheckingMode": "standard",
+
+  // I want to be conservative with the versions of Python I am targetting for
+  // my scripts, so that they are usable even on older versions of distros like
+  // Ubuntu or Debian, which one can still come by on remote servers or inside
+  // containers. However, static typing in Python has evolved a lot over the
+  // last few years and gained lots of important features, which I don't want to
+  // miss out on by targetting some ancient release of the language, so I have
+  // to keep some balance with the choice of the minimal supported version.
+  // Here's a short summary of major static typing-related features introduced
+  // in recent Python updates:
+  //
+  // * Python 3.0 (2008) - syntax for annotating function parameters and return
+  //   values is first added (PEP 3107)
+  // * Python 3.5 (2015) - the built-in `typing` module is introduced (PEP 484)
+  // * Python 3.6 (2016) - syntax for type annotations for variables and class
+  //   fields (PEP 526)
+  // * Python 3.8 (2019) - `Protocol` and structural subtyping is added to the
+  //   built-in `typing` (PEP 544)
+  // * Python 3.9 (2020) - generics can now be used on built-in types like
+  //   `list` or `dict`, without requiring the use of `typing.List` and such
+  //   (PEP 585)
+  // * Python 3.10 (2021) - union types can be written as `X | Y` (PEP 604)
+  // * Python 3.11 (2022) - the `Self` type and literal string types
+  // * Python 3.12 (2023) - syntax for defining generics on classes and
+  //   functions, also `type` keyword for defining type aliases (PEP 695)
+  //
+  // See also:
+  // <https://typing.python.org/en/latest/guides/modernizing.html>
+  // <https://typing.python.org/en/latest/spec/historical.html>
+  //
+  // Support status of Python versions: <https://devguide.python.org/versions/>.
+  // As of writing (2025-12-25), 3.9 is the release that has reached EOL most recently.
+  "pythonVersion": "3.8",
+
   "executionEnvironments": [
     {
       "root": "scripts"

@@ -8,7 +8,7 @@ return {
 
   settings = {
     ruff = {
-      configuration = utils.script_relative('../../../ruff.toml'),
+      configuration = utils.script_relative('../../../misc/ruff.toml'),
       configurationPreference = 'filesystemFirst',
     },
   },

@@ -19,4 +19,5 @@ autocmd BufNewFile,BufRead */.clangd setf yaml
 autocmd BufNewFile,BufRead */.latexmkrc setf perl
 autocmd BufNewFile,BufRead */assets/*.json.patch setf json
 autocmd BufNewFile,BufRead */.vimspector.json setf jsonc
+autocmd BufNewFile,BufRead */pyrightconfig.json setf jsonc
 autocmd BufNewFile,BufRead */snippets/*.json setf jsonc

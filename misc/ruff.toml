@@ -1,0 +1,62 @@
+line-length = 100
+indent-width = 2
+
+[format]
+indent-style = "space"
+quote-style = "double"
+preview = true
+
+[lint]
+# Needed for `# ruff: disable[...]` and `# ruff: enable[...]` pragmas
+preview = true
+# Don't enable all of the unstable rules though!
+explicit-preview-rules = true
+
+# <https://beta.ruff.rs/docs/rules/>
+select = [
+  "E",    # pycodestyle (errors)
+  "W",    # pycodestyle (warnings)
+  "F",    # pyflakes
+  "Q",    # flake8-quotes
+  "ANN",  # flake8-annotations
+  "N",    # pep8-naming
+  "I",    # isort
+  "S",    # flake8-bandit
+  "B",    # flake8-bugbear
+  "PLC",  # pylint (convention)
+  "PLE",  # pylint (errors)
+  "PLW",  # pylint (warnings)
+  "RUF1", # checks noqa directives
+  "RUF2", # checks pyproject.toml
+]
+
+ignore = [
+  "E402",    # module level import not at top of file
+  "E501",    # line too long
+  "S101",    # use of `assert` detected
+  "S311",    # standard PRNGs are not suitable for cryptography
+  "ANN401",  # dynamically typed expressions are disallowed
+  "PLW0603", # using the global statement is discouraged
+  "PLW2901", # outer loop variable overwritten by inner loop target
+  "B905",    # `zip()` without an explicit `strict` parameter
+  "E731",    # use `def` instead of assigning `lambda` to a variable
+  "B009",    # `getattr()` with a constant string
+  "B010",    # `setattr()` with a constant string
+  "PLC0415", # `import` should be at the top level
+  # annoying warnings regarding ANY usage of subprocesses
+  "S602",
+  "S603",
+  "S604",
+  "S605",
+  "S606",
+  "S607",
+]
+
+extend-unsafe-fixes = [
+  "F401", # don't automatically delete unused imports
+]
+
+[lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
