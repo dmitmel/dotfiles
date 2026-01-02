@@ -301,19 +301,7 @@ d() {
 }
 
 fzf-man() {
-  # Previewer code is based on <https://github.com/ibhagwan/fzf-lua/blob/3170d98240266a68c2611fc63260c3ab431575aa/lua/fzf-lua/defaults.lua#L27-L40>
-  local previewer='MANPAGER=cat MANWIDTH=$FZF_PREVIEW_COLUMNS man {1} {2} 2>/dev/null'
-  local bat; for bat in batcat bat; do
-    if is_command "$bat"; then
-      previewer+=" | ${bat} --style=plain --language=man --color=always"
-      break
-    fi
-  done
-  if [[ -z "$bat" ]]; then
-    # Why this is necessary: <https://unix.stackexchange.com/questions/15855/how-to-dump-a-man-page#comment638382_15866>
-    previewer+=' | col -bx'
-  fi
-
+  local previewer='MANWIDTH=$FZF_PREVIEW_COLUMNS fancy-man-pager {1} {2}'
   man -k . | sed 's/^\s*\(\S\+\)\s*(\(\w\+\))/\2 \1 \0/' |
     fzf --with-nth=3.. --accept-nth=1,2 --tiebreak=begin,chunk --query="$*" --preview="$previewer"
 }

@@ -131,39 +131,34 @@ let g:dotfiles#fzf#manpage_search_actions = {
 \ 'ctrl-v': 'vertical',
 \ }
 
-function! dotfiles#fzf#manpage_search(fullscreen) abort
-  call s:delete_manpages_script()
-  let s:manpages_script = tempname()
-  call writefile([
-  \ '/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf(qq(%-50s\t%s\n), sprintf("%s(%s)", $1, $2), $3)'
-  \ ], s:manpages_script)
-  let results = fzf#run(fzf#wrap('manpages', {
-  \ 'source': 'man -k . | perl -n ' . fzf#shellescape(s:manpages_script),
-  \ 'sink*': function('s:manpage_search_sink'),
-  \ 'options': ['--ansi', '--prompt=:Man ', '--tiebreak=begin,chunk', '--multi',
-  \   '--expect=' . join(keys(g:dotfiles#fzf#manpage_search_actions), ',')],
-  \ }, a:fullscreen))
-  return results
-endfunction
+let s:fancy_man_pager = expand('<sfile>:p:h:h:h:h') . '/scripts/fancy-man-pager'
 
-function! s:delete_manpages_script() abort
-  if exists('s:manpages_script')
-    silent! call delete(s:manpages_script)
-    unlet s:manpages_script
-  endif
+function! dotfiles#fzf#manpage_search(fullscreen) abort
+  let perl_script =
+  \ '/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf(qq(%s\t%s\t%-45s %s\n), $2, $1, sprintf("%s (%s)", $1, $2), $3)'
+
+  let dict = {
+  \ 'source': 'man -k . | perl -ne ' . fzf#shellescape(perl_script),
+  \ 'sink*': function('s:manpage_search_sink'),
+  \ 'options': ['--ansi', '--prompt=:Man ', '--tiebreak=begin,chunk', '--multi', '--with-nth=3..',
+  \   '--preview', 'MANWIDTH=$FZF_PREVIEW_COLUMNS ' . s:fancy_man_pager . ' {1} {2}',
+  \   '--expect=' . join(keys(g:dotfiles#fzf#manpage_search_actions), ',')],
+  \ 'placeholder': '',
+  \ }
+
+  let dict = fzf#vim#with_preview(dict)
+  call add(dict.options, '--preview-window=80')
+
+  return fzf#run(fzf#wrap('manpages', dict, a:fullscreen))
 endfunction
 
 function! s:manpage_search_sink(lines) abort
-  call s:delete_manpages_script()
   if len(a:lines) < 2 | return | endif
   let pressed_key = a:lines[0]
   let modifiers = get(g:dotfiles#fzf#manpage_search_actions, pressed_key, '')
   for choice in a:lines[1:]
-    let groups = matchlist(choice, '\v^\s*(\S+)\s*\((\w+)\)')
-    if !empty(groups)
-      let [name, section] = groups[1:2]
-      execute modifiers 'Man' escape(name.'('.section.')', " \t\\")
-    endif
+    let [section, page; remaining] = split(choice)
+    execute modifiers 'Man' escape(section, '\') escape(page, '\')
   endfor
 endfunction
 

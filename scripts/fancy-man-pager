@@ -69,37 +69,59 @@
 # underlining text and such, which strips a lot of visual information (i.e.
 # intentionally emphasized text) from the rendered manpage.
 #
-# This script targets Python versions 3.6 and newer.
+# This script targets Python versions as old as 3.6. Some modules are imported
+# on demand to improve the execution time of this script (the start-up timing
+# can be profiled with `python -X importtime $0`).
 
 import functools
 import os
 import re
-import signal
-import subprocess
 import sys
-import tempfile
-import time
 from contextlib import ExitStack
 from typing import IO, TYPE_CHECKING, Iterable, List, NoReturn, Optional
 
-from dotfiles.common_script_utils import set_signal_handler
-
 
 def main() -> NoReturn:
-  if len(sys.argv) == 2:
-    input_path = sys.argv[1]
-  elif len(sys.argv) == 1:
-    input_path = "-"
-  else:
-    sys.exit(f"usage: {sys.argv[0]} [file]")
-
-  pager_cmd = os.environ.get("PAGER", "less").split()
-
   with ExitStack() as stack:
-    input_file = (
-      stack.enter_context(open(input_path, "rb")) if input_path != "-" else sys.stdin.buffer
-    )
+    program_name = os.path.basename(sys.argv[0])
 
+    if len(sys.argv) == 3:
+      section, page = sys.argv[1:]
+
+      import subprocess
+
+      os.environ["MAN_KEEP_FORMATTING"] = "1"
+      man = stack.enter_context(
+        subprocess.Popen(
+          ["man", "--", section, page],
+          stdin=subprocess.DEVNULL,
+          stdout=subprocess.PIPE,
+          stderr=subprocess.DEVNULL,
+        )
+      )
+
+      assert man.stdout
+      input_file = man.stdout
+
+    elif len(sys.argv) == 2:
+      input_path = sys.argv[1]
+      input_file = stack.enter_context(open(input_path, "rb"))
+    elif len(sys.argv) == 1:
+      input_file = sys.stdin.buffer
+    else:
+      sys.exit(f"usage: {program_name} [file] | {program_name} <section> <page>")
+
+    if not sys.stdout.isatty():
+      just_colorize_input(input_file, sys.stdout.buffer)
+      sys.exit(0)
+
+    import signal
+    import subprocess
+    import tempfile
+
+    from dotfiles.common_script_utils import set_signal_handler
+
+    pager_cmd = os.environ.get("PAGER", "less").split()
     if "less" in os.path.basename(pager_cmd[0]):
       tags_file = stack.enter_context(tempfile.NamedTemporaryFile(prefix="man-tags."))
       pager_cmd.append("-T" + tags_file.name)
@@ -190,11 +212,9 @@ def main() -> NoReturn:
       # object itself, as closing the former will just close the opened file
       # descriptor, while doing the same to the latter will also delete the
       # underlying file.
-      generate_tags_and_feed_into_less(pager.stdin, input_file, tags_file.file)
+      generate_tags_and_feed_into_less(pager.stdin, input_file, tags_file.file, program_name)
     elif pager.stdin:
-      # The `map()` function allows transforming the stream of lines coming from
-      # `input_file` in a very Pythonic manner!
-      feed_input_into_pager(pager.stdin, map(colorize_line, map(perform_overstriking, input_file)))
+      just_colorize_input(input_file, pager.stdin)
 
     code = pager.wait()
 
@@ -212,8 +232,14 @@ def main() -> NoReturn:
     sys.exit(code)
 
 
+def just_colorize_input(input_pipe: IO[bytes], output_pipe: IO[bytes]) -> None:
+  # I love how the `map()` function allows transforming the stream of lines
+  # coming from the `input_file` in such a Pythonic manner!
+  feed_input_into_pager(output_pipe, map(colorize_line, map(perform_overstriking, input_pipe)))
+
+
 def generate_tags_and_feed_into_less(
-  pager_stdin: Optional[IO[bytes]], input_file: IO[bytes], tags_file: IO[bytes]
+  pager_stdin: Optional[IO[bytes]], input_file: IO[bytes], tags_file: IO[bytes], program_name: str
 ) -> None:
   buffered_bytes = bytearray()
   buffered_bytes_counter = 0
@@ -227,6 +253,8 @@ def generate_tags_and_feed_into_less(
   flag_re = re.compile(rb"^\s+([-+][^\x1b\s,=]+)")
 
   whitespace_re = re.compile(rb"\s")
+
+  import time
 
   try:
     if pager_stdin:
@@ -270,7 +298,7 @@ def generate_tags_and_feed_into_less(
     end_time = time.perf_counter()
     if os.environ.get("DOTFILES_MANPAGER_TIME"):
       elapsed_ms = (end_time - start_time) * 1000
-      buffered_bytes.extend(f"done in {elapsed_ms:.03f} ms\n".encode())
+      buffered_bytes.extend(f"{program_name}: done in {elapsed_ms:.03f} ms\n".encode())
 
   finally:
     if pager_stdin:

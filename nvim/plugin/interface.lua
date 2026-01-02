@@ -252,6 +252,10 @@ if dotplug.has('fzf-lua') then
           },
         },
       },
+
+      man_native = {
+        cmd = utils.script_relative('../../scripts/fancy-man-pager') .. ' %s',
+      },
     },
 
     files = {
