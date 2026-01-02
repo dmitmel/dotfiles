@@ -126,13 +126,6 @@ def main() -> None:
 
     from dotfiles.common_script_utils import set_signal_handler
 
-    pager_cmd = os.environ.get("PAGER", "less").split()
-    if "less" in os.path.basename(pager_cmd[0]):
-      tags_file = stack.enter_context(tempfile.NamedTemporaryFile(prefix="man-tags."))
-      pager_cmd.append("-T" + tags_file.name)
-    else:
-      tags_file = None
-
     # Turns out that properly running a subprocess as a foreground job in the
     # terminal on UNIX is not as trivial as I thought! The main concern here is
     # correctly responding to user-triggered signals. Pressing, say, `CTRL+C` in
@@ -181,7 +174,51 @@ def main() -> None:
     #
     # P.S. Here's how Python's `help()` function invokes a pager:
     # <https://github.com/python/cpython/blob/v3.13.9/Lib/_pyrepl/pager.py>
-    pager = stack.enter_context(subprocess.Popen(pager_cmd, stdin=subprocess.PIPE))
+
+    env_var_pager_cmd = os.environ.get("PAGER", "").split()
+    # <https://www.debian.org/doc/debian-policy/ch-customized-programs.html#editors-and-pagers>
+    debian_pager_cmd = ["/usr/bin/pager"]
+
+    tags_file = None
+
+    pager_errors = []  # type: list[OSError]
+    for pager_cmd in (env_var_pager_cmd, debian_pager_cmd, ["less"], ["more"], ["cat"]):
+      if not pager_cmd:
+        continue
+
+      if pager_cmd is debian_pager_cmd:
+        try:
+          pager_cmd[0] = os.path.realpath(pager_cmd[0])
+        except OSError:
+          pass
+
+      pager_name = os.path.basename(pager_cmd[0])
+      if pager_name == "less":
+        if pager_cmd is not env_var_pager_cmd:
+          pager_cmd.append("-R")  # Display ANSI escape sequences
+        if not tags_file:
+          tags_file = stack.enter_context(tempfile.NamedTemporaryFile(prefix="man-tags."))
+        pager_cmd.append("-T" + tags_file.name)
+      elif pager_cmd is not env_var_pager_cmd and pager_name == "more":
+        pager_cmd.append("-f")  # Don't wrap long lines, this breaks in the presence of ANSI codes
+
+      try:
+        pager = stack.enter_context(subprocess.Popen(pager_cmd, stdin=subprocess.PIPE))
+        break
+      except OSError as err:
+        if pager_cmd is env_var_pager_cmd:
+          sys.exit("{}: failed to run {} because: {}".format(program_name, pager_cmd, err))
+        else:
+          pager_errors.append(err)
+          continue
+
+    else:
+      message = "\n".join([
+        "{}: failed to find a working pager because:".format(program_name),
+        *map(str, pager_errors),
+      ])
+      sys.exit(message)
+
     # Technically, the dispositions of SIGINT and SIGQUIT must be changed before
     # spawning the child process, but this requires an intricate dance using
     # sigaction(2) and sigprocmask(2) to set them back to `SIG_DFL` in the child
