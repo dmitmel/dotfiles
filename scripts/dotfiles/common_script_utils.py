@@ -4,11 +4,11 @@ import subprocess
 import sys
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, Iterable, Optional, Set
+from typing import Generator, Iterable, Optional
 
 if os.name == "posix":
-  DOTFILES_CONFIG_DIR: Path = Path.home() / ".config" / "dotfiles"
-  DOTFILES_CACHE_DIR: Path = Path.home() / ".cache" / "dotfiles"
+  DOTFILES_CONFIG_DIR = Path.home() / ".config" / "dotfiles"
+  DOTFILES_CACHE_DIR = Path.home() / ".cache" / "dotfiles"
 
 
 def platform_not_supported_error() -> Exception:
@@ -68,7 +68,7 @@ def run_chooser(
     except BrokenPipeError:
       pass
 
-    exit_code: int = chooser.wait()
+    exit_code = chooser.wait()
     if exit_code != 0:
       raise Exception("chooser process failed with exit code {}".format(exit_code))
 
@@ -115,7 +115,7 @@ def set_signal_handler(
 
 # From <https://stackoverflow.com/a/64197445/12005228>
 @contextmanager
-def mask_signals(*signals: "signal._SIGNUM") -> Generator[Set["signal._SIGNUM"], None, None]:
+def mask_signals(*signals: "signal._SIGNUM") -> Generator["set[signal._SIGNUM]", None, None]:
   old_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set(signals))
   try:
     yield old_mask

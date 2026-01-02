@@ -69,19 +69,24 @@
 # underlining text and such, which strips a lot of visual information (i.e.
 # intentionally emphasized text) from the rendered manpage.
 #
-# This script targets Python versions as old as 3.6. Some modules are imported
+# This script targets Python versions as old as 3.5. Some modules are imported
 # on demand to improve the execution time of this script (the start-up timing
 # can be profiled with `python -X importtime $0`).
+
+# pyright: reportTypeCommentUsage=none
+#          ^-- I'm forced to resort to the legacy `# type: ...` comments to
+#          support Python 3.5 because the syntax for annotating the types of
+#          variables was added only in 3.6
 
 import functools
 import os
 import re
 import sys
 from contextlib import ExitStack
-from typing import IO, TYPE_CHECKING, Iterable, List, NoReturn, Optional
+from typing import IO, TYPE_CHECKING, Iterable, Optional
 
 
-def main() -> NoReturn:
+def main() -> None:
   with ExitStack() as stack:
     program_name = os.path.basename(sys.argv[0])
 
@@ -109,7 +114,7 @@ def main() -> NoReturn:
     elif len(sys.argv) == 1:
       input_file = sys.stdin.buffer
     else:
-      sys.exit(f"usage: {program_name} [file] | {program_name} <section> <page>")
+      sys.exit("usage: {0} [file] | {0} <section> <page>".format(program_name))
 
     if not sys.stdout.isatty():
       just_colorize_input(input_file, sys.stdout.buffer)
@@ -273,7 +278,7 @@ def generate_tags_and_feed_into_less(
           tag = whitespace_re.sub(b"_", tag)
           tag_path = "-"
           tags_file.write(tag)
-          tags_file.write(f" {tag_path} {linenr}\n".encode())
+          tags_file.write(" {} {}\n".format(tag_path, linenr).encode())
 
       if pager_stdin:
         line = colorize_line(line)
@@ -298,7 +303,7 @@ def generate_tags_and_feed_into_less(
     end_time = time.perf_counter()
     if os.environ.get("DOTFILES_MANPAGER_TIME"):
       elapsed_ms = (end_time - start_time) * 1000
-      buffered_bytes.extend(f"{program_name}: done in {elapsed_ms:.03f} ms\n".encode())
+      buffered_bytes.extend("{}: done in {:.03f} ms\n".format(program_name, elapsed_ms).encode())
 
   finally:
     if pager_stdin:
@@ -399,7 +404,7 @@ def colorize_line(line: bytes) -> bytes:
 
 
 def bold_text_highlighter(match: "re.Match[bytes]") -> bytes:
-  text_bytes: bytes = match.group(1)
+  text_bytes = match.group(1)  # type: bytes
   color = ANSI_BLUE  # by default, all bold text is colored blue
   flag_re = regex(rb"^[-+][^\s]")
   if flag_re.match(text_bytes.strip()):
@@ -479,10 +484,10 @@ def perform_overstriking(line: bytes) -> bytes:
   # length, since they themselves are arbitrary-length since Python 3.0. These
   # bitsets are a bit unwieldy to use, but turn out to be *much* faster than
   # processing a list of booleans in Python.
-  is_bold: int = 0
-  is_underlined: int = 0
+  is_bold = 0  # type: int
+  is_underlined = 0  # type: int
 
-  output: List[str] = []
+  output = []  # type: list[str]
   colnr = 0
   max_col = 0
 
