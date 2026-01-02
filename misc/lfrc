@@ -65,11 +65,26 @@ set previewer lf-preview
 set cleaner   lf-cleaner
 
 cmd less ${{
-  inside_any_terminal_multiplexer="${NVIM}${VIM_TERMINAL}${TMUX}"
-  LESSOPEN='| lf-preview %s' less \
-    --RAW-CONTROL-CHARS --tabs=4 --tilde --ignore-case --LONG-PROMPT --chop-long-lines --shift=4 \
-    ${inside_any_terminal_multiplexer:+ --mouse --wheel-lines=5} --quiet --no-vbell \
-    --lesskey-content='i quit; h left-scroll; l right-scroll' +g -- "${@:-$f}"
+  set -- +0 -- "${@:-$f}"
+
+  less_help="$(less --help)"
+  if [ -n "$NVIM" ] || [ -n "$VIM_TERMINAL" ] || [ -n "$TMUX" ]; then
+    case "$less_help" in (*[[:space:]]--mouse[[:space:]]*) set -- --mouse "$@" ;; esac
+    case "$less_help" in (*[[:space:]]--wheel-lines=*) set -- --wheel-lines=5 "$@" ;; esac
+  fi
+  case "$less_help" in
+    (*[[:space:]]--no-vbell[[:space:]]*) set -- --quiet --no-vbell "$@" ;;
+  esac
+  case "$less_help" in
+    (*[[:space:]]--lesskey-conte[nx]t=*)
+      # there is a typo in the help text, this option is referred to as `--lesskey-context` there
+      set -- --lesskey-content='i quit; h left-scroll; l right-scroll' "$@" ;;
+  esac
+  # These options have been supported by less(1) since basically forever
+  # <https://github.com/gwsw/less/blame/master/less.hlp>
+  set -- --RAW-CONTROL-CHARS --chop-long-lines --tabs=4 --tilde --shift=4 --ignore-case --LONG-PROMPT "$@"
+
+  LESSOPEN='| lf-preview %s' less "$@"
 }}
 
 cmd jump ${{
