@@ -10,3 +10,15 @@ snippet for for loop
 	for ${1:item} in ${2:list}; do
 		$0
 	done
+snippet case case block
+	case ${1:word} in
+		(${2:pattern}) $0 ;;
+	esac
+snippet while while loop
+	while ${1:condition}; do
+		$0
+	done
+snippet fori for loop with counter
+	for (( i = ${1:start}; i < ${2:end}; i++ )); do
+		$0
+	done
