@@ -109,12 +109,13 @@ def main() -> None:
       input_file = man.stdout
 
     elif len(sys.argv) == 2:
-      input_path = sys.argv[1]
-      input_file = stack.enter_context(open(input_path, "rb"))
-    elif len(sys.argv) == 1:
+      input_file = stack.enter_context(open(sys.argv[1], "rb"))
+
+    elif len(sys.argv) == 1 and not sys.stdin.isatty():
       input_file = sys.stdin.buffer
+
     else:
-      sys.exit("usage: {0} [file] | {0} <section> <page>".format(program_name))
+      sys.exit("usage:\n  {0} [file]\n  man ... | {0}\n  {0} <section> <page>".format(program_name))
 
     if not sys.stdout.isatty():
       just_colorize_input(input_file, sys.stdout.buffer)
