@@ -157,7 +157,7 @@
     # processing and includes all the basic utilities that I need here. The
     # backslash after the argument to find(1) is necessary so that it still
     # searches the directory if it is symlinked.
-    find "$PALETTE_TLDR_PAGES_DIR/" -type f -name '*.md' -exec awk '
+    find "$PALETTE_TLDR_PAGES_DIR/" -type f -name '*.md' -exec awk -v separator="$PALETTE_SNIPPET_COMMENT" '
       # when we find a "description" line...
       match($0, /^- (.+):$/, match_groups) {
         # ...get actual description from it...
@@ -169,7 +169,7 @@
         command = match_groups[1]
         # ...and finally, we print command and description, separated by
         # PALETTE_SNIPPET_COMMENT, and with some colors!
-        printf "%s\x1b[90m'"$PALETTE_SNIPPET_COMMENT"'%s\x1b[0m\n", command, description
+        printf "%s\x1b[90m" separator "%s\x1b[0m\n", command, description
       }
     ' {} +
   }

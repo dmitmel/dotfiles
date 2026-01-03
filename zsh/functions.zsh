@@ -333,8 +333,10 @@ format_thousands() {
 # from this thread: <https://unix.stackexchange.com/questions/48235/can-i-watch-the-progress-of-a-sync-operation>.
 # Note that the sync(1) command can't really be stopped with Ctrl-C or `kill`
 # since all it does is make a single sync(2) syscall and wait for it to
-# complete, and signals sent to a process are not processed while a syscall is
-# in progress. As a workaround for that, I spawn sync(1) as a background job.
+# complete, and signals sent to a process are not processed while it is waiting
+# on a syscall. As a workaround for that, I spawn sync(1) as a background job in
+# a subshell, so that Ctrl+C kills the subshell and simply detaches this
+# background process.
 sync() {
   # Use a subshell so that we don't get messages from job control.
   (
@@ -350,9 +352,88 @@ sync() {
       done < /proc/meminfo
       format_thousands dirty
       format_thousands writeback
-      printf '\rdirty: %11s%12swriteback: %10s%3s' "$dirty" '' "$writeback" ''
+      printf '\rdirty: %11s%12swriteback: %11s%3s' "$dirty" '' "$writeback" ''
       sleep 0.5
     done
     printf '\n'
+    wait "$sync_pid"  # returns the exit code of the `sync` process
   )
 }
+
+if is_command apt; then
+  # A wrapper around apt(1) which patches its `search` subcommand, which is
+  # notoriously unhelpful for actually finding necessary packages because it
+  # likes to return lots of unrelated results and sorts them all alphabetically,
+  # instead of by some sort of "relevance" criterea. I try to improve this
+  # situation by piping the output of `apt search` through grep(1) to at least
+  # highlight the places where the search keywords were found to make it
+  # possible to visually filter out the irrelevant junk. Additionally, this
+  # function is defined under a second name to also wrap apt-cache(1) because
+  # the apt(1) command is actually a common interface around the family of
+  # different `apt-*` commands, and in particular, for searching it defers to
+  # `apt-cache search`.
+  function apt apt-cache {
+    setopt local_options no_pipe_fail no_err_exit
+
+    # I don't want to bother with writing a proper CLI argument parser that
+    # mimicks apt's implementation 1-to-1 (although it is certainly possible),
+    # so this function only detects the simplest case of
+    # $ apt search <keywords...>
+    # <https://github.com/Debian/apt/blob/2.8.2/apt-pkg/contrib/cmndline.cc>
+    # <https://github.com/Debian/apt/blob/2.0.10/apt-private/private-cmndline.cc>
+    # Output colorization should only be enabled if:
+    # <https://github.com/Debian/apt/blob/2.8.2/apt-private/private-output.cc#L89>
+    if [[ "$#" -gt 1 && "$1" == search && -t 1 && ! -v NO_COLOR ]]; then
+      shift 1
+
+      local grep_opts=(
+        --color=always
+        # apt's search uses case-insensitive POSIX extended regular expressions
+        # (EREs), therefore grep(1) is the ideal tool to use because it supports
+        # the exact same syntax
+        # <https://salsa.debian.org/apt-team/apt/-/blob/2.8.2/apt-private/private-search.cc#L77>
+        --extended-regexp --ignore-case
+        # To only highlight matches, but otherwise pass through all input
+        # From <https://superuser.com/a/1192944>
+        --regexp='$'
+        # What this soup of ASCII sigils does:
+        # - `$@` - all arguments of this function
+        # - `${@:#pattern}` - remove all elements from the list of arguments
+        #   that match the pattern, which in this case is `-*`, which excludes
+        #   all flags (of which `apt search` supports just two: `--full` and
+        #   `--names-only`). Note that this of course won't remove options with
+        #   arguments after them, such as `-o apt::config::something=true`, but
+        #   I honestly don't care.
+        # - `prefix${^...}suffix` - causes `prefix` and `suffix` text to be
+        #   appended to every word in the expansion of the resulting list. In
+        #   this case this is necessary to pass multiple keywords as multiple
+        #   `--regexp=...` options to grep(1).
+        --regexp="${^@:#-*}"
+      )
+
+      command -- "$0" search -o Apt::Cmd::Disable-Script-Warning=1 "$@" | grep "${grep_opts[@]}" |
+        # this short awk script is used to colorize the package names in green,
+        # the same way they are colored in the output of `apt search` by default
+        awk -v highlight_color="${fg[green]}" -v reset_color="${reset_color}" '{
+          if (match($0, /^([^[:space:]]+)\/[^[:space:]]/)) {
+            RLENGTH -= 2;
+            # NOTE: indexing in awk is 1-based
+            before = substr($0, 1, RSTART - 1);
+            matched = substr($0, RSTART, RLENGTH);
+            after = substr($0, RSTART + RLENGTH);
+            # add highlight_color after every ANSI SGR reset sequence if grep
+            # highlights a match in the package name
+            gsub(/\x1b\[0?m/, "&" highlight_color, matched);
+            print before highlight_color matched reset_color after;
+          } else {
+            print
+          }
+        }'
+
+      # Return the exit code of the `apt` or `apt-cache` command
+      return "${pipestatus[1]}"
+    else
+      command -- "$0" "$@"
+    fi
+  }
+fi
