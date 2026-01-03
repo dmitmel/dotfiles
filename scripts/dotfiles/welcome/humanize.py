@@ -1,15 +1,16 @@
+# pyright: reportTypeCommentUsage=none
+
 from datetime import timedelta
-from typing import List, Tuple
 
 
 def humanize_timedelta(timedelta: timedelta) -> str:
-  result: List[str] = []
+  result = []  # type: list[str]
 
   days = timedelta.days
   mm, ss = divmod(timedelta.seconds, 60)
   hh, mm = divmod(mm, 60)
 
-  def plural(n: int) -> Tuple[int, str]:
+  def plural(n: int) -> "tuple[int, str]":
     return n, "s" if abs(n) != 1 else ""
 
   if days > 0:

@@ -1,5 +1,7 @@
 # pyright: standard
 #          ^-- because `psutil` doesn't have type stubs
+# pyright: reportTypeCommentUsage=none
+# ruff: noqa: ANN202
 
 import itertools
 import os
@@ -7,7 +9,6 @@ import platform
 import socket
 from datetime import datetime, timedelta
 from getpass import getuser
-from typing import Dict, List, Optional, Tuple, cast
 
 import psutil
 
@@ -15,8 +16,8 @@ from .colors import Fore, Style, bright_colored, colored, colorize_percent
 from .humanize import humanize_bytes, humanize_timedelta
 
 
-def get_system_info() -> Tuple[str, List[str]]:
-  info_lines: List[str] = []
+def get_system_info() -> "tuple[str, list[str]]":
+  info_lines = []  # type: list[str]
 
   def info(name: str, value: str, *format_args: object) -> None:
     line = bright_colored(name + ":", Fore.YELLOW) + " " + value
@@ -70,14 +71,14 @@ def get_system_info() -> Tuple[str, List[str]]:
   return logo_id, info_lines
 
 
-def _get_hostname() -> str:
-  hostname = socket.gethostname()
+def _get_hostname():
+  hostname = socket.gethostname()  # type: str
   return hostname
 
 
-def _get_uptime() -> Optional[timedelta]:
+def _get_uptime():
   try:
-    boot_timestamp: float = psutil.boot_time()
+    boot_timestamp = psutil.boot_time()  # type: float
   except Exception as e:
     print("Error in _get_uptime:", e)
     return None
@@ -85,18 +86,18 @@ def _get_uptime() -> Optional[timedelta]:
   return datetime.now() - datetime.fromtimestamp(boot_timestamp)
 
 
-def _get_users() -> str:
-  users: Dict[str, List[str]] = {}
+def _get_users():
+  users = {}  # type: dict[str, list[str]]
 
   for user in psutil.users():
-    name: str = user.name
-    terminal: str = user.terminal or ""
+    name = user.name  # type: str
+    terminal = user.terminal or ""  # type: str
     if name in users:
       users[name].append(terminal)
     else:
       users[name] = [terminal]
 
-  result: List[str] = []
+  result = []  # type: list[str]
 
   for name, terminals in users.items():
     colored_name = bright_colored(name, Fore.BLUE)
@@ -110,13 +111,13 @@ def _get_users() -> str:
   return ", ".join(result)
 
 
-def _get_shell() -> Optional[str]:
+def _get_shell():
   return os.environ.get("SHELL")
 
 
-def _get_cpu_usage() -> Optional[str]:
+def _get_cpu_usage():
   try:
-    percent = cast(float, psutil.cpu_percent())
+    percent = psutil.cpu_percent()  # type: float
   except Exception as e:
     print("Error in _get_cpu_usage:", e)
     return None
@@ -124,7 +125,7 @@ def _get_cpu_usage() -> Optional[str]:
   return colorize_percent(percent, warning=60, critical=80)
 
 
-def _get_memory() -> Tuple[str, str, str]:
+def _get_memory():
   memory = psutil.virtual_memory()
   return (
     humanize_bytes(memory.used),
@@ -133,14 +134,14 @@ def _get_memory() -> Tuple[str, str, str]:
   )
 
 
-def _get_disks() -> List[Tuple[str, str, str, str]]:
+def _get_disks():
   try:
     partitions = psutil.disk_partitions(all=False)
   except Exception as e:
     print("Error in _get_disks:", e)
     return []
 
-  result: List[Tuple[str, str, str, str]] = []
+  result = []  # type: list[tuple[str, str, str, str]]
 
   # NOTE: groupby() creates groups of *consecutive* entries with the same key
   for _, partitions_by_disk in itertools.groupby(partitions, lambda part: part.device):
@@ -169,7 +170,7 @@ def _get_disks() -> List[Tuple[str, str, str, str]]:
   return result
 
 
-def _get_battery() -> Optional[Tuple[str, str]]:
+def _get_battery():
   if not hasattr(psutil, "sensors_battery"):
     return None
 
@@ -190,8 +191,8 @@ def _get_battery() -> Optional[Tuple[str, str]]:
   return colorize_percent(percent, critical=10, warning=20, inverse=True), status
 
 
-def _get_local_addresses() -> List[Tuple[str, str, str]]:
-  result: List[Tuple[str, str, str]] = []
+def _get_local_addresses():
+  result = []  # type: list[tuple[str, str, str]]
 
   for interface, addresses in psutil.net_if_addrs().items():
     for address in addresses:
@@ -210,7 +211,7 @@ def _get_local_addresses() -> List[Tuple[str, str, str]]:
   return result
 
 
-def _get_distro_info() -> Tuple[str, str, str, str]:
+def _get_distro_info():
   if psutil.WINDOWS:
     return "windows", platform.system(), platform.release(), ""
   elif psutil.OSX:
@@ -236,5 +237,5 @@ def _get_distro_info() -> Tuple[str, str, str, str]:
   raise NotImplementedError("unsupported OS")
 
 
-def _is_android() -> bool:
+def _is_android():
   return os.path.isdir("/system/app") and os.path.isdir("/system/priv-app")

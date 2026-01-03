@@ -38,7 +38,7 @@
 
   // Scripts without the `.py` extension must be included explicitly. This
   // command may be used to regenerate this list:
-  // $ rg -l '^\#\!.*python' --glob='\!*.py' | jq -nR '["."] + ([inputs] | map("./" + .) | sort)'
+  // $ rg -l '^#!.*python' --glob='!*.py' | jq -nR '["."] + ([inputs] | map("./" + .) | sort)'
   "include": [
     ".",
     "./scripts/=",
