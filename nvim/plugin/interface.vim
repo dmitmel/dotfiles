@@ -132,13 +132,20 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
   function! s:close_buffer(b) abort
-    if !empty(getcmdwintype()) || &buftype ==# 'help' || &buftype ==# 'quickfix' ||
-    \  &previewwindow || dotutils#is_floating_window(0)
+    if !empty(getcmdwintype()) || dotutils#is_floating_window(0)
       return 'close'
     elseif &buftype ==# 'terminal'
       " Always wipe out the terminal buffers, so that they don't show up in the
       " jump history, and close the stopped ones with `:bwipeout!`.
       return a:b . (dotutils#is_terminal_running('%') ? 'wipeout' : 'wipeout!')
+    elseif (&previewwindow || (&buftype !=# '' && &buftype !=# 'acwrite'))
+          \ && win_findbuf(bufnr('%')) ==# [win_getid()]
+      " This covers windows which are created just to hold a single special
+      " buffer, such as the quickfix list, help or a manpage viewer, the
+      " fugitive window and so on and so on. Commands that create those usually
+      " open a new temporary split, so it makes sense to just close this split
+      " if the buffer is not open in some other window as well.
+      return 'bdelete'
     else
       " NOTE: Don't use `:bwipeout` for closing normal buffers, it breaks
       " quickfix/loclists! When these lists are initialized, they also create
