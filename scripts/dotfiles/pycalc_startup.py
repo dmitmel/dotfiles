@@ -1,29 +1,34 @@
 # pyright: reportUnusedImport=none, reportWildcardImportFromLibrary=none
+# ruff: noqa: F401, F403, F405
 
 import cmath
 import math
 from decimal import Decimal
 from fractions import Fraction
 from math import *
-from typing import Set
-
-try:
-  import pandas as pd  # pyright: ignore
-
-  print("pandas available as `pd`")
-except ImportError:
-  pass
-
-try:
-  import matplotlib.pyplot as plt  # pyright: ignore
-
-  print("matplotlib.pyplot available as `plt`")
-except ImportError:
-  pass
 
 
-def factors(n: int) -> Set[int]:
-  result: Set[int] = set()
+class _LazyImporter:
+  def __init__(self, module: str, var_name: str) -> None:
+    self._module = module
+    self._var_name = var_name
+    print("{} available as `{}`".format(module, var_name))
+
+  def __getattribute__(self, key: str, /) -> object:
+    module = object.__getattribute__(self, "_module")
+    var_name = object.__getattribute__(self, "_var_name")
+    vars_dict = globals()
+    exec("import {} as {}".format(module, var_name), vars_dict, vars_dict)  # noqa: S102
+    return getattr(vars_dict[var_name], key)
+
+
+np = _LazyImporter("numpy", "np")
+pd = _LazyImporter("pandas", "pd")
+plt = _LazyImporter("matplotlib.pyplot", "plt")
+
+
+def factors(n: int) -> "set[int]":
+  result: "set[int]" = set()
   for i in range(1, int(sqrt(n)) + 1):
     if n % i == 0:
       result.add(i)
