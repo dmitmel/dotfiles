@@ -18,7 +18,7 @@ class _LazyImporter:
     module = object.__getattribute__(self, "_module")
     var_name = object.__getattribute__(self, "_var_name")
     vars_dict = globals()
-    exec(f"import {module} as {var_name}", vars_dict, vars_dict)  # noqa: S102
+    exec(f"import {module} as {var_name}", vars_dict, vars_dict)
     return getattr(vars_dict[var_name], key)
 
 

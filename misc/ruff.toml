@@ -21,7 +21,6 @@ select = [
   "ANN",  # flake8-annotations
   "N",    # pep8-naming
   "I",    # isort
-  "S",    # flake8-bandit
   "B",    # flake8-bugbear
   "PLC",  # pylint (convention)
   "PLE",  # pylint (errors)
@@ -33,8 +32,6 @@ select = [
 ignore = [
   "E402",    # module level import not at top of file
   "E501",    # line too long
-  "S101",    # use of `assert` detected
-  "S311",    # standard PRNGs are not suitable for cryptography
   "ANN401",  # dynamically typed expressions are disallowed
   "PLW0603", # using the global statement is discouraged
   "PLW2901", # outer loop variable overwritten by inner loop target
@@ -43,13 +40,6 @@ ignore = [
   "B009",    # `getattr()` with a constant string
   "B010",    # `setattr()` with a constant string
   "PLC0415", # `import` should be at the top level
-  # annoying warnings regarding ANY usage of subprocesses
-  "S602",
-  "S603",
-  "S604",
-  "S605",
-  "S606",
-  "S607",
 ]
 
 extend-unsafe-fixes = [
