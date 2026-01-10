@@ -35,7 +35,7 @@ PLAYER_ICON_NAME_FIXES = {
   "chrome": "google-chrome",
 }
 
-PLAYER_PLAYBACK_STATUS_EMOJIS = {
+PLAYBACK_STATUS_EMOJIS = {
   Playerctl.PlaybackStatus.PLAYING: "\u25b6",
   Playerctl.PlaybackStatus.PAUSED: "\u23f8",
   Playerctl.PlaybackStatus.STOPPED: "\u23f9",
@@ -124,10 +124,7 @@ class Application(Gtk.Application):
 
   def create_player_menu(self, player: Playerctl.Player) -> Gtk.MenuItem:
     player_menu_item = Gtk.ImageMenuItem(
-      label="{} [{}]".format(
-        player.props.player_instance,
-        PLAYER_PLAYBACK_STATUS_EMOJIS[player.props.playback_status],
-      )
+      label=f"{player.props.player_instance} [{PLAYBACK_STATUS_EMOJIS[player.props.playback_status]}]"
     )
 
     player_name = player.props.player_name
@@ -184,7 +181,7 @@ class PlayerMenu(Gtk.Menu):
 
     self.append(Gtk.SeparatorMenuItem())
 
-    PlaybackStatus = Playerctl.PlaybackStatus  # noqa: N806
+    PlaybackStatus = Playerctl.PlaybackStatus
     playback_item_labels = {
       PlaybackStatus.PLAYING: "_Pause",
       PlaybackStatus.PAUSED: "Resume (_P)",

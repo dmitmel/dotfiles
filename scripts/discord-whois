@@ -11,9 +11,6 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Dict, List, Optional, Union
-
-import colorama
 
 DISCORD_EPOCH = 1420070400000  # milliseconds
 # https://discord.com/developers/docs/resources/user#user-object-user-flags
@@ -43,12 +40,12 @@ cli_args = parser.parse_args()
 
 user_snowflake: int = cli_args.user_snowflake
 
-bot_token: Optional[str] = cli_args.bot_token
+bot_token: "str | None" = cli_args.bot_token
 if bot_token is None:
   with open(os.path.expanduser("~/.config/dotfiles/discord-tools-bot-token.txt")) as f:
     bot_token = f.read().strip()
 
-image_size: Optional[int] = cli_args.image_size
+image_size: "int | None" = cli_args.image_size
 if not (image_size is None or (image_size > 0 and image_size & (image_size - 1)) == 0):
   parser.error("image_size must be greater than zero and a power of two")
 
@@ -58,8 +55,8 @@ try:
   opener.addheaders = []
   with opener.open(
     urllib.request.Request(
-      "http://discord.com/api/users/{}".format(user_snowflake),
-      headers={"Authorization": "Bot {}".format(bot_token)},
+      f"http://discord.com/api/users/{user_snowflake}",
+      headers={"Authorization": f"Bot {bot_token}"},
     ),
     timeout=10,
   ) as response:
@@ -74,25 +71,23 @@ if cli_args.api_response:
   sys.stdout.write("\n")
   sys.exit()
 
-data: Dict[str, Union[str, bool]] = {}
+data: "dict[str, str | bool]" = {}
 
 data["ID"] = raw_data["id"]
-data["Name"] = "{}#{}".format(raw_data["username"], raw_data["discriminator"])
+data["Name"] = f"{raw_data['username']}#{raw_data['discriminator']}"
 
-default_avatar_url = "https://cdn.discordapp.com/embed/avatars/{}.png".format(
-  int(raw_data["discriminator"], 10) % 5
+default_avatar_url = (
+  f"https://cdn.discordapp.com/embed/avatars/{int(raw_data['discriminator'], 10) % 5}.png"
 )
-avatar_url = (
-  "https://cdn.discordapp.com/avatars/{}/{}.{}".format(
-    raw_data["id"],
-    raw_data["avatar"],
-    "gif" if raw_data["avatar"].startswith("a_") else "png",
-  )
-  if raw_data["avatar"] is not None
-  else default_avatar_url
-)
+
+if raw_data["avatar"] is not None:
+  ext = "gif" if raw_data["avatar"].startswith("a_") else "png"
+  avatar_url = f"https://cdn.discordapp.com/avatars/{raw_data['id']}/{raw_data['avatar']}.{ext}"
+else:
+  avatar_url = default_avatar_url
+
 if image_size is not None:
-  avatar_url += "?size={}".format(image_size)
+  avatar_url += f"?size={image_size}"
 
 data["Avatar"] = avatar_url
 data["Default avatar"] = default_avatar_url
@@ -102,20 +97,17 @@ data["System user"] = raw_data.get("system", False)
 
 # https://discord.com/developers/docs/reference#convert-snowflake-to-datetime
 snowflake_creation_time = (user_snowflake >> 22) + DISCORD_EPOCH
-data["Created at"] = "{}.{} UTC".format(
-  time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(snowflake_creation_time // 1000)),
-  snowflake_creation_time % 1000,
+data["Created at"] = (
+  f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(snowflake_creation_time // 1000))}."
+  f"{snowflake_creation_time % 1000} UTC"
 )
 
 user_flags = raw_data["public_flags"]
-if user_flags == 0:
-  data["Flags"] = "<none>"
-else:
-  user_flag_names: List[str] = []
-  for flag_name, bitmask in DISCORD_FLAGS.items():
-    if user_flags & bitmask:
-      user_flag_names.append(flag_name)
-  data["Flags"] = ", ".join(user_flag_names)
+data["Flags"] = (
+  ", ".join(flag for flag, bitmask in DISCORD_FLAGS.items() if user_flags & bitmask)
+  if user_flags != 0
+  else "<none>"
+)
 
 if cli_args.get_prop is None:
   max_name_length = max(map(len, data.keys()))
@@ -124,15 +116,6 @@ if cli_args.get_prop is None:
       value = "yes"
     elif value is False:
       value = "no"
-
-    print(
-      "{}{:>{}}:{} {}".format(
-        colorama.Style.BRIGHT,
-        name,
-        max_name_length + 1,
-        colorama.Style.RESET_ALL,
-        value,
-      )
-    )
+    print(f"\x1b[1m{name:>{max_name_length + 1}}:\x1b[0m {value}")
 else:
   print(data[cli_args.get_prop])

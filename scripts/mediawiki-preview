@@ -44,13 +44,10 @@ import argparse
 import html
 import json
 import re
-from typing import Dict, List, cast
+from typing import Dict, List
 from urllib.parse import urlencode
 
 import mwclient
-
-LANG = "en"
-LANG_TEXT_DIRECTION = "ltr"
 
 MODULES_POST_LOAD = {
   "vector": [
@@ -138,12 +135,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--site", type=str, required=True)
 parser.add_argument("--scheme", type=str, default="https")
 parser.add_argument("--skin", type=str, default="vector")
-parser.add_argument(
-  "--input",
-  type=str,
-  required=True,
-)
+parser.add_argument("--lang", type=str, default="en")
+parser.add_argument("--rtl", action="store_const", const="rtl", dest="text_direction")
+parser.add_argument("--ltr", action="store_const", const="ltr", dest="text_direction")
+parser.set_defaults(text_direction="ltr")
 parser.add_argument("--title", type=str)
+parser.add_argument("--input", type=str, required=True)
 parser.add_argument("--output", type=str, required=True)
 cli_args = parser.parse_args()
 
@@ -151,11 +148,8 @@ site = mwclient.Site(cli_args.site, scheme=cli_args.scheme)
 
 
 def get_load_script_url(**args: object) -> str:
-  return "{path}load{ext}?{args}".format(
-    path=site.path,
-    ext=site.ext,
-    args=urlencode({"lang": LANG, "skin": cli_args.skin, **args}),
-  )
+  query = urlencode({"lang": cli_args.lang, "skin": cli_args.skin, **args})
+  return f"{site.path}load{site.ext}?{query}"
 
 
 with open(cli_args.input, "r") as f:
@@ -172,7 +166,7 @@ result = site.post(
   sectionpreview=False,
   disableeditsection=True,  # disables "[edit]" links next to headers
   useskin=cli_args.skin,
-  uselang=LANG,
+  uselang=cli_args.lang,
 )["parse"]
 
 
@@ -190,20 +184,53 @@ def get_modules(
   return modules
 
 
-rendered_html = """\
+page_modules_state_json = json_dumps_compact({
+  "noscript": "ready",
+  "user.options": "ready",
+  "user.tokens": "loading",
+  **{name: "ready" for name in MODULES_PRELOAD_STYLES[cli_args.skin]},
+})
+
+page_config_json = json_dumps_compact(result["jsconfigvars"])
+
+page_modules_json = json_dumps_compact(
+  get_modules(result["modules"], MODULES_POST_LOAD, MODULES_POST_LOAD_BLOCKED)
+)
+
+style_url = get_load_script_url(
+  only="styles",
+  modules="|".join(get_modules(result["modulestyles"], MODULES_PRELOAD_STYLES)),
+)
+
+script_url = get_load_script_url(
+  only="scripts",
+  modules="|".join(get_modules(result["modulescripts"], MODULES_PRELOAD_SCRIPTS)),
+  raw="1",
+)
+
+indicators_html = "\n".join([
+  f'<div id="mw-indicator-{indicator["name"]}" class="mw-indicator">{indicator["*"]}</div>'
+  for indicator in result["indicators"]
+])
+
+lang = html.escape(cli_args.lang)
+text_dir = html.escape(cli_args.text_direction)
+page_class = escape_css_class(result["displaytitle"])
+
+rendered_html = f"""\
 <!DOCTYPE html>
 <html class="client-nojs" lang="{lang}" dir="{text_dir}">
 
 <head>
     <meta charset="UTF-8"/>
-    <base href="{base_url}"/>
+    <base href="{html.escape(f"{site.scheme}://{site.host}")}"/>
     <script>document.documentElement.className="client-js";RLSTATE={page_modules_state_json};RLCONF={page_config_json};RLPAGEMODULES={page_modules_json};</script>
     <script>(RLQ=window.RLQ||[]).push(function(){{mw.loader.implement("user.tokens",function(){{mw.user.tokens.set({{"editToken":"+\\\\","patrolToken":"+\\\\","watchToken":"+\\\\","csrfToken":"+\\\\"}});}});}});</script>
-    <link rel="stylesheet" href="{style_url}"/>
-    <script async="" src="{script_url}"></script>
+    <link rel="stylesheet" href="{html.escape(style_url)}"/>
+    <script async="" src="{html.escape(script_url)}"></script>
 </head>
 
-<body class="mediawiki {text_dir} sitedir-{text_dir} mw-hide-empty-elt page-{page_class} skin-{skin} action-view">
+<body class="mediawiki {text_dir} sitedir-{text_dir} mw-hide-empty-elt page-{page_class} skin-{cli_args.skin} action-view">
     <div id="mw-page-base" class="noprint"></div>
     <div id="mw-head-base" class="noprint"></div>
 
@@ -214,17 +241,17 @@ rendered_html = """\
 {indicators_html}
         </div>
 
-        <h1 id="firstHeading" class="firstHeading" lang="{lang}">{title}</h1>
+        <h1 id="firstHeading" class="firstHeading" lang="{lang}">{result["displaytitle"]}</h1>
 
         <div id="bodyContent" class="mw-body-content">
             <div id="contentSub"></div>
             <div id="jump-to-nav"></div>
 
             <div id="mw-content-text" lang="{lang}" dir="{text_dir}" class="mw-content-{text_dir}">
-{content_html}
+{result["text"]["*"]}
             </div>
 
-{categories_html}
+{result["categorieshtml"]["*"]}
             <div class="visualClear"></div>
         </div>
     </div>
@@ -232,59 +259,19 @@ rendered_html = """\
     <div id="footer" role="contentinfo"></div>
 
     <script>(function(){{
-        var anchorHrefPrefix = window.location.href.replace(/#.+$/, "")
-
         var links = document.getElementsByTagName("a")
         for (var i = 0, len = links.length; i < len; i++) {{
             var link = links[i]
             var href = link.getAttribute("href")
             if (typeof href === "string" && href[0] === "#") {{
-                link.setAttribute("href", anchorHrefPrefix + href)
+                link.setAttribute("href", window.location.href.replace(/#.+$/, "") + href)
             }}
         }}
     }}())</script>
 </body>
 
 </html>
-""".format(
-  lang=html.escape(LANG),
-  text_dir=html.escape(LANG_TEXT_DIRECTION),
-  base_url=html.escape("{}://{}".format(site.scheme, site.host)),
-  page_modules_state_json=json_dumps_compact({
-    "noscript": "ready",
-    "user.options": "ready",
-    "user.tokens": "loading",
-    **{name: "ready" for name in MODULES_PRELOAD_STYLES[cli_args.skin]},
-  }),
-  page_config_json=json_dumps_compact(result["jsconfigvars"]),
-  page_modules_json=json_dumps_compact(
-    get_modules(result["modules"], MODULES_POST_LOAD, MODULES_POST_LOAD_BLOCKED)
-  ),
-  style_url=html.escape(
-    get_load_script_url(
-      only="styles",
-      modules="|".join(get_modules(result["modulestyles"], MODULES_PRELOAD_STYLES)),
-    )
-  ),
-  script_url=html.escape(
-    get_load_script_url(
-      only="scripts",
-      modules="|".join(get_modules(result["modulescripts"], MODULES_PRELOAD_SCRIPTS)),
-      raw="1",
-    )
-  ),
-  skin=html.escape(cli_args.skin),
-  page_class=html.escape(escape_css_class(result["displaytitle"])),
-  title=html.escape(cast(str, result["displaytitle"])),
-  indicators_html="\n".join([
-    '<div id="mw-indicator-{}" class="mw-indicator">{}</div>'.format(
-      indicator["name"], indicator["*"]
-    )
-    for indicator in result["indicators"]
-  ]),
-  content_html=result["text"]["*"],
-  categories_html=result["categorieshtml"]["*"],
-)
+"""
 
 with open(cli_args.output, "w") as f:
   f.write(rendered_html)

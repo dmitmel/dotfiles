@@ -41,11 +41,11 @@ class Color:
 
   @property
   def css_hex(self) -> str:
-    return "#{:02x}{:02x}{:02x}".format(self.r, self.g, self.b)
+    return "#" + self.hex
 
   @property
   def hex(self) -> str:
-    return "{:02x}{:02x}{:02x}".format(self.r, self.g, self.b)
+    return f"{self.r:02x}{self.g:02x}{self.b:02x}"
 
   @property
   def rgb888(self) -> int:
@@ -93,7 +93,7 @@ class Theme(Protocol):
 
   @property
   def name(self) -> str:
-    return "base16-{}".format(self.base16_name)
+    return f"base16-{self.base16_name}"
 
   @property
   def bg(self) -> Color:
@@ -138,7 +138,7 @@ class Theme(Protocol):
       "cursor-fg": self.cursor_fg,
     }
     for index, color in enumerate(self.base16_colors):
-      d["base-{:02X}".format(index)] = color
+      d[f"base-{index:02X}"] = color
     return d
 
 
@@ -150,7 +150,7 @@ class IniTheme(Theme):
     self.base16_name = config.get("Theme", "base16_name")
     self.is_dark = config.getboolean("Theme", "is_dark")
     self.base16_colors = [
-      Color.from_hex(config.get("Theme", "base16_color_{:02x}".format(i))) for i in range(16)
+      Color.from_hex(config.get("Theme", f"base16_color_{i:02x}")) for i in range(16)
     ]
 
 
@@ -182,7 +182,7 @@ def add_theme_generator(
 @add_theme_generator("kitty.conf")
 def generate_kitty(theme: Theme, output: TextIO) -> None:
   def write_color(key_name: str, color: Color) -> None:
-    output.write("{} {}\n".format(key_name, color.css_hex))
+    output.write(f"{key_name} {color.css_hex}\n")
 
   write_color("background", theme.bg)
   write_color("foreground", theme.fg)
@@ -191,7 +191,7 @@ def generate_kitty(theme: Theme, output: TextIO) -> None:
   write_color("selection_background", theme.selection_bg)
   write_color("selection_foreground", theme.selection_fg)
   for index, color in enumerate(theme.ansi_colors[:16]):
-    write_color("color{}".format(index), color)
+    write_color(f"color{index}", color)
   write_color("url_color", theme.link_color)
 
   write_color("active_border_color", theme.ansi_colors[2])
@@ -208,19 +208,19 @@ def generate_kitty(theme: Theme, output: TextIO) -> None:
 @add_theme_generator("termux.properties")
 def generate_termux(theme: Theme, output: TextIO) -> None:
   def write_color(key_name: str, color: Color) -> None:
-    output.write("{}={}\n".format(key_name, color.css_hex))
+    output.write(f"{key_name}={color.css_hex}\n")
 
   write_color("background", theme.bg)
   write_color("foreground", theme.fg)
   write_color("cursor", theme.cursor_bg)
   for index, color in enumerate(theme.ansi_colors[:16]):
-    write_color("color{}".format(index), color)
+    write_color(f"color{index}", color)
 
 
 @add_theme_generator("zsh.zsh")
 def generate_zsh(theme: Theme, output: TextIO) -> None:
   def write_color(key_name: str, color: Color) -> None:
-    output.write("colorscheme_{}={}\n".format(key_name, color.hex))
+    output.write(f"colorscheme_{key_name}={color.hex}\n")
 
   write_color("bg", theme.bg)
   write_color("fg", theme.fg)
@@ -232,28 +232,25 @@ def generate_zsh(theme: Theme, output: TextIO) -> None:
 
   output.write("colorscheme_ansi_colors=(\n")
   for color in theme.ansi_colors:
-    output.write("  {}\n".format(color.hex))
+    output.write(f"  {color.hex}\n")
   output.write(")\n")
 
 
 @add_theme_generator("vim.vim")
 def generate_vim(theme: Theme, output: TextIO) -> None:
   namespace = "dotfiles#colorscheme#"
-  output.write("let {}name = {}\n".format(namespace, json.dumps(theme.name)))
-  output.write("let {}base16_name = {}\n".format(namespace, json.dumps(theme.base16_name)))
-  output.write("let {}is_dark = {}\n".format(namespace, int(theme.is_dark)))
-  output.write("let {}base16_colors = [\n".format(namespace))
+  output.write(f"let {namespace}name = {json.dumps(theme.name)}\n")
+  output.write(f"let {namespace}base16_name = {json.dumps(theme.base16_name)}\n")
+  output.write(f"let {namespace}is_dark = {int(theme.is_dark)}\n")
+  output.write(f"let {namespace}base16_colors = [\n")
   for gui_color, cterm_color in zip(theme.base16_colors, BASE16_TO_ANSI_MAPPING):
     output.write(
-      "\\ {{'gui': '{}', 'cterm': {:2}, 'r': 0x{:02x}, 'g': 0x{:02x}, 'b': 0x{:02x}}},\n".format(
-        gui_color.css_hex, cterm_color, gui_color.r, gui_color.g, gui_color.b
-      ),
+      f"\\ {{'gui': '{gui_color.css_hex}', 'cterm': {cterm_color:2},"
+      f" 'r': 0x{gui_color.r:02x}, 'g': 0x{gui_color.g:02x}, 'b': 0x{gui_color.b:02x}}},\n",
     )
   output.write("\\ ]\n")
   output.write(
-    "let {}ansi_colors_mapping = [{}]\n".format(
-      namespace, ", ".join("0x{:X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
-    )
+    f"let {namespace}ansi_colors_mapping = [{', '.join(map(str, ANSI_TO_BASE16_MAPPING))}]\n"
   )
 
 
@@ -272,20 +269,18 @@ def generate_setvtrgb(theme: Theme, output: TextIO) -> None:
 def generate_xfce_terminal(theme: Theme, output: TextIO) -> None:
   output.write("[Scheme]\n")
   output.write("Name=dmitmel's dotfiles colorscheme\n")
-  output.write("ColorForeground={}\n".format(theme.fg.css_hex))
-  output.write("ColorBackground={}\n".format(theme.bg.css_hex))
+  output.write(f"ColorForeground={theme.fg.css_hex}\n")
+  output.write(f"ColorBackground={theme.bg.css_hex}\n")
   output.write("ColorCursorUseDefault=FALSE\n")
-  output.write("ColorCursorForeground={}\n".format(theme.cursor_fg.css_hex))
-  output.write("ColorCursor={}\n".format(theme.cursor_bg.css_hex))
+  output.write(f"ColorCursorForeground={theme.cursor_fg.css_hex}\n")
+  output.write(f"ColorCursor={theme.cursor_bg.css_hex}\n")
   output.write("ColorSelectionUseDefault=FALSE\n")
-  output.write("ColorSelection={}\n".format(theme.selection_fg.css_hex))
-  output.write("ColorSelectionBackground={}\n".format(theme.selection_bg.css_hex))
-  output.write("TabActivityColor={}\n".format(theme.base16_colors[0x8].css_hex))
+  output.write(f"ColorSelection={theme.selection_fg.css_hex}\n")
+  output.write(f"ColorSelectionBackground={theme.selection_bg.css_hex}\n")
+  output.write(f"TabActivityColor={theme.base16_colors[0x8].css_hex}\n")
   output.write("ColorBoldUseDefault=TRUE\n")
-  output.write("ColorBold={}\n".format(theme.fg.css_hex))
-  output.write(
-    "ColorPalette={}\n".format(";".join(color.css_hex for color in theme.ansi_colors[:16])),
-  )
+  output.write(f"ColorBold={theme.fg.css_hex}\n")
+  output.write(f"ColorPalette={';'.join(color.css_hex for color in theme.ansi_colors[:16])}\n")
 
 
 @add_theme_generator("vscode-colorCustomizations.json")
@@ -340,17 +335,17 @@ def generate_iterm2(theme: Theme, output: BinaryIO) -> None:
 def generate_css_variables(theme: Theme, output: TextIO) -> None:
   output.write(":root {\n")
   for var_name, color in theme.css_variables.items():
-    output.write("  --dotfiles-colorscheme-{}: {};\n".format(var_name, color.css_hex))
+    output.write(f"  --dotfiles-colorscheme-{var_name}: {color.css_hex};\n")
   output.write("}\n")
 
 
 @add_theme_generator("_colorscheme.scss")
 def generate_scss(theme: Theme, output: TextIO) -> None:
-  output.write("$is-dark: {};\n".format("true" if theme.is_dark else "false"))
+  output.write(f"$is-dark: {'true' if theme.is_dark else 'false'};\n")
   for var_name, color in theme.css_variables.items():
-    output.write("${}: {};\n".format(var_name, color.css_hex))
-  output.write("$base: ({});\n".format(", ".join(c.css_hex for c in theme.base16_colors)))
-  output.write("$ansi: ({});\n".format(", ".join(c.css_hex for c in theme.ansi_colors)))
+    output.write(f"${var_name}: {color.css_hex};\n")
+  output.write(f"$base: ({', '.join(c.css_hex for c in theme.base16_colors)});\n")
+  output.write(f"$ansi: ({', '.join(c.css_hex for c in theme.ansi_colors)});\n")
 
 
 @add_theme_generator("prismjs-theme.css")
@@ -358,15 +353,15 @@ def generate_prism_js(theme: Theme, output: TextIO) -> None:
   with open(os.path.join(__dir__, "prismjs-theme-src.css")) as src_file:
     src_css = src_file.read()
   for var_name, color in theme.css_variables.items():
-    src_css = src_css.replace("var(--dotfiles-colorscheme-{})".format(var_name), color.css_hex)
+    src_css = src_css.replace(f"var(--dotfiles-colorscheme-{var_name})", color.css_hex)
   output.write(src_css)
 
 
 @add_theme_generator("colorscheme.lua")
 def generate_lua(theme: Theme, output: TextIO) -> None:
   output.write("local theme = {}\n")
-  output.write("theme.base16_name = {}\n".format(json.dumps(theme.base16_name)))
-  output.write("theme.is_dark = {}\n".format("true" if theme.is_dark else "false"))
+  output.write(f"theme.base16_name = {json.dumps(theme.base16_name)}\n")
+  output.write(f"theme.is_dark = {'true' if theme.is_dark else 'false'}\n")
   output.write(
     "---@type table<integer, { gui: integer, cterm: integer, r: integer, g: integer, b: integer }>\n"
   )
@@ -375,34 +370,29 @@ def generate_lua(theme: Theme, output: TextIO) -> None:
     zip(theme.base16_colors, BASE16_TO_ANSI_MAPPING)
   ):
     output.write(
-      "  [{:2}] = {{ gui = 0x{:06x}, cterm = {:2}, r = 0x{:02x}, g = 0x{:02x}, b = 0x{:02x} }},\n".format(
-        index, gui_color.rgb888, cterm_color, gui_color.r, gui_color.g, gui_color.b
-      ),
+      f"  [{index:2}] = {{ gui = 0x{gui_color.rgb888:06x}, cterm = {cterm_color:2},"
+      f" r = 0x{gui_color.r:02x}, g = 0x{gui_color.g:02x}, b = 0x{gui_color.b:02x} }},\n"
     )
   output.write("}\n")
   output.write("theme.base16_colors = colors\n")
   output.write("theme.ansi_colors = {\n")
   for i in ANSI_TO_BASE16_MAPPING:
-    output.write("  colors[{}],\n".format(i))
+    output.write(f"  colors[{i}],\n")
   output.write("}\n")
-  output.write("theme.bg = colors[{}]\n".format(BASE16_BG_COLOR_IDX))
-  output.write("theme.fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
-  output.write("theme.cursor_bg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
-  output.write("theme.cursor_fg = colors[{}]\n".format(BASE16_BG_COLOR_IDX))
-  output.write("theme.selection_bg = colors[{}]\n".format(BASE16_SELECTION_BG_COLOR_IDX))
-  output.write("theme.selection_fg = colors[{}]\n".format(BASE16_FG_COLOR_IDX))
-  output.write("theme.link_color = colors[{}]\n".format(BASE16_LINK_COLOR_IDX))
+  output.write(f"theme.bg = colors[{BASE16_BG_COLOR_IDX}]\n")
+  output.write(f"theme.fg = colors[{BASE16_FG_COLOR_IDX}]\n")
+  output.write(f"theme.cursor_bg = colors[{BASE16_FG_COLOR_IDX}]\n")
+  output.write(f"theme.cursor_fg = colors[{BASE16_BG_COLOR_IDX}]\n")
+  output.write(f"theme.selection_bg = colors[{BASE16_SELECTION_BG_COLOR_IDX}]\n")
+  output.write(f"theme.selection_fg = colors[{BASE16_FG_COLOR_IDX}]\n")
+  output.write(f"theme.link_color = colors[{BASE16_LINK_COLOR_IDX}]\n")
   output.write("---@type table<integer, integer>\n")
   output.write(
-    "theme.ansi_to_base16_mapping = {{{}}}\n".format(
-      ", ".join("0x{:0X}".format(i) for i in ANSI_TO_BASE16_MAPPING)
-    )
+    f"theme.ansi_to_base16_mapping = {{{', '.join(map(str, ANSI_TO_BASE16_MAPPING))}}}\n"
   )
   output.write("---@type table<integer, integer>\n")
   output.write(
-    "theme.base16_to_ansi_mapping = {{{}}}\n".format(
-      ", ".join("0x{:02X}".format(i) for i in BASE16_TO_ANSI_MAPPING)
-    )
+    f"theme.base16_to_ansi_mapping = {{{', '.join(map(str, BASE16_TO_ANSI_MAPPING))}}}\n"
   )
   output.write("return theme\n")
 
@@ -419,7 +409,7 @@ def generate_apple_terminal(theme: Theme, output: BinaryIO) -> None:
   }
 
   def write_color(key_name: str, color: Color) -> None:
-    float_rgb_str = " ".join("{:.10f}".format(x).rstrip("0").rstrip(".") for x in color.float_rgb)
+    float_rgb_str = " ".join(f"{x:.10f}".rstrip("0").rstrip(".") for x in color.float_rgb)
     color_archive = {
       "$archiver": "NSKeyedArchiver",
       "$version": 100000,

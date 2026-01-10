@@ -26,12 +26,12 @@ def main() -> None:
   profiles_list.delay()
 
   default_profile_uuid = profiles_list.get_string("default")
-  default_profile_path = "{}:{}/".format(profiles_list.props.path, default_profile_uuid)
+  default_profile_path = f"{profiles_list.props.path}:{default_profile_uuid}/"
   default_profile = Gio.Settings.new_with_path(PROFILES_SETTINGS_SCHEMA_ID, default_profile_path)
   default_profile.delay()
 
   new_profile_uuid = str(uuid.uuid4())
-  new_profile_path = "{}:{}/".format(profiles_list.props.path, new_profile_uuid)
+  new_profile_path = f"{profiles_list.props.path}:{new_profile_uuid}/"
   new_profile = Gio.Settings.new_with_path(PROFILES_SETTINGS_SCHEMA_ID, new_profile_path)
   new_profile.delay()
 

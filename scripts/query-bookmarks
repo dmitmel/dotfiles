@@ -38,7 +38,7 @@ profile_dir: Path = firefox_home / profiles_config.get(installs_sections[0], "De
 # should places.sqlite be used instead?
 db_path: Path = profile_dir / "weave" / "bookmarks.sqlite"
 if not db_path.is_file():
-  raise Exception("'{}' is not a file".format(db_path))
+  raise Exception(f"'{db_path}' is not a file")
 
 # Firefox holds a lock over the database file, so I can't connect to it even
 # in the readonly mode: https://stackoverflow.com/a/7857866/12005228

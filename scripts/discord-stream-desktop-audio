@@ -17,7 +17,8 @@ bot = discord.Client()
 
 @bot.event
 async def on_ready() -> None:
-  print("logged in as {0} ({0.id})".format(bot.user))
+  assert bot.user
+  print(f"logged in as {bot.user} ({bot.user.id})")
 
   guild = bot.get_guild(guild_id)
   if guild is None:
@@ -30,7 +31,7 @@ async def on_ready() -> None:
     raise Exception("not a voice channel")
 
   voice_client = await voice_channel.connect()
-  print("connected to {0} ({0.id}) in {1} ({1.id})".format(voice_channel, guild))
+  print(f"connected to {voice_channel} ({voice_channel.id}) in {guild} ({guild.id})")
 
   source = discord.FFmpegPCMAudio(pulseaudio_device, before_options="-f pulse")
   voice_client.play(source, after=lambda e: print("Player error: %s" % e) if e else None)

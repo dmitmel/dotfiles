@@ -12,13 +12,13 @@ class _LazyImporter:
   def __init__(self, module: str, var_name: str) -> None:
     self._module = module
     self._var_name = var_name
-    print("{} available as `{}`".format(module, var_name))
+    print(f"{module} available as `{var_name}`")
 
   def __getattribute__(self, key: str, /) -> object:
     module = object.__getattribute__(self, "_module")
     var_name = object.__getattribute__(self, "_var_name")
     vars_dict = globals()
-    exec("import {} as {}".format(module, var_name), vars_dict, vars_dict)  # noqa: S102
+    exec(f"import {module} as {var_name}", vars_dict, vars_dict)  # noqa: S102
     return getattr(vars_dict[var_name], key)
 
 

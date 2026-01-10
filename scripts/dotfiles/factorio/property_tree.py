@@ -32,7 +32,7 @@ def read_string(buf: IO[bytes]) -> str:
 
 def read_dictionary(buf: IO[bytes]) -> Dict[str, Any]:
   len_ = _read_length(buf)
-  value: dict[str, Any] = {}
+  value: Dict[str, Any] = {}
   for _ in range(len_):
     key = read_string(buf)
     value[key] = read(buf)
@@ -41,7 +41,7 @@ def read_dictionary(buf: IO[bytes]) -> Dict[str, Any]:
 
 def read_list(buf: IO[bytes]) -> List[Any]:
   len_ = _read_length(buf)
-  value: list[Any] = []
+  value: List[Any] = []
   for _ in range(len_):
     read_string(buf)
     value.append(read(buf))
@@ -63,4 +63,4 @@ def read(buf: IO[bytes]) -> Any:
   elif type_ == 5:
     return read_dictionary(buf)
   else:
-    raise Exception("unknown property tree type 0x{:02x}".format(type_))
+    raise Exception(f"unknown property tree type 0x{type_:02x}")

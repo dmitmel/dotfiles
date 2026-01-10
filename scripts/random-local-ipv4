@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import random
+from random import randrange
 
-
-def randbyte() -> int:
-  return random.randrange(0, 256)
-
-
-print("127.{}.{}.{}".format(randbyte(), randbyte(), randbyte()))
+print(f"127.{randrange(256)}.{randrange(256)}.{randrange(256)}")
