@@ -1,4 +1,7 @@
 exe dotfiles#ft#set('&colorcolumn', '')
+exe dotfiles#ft#set('&signcolumn', 'auto')
+
+call dotfiles#ft#set('disable_secure_modelines', 1)
 
 nnoremap <buffer> q <C-w>c
 call dotfiles#ft#undo_map('n', ['q'])

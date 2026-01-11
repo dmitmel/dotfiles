@@ -1,4 +1,4 @@
-How (Neo)Vim configs are sorted:
+How (Neo)Vim configs are organized:
 
 - `init.vim` - put here only what is absolutely necessary for booting the editor.
 - `plugin/` - **actual configuration scripts go here**.

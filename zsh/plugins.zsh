@@ -48,7 +48,9 @@ plugin completions 'zsh-users/zsh-completions' \
 
 # }}}
 
-# The `${var=default}` syntax sets a variable only if it was not defined.
+# The `${var=default}` syntax sets a `$var` to `default` only if it was not
+# defined before (but not if it is set to an empty string -- this counts as the
+# variable being defined).
 if ! is_command fzf; then : ${DOTFILES_INSTALL_FZF=yes}; fi
 if ! is_command lf;  then : ${DOTFILES_INSTALL_LF=yes};  fi
 
@@ -108,7 +110,7 @@ plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
   build='cd -- →chroma; for f in *.ch; zcompile -R -- "$f"' \
   before_load='FAST_WORK_DIR="$ZSH_CACHE_DIR"' \
   before_load='plugin-cfg-path fpath prepend .' \
-  ${${(M)TERM:#linux}:+"ignore=*"}  # a shitty ternary operator, adds ignore=* if $TERM == "linux"
+  ${${(M)${DOTFILES_REAL_TERM:-$TERM}:#linux}:+"ignore=*"}  # a shitty ternary operator, adds ignore=* if $TERM == "linux"
 
 if is_function fast-theme; then
   set-my-syntax-theme() {

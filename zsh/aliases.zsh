@@ -53,6 +53,7 @@ if command_exists hub; then
   alias gci='git ci-status --verbose'
 else
   alias gw='gh browse'
+  alias ghcl='gh repo clone'
 fi
 
 # make these utils more verbose
@@ -80,12 +81,12 @@ alias du='du -h'
 alias df='df -h'
 alias free='free -h'
 
-alias ip='ip -color -human-readable'
+alias ip='ip -color=auto -human-readable'
 
 if command_exists apt && command_exists apt-get; then
   apt_get_message="use 'apt' instead of 'apt-get'
 if you really want to use 'apt-get', type '\\apt-get'"
-  alias apt-get="echo -E ${(qqq)apt_get_message} #"
+  alias apt-get="echo -E ${(q-)apt_get_message} #"
   unset apt_get_message
 fi
 
@@ -93,7 +94,7 @@ fi
 alias edit="$EDITOR"
 alias e="$EDITOR"
 if [[ "$EDITOR" == *vim ]]; then
-  alias es="e -S"
+  alias es="$EDITOR -S"
 fi
 
 # -a = --archive

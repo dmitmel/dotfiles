@@ -22,7 +22,7 @@ M.border_styles = {
 }
 
 function M.has(feature) return vim.fn.has(feature) ~= 0 end
-function M.exists(feature) return vim.fn.exists(feature) ~= 0 end
+function M.exists(what) return vim.fn.exists(what) ~= 0 end
 
 -- Faster and lighter alternative to `vim.validate`.
 ---@param name string

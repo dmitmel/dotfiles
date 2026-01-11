@@ -1,4 +1,6 @@
 # pyright: reportUnusedImport=none, reportWildcardImportFromLibrary=none
+
+# Don't warn about unused and wildcard imports:
 # ruff: noqa: F401, F403, F405
 
 import cmath
@@ -14,12 +16,19 @@ class _LazyImporter:
     self._var_name = var_name
     print(f"{module} available as `{var_name}`")
 
-  def __getattribute__(self, key: str, /) -> object:
-    module = object.__getattribute__(self, "_module")
-    var_name = object.__getattribute__(self, "_var_name")
+  @staticmethod
+  def _import(myself: "_LazyImporter") -> object:
+    module = object.__getattribute__(myself, "_module")
+    var_name = object.__getattribute__(myself, "_var_name")
     vars_dict = globals()
     exec(f"import {module} as {var_name}", vars_dict, vars_dict)
-    return getattr(vars_dict[var_name], key)
+    return vars_dict[var_name]
+
+  def __getattribute__(self, key: str) -> object:
+    return getattr(_LazyImporter._import(self), key)
+
+  def __repr__(self) -> str:
+    return repr(_LazyImporter._import(self))
 
 
 np = _LazyImporter("numpy", "np")
@@ -27,13 +36,13 @@ pd = _LazyImporter("pandas", "pd")
 plt = _LazyImporter("matplotlib.pyplot", "plt")
 
 
-def factors(n: int) -> "set[int]":
+def factors(n: int) -> "list[int]":
   result: "set[int]" = set()
-  for i in range(1, int(sqrt(n)) + 1):
+  for i in range(1, int(math.sqrt(n)) + 1):
     if n % i == 0:
       result.add(i)
       result.add(n // i)
-  return result
+  return sorted(result)
 
 
 def solve_quadratic(a: float, b: float, c: float) -> None:

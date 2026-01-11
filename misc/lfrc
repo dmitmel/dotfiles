@@ -33,7 +33,7 @@ set menuheaderfmt "\033[48;5;237;33;1m"  # light gray bg + yellow fg
 set menuselectfmt "\033[47;30m"          # white bg + black fg, same as WildMenu in Vim
 
 # <https://github.com/gokcehan/lf/wiki/Troubleshoot#displaying-current-settings>
-cmd settings $env | grep '^lf_' | sort | LESS="$LESS --+RAW-CONTROL-CHARS" ${PAGER}
+cmd settings $printenv | grep '^lf_' | sort | LESS="$LESS --+RAW-CONTROL-CHARS" ${PAGER}
 
 cmd q  quit
 cmd qa quit

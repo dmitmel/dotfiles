@@ -55,9 +55,7 @@ else
   # scripts or plugins call `compdef` before the completion system is properly
   # initialized, then record those calls in an array to replay them later.
   typeset -ga _deferred_compdefs
-  compdef() {
-    _deferred_compdefs+=("$0 ${(j: :)${(q)@}}")
-  }
+  compdef() { _deferred_compdefs+=("$0 ${(j: :)${(q-)@}}"); }
 fi
 
 autoload -Uz colors && colors

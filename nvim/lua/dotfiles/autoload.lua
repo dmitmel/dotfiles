@@ -7,9 +7,9 @@
 
 local MODULES = {} ---@type table<string, dotfiles.autoload.Module>
 
----@generic T
+---@generic T : table
 ---@param name string
----@param exports `T`
+---@param exports table
 ---@param submodules? T
 ---@return T exports
 ---@return dotfiles.autoload.Module module

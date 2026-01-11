@@ -109,13 +109,14 @@ function! s:open_all(cmd, paths) abort
     return a:cmd(a:paths)
   endif
 
+  let cmd_is_edit = split(a:cmd)[-1] =~# '^e\%[dit]'
   " Turn all paths into absolute paths before opening any of them because the
   " current directory might get changed by |'autochdir'| in the process and
   " change the meaning of relative paths.
   for path in map(filter(copy(a:paths), '!empty(v:val)'), 'fnamemodify(v:val, ":p")')
     " Don't re-edit the file in the current buffer because that causes a |reload|.
     " See also: <https://github.com/junegunn/fzf/pull/2096>
-    if a:cmd =~# '^e\%[dit]' && path ==# expand('%:p') | continue | endif
+    if cmd_is_edit && path ==# expand('%:p') | continue | endif
     " Relativize the current path before executing the command to open it to
     " keep the name of the created buffer nice and short.
     let path = fnamemodify(path, ':.')
@@ -144,7 +145,7 @@ function! s:open_all(cmd, paths) abort
 
     if exception_caught
       " Even though the output of |:echoerr| is a bit ugly, it is the only
-      " reliable way of showing an error message and ensuring that it is seen
+      " reliable way of displaying an error message and ensuring that it is seen
       " and acknowledged by the user. Unfortunately, if |:echomsg| is used here,
       " it does not stop Vimscript execution and show a "hit enter" prompt, but
       " instead the message gets silently written to the message history and is

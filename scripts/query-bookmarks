@@ -103,7 +103,7 @@ finally:
 
 def chooser_entries_iter() -> Generator[str, None, None]:
   for title, url, folder_path_str in chooser_entries:
-    entry_items = [title, url]
+    entry_items = [title.replace("\n", " "), url]
     if folder_path_str is not None:
       entry_items.append(folder_path_str)
     entry = " \u2014\u2014 ".join(entry_items)

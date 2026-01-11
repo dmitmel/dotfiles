@@ -13,10 +13,10 @@ if vim.g['dotplug#implementation'] ~= 'lazy.nvim' then
   function M.plugin_dir(name) return vim.call('dotplug#plugin_dir', name) end
 
   ---@type fun(names: string[])
-  function M.load(names) return vim.fn['dotplug#load'](unpack(names)) end
+  function M.load(names) return vim.call('dotplug#load', unpack(names)) end
 
   ---@type fun(repo: string, old_spec: VimplugSpec)
-  function M.vimplug(repo, old_spec) return vim.call(repo, old_spec) end
+  function M.vimplug(repo, old_spec) return vim.call('dotplug#', repo, old_spec) end
 
   return M
 end

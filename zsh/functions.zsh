@@ -38,7 +38,7 @@ lazy_load() {
   local init="$2"
   functions[$name]="
     unfunction ${(q)name}
-    eval ${(q+)init}
+    eval ${(q-)init}
     ${(q)name} \"\$@\"
   "
 }
@@ -261,7 +261,7 @@ check-ssd-health() {
 }
 
 scan-local-network() {
-  local subnets=( $(command ip -4 route | awk '$1 ~ /\// { print $1 }') )
+  local subnets=( $(ip -4 route | awk '$1 ~ /\// { print $1 }') )
   # <https://nmap.org/book/reduce-scantime.html>
   # -sn -- just a ping scan, without scanning ports
   # -n  -- disable DNS resolution of scanned hosts
@@ -302,7 +302,7 @@ d() {
 
 fzf-man() {
   local previewer='MANWIDTH=$FZF_PREVIEW_COLUMNS fancy-man-pager {1} {2}'
-  man -k . | sed 's/^\s*\(\S\+\)\s*(\(\w\+\))/\2 \1 \0/' |
+  apropos . | sed 's/^\s*\(\S\+\)\s*(\(\w\+\))/\2 \1 \0/' |
     fzf --with-nth=3.. --accept-nth=1,2 --tiebreak=begin,chunk --query="$*" --preview="$previewer"
 }
 

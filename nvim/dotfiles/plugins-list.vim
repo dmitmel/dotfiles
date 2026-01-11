@@ -233,7 +233,7 @@ exe dotplug#define_plug_here()
     if has('nvim-0.9.0')
       " The new parsing and syntax highlighting system for Neovim.
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter', {
-            \ 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
+            \ 'branch': 'master', 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', {
             \ 'requires': 'nvim-treesitter' }
     endif

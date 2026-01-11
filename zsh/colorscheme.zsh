@@ -45,7 +45,7 @@ case "${DOTFILES_REAL_TERM:-$TERM}" in
 esac
 
 set-my-colorscheme() {
-  local i; for (( i = 1; i <= ${#colorscheme_ansi_colors}; i++ )); do
+  local i; for (( i = 1; i <= ${#colorscheme_ansi_colors[@]}; i++ )); do
     _colorscheme_set_color "$((i-1))" "${colorscheme_ansi_colors[$i]}"
   done
 

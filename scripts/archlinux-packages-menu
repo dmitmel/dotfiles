@@ -1,18 +1,19 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -euo pipefail
 
 if package="$(set -euo pipefail; {
+
   expac --sync '%r/%a/%n %v - %d'
-  curl --silent --location --fail --max-time 10 --compressed https://aur.archlinux.org/packages.gz | awk '!/^#/ { print "aur/" $0 }'
-} | rofi -dmenu)" && [[ -n "$package" ]]; then
+  curl --silent --location --fail --max-time 10 'https://aur.archlinux.org/packages.gz' |
+    gzip -d | awk '!/^#/ { print "aur/" $0 }'
+
+} | rofi -dmenu)" && [ -n "$package" ]; then
 
   package="${package%% *}"
-  if [[ "$package" == aur/* ]]; then
-    package="${package#aur/}"
-    url="https://aur.archlinux.org/packages/${package}/"
-  else
-    url="https://www.archlinux.org/packages/${package}/"
-  fi
+  case "$package" in
+    (aur/*) url="https://aur.archlinux.org/packages/${package#aur/}/";;
+    (*)     url="https://www.archlinux.org/packages/${package}/";;
+  esac
 
   xdg-open "$url"
 fi

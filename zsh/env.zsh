@@ -47,7 +47,7 @@ fi
 
 # lf can load settings from LS_COLORS, but the configuration which is generated
 # by GNU dircolors contains some entries with reversed fg/bg colors, which looks
-# super ugly in the actual UI of lf when such a file is selected. I include some
+# super ugly in inside lf when such a file is selected. Hence, I include some
 # overrides in the lf-specific LF_COLORS to fix types of files which suffer from
 # this visual problem, and to match the color scheme between ranger and lf.
 # <https://github.com/gokcehan/lf/blob/master/etc/colors.example>

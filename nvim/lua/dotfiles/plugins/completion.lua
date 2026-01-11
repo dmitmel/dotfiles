@@ -39,26 +39,6 @@ local blink_cmp_config = {
     ['<C-f>'] = { scroll_page(1), 'fallback' },
     ['<C-b>'] = { scroll_page(-1), 'fallback' },
     ['<F1>'] = { 'show_signature', 'hide_signature', 'fallback' },
-
-    -- ['<Tab>'] = {
-    --   function(cmp)
-    --     if not (cmp.is_menu_visible() and cmp.get_selected_item() ~= nil) then
-    --       return cmp.snippet_forward()
-    --     end
-    --   end,
-    --   'select_next',
-    --   'fallback',
-    -- },
-
-    -- ['<S-Tab>'] = {
-    --   function(cmp)
-    --     if not (cmp.is_menu_visible() and cmp.get_selected_item() ~= nil) then
-    --       return cmp.snippet_backward()
-    --     end
-    --   end,
-    --   'select_prev',
-    --   'fallback',
-    -- },
   },
 
   cmdline = {

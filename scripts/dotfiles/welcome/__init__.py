@@ -6,11 +6,18 @@ import os
 import re
 import sys
 
+import colorama
+
 from .colors import COLORS, Style
 from .system_info import get_system_info
 
 
 def main() -> None:
+  if hasattr(colorama, "just_fix_windows_console"):
+    colorama.just_fix_windows_console()
+  elif sys.platform == "win32":
+    colorama.init()
+
   parser = argparse.ArgumentParser()
   parser.add_argument("--hide-logo", action="store_true")
   parser.add_argument("--set-logo-file")

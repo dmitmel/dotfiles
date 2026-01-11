@@ -16,7 +16,7 @@ function M.format_lsp_message(format, client_ids, ...)
   if utils.is_empty(names) then
     return string.format(format, 'LSP', ...)
   else
-    return string.format(format, 'LSP[' .. table.concat(names, ',') .. ']', ...)
+    return string.format(format, 'LSP[' .. table.concat(names, '|') .. ']', ...)
   end
 end
 

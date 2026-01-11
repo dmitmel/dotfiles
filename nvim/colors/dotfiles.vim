@@ -32,6 +32,8 @@ function! s:mix_colors(color1, color2, factor) abort
 endfunction
 
 let s:NONE = { 'gui': 'NONE', 'cterm': 'NONE' }
+let s:normal_fg = { 'gui': 'fg', 'cterm': 'fg' }
+let s:normal_bg = { 'gui': 'bg', 'cterm': 'bg' }
 function! s:Hi(group, def) abort
   let fg = get(a:def, 'fg', s:NONE)
   let bg = get(a:def, 'bg', s:NONE)
@@ -159,12 +161,17 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.type.variable                   NONE
     hi! link @lsp.type.operator                   NONE
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
-    hi! link @lsp.typemod.variable.definition     @variable.declaration
+    hi! link @lsp.typemod.variable.definition.go  @variable.declaration
     hi! link @lsp.typemod.function.defaultLibrary PreProc
+    hi! link @lsp.typemod.function.defaultLibrary.rust NONE
+    hi! link @lsp.typemod.function.defaultLibrary.c NONE
+    hi! link @lsp.typemod.function.defaultLibrary.cpp NONE
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary.go NONE
     hi! link @lsp.typemod.variable.global         PreProc
     hi! link @lsp.typemod.variable.readonly       Constant
+    hi! link @lsp.typemod.variable.readonly.c     NONE
+    hi! link @lsp.typemod.function.readonly.cpp   NONE
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
     hi! link @markup.raw            String
@@ -838,7 +845,7 @@ function! s:setup() " NOTE: not abort
   hi! link pythonBuiltinType pythonClass
   hi! link pythonExClass     pythonClass
   hi! link pythonBuiltinObj  pythonFunction
-  hi! link pythonClassVar    Variable
+  hi! link pythonClassVar    Special
   hi! link pythonStrTemplate PreProc
   hi! link pythonStrFormat   PreProc
   " }}}
@@ -883,7 +890,7 @@ function! s:setup() " NOTE: not abort
   hi! link shArithmetic   NONE
   hi! link shCommandSub   NONE
   hi! link shForPP        NONE
-  hi! link shTestOpr      Operator
+  hi! link shTestOpr      Special
   hi! link shEscape       Special
   hi! link shOption       Special
   hi! link zshOption      Special
@@ -926,13 +933,20 @@ function! s:setup() " NOTE: not abort
 
   " Golang {{{
   hi! link goFunctionCall Function
-  hi! link goBuiltins     Special
+  hi! link goBuiltins     PreProc
   hi! link goVarAssign    NONE
   hi! link goVarDefs      NONE
   " }}}
 
   " lfrc {{{
   hi! link lfIgnore NONE
+  " }}}
+
+  " Perl {{{
+  hi! link perlStatement Function
+  hi! link perlStatementControl Statement
+  hi! link perlStatementStorage StorageClass
+  hi! link perlStatementInclude Include
   " }}}
 
 endfunction

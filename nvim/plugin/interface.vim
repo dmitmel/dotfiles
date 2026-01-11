@@ -170,12 +170,12 @@ set history=10000
     autocmd FileType checkhealth setlocal bufhidden=wipe
     " Customizations for the manpage viewer.
     " <https://github.com/neovim/neovim/blob/v0.11.1/runtime/lua/man.lua#L397-L405>
-    autocmd FileType man if !empty(&buftype) | setlocal bufhidden=delete | endif
+    autocmd FileType man if !empty(&buftype) | setlocal bufhidden=delete nobuflisted | endif
     " For `help` buffers it is important to check `buftype` because Vimdoc files
     " may be opened for editing as regular files, in which case having
     " `colorcolumn` and `signcolumn` enabled actually makes sense.
     autocmd FileType help if &buftype ==# 'help' | setlocal signcolumn=no colorcolumn= | endif
-    autocmd FileType netrw,gitsigns-blame setlocal signcolumn=no colorcolumn= nolist
+    autocmd FileType netrw,gitsigns-blame,man setlocal signcolumn=no colorcolumn= nolist
   augroup END
 
 " }}}
@@ -488,6 +488,8 @@ endif
     " `virtualedit` used to be a global-only option
     if (has('patch-8.2.3227') || has('nvim-0.7.0')) | setlocal virtualedit=none | endif
     if dotplug#has('indentLine') | exe 'IndentLinesDisable' | endif
+    let b:matchup_matchparen_enabled = 0
+    let b:matchup_matchparen_fallback = 0
   endfunction
 
   augroup dotfiles_terminal
@@ -514,9 +516,9 @@ endif
 
   if has('nvim-0.6.0')
     " Since Nvim v0.6.0, the output of |'keywordprg'| is displayed in a terminal
-    " buffer, and I actually want that buffer to close itself with `:bwipeout`
-    " when any key is pressed because Nvim opens a new window for the terminal
-    " for |'keywordprg'| output (see `:help K`). Basically, I execute the
+    " buffer, but I actually want *that* buffer to close itself and its window
+    " with `:bwipeout` when any key is pressed (Neovim now opens a new terminal
+    " window for |'keywordprg'| output, see `:help K`). Basically, I execute the
     " built-in action of the |K| key, see if it has created a new terminal
     " buffer, and if it indeed has, disable the terminal-closing hack for that
     " particular buffer.

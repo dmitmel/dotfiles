@@ -14,10 +14,12 @@ if !has('nvim')
     if split(eval('&'.a:option_name), ',')[0] !=# '.' | return | endif
 
     let dir = expand(has('win32') ? '$HOME/vimfiles' : '~/.vim') . '/' . a:dir_name
-    if !isdirectory(dir)
+    try
       " These directories are created with restricted permissions as a mitigation for CVE-2017-1000382
-      silent! call mkdir(dir, 'p', 0700)
-    endif
+      call mkdir(dir, 'p', 0700)
+    catch /^Vim\%((\a\+)\)\=:E739:/
+      " the directory already exists
+    endtry
 
     let dir .= '//'   " See |'directory'| for the meaning of the trailing double-backslash
     exe 'let &'.a:option_name.' = dir'
@@ -91,7 +93,7 @@ set nofixendofline
 " grep {{{
 
   if executable('rg') " {{{
-    let s:rg_cmd = 'rg --hidden --follow --smart-case'
+    let s:rg_cmd = 'rg --hidden --follow' . (&smartcase ? ' --smart-case' : '')
     let s:rg_cmd .= ' --'.(&wildignorecase ? 'i' : '').'glob=' . shellescape('!{'.&wildignore.'}')
     let &grepprg = s:rg_cmd . ' --vimgrep'
     set grepformat^=%f:%l:%c:%m
@@ -102,7 +104,7 @@ set nofixendofline
     command! -bang -nargs=* Find Rg<bang> <args>
     " }}}
   elseif executable('ag') " {{{
-    let s:ag_cmd = 'ag --hidden --follow --smart-case'
+    let s:ag_cmd = 'ag --hidden --follow' . (&smartcase ? ' --smart-case' : '')
     let s:ag_cmd .= ' --ignore={' . join(map(split(&wildignore, ','), 'shellescape(v:val)'), ',') . '}'
     let &grepprg = s:ag_cmd . ' --vimgrep'
     set grepformat^=%f:%l:%c:%m
@@ -126,7 +128,7 @@ set nofixendofline
   function! s:grep_word() abort
     let word = expand('<cword>')
     if !empty(word)
-      let cmd = 'grep -- ' . shellescape('\b' . word . '\b', 1)
+      let cmd = 'grep -- ' . shellescape('\<' . word . '\>', 1)
       " The `t` flag makes Vim treat the fed keys as if they were typed from
       " keyboard by the user. This is important for preserving the `:grep`
       " command in history.
@@ -207,20 +209,22 @@ set nofixendofline
 
 " Commands {{{
 
-  " DiffWithSaved {{{
-    " Compare current buffer with the actual (saved) file on disk
-    function! s:DiffWithSaved() abort
-      let filetype = &filetype
+  " DiffOrig {{{
+    " Compare the current buffer with the actual (saved) file on disk. Based on
+    " <https://vim.fandom.com/wiki/Diff_current_buffer_and_the_original_file>
+    " and the example given in |diff-original-file|.
+    function! s:DiffOrig() abort
       diffthis
       vnew
-      setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodeline
-      read #
-      normal! ggdd
+      setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
+      read ++edit #
+      1 delete _
       setlocal readonly nomodifiable
       diffthis
-      let &filetype = filetype
+      let &l:filetype = getbufvar('#', '&filetype', '')
+      wincmd p
     endfunction
-    command DiffWithSaved call s:DiffWithSaved()
+    command -bar DiffOrig call s:DiffOrig()
   " }}}
 
   " EditGlob {{{
@@ -276,17 +280,19 @@ set nofixendofline
   let s:url_regex = '^\a\+://'
 
   " create parent directory of the file if it doesn't exist
-  function! CreateParentDir() abort
+  function! s:CreateParentDir() abort
     " check if this is a regular file and its path is not a URL
-    if empty(&buftype) && expand('<afile>') !~# s:url_regex
-      let dir = expand('<afile>:h')
-      if !isdirectory(dir)  " <https://github.com/vim/vim/pull/2775>
+    if empty(&buftype) && bufname('%') !~# s:url_regex
+      let dir = expand('%:h')
+      try
         call mkdir(dir, 'p')
-      endif
+      catch /^Vim\%((\a\+)\)\=:E739:/
+        " <https://github.com/vim/vim/pull/2775>
+      endtry
     endif
   endfunction
 
-  function! FixWhitespace() abort
+  function! s:StripWhitespace() abort
     let pos = getcurpos()
     " remove trailing whitespace
     keeppatterns %s/\s\+$//e
@@ -294,13 +300,14 @@ set nofixendofline
     keeppatterns %s/\($\n\s*\)\+\%$//e
     call setpos('.', pos)
   endfunction
+  command -bar StripWhitespace call s:StripWhitespace()
 
-  let g:format_on_save = {}
-  function! Format() abort
-    if expand('<afile>') !~# s:url_regex && !&binary && &modifiable && &buftype !=# 'nofile' &&
+  let g:format_on_save = { 'diff': 0, 'gitsendemail': 0, 'snippets': 0 }
+  function! s:Format() abort
+    if expand('%') !~# s:url_regex && !&binary && &modifiable && &buftype !=# 'nofile' &&
     \  get(g:format_on_save, &filetype, 1) && get(b:, 'format_on_save', 1) &&
     \  !get(s:, 'noformat', 0)
-      call FixWhitespace()
+      StripWhitespace
       if exists(':LspFixAll')
         " Automatic fixes must be applied BEFORE running the formatters!
         LspFixAll
@@ -313,16 +320,20 @@ set nofixendofline
     endif
   endfunction
 
-  command -bar Format call Format()
-  command -bar FormatIgnore let g:format_on_save[&filetype] = 0
-  command -nargs=* -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
-  execute dotutils#cmd_alias('nof', 'NoFormat')
-  execute dotutils#cmd_alias('now', 'NoFormat write')
+  command -bar Format call s:Format()
+  command -bar FormatIgnore let g:format_on_save[&filetype] = 0 | echo "Disabled auto-formatting for buffers with filetype '".&ft."'"
+  command -nargs=+ -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
+
+  execute dotutils#cmd_alias('nof',   'NoFormat')
+  execute dotutils#cmd_alias('now',   'NoFormat write')
+  execute dotutils#cmd_alias('nowa',  'NoFormat wall')
+  execute dotutils#cmd_alias('nowq',  'NoFormat wq')
+  execute dotutils#cmd_alias('nowqa', 'NoFormat wqa')
 
   augroup dotfiles_on_save
     autocmd!
-    autocmd BufWritePre * call Format()
-    autocmd BufWritePre * call CreateParentDir()
+    autocmd BufWritePre * unsilent call s:Format()
+    autocmd BufWritePre * unsilent call s:CreateParentDir()
   augroup END
 
 " }}}

@@ -13,6 +13,8 @@ function! s:patch_c_comments() abort
       let idx = len(comments)
     endif
   endif
+
+  " Add special Doxygen comment markers before the normal double-slash comments.
   call insert(comments, ':///<,://!<,:///,://!', idx)
 
   exe dotfiles#ft#set('&comments', join(comments, ','))

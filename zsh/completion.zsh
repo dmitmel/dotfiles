@@ -52,9 +52,9 @@ zcompdump="${ZSH_CACHE_DIR}/zcompdump"
 # Delete the completion dump if it is stale. Description of the glob qualifiers:
 #   N    turn on NULL_GLOB for this expansion
 #   .    match only plain files
-#   m+0  check if the file was modified more than a day ago
+#  mw+0  check if the file was modified more than a week ago
 # see "Filename Generation" in zshexpn(1).
-for stale in "$zcompdump"(N.m+0); do
+for stale in "$zcompdump"(N.mw+0); do
   print >&2 -r -- "deleting stale completion dump at ${(qq)stale}"
   command rm -- "$stale"
 done; unset stale

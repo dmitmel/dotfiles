@@ -1,14 +1,15 @@
-" For some reason, Lazy.nvim causes this script to be sourced the first time
-" when `require('lazy').setup(...)` gets called, and then it is sourced the
-" second time as part of the normal loading procedure. I guess this has
-" something to do with its `performance.rtp.disabled_plugins` feature.
-if !exists('g:dotfiles_fixup_plugins_ready')
+" For some reason, Lazy.nvim causes this script to be sourced twice: the first
+" time when `require('lazy').setup(...)` gets called, and the second time as
+" part of the normal plugin loading procedure. I guess this has something to do
+" with its `performance.rtp.disabled_plugins` feature. But anyway, the execution
+" of this script is allowed only after lazy.nvim has been set up, at the very
+" end of `../../../init.vim`.
+if !exists('g:dotfiles_ready_to_fixup_plugins')
   finish
 endif
 
-if exists('g:loaded_fzf_vim')
-  " This command only works with Ultisnips, which I don't use, and gets in the
-  " way when tab-completing nvim-snippy commands.
+if exists('g:loaded_fzf_vim') && exists(':Snippets') == 2 && !exists(':UltiSnipsEdit')
+  " This command only works with Ultisnips, which I don't use.
   delcommand Snippets
 endif
 
@@ -23,11 +24,23 @@ endif
 
 augroup dotfiles_session
   autocmd!
-  let g:dotfiles_saved_shortmess = &shortmess
-  autocmd SessionLoadPost * let &shortmess = g:dotfiles_saved_shortmess
+
+  autocmd SourcePre * let s:saved_shortmess = &shortmess
+  if exists('##SourcePost')
+    autocmd SourcePost * unlet! s:saved_shortmess
+  endif
+
+  autocmd SessionLoadPost *
+  \ if exists('s:saved_shortmess')
+  \|  let &shortmess = s:saved_shortmess
+  \|  unlet s:saved_shortmess
+  \|endif
+
   " Clear the argument list before saving the sessions and after loading them.
-  " It is very annoying that it is persisted in the session, the buffers opened
-  " from the command line become undeleatable.
+  " There is no option for this in |sessionoptions| and it is very annoying that
+  " it is persisted in the session -- if some buffers were opened from the
+  " command line and closed afterwards, they re-appear after reloading a saved
+  " session.
   autocmd User ObsessionPre %argdel
   autocmd SessionLoadPost * %argdel
 augroup END

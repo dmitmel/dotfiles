@@ -13,8 +13,8 @@ from dotfiles import common_script_utils
 DEFAULT_REGISTRY_DUMP_URL = "https://stronghold.openkrosskod.org/~ccbot/emote-registry.json"
 
 if os.name == "posix":
-  config_path: Path = common_script_utils.DOTFILES_CONFIG_DIR / "copy-crosscode-emoji-url.ini"
-  default_registry_dump_file: Path = common_script_utils.DOTFILES_CACHE_DIR / "dotfiles"
+  config_path = Path.home() / ".config" / "dotfiles" / "copy-crosscode-emoji-url.ini"
+  default_registry_dump_file = Path.home() / ".cache" / "dotfiles" / "crosscode-emojis.json"
 else:
   raise common_script_utils.platform_not_supported_error()
 config = ConfigParser(interpolation=None)

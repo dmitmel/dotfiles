@@ -214,21 +214,20 @@ def _get_local_addresses():
 def _get_distro_info():
   if psutil.WINDOWS:
     return "windows", platform.system(), platform.release(), ""
+
   elif psutil.OSX:
     import plistlib
 
     with open("/System/Library/CoreServices/SystemVersion.plist", "rb") as f:
       sw_vers = plistlib.load(f)
     return "mac", sw_vers["ProductName"], sw_vers["ProductVersion"], ""
+
   elif _is_android():
     import subprocess
 
-    android_version = subprocess.run(
-      ["getprop", "ro.build.version.release"],
-      check=True,
-      stdout=subprocess.PIPE,
-    ).stdout
+    android_version = subprocess.check_output(["getprop", "ro.build.version.release"])
     return "android", "Android", android_version.decode().strip(), ""
+
   elif psutil.LINUX:
     import distro
 

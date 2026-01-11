@@ -80,7 +80,7 @@ if has('termguicolors') && !has('nvim-0.10.0') && ($COLORTERM ==# 'truecolor' ||
 endif
 
 " I want to load the colorscheme as early as possible, so that if any part of
-" config crashes, we still get the correct highlighting and colors.
+" the config crashes, we still get the correct highlighting and colors.
 colorscheme dotfiles
 
 if has('nvim-0.5.0')
@@ -111,4 +111,4 @@ augroup END
 filetype plugin indent on
 syntax enable
 
-let g:dotfiles_fixup_plugins_ready = 1  " see ./after/plugin/dotfiles/fixup.vim
+let g:dotfiles_ready_to_fixup_plugins = 1  " see ./after/plugin/dotfiles/fixup.vim

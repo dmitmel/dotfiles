@@ -138,7 +138,7 @@ function! dotfiles#fzf#manpage_search(fullscreen) abort
   \ '/^\s*(\S+)\s*\((\w+)\)\s*-\s*(.+)$/; printf(qq(%s\t%s\t%-45s %s\n), $2, $1, sprintf("%s (%s)", $1, $2), $3)'
 
   let dict = {
-  \ 'source': 'man -k . | perl -ne ' . fzf#shellescape(perl_script),
+  \ 'source': 'apropos . | perl -ne ' . fzf#shellescape(perl_script),
   \ 'sink*': function('s:manpage_search_sink'),
   \ 'options': ['--ansi', '--prompt=:Man ', '--tiebreak=begin,chunk', '--multi', '--with-nth=3..',
   \   '--preview', 'MANWIDTH=$FZF_PREVIEW_COLUMNS ' . s:fancy_man_pager . ' {1} {2}',

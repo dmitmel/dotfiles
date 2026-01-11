@@ -723,10 +723,10 @@ augroup:autocmd('LspDetach', function(event)
 end)
 
 function M.stop_inactive_clients()
-  for client_id, igniter in pairs(M.launched_clients) do
+  for _, igniter in pairs(M.launched_clients) do
     if
       igniter.autostop
-      and utils.is_empty(lsp.get_buffers_by_client_id(client_id))
+      and utils.is_empty(igniter:get_client().attached_buffers)
       and utils.is_empty(igniter.attaching_buffers)
     then
       igniter:stop_client(false)

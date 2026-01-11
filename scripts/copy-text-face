@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 declare -A faces=(
-  ["shrug face"]=$'\xc2\xaf\\_(\xe3\x83\x84)_/\xc2\xaf'
-  ["shrug face (markdown)"]=$'\xc2\xaf\\\\\\_(\xe3\x83\x84)\\_/\xc2\xaf'
-  ["lenny face"]=$'( \xcd\xa1\xc2\xb0 \xcd\x9c\xca\x96 \xcd\xa1\xc2\xb0)'
-  ["table flip"]=$'(\xe3\x83\x8e\xe0\xb2\xa0\xe7\x9b\x8a\xe0\xb2\xa0)\xe3\x83\x8e\xe5\xbd\xa1\xe2\x94\xbb\xe2\x94\x81\xe2\x94\xbb'
+  ["shrug face"]='¯\_(ツ)_/¯'
+  ["shrug face (markdown)"]='¯\\\_(ツ)\_/¯'
+  ["lenny face"]='( ͡° ͜ʖ ͡°)'
+  ["table flip"]='(ノಠ益ಠ)ノ彡┻━┻'
 )
 
 if face_name="$(printf '%s\n' "${!faces[@]}" | rofi -dmenu -i)"; then

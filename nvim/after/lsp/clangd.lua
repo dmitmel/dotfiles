@@ -13,6 +13,7 @@ return {
     '--query-driver=/usr/bin/*',
     '--query-driver=/usr/local/bin/*',
     '--header-insertion=never',
+    '--header-insertion-decorators=false',
     '--log=error',
     '--offset-encoding=utf-8',
   },

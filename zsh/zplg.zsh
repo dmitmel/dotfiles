@@ -35,7 +35,7 @@ ZPLG_HOME="${ZPLG_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zplg}"
 ZPLG_DEFAULT_SOURCE="${ZPLG_DEFAULT_SOURCE:-github}"
 
 # Directory in which plugins are stored. It is separate from $ZPLG_HOME for
-# compatitability with future versions, in case I decide to put more stuff in
+# compatibility with future versions, in case I decide to put more stuff in
 # $ZPLG_HOME later.
 ZPLG_PLUGINS_DIR="${ZPLG_HOME}/plugins"
 
@@ -54,7 +54,7 @@ ZPLG_PLUGINS_DIR="${ZPLG_HOME}/plugins"
   _zplg_error() {
     # try to find the place outside of the script that caused this error
     local external_caller
-    local i; for (( i=1; i<=${#funcfiletrace}; i++ )); do
+    local i; for (( i=1; i<=${#funcfiletrace[@]}; i++ )); do
       # $funcfiletrace contains file paths and line numbers
       # $functions_source tells in which file a function was defined
       if [[ "${funcfiletrace[$i]}" != "${functions_source[_zplg_error]}":* ]]; then
@@ -106,12 +106,16 @@ typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGI
 
   _zplg_source_git_download() {
     local plugin_url="$1" plugin_dir="$2"
-    git clone --recurse-submodules -- "$plugin_url" "$plugin_dir"
+    git clone --progress --filter=blob:none --recurse-submodules -- "$plugin_url" "$plugin_dir"
   }
 
   _zplg_source_git_upgrade() {
     local plugin_url="$1" dir="$2"
-    { git -C "$plugin_dir" pull || git -C "$plugin_dir" fetch } && \
+    if git symbolic-ref --quiet HEAD &>/dev/null; then
+      git -C "$plugin_dir" pull
+    else
+      git -C "$plugin_dir" fetch
+    fi &&
       git -C "$plugin_dir" submodule update --init --recursive
   }
 
@@ -195,6 +199,7 @@ plugin() {
 
   local plugin_id="$1" plugin_url="$2"; shift 2
 
+  local MATCH MBEGIN MEND
   if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
     _zplg_error "invalid plugin ID"
     return 1
@@ -219,7 +224,7 @@ plugin() {
 
   # `${arr:#pat}` filters out all elements from an array which match a given pattern.
   local -a invalid_options=( "${@:#*?=?*}" )
-  if (( ${#invalid_options} != 0 )); then
+  if (( ${#invalid_options[@]} != 0 )); then
     _zplg_error "options must have the following format: <key>=<value>"
     return 1
   fi
@@ -246,7 +251,7 @@ plugin() {
 
   # }}}
 
-  if (( ${#plugin_load} == 0 )); then
+  if (( ${#plugin_load[@]} == 0 )); then
     # default loading patterns:
     # - *.plugin.zsh for most plugins and Oh My Zsh ones
     # - *.zsh-theme for most themes and Oh My Zsh ones
@@ -263,7 +268,7 @@ plugin() {
     _zplg_log "downloading $plugin_id"
     _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
 
-    if (( ${#plugin_build} > 0 )); then
+    if (( ${#plugin_build[@]} > 0 )); then
       _zplg_log "building $plugin_id"
       ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
     fi
@@ -300,8 +305,8 @@ plugin() {
     # arrays, I simply quote every element with the (@q) modifier, then join
     # quoted ones into a string with (j: :) and put this "encoded" string into
     # the associative array. Terrible idea? Maybe. Does it work? YES!!!
-    if (( ${#plugin_build} > 0 )); then
-      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${(j: :)${(@q+)plugin_build}}"
+    if (( ${#plugin_build[@]} > 0 )); then
+      ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]="${(j: :)${(@q-)plugin_build}}"
     fi
 
   } always {

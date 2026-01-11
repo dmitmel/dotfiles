@@ -75,7 +75,7 @@ function! dotutils#open_scratch_preview_win(opts) abort
   return result
 endfunction
 
-let g:dotutils#use_lua_for_open_uri = get(g:, 'dotutils#use_lua_for_open_uri', 0)
+let g:dotutils#use_lua_for_open_uri = get(g:, 'dotutils#use_lua_for_open_uri', has('nvim-0.12.0'))
 
 " Opens the URI with a system viewer program.
 function! dotutils#open_uri(uri, ...) abort

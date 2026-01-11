@@ -3,12 +3,7 @@ import signal
 import subprocess
 import sys
 from contextlib import contextmanager
-from pathlib import Path
 from typing import Generator, Iterable, Optional
-
-if os.name == "posix":
-  DOTFILES_CONFIG_DIR = Path.home() / ".config" / "dotfiles"
-  DOTFILES_CACHE_DIR = Path.home() / ".cache" / "dotfiles"
 
 
 def platform_not_supported_error() -> Exception:

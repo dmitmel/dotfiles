@@ -51,7 +51,9 @@ return {
   on_new_config = function()
     if vim.fn.isdirectory(PRETTIER_LS_DIR .. '/node_modules') == 0 then
       local pm = utils.find({ 'yarn', 'npm' }, function(pm) return vim.fn.executable(pm) ~= 0 end)
-      vim.cmd('!cd -- ' .. vim.fn.shellescape(PRETTIER_LS_DIR, true) .. ' && ' .. pm .. ' install')
+      if pm ~= nil then
+        vim.cmd(('!cd -- %s && %s install'):format(vim.fn.shellescape(PRETTIER_LS_DIR, true), pm))
+      end
     end
   end,
 }

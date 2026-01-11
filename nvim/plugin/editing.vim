@@ -237,7 +237,7 @@ endif
   set nowrap          " By default, don't wrap lines longer than the window width permits, use horizontal scroll.
   set textwidth=80    " I use `textwidth` only for wrapping prose with `gw`, code wrapping is
   set colorcolumn=+1  " handled by formatters. Additionally, highlight the column at `textwidth+1`.
-  set linebreak       " When wrapping, break lines only on `breakat` characters (also called "soft wrapping").
+  set linebreak       " Soft wrapping: break lines only on characters specified in `breakat`.
   set breakindent     " The wrapped text will be offset to the right with the width of the indent.
   set sidescroll=1    " Basically, smooth horizontal scrolling.
 
@@ -253,11 +253,11 @@ endif
   if exists('+smoothscroll') | set smoothscroll | endif
 
   " Swap `[hjkl]` and `g[hjkl]` keys when `wrap` is on.
-  for s:key in ['j', 'k', '0', '$', '<Up>', '<Down>', '<Home>', '<End>']
-    exe printf('noremap <expr> %s (&wrap && v:count == 0) ? "g%s" : "%s"', s:key, s:key, s:key)
-    exe printf('noremap <expr> g%s &wrap ? "%s" : "g%s"', s:key, s:key, s:key)
-    exe 'sunmap  '.s:key
-    exe 'sunmap g'.s:key
+  for s:key in ['j', 'k', '0', '^', '$', '<Up>', '<Down>', '<Home>', '<End>']
+    exe printf('noremap <expr> %s  (&wrap && v:count == 0) ? "g%s" : "%s"', s:key, s:key, s:key)
+    exe printf('noremap <expr> g%s (&wrap && v:count == 0) ? "%s" : "g%s"', s:key, s:key, s:key)
+    exe 'sunmap '.s:key | exe 'sunmap g'.s:key
+    exe 'ounmap '.s:key | exe 'ounmap g'.s:key
   endfor
 
   " My final attempt at untangling the mess that are the <Up> and <Down> keys.
@@ -596,6 +596,7 @@ endif
   endfunction
   command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
   execute dotutils#cmd_alias('Sp', 'SpellCheck')
+  nnoremap <script> <leader>s <SID>:SpellCheck<CR>
 
 " }}}
 
@@ -751,6 +752,7 @@ endif
   \ 'c++=cpp',
   \ 'viml=vim',
   \ 'bash=sh',
+  \ 'shell=sh',
   \ 'ini=dosini',
   \ 'js=javascript',
   \ 'ts=typescript',
