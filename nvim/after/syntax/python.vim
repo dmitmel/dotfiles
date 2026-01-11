@@ -13,7 +13,9 @@ unlet! s:saved_syntax
 " <https://stackoverflow.com/questions/35868798/vim-higlight-sql-inside-python-triple-quote-string>
 " <https://gist.github.com/mdzhang/eaab47b323d49feb5db81a3b92fc128c/18c9416627c667efd71255bb61c03967fa744c55>
 " <https://github.com/MathSquared/vim-python-sql/commit/67ed65351b3024821770efd9dc28a100f9034225>
-syn region pythonSqlString start=/\v\C\z("""|''')\zs\_s*<(sql|SQL|SELECT|INSERT|UPSERT|UPDATE|SET|DELETE|CREATE|REPLACE|ALTER|WITH|DROP|TRUNCATE|PRAGMA)>/ end=/\ze\z1/ contains=@SQL contained containedin=pythonString,pythonFString,pythonRawString,pythonRawFString
+syntax region pythonSqlString
+      \ start=/\v\C\z("""|''')\zs\_s*<(sql|SQL|SELECT|INSERT|UPSERT|UPDATE|SET|DELETE|CREATE|REPLACE|ALTER|WITH|DROP|TRUNCATE|PRAGMA)>/
+      \ end=/\ze\z1/ contains=@SQL contained containedin=pythonString,pythonFString,pythonRawString,pythonRawFString
 
 syn keyword pythonOperatorKeyword and in is not or
 hi def link pythonOperatorKeyword Keyword
