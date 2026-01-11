@@ -28,43 +28,51 @@ else:
 profiles_config = ConfigParser(interpolation=None)
 profiles_config.read(firefox_home / "profiles.ini")
 
+# <https://firefox-source-docs.mozilla.org/toolkit/profile/changes.html>
+# <https://kb.mozillazine.org/Profiles.ini_file>
+# <https://github.com/mozilla-firefox/firefox/blob/64a19d6e96aa456e7947aa3f96b4cd8b54f97235/toolkit/profile/nsToolkitProfileService.cpp>
 installs_sections: List[str] = [s for s in profiles_config.sections() if s.startswith("Install")]
-if not installs_sections:
-  raise Exception("no Firefox installations detected!")
 if len(installs_sections) > 1:
   raise Exception("multiple Firefox installations are not supported!")
-profile_dir: Path = firefox_home / profiles_config.get(installs_sections[0], "Default")
+elif len(installs_sections) == 1:
+  profile_dir = firefox_home / profiles_config.get(installs_sections[0], "Default")
+else:
+  for section in profiles_config.sections():
+    if section.startswith("Profile") and profiles_config.get(section, "Default") == "1":
+      profile_dir = firefox_home / profiles_config.get(section, "Path")
+      break
+  else:
+    raise Exception("failed to find the default Firefox profile")
 
 # should places.sqlite be used instead?
-db_path: Path = profile_dir / "weave" / "bookmarks.sqlite"
+db_path = profile_dir / "weave" / "bookmarks.sqlite"
 if not db_path.is_file():
   raise Exception(f"'{db_path}' is not a file")
 
 # Firefox holds a lock over the database file, so I can't connect to it even
 # in the readonly mode: https://stackoverflow.com/a/7857866/12005228
 # as a workaround I copy the file
-db_copy_fd, db_copy_path = tempfile.mkstemp(prefix="bookmarks.", suffix=".sqlite")
-os.close(db_copy_fd)
+with tempfile.NamedTemporaryFile(prefix="bookmarks-", suffix=".sqlite") as copied_db:
+  copied_db.file.close()
 
-chooser_entries: List[Tuple[str, str, Optional[str]]] = []
+  chooser_entries: List[Tuple[str, str, Optional[str]]] = []
 
-try:
-  shutil.copyfile(db_path, db_copy_path)
-  db = sqlite3.connect(db_copy_path)
+  shutil.copyfile(db_path, copied_db.name)
+  db = sqlite3.connect(copied_db.name)
 
   urls: Dict[int, str] = {}
   url_id: int
   url: str
-  for url_id, url in db.execute("SELECT id, url FROM urls"):
+  for url_id, url in db.execute("""SELECT id, url FROM urls"""):
     urls[url_id] = url
 
   folders: Dict[str, Tuple[Optional[str], Optional[str]]] = {}
   folder_id: str
   parent_folder_id: str
   folder_title: str
-  for folder_id, parent_folder_id, folder_title in db.execute(
-    "SELECT guid, parentGuid, title FROM items WHERE kind = 3 AND validity AND NOT isDeleted"
-  ):
+  for folder_id, parent_folder_id, folder_title in db.execute("""
+    SELECT guid, parentGuid, title FROM items WHERE kind = 3 AND validity AND NOT isDeleted
+  """):
     folders[folder_id] = (
       parent_folder_id if parent_folder_id != folder_id else None,
       folder_title,
@@ -74,9 +82,9 @@ try:
   # url_id: int
   url_keyword: Optional[str]
   # parent_folder_id: str
-  for url_title, url_id, url_keyword, parent_folder_id in db.execute(
-    "SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted"
-  ):
+  for url_title, url_id, url_keyword, parent_folder_id in db.execute("""
+    SELECT title, urlId, keyword, parentGuid FROM items WHERE kind = 1 AND validity AND NOT isDeleted
+  """):
     url = urls[url_id]
 
     folder_path: List[str] = []
@@ -96,9 +104,6 @@ try:
     chooser_entries.append((url_title, url, folder_path_str))
     if url_keyword is not None:
       chooser_entries.append((url_keyword, url, folder_path_str))
-
-finally:
-  os.remove(db_copy_path)
 
 
 def chooser_entries_iter() -> Generator[str, None, None]:
