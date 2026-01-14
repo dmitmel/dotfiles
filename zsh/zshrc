@@ -26,6 +26,36 @@
 
 # }}}
 
+# Declare this variable as an exported integer variable. If it is not already
+# present in the process environment, reading this variable will return zero.
+export -i DOTFILES_STARTING_SHLVL
+# I use $SHLVL to detect if the current shell is nested in a different shell,
+# e.g. when commands such as `poetry shell` or `nix shell` are invoked to
+# temporarily drop into a new interactive shell. However, the value of $SHLVL by
+# itself is not very useful because, well, it is inherited by the processes
+# launched from the shell without any regard to the context in which the shell
+# was spawned or the purpose of the processes themselves. For instance, if you
+# start a terminal emulator, use it to run a TUI editor such as nvim and open a
+# terminal window within it, the $SHLVL of the innermost shell will be 2, even
+# though it is clearly running in a completely different application. To address
+# this, I add an environment variable called $DOTFILES_PARENT_TTY, which shall
+# be inherited by child processes, just like $SHLVL, which a shell descendent
+# from the current process can use to tell if it is still running in the same
+# TTY as the one at `$SHLVL - 1`, in which case it counts as a nested shell, or
+# if it was started in a new TTY, which most likely means that it is running in
+# a completely different terminal within an application that happened to be
+# launched from an interactive shell, and thus inherited its environment.
+if [[ -n "$TTY" && "$DOTFILES_PARENT_TTY" != "$TTY" ]]; then
+  export DOTFILES_PARENT_TTY="$TTY"
+  # Avoid explicitly setting this variable to zero to avoid polluting the
+  # environment with a redundant variable, as it will be zero 90% of the time.
+  if (( SHLVL != 1 )); then (( DOTFILES_STARTING_SHLVL = SHLVL - 1 )); fi
+else
+  # If running in a nested shell, assume that the startup logs and the welcome
+  # message have already been shown, so don't display them twice in this TTY.
+  : ${DOTFILES_ZSHRC_SILENT=1}
+fi
+
 _perf_timer_start "total"
 
 # How this weird abomination for getting the path to the current script works:
@@ -67,7 +97,7 @@ done; unset script
 integer welcome_fd=-1
 {
 
-  if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" && -z "$POETRY_ACTIVE" ]]; then
+  if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" ]]; then
     # Once the basic shell environment has been configured, start the `welcome`
     # script in the background and open a pipe to read its output. The script
     # will collect information about the system in parallel with the heavier

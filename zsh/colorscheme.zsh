@@ -74,6 +74,12 @@ set-my-colorscheme() {
   fi
 }
 
+# Disable the colorscheme by default (unless it is explicitly turned on) if the
+# stdout is not a TTY or if $DOTFILES_ZSHRC_SILENT is not empty.
+if [[ ! -t 1 || -n "$DOTFILES_ZSHRC_SILENT" ]]; then
+  : ${DOTFILES_DISABLE_MY_COLORSCHEME=1}
+fi
+
 if [[ -z "$DOTFILES_DISABLE_MY_COLORSCHEME" ]]; then
   set-my-colorscheme
 fi

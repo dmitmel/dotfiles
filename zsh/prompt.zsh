@@ -145,12 +145,15 @@ PROMPT+='%1(j. %F{blue}JOBS:%j%f.)'
 #    windows (e.g. in Termux on my phone)
 PROMPT+=$'\n'
 
-# see prompt beginning
-PROMPT+='%b%F{8}└─%f'
+# Begin the second line of the prompt.
+PROMPT+='%b%F{8}└─'
 
-# the last character
+# The prompt ends with a dollar sign for regular users and a hash for root,
+# repeated as many times as there are nested shells.
+for (( i = DOTFILES_STARTING_SHLVL + 1; i < SHLVL; i++ )); do
+  PROMPT+='%(!.#.\$)'
+done; unset i
+
+# The final dollar/hash sign is normally colored green, but becomes red if the
+# last command has exited with a non-zero code.
 PROMPT+='%F{%(?.green.red)}%(!.#.\$)%f '
-
-# PROMPT2 is used when you type an unfinished command. Spaces are needed for
-# alignment with normal PROMPT.
-PROMPT2='  %_> '
