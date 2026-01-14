@@ -1,3 +1,8 @@
+if (( ${+aliases[run-help]} )); then unalias run-help; fi
+autoload -Uz run-help run-help-{git,ip,sudo,openssl}
+
+autoload -Uz colors && colors
+
 # Prints the number of received arguments.
 count() { print -r -- "$#"; }
 # Prints all arguments on separate lines. Useful for inspecting the contents of
@@ -113,21 +118,6 @@ git_current_branch() {
   print -r -- "${ref#refs/heads/}"
 }
 
-declare -A date_formats=(
-  iso       '%Y-%m-%dT%H:%M:%SZ'
-  normal    '%Y-%m-%d %H:%M:%S'
-  compact   '%Y%m%d%H%M%S'
-  only-date '%Y-%m-%d'
-  only-time '%H:%M:%S'
-  timestamp '%s'
-)
-
-for format_name format in "${(kv)date_formats[@]}"; do
-  eval "date-fmt-${format_name}() { date +${(q)format} \"\$@\"; }"
-done; unset format_name format
-
-unset date_formats
-
 if is_command swapoff && is_command swapon; then
   deswap() { sudo sh -c 'swapoff --all && swapon --all'; }
 fi
@@ -136,8 +126,6 @@ fi
 sudoedit() {
   SUDO_COMMAND="sudoedit $@" command sudoedit "$@"
 }
-alias sudoe="sudoedit"
-alias sue="sudoedit"
 
 # <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
 # <https://unix.stackexchange.com/questions/274909/how-can-i-get-a-persistent-dirstack-with-unique-entries-in-zsh>
@@ -306,6 +294,17 @@ fzf-man() {
     fzf --with-nth=3.. --accept-nth=1,2 --tiebreak=begin,chunk --query="$*" --preview="$previewer"
 }
 
+elfdiff() {
+  if (( $# == 2 )); then
+    # The `eval` is a hack to get aliases to apply inside this function
+    # <https://stackoverflow.com/a/45601749>
+    eval 'diff <(bin-dump "$1") <(bin-dump "$2")'
+  else
+    print >&2 -r "Usage: $0 [file1] [file2]"
+    return 1
+  fi
+}
+
 # A tool for debugging whether a given user can access the provided path.
 access() {
   local user="${1:?need a username}"; shift
@@ -358,6 +357,19 @@ sync() {
     printf '\n'
     wait "$sync_pid"  # returns the exit code of the `sync` process
   )
+}
+
+# Starts a background job that will ensure that sudo does not ask for a password
+# in the current session while it is running.
+keep-sudo() {
+  # The `-v` flag tells sudo to just perform authentication, without executing
+  # any commands.
+  if sudo -v; then
+    # This loop will periodically refresh the authentication timestamp for the
+    # current session (see sudoers(8)). The `-n` flag ensures that sudo will not
+    # try to read the password.
+    while sudo -vn; do sleep 60; done &
+  fi
 }
 
 if is_command apt; then
@@ -434,6 +446,20 @@ if is_command apt; then
       return "${pipestatus[1]}"
     else
       command -- "$0" "$@"
+    fi
+  }
+fi
+
+if is_command wdiff; then
+  # Inspired by <https://github.com/junghans/cwdiff/blob/de56a73f37eb72edfb78ea610798a5744b8dcf10/cwdiff#L54-L61>.
+  wdiff() {
+    if [[ -t 1 ]]; then
+      command wdiff \
+        --start-delete="${fg[red]}[-" --end-delete="-]${reset_color}" \
+        --start-insert="${fg[green]}{+" --end-insert "+}${reset_color}" \
+        "$@"
+    else
+      command wdiff "$@"
     fi
   }
 fi

@@ -15,24 +15,32 @@ alias dirs='dirs -v'
 alias grep='grep --color=auto'
 alias diff='diff --color=auto --unified'
 
-# exa is a modern replacement for ls - <https://the.exa.website/>
-# eza is a maintained fork of exa - <https://eza.rocks/>
-if command_exists exa || command_exists eza; then
-  if command_exists eza; then
-    alias exa='eza'
+alias sudoe="sudoedit"
+alias sue="sudoedit"
+
+if is_command dmesg; then
+  # `--human` makes `dmesg` display timestamps in the logs in a more
+  # human-readable way, and also start the pager automatically
+  alias dmesg='dmesg --human'
+  # use `sudo` if the current user is not root
+  if (( EUID != 0 )); then
+    # Purposefully defined as a function, not an alias, to call `sudo` only if
+    # this command was not invoked with `sudo` in the first place.
+    dmesg() { sudo dmesg "$@"; }
   fi
-  alias ls='exa --classify --group-directories-first'
-  alias lsa='ls --all'
-  alias l='ls --long --header --binary --group'
-  alias lt='l --tree'
-  alias la='l --all'
-  alias lat='la --tree'
-  alias tree='ls --tree'
+fi
+
+if command_exists eza; then
+  alias ls="eza --classify --group-directories-first"
+  alias l="${aliases[ls]} --long --header --binary --group"
+  alias la="${aliases[l]} --all"
+  alias lt="${aliases[l]} --tree"
+  alias lat="${aliases[la]} --tree"
+  alias tree="${aliases[ls]} --tree"
 else
-  alias ls='ls --classify --group-directories-first --color=auto'
-  alias lsa='ls --almost-all'
-  alias l='ls -l --human-readable'
-  alias la='l --almost-all'
+  alias ls="ls --classify --group-directories-first --color=auto"
+  alias l="${aliases[ls]} -l --human-readable"
+  alias la="${aliases[l]} --almost-all"
 fi
 
 # fd is a simple, fast and user-friendly alternative to find - https://github.com/sharkdp/fd
@@ -43,8 +51,8 @@ fi
 # some amendments to Oh My Zsh's git plugin
 # https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
 alias glo="git log --decorate --abbrev-commit --date=relative --pretty='%C(auto)%h%C(reset)%C(auto)%d%C(reset) %s %C(green)- %an %C(blue)(%ad)%C(reset)'"
-alias glog='glo --graph'
-alias gloga='glog --all'
+alias glog="${aliases[glo]} --graph"
+alias gloga="${aliases[glog]} --all"
 
 # git with hub
 if command_exists hub; then
@@ -111,9 +119,10 @@ if command_exists ncdu; then
   alias ncdu='ncdu --confirm-quit'
 fi
 
-alias bin-disassemble='objdump -M intel-mnemonics -dS'
-alias bin-list-symbols='nm'
-alias bin-list-dylib-symbols='nm -gD'
+alias bin-disassemble='objdump --disassemble --disassembler-options=intel --source --demangle'
+alias bin-dump='objdump --disassemble --disassembler-options=intel --full-contents --all-headers'
+alias bin-list-symbols='nm --demangle'
+alias bin-dylib-symbols='nm --dynamic --extern-only --demangle'
 
 if [[ -f /proc/driver/nvidia/version ]]; then
   # Duplicated as an alias to prevent autocorrection of the real "command" part.
@@ -142,20 +151,10 @@ fi
 
 alias gtime="command time -v"
 
-# Inspired by <https://github.com/junghans/cwdiff/blob/de56a73f37eb72edfb78ea610798a5744b8dcf10/cwdiff#L54-L61>.
-alias cwdiff='wdiff --start-delete="${fg[red]}[-" --end-delete="-]${reset_color}" --start-insert="${fg[green]}{+" --end-insert "+}${reset_color}"'
-
 alias yarn="yarn --emoji false"
 
 # <https://mpv.io/manual/stable/#pseudo-gui-mode>
 alias mpv='mpv --player-operation-mode=pseudo-gui'
-
-alias o='open'
-
-if command_exists vscodium && ! command_exists code; then
-  # Use a function instead of an alias, so that we still get the completions.
-  code() { vscodium "$@"; }
-fi
 
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'
 

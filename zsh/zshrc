@@ -85,8 +85,6 @@ else
   compdef() { _deferred_compdefs+=("$0 ${(j: :)${(q-)@}}"); }
 fi
 
-autoload -Uz colors && colors
-
 for script in options functions path; do
   perf_source "${ZSH_DOTFILES}/${script}.zsh"
 done; unset script
