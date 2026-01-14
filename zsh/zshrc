@@ -130,9 +130,16 @@ if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" ]]; then
   unfunction kitty-integration
 fi
 
-if is_function _ksi_deferred_init && [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
-  # Render the prompt to make it look as if the command was typed in interactively
-  print -Pn -- "$PROMPT"
-  # The (V) modifier escapes non-printable characters in the string to make them visible
-  print -r -- "${(V)KITTY_SI_RUN_COMMAND_AT_STARTUP}"
+if [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
+  # Push this command onto the editing stack. ZLE will pop it into the editing
+  # buffer when the first prompt is drawn.
+  print -z "$KITTY_SI_RUN_COMMAND_AT_STARTUP"
+  unset KITTY_SI_RUN_COMMAND_AT_STARTUP
+
+  autoload -Uz add-zle-hook-widget
+  _run_command_at_startup() {
+    add-zle-hook-widget -d line-init _run_command_at_startup
+    zle accept-line
+  }
+  add-zle-hook-widget line-init _run_command_at_startup
 fi
