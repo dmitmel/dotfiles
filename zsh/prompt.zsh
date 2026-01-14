@@ -1,3 +1,15 @@
+# Configure prompt expansion (see zshoptions(1) for more details):
+
+# 1. `!` should not be treated specially, use `%!` instead
+setopt no_prompt_bang
+# 2. Print a character (`%` for normal users, `#` for root) and a newline in
+#    order to preserve output that may be covered by the prompt.
+setopt prompt_cr prompt_sp
+# 3. Enable normal prompt expansion sequences which begin with a `%`.
+setopt prompt_percent
+# 4. Enable parameter/command/arithmetic expansion/substitution in the prompt.
+setopt prompt_subst
+
 zmodload zsh/datetime  # for $EPOCHREALTIME
 autoload -Uz add-zsh-hook
 
@@ -5,15 +17,14 @@ autoload -Uz add-zsh-hook
 # until after the shell is initialized and the first prompt is drawn. This is
 # done so that this script can control the order of placement of its hooks, so
 # that it doesn't depend on the load order of other scripts and plugins.
-add-zsh-hook precmd _prompt_install_hooks
 _prompt_install_hooks() {
   add-zsh-hook -d preexec _prompt_install_hooks  # uninstall this temporary hook
   unfunction _prompt_install_hooks               # and unload it from memory
 
   # I manipulate the `*_functions` arrays directly here because `add-zsh-hook`
   # does not let me control the placement order. To get the most accurate
-  # assessment of the run-time of a command, we must achieve the following
-  # sequence of events:
+  # assessment of the run-time of an interactively entered command, we must
+  # achieve the following sequence of events:
   #
   # 1. user types in a command and presses <Enter>
   # 2. preexec hooks are executed
@@ -35,7 +46,7 @@ prompt_preexec_hook() {
 }
 
 prompt_precmd_hook() {
-  if [[ -v _PROMPT_EXEC_START_TIME ]]; then
+  if (( ${+_PROMPT_EXEC_START_TIME} )); then  # check if this variable is defined
     float t=$(( EPOCHREALTIME - _PROMPT_EXEC_START_TIME ))
     unset _PROMPT_EXEC_START_TIME
 
@@ -48,19 +59,22 @@ prompt_precmd_hook() {
       (( m > 0 )) && _PROMPT_EXEC_TIME+="${m}m"
       _PROMPT_EXEC_TIME+="${s}s"
     else
-      integer ms
-      (( ms = t * 1000 ))
+      integer ms=$(( t * 1000 ))
       _PROMPT_EXEC_TIME="${ms}ms"
     fi
   fi
 }
+
+add-zsh-hook precmd _prompt_install_hooks
+add-zsh-hook precmd prompt_precmd_hook
+add-zsh-hook preexec prompt_preexec_hook
 
 prompt_vcs_info() {
   if [[ "$(command git rev-parse --is-inside-work-tree)" != true ]]; then
     return
   fi
 
-  local branch="(no branches)" line
+  local branch="(no branches)" line=""
   command git branch | while IFS= read -r line; do
     # find a line which starts with `* `, it contains the current branch name
     if [[ "$line" == "* "* ]]; then
@@ -75,38 +89,19 @@ prompt_vcs_info() {
   print -rn -- " %F{blue}git:%F{magenta}${branch//\%/%%}%f"
 }
 
-# configure prompt expansion
-# nopromptbang
-#   `!` should not be treated specially, use `%!` instead.
-# promptcr and promptsp
-#   print a character (`%` for normal users, `#` for root) and a newline in
-#   order to preserve output that may be covered by the prompt. See
-#   zshoptions(1) for more details.
-# promptpercent
-#   enable normal prompt expansion sequences which begin with a `%`.
-# promptsubst
-#   enable parameter/command/arithmetic expansion/substitution in the prompt.
-setopt no_prompt_bang prompt_cr prompt_sp prompt_percent prompt_subst
+# Construct the prompt. See EXPANSION OF PROMPT SEQUENCES in zshmisc(1) for the
+# list and descriptions of the expansion sequences.
 
-# Construct the prompt. See EXPANSION OF PROMPT SEQUENCES in zshmisc(1) for
-# the list and descriptions of the expansion sequences.
-
-# Start the prompt with gray (ANSI color 8 is "bright black" or "gray")
-# box drawing characters, also enable bold font for the rest of it. This
-# makes the prompt easily distinguishable from command output.
+# Start the prompt with gray (ANSI color 8 is "bright black" or "gray") box
+# drawing characters, also enable bold font for the rest of it. This makes the
+# prompt easily distinguishable from command output.
 PROMPT='%F{8}┌─%f%B'
 
 # username
 PROMPT+='%F{%(!.red.yellow)}%n%f'
 
 # hostname
-PROMPT+=' at %F{'
-if [[ -v SSH_CONNECTION ]]; then
-  PROMPT+='blue'
-else
-  PROMPT+='green'
-fi
-PROMPT+='}%m%f'
+PROMPT+=' at %F{${${SSH_CONNECTION:+blue}:-green}}%m%f'
 
 # working directory
 PROMPT+=' in %F{cyan}%~%f'

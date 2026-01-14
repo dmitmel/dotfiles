@@ -144,20 +144,20 @@ alias sue="sudoedit"
 # <https://wiki.archlinux.org/title/Zsh#Dirstack>
 DIRSTACK_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/zsh_dirstack.txt"
 
-autoload -Uz add-zsh-hook
-
 dirstack_save_hook() {
   if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "$ZSH_SUBSHELL" -eq 0 ]]; then
     dirstack_save
   fi
 }
-add-zsh-hook chpwd dirstack_save_hook
 
 dirstack_load_hook() {
   if [[ -z "$DOTFILES_DONT_SYNC_DIRSTACK" && "$ZSH_SUBSHELL" -eq 0 ]]; then
     dirstack_load
   fi
 }
+
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd dirstack_save_hook
 add-zsh-hook precmd dirstack_load_hook
 add-zsh-hook preexec dirstack_load_hook
 
@@ -176,7 +176,7 @@ dirstack_load() {
     local -aU saved_dirs=("$PWD" "${(@f)saved_dirs:#$PWD}")
     integer length="${DIRSTACKSIZE:-${#saved_dirs[@]}}"
     # skip the first entry in the loaded list, which corresponds to $PWD
-    dirstack=("${saved_dirs[@]:1:${length}-1}")
+    dirstack=("${saved_dirs[@]:1:(length-1)}")
   fi
 }
 

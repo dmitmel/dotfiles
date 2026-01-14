@@ -9,16 +9,13 @@
   }
 
   _perf_timer_stop() {
-    # Record the stop time as precisely as possible even in case of an error
-    local stop_time="$EPOCHREALTIME"
+    float stop_time="$EPOCHREALTIME"
     local name="${1:?timer name is needed}"
-    local start_time="${_perf_timers[$name]}"
+    float start_time="${_perf_timers[$name]}"
     unset "_perf_timers[$name]"
 
-    integer duration
-    (( duration = (stop_time - start_time) * 1000 ))
-
     if [[ -z "$DOTFILES_ZSHRC_SILENT" ]]; then
+      integer duration=$(( (stop_time - start_time) * 1000 ))
       local arrow='%F{8}==>%f'
       print >&2 -r -- "${(%)arrow} ${name}: ${duration}ms"
     fi
