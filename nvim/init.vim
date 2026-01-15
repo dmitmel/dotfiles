@@ -93,11 +93,12 @@ if has('nvim')
   if has('nvim-0.7.0')
     " <https://gpanders.com/blog/whats-new-in-neovim-0-7/#client-server-communication>
     " <https://neovim.io/doc/user/remote.html>
-    let $NVIM_REMOTE = join([v:progpath, '--server', v:servername, '--headless'])
+    let s:remote_cmd = [v:progpath, '--server', v:servername, '--headless']
   else
     let s:nvr = exepath('nvr')
-    let $NVIM_REMOTE = !empty(s:nvr) ? join([s:nvr, '--servername', v:servername]) : ''
+    let s:remote_cmd = !empty(s:nvr) ? [s:nvr, '--servername', v:servername] : []
   endif
+  let $NVIM_REMOTE = join(map(s:remote_cmd, 'shellescape(v:val)'))
 endif
 
 if has('nvim-0.5.0')

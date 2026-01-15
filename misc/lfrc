@@ -73,9 +73,9 @@ map <c-z> $kill -TSTP "$id"
 # A helper command for communicating with a parent Neovim if lf is running within one.
 cmd nvr %{{
   if [ -n "$NVIM_REMOTE" ]; then
-    exec -- ${NVIM_REMOTE} "$@"
+    eval "exec ${NVIM_REMOTE} \"\$@\""
   elif [ -n "$NVIM" ]; then
-    exec -- "${NVIM_EXE:-nvim}" --server "$NVIM" --headless "$@"
+    exec "${NVIM_EXE:-nvim}" --server "$NVIM" --headless "$@"
   fi
 }}
 
