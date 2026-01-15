@@ -1,3 +1,4 @@
 /misc/markdown2htmldoc/themes-out/**/* linguist-generated
 /colorschemes/out/**/* linguist-generated
 /nvim/autoload/plug.vim linguist-vendored
+/misc/lfrc linguist-language=Shell
