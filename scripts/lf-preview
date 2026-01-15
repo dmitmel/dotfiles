@@ -19,7 +19,7 @@ cachedir="${TMPDIR:-/tmp}/lf-${id}-preview-cache"
 mkdir -p -m 700 -- "$cachedir"  # hide the contents of the cache directory from other users
 
 command_exists() {
-  command -v -- "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 calculate_checksum() {
@@ -66,11 +66,10 @@ fi
 # that the stderr of the subprocess is captured into a string, and output to
 # stdout goes straight to the real stdout. This is done so that errors from
 # `scope.sh` are displayed only if it fails to produce any sort of preview.
-exec {pipe_to_stdout}>&1
-stderr="$(exec 2>&1 1>&$pipe_to_stdout {pipe_to_stdout}>&- -- \
-    "$previewer" "$file" "$w" "$h" "$cached_image" "$enable_image_previews")"
+exec 3>&1
+stderr="$("$previewer" "$file" "$w" "$h" "$cached_image" "$enable_image_previews" 2>&1 1>&3 3>&-)"
 code="$?"
-exec {pipe_to_stdout}>&-
+exec 3>&-
 
 # Meanings of exit codes of ranger's `scope.sh`:
 # 0 - success, a (colored) preview was printed to stdout
