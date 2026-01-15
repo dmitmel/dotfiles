@@ -115,7 +115,7 @@ def main() -> None:
       input_file = sys.stdin.buffer
 
     else:
-      sys.exit("usage:\n  {0} [file]\n  man ... | {0}\n  {0} <section> <page>".format(program_name))
+      sys.exit("usage:\n  {0} <file>\n  man ... | {0}\n  {0} <section> <page>".format(program_name))
 
     if not sys.stdout.isatty():
       just_colorize_input(input_file, sys.stdout.buffer)
@@ -321,9 +321,8 @@ def generate_tags_and_feed_into_less(
         tag = match.group(1).strip()
         if tag:
           tag = whitespace_re.sub(b"_", tag)
-          tag_path = "-"
           tags_file.write(tag)
-          tags_file.write(" {} {}\n".format(tag_path, linenr).encode())
+          tags_file.write(b" - %d\n" % linenr)
 
       if pager_stdin:
         line = colorize_line(line)
@@ -399,6 +398,8 @@ RESET_COLOR = b"\x1b[39m"
 # <https://cgit.git.savannah.gnu.org/cgit/groff.git/tree/src/devices/grotty/tty.cpp?h=1.23.0>
 # (you can check all ANSI control sequences that it uses).
 def colorize_line(line: bytes) -> bytes:
+  has_escape_codes = 0x1B in line
+
   # Highlight Unicode box-drawing characters used for drawing tables in a bright
   # gray color, to make them slightly dimmer than regular white-colored text.
   # Fortunately, all of them are neatly packed in a single area of the Unicode
@@ -406,7 +407,7 @@ def colorize_line(line: bytes) -> bytes:
   # bytes, without needing to decode the whole line (assuming, of course, that
   # it is encoded with UTF-8).
   # <https://en.wikipedia.org/wiki/Box-drawing_characters#Box_Drawing>
-  if b"\xe2" in line and (b"\xe2\x94" in line or b"\xe2\x95" in line):
+  if 0xE2 in line and (b"\xe2\x94" in line or b"\xe2\x95" in line):
     # Try to find uninterrupted runs of these characters
     line = regex(rb"((?:\xe2[\x94-\x95][\x80-\xbf])+)").sub(ANSI_GRAY + rb"\1" + RESET_COLOR, line)
 
@@ -414,7 +415,7 @@ def colorize_line(line: bytes) -> bytes:
   # parsing the ANSI control sequences, which must start with the ESC character,
   # we can avoid wasting time on evaluation of the regular expressions used to
   # find them if the line doesn't contain any ESC characters in the first place.
-  if b"\x1b" not in line:
+  if not has_escape_codes:
     return line
 
   # Remove redundant control sequences which cancel each other out:
@@ -519,7 +520,7 @@ def bold_text_highlighter(match: "re.Match[bytes]") -> bytes:
 #
 # TODO: this function does not handle combining characters
 def perform_overstriking(line: bytes) -> bytes:
-  if b"\b" not in line:
+  if 0x08 not in line:
     return line  # Don't bother if the text does not contain backspaces.
 
   # These two variables are arrays of logical values which represent the bold
