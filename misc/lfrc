@@ -64,6 +64,12 @@ map <c-z> $kill -TSTP "$id"
 set previewer lf-preview
 set cleaner   lf-cleaner
 
+# clear the selection and clean up the preview
+cmd on-quit :clear; %{{
+  if [ -n "$lf_cleaner" ]; then "$lf_cleaner" '' 0 0 0 0 ''; fi
+  rm -rf -- "${TMPDIR:-/tmp}/lf-${id}-preview-cache"
+}}
+
 cmd less ${{
   set -- +0 -- "${@:-$f}"
 

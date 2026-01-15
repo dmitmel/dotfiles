@@ -22,3 +22,11 @@ snippet fori for loop with counter
 	for (( i = ${1:start}; i < ${2:end}; i++ )); do
 		$0
 	done
+snippet XDG_CACHE_HOME
+	\${XDG_CACHE_HOME:-\${HOME}/.cache}
+snippet XDG_CONFIG_HOME
+	\${XDG_CONFIG_HOME:-\${HOME}/.config}
+snippet XDG_DATA_HOME
+	\${XDG_DATA_HOME:-\${HOME}/.local/store}
+snippet XDG_STATE_HOME
+	\${XDG_STATE_HOME:-\${HOME}/.local/state}
