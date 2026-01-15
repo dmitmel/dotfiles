@@ -1,3 +1,4 @@
+# vim: ft=dosini
 [flake8]
 
 select =

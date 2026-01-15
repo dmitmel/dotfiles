@@ -124,8 +124,8 @@ let g:coc_user_config['colors.filetypes'] = ['*']
 let g:coc_user_config['semanticTokens.filetypes'] = ['*']
 let g:coc_default_semantic_highlight_groups = 0
 
-let g:coc_user_config['python.formatting.yapfArgs'] = ['--style=' . s:dotfiles_dir.'/misc/yapf.ini']
-let g:coc_user_config['python.linting.flake8Args'] = ['--config=' . s:dotfiles_dir.'/misc/flake8.ini']
+let g:coc_user_config['python.formatting.yapfArgs'] = ['--style=' . s:dotfiles_dir.'/misc/yapf/style']
+let g:coc_user_config['python.linting.flake8Args'] = ['--config=' . s:dotfiles_dir.'/misc/flake8']
 
 let g:coc_user_config['ruff.configuration'] = s:dotfiles_dir.'/misc/ruff.toml'
 let g:coc_user_config['ruff.configurationPreference'] = 'filesystemFirst'

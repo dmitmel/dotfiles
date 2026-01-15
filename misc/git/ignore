@@ -1,3 +1,4 @@
+# vim: ft=gitignore
 Session.vim
 .vimspector.session
 .project.vim
