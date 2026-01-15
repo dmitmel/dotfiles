@@ -83,6 +83,23 @@ endif
 " the config crashes, we still get the correct highlighting and colors.
 colorscheme dotfiles
 
+if has('nvim')
+  " Expose the path to Neovim's binary to child processes, so that they can
+  " unambiguously refer to it, even if it was run from a source build or an
+  " AppImage, or is not even in the $PATH at all.
+  let $NVIM_EXE = v:progpath
+  " Also expose a shell command that the child processes can use to communicate
+  " with the parent editor process.
+  if has('nvim-0.7.0')
+    " <https://gpanders.com/blog/whats-new-in-neovim-0-7/#client-server-communication>
+    " <https://neovim.io/doc/user/remote.html>
+    let $NVIM_REMOTE = join([v:progpath, '--server', v:servername, '--headless'])
+  else
+    let s:nvr = exepath('nvr')
+    let $NVIM_REMOTE = !empty(s:nvr) ? join([s:nvr, '--servername', v:servername]) : ''
+  endif
+endif
+
 if has('nvim-0.5.0')
   " Preload the Lua utilities.
   lua _G.dotfiles = require('dotfiles')

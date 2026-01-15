@@ -48,6 +48,14 @@ cmd vidir $vidir "$@"
 cmap <tab>     cmd-menu-complete
 cmap <backtab> cmd-menu-complete-back
 
+# Inserts path to the currently selected file into the command line.
+cmap <c-r> &{{
+  f=${f//\\/\\\\}
+  f=${f//\"/\\\"}
+  f=${f//$'\n'/}
+  "$lf" -remote "send $id push $f"
+}}
+
 map D delete
 map T trash
 map <f-1> help
@@ -58,8 +66,27 @@ map \\ : clear; unselect
 map p : paste; clear
 map ZZ quit
 map ZQ quit
-# Suspends lf and puts it into background using job control feature of the shell
+
+# Suspend lf and put it into background using the job control feature of the shell.
 map <c-z> $kill -TSTP "$id"
+
+# A helper command for communicating with a parent Neovim if lf is running within one.
+cmd nvr %{{
+  if [ -n "$NVIM_REMOTE" ]; then
+    exec -- ${NVIM_REMOTE} "$@"
+  elif [ -n "$NVIM" ]; then
+    exec -- "${NVIM_EXE:-nvim}" --server "$NVIM" --headless "$@"
+  fi
+}}
+
+map <esc> nvr --remote-send '<C-\><C-n>'
+map <c-w> nvr --remote-send '<C-\><C-n><C-w>'
+map <c-h> nvr --remote-send '<C-\><C-n><C-w>h'
+map <c-j> nvr --remote-send '<C-\><C-n><C-w>j'
+map <c-k> nvr --remote-send '<C-\><C-n><C-w>k'
+map <c-l> nvr --remote-send '<C-\><C-n><C-w>l'
+# CTRL+H is recognized as <backspace>, while the actual Backspace key is <backspace2>
+map <backspace> nvr --remote-send '<C-\><C-n><C-w>h'
 
 set previewer lf-preview
 set cleaner   lf-cleaner
