@@ -60,7 +60,7 @@ _perf_timer_start "total"
 # <https://github.com/zdharma-continuum/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc#1-standardized-0-handling>
 ZSH_DOTFILES="${${(%):-%N}:A:h}"
 
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/dotfiles"
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/zsh"
 if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
   command mkdir -pv -- "$ZSH_CACHE_DIR"
 fi
