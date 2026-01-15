@@ -1,5 +1,6 @@
---- Over time this plugin of mine got further and further from sanity, but I've
---- done my best to squeeze every last drop of performance out of it.
+--- Over time this little plugin of mine has strayed further and further from
+--- sanity, as I've done my best to squeeze every last drop of performance out
+--- of it.
 ---
 --- Based on:
 --- <https://github.com/bfredl/bfredl.github.io/blob/ed438742f0a1d8a36669bcd4ccb019f5dca9fac2/nvim/lua/bfredl/miniguide.lua>
@@ -241,16 +242,54 @@ function self.parse_listchars(str)
   return result
 end
 
+local queued_redraws_by_window = {} ---@type { [integer]: [integer, integer][] }
+local IMMEDIATE_REDRAW_RANGE = false
+
 ---@param winid integer
 ---@param first integer
 ---@param last integer
----@type fun(winid: integer, first: integer, last: integer)
 function self.redraw_range(winid, first, last)
-  -- Nicely borrowed from <https://github.com/folke/snacks.nvim/blob/bc0630e43be5699bb94dadc302c0d21615421d93/lua/snacks/util/init.lua#L200-L211>
-  vim.api.nvim__redraw({ win = winid, range = { first - 1, last }, valid = true, flush = false })
+  if IMMEDIATE_REDRAW_RANGE then
+    vim.api.nvim__redraw({ win = winid, range = { first - 1, last }, valid = true, flush = false })
+    return
+  end
+
+  local should_schedule = utils.is_empty(queued_redraws_by_window)
+
+  local redraw_range = { first - 1, last }
+  local queue = queued_redraws_by_window[winid]
+  if not queue or not queue[#queue] then
+    queued_redraws_by_window[winid] = { redraw_range }
+  else
+    local last_range = queue[#queue]
+    if not (redraw_range[0] == last_range[0] and redraw_range[1] == last_range[1]) then
+      table.insert(queue, redraw_range)
+    end
+  end
+
+  if should_schedule then
+    vim.schedule(function()
+      for window, ranges in pairs(queued_redraws_by_window) do
+        if vim.api.nvim_win_is_valid(window) then
+          for _, range in ipairs(ranges) do
+            -- Nicely borrowed from <https://github.com/folke/snacks.nvim/blob/bc0630e43be5699bb94dadc302c0d21615421d93/lua/snacks/util/init.lua#L200-L211>.
+            -- The `valid` flag tells Neovim that the contents of the buffer are
+            -- still valid and that only a partial redraw of just the lines
+            -- specified by `range` is desired (this was not immediately obvious
+            -- for me from looking at its documentation). Its name comes from an
+            -- implementation detail: <https://github.com/neovim/neovim/blob/v0.11.5/src/nvim/drawscreen.h#L9-L19>
+            vim.api.nvim__redraw({ win = window, range = range, valid = true, flush = false })
+          end
+        end
+      end
+
+      queued_redraws_by_window = {}
+    end)
+  end
 end
 
 if vim.api.nvim__redraw == nil then
+  ---@type fun(winid: integer, first: integer, last: integer)
   self.redraw_range = utils.schedule_once_per_tick(function() vim.cmd('redraw!') end)
 end
 
@@ -407,11 +446,16 @@ function self.decoration_provider.on_line(_, winid, bufnr, row)
   local indent, blank_line = -1, false
   -- NOTE: Folds are window-local, so we need to switch to the respective window
   -- to check them. |nvim_win_call()| also switches the current buffer.
-  vim.api.nvim_win_call(winid, function()
+  local function obtain_indent()
     if info.no_folds or self.show_on_folded_lines or vim.fn.foldclosed(line) < 0 then
       indent, blank_line = self.get_blankline_indent(line)
     end
-  end)
+  end
+  if vim.api.nvim_get_current_win() == winid then
+    obtain_indent()
+  else
+    vim.api.nvim_win_call(winid, obtain_indent)
+  end
 
   if indent < 0 then
     return -- The line is invalid, don't draw anything on it.
@@ -480,16 +524,16 @@ end
 function self.decoration_provider.on_end(_, tick) end
 
 function self.setup()
+  vim.cmd('hi def link IblIndent Whitespace')
+  vim.cmd('hi def link IblWhitespace Whitespace')
+  vim.cmd('hi def link IblScope LineNr')
+
   vim.api.nvim_set_decoration_provider(self.ns_id, {
     on_start = function(...) return self.decoration_provider.on_start(...) end,
     on_win = function(...) return self.decoration_provider.on_win(...) end,
     on_line = function(...) return self.decoration_provider.on_line(...) end,
     on_end = function(...) return self.decoration_provider.on_end(...) end,
   })
-
-  vim.cmd('hi def link IblIndent Whitespace')
-  vim.cmd('hi def link IblWhitespace Whitespace')
-  vim.cmd('hi def link IblScope LineNr')
 end
 
 return self
