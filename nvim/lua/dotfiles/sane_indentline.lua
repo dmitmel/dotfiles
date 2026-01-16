@@ -208,6 +208,10 @@ function self.update_win_info(winid, bufnr)
   -- NOTE: Keep an eye on this: <https://github.com/neovim/neovim/issues/19226>.
   info.no_folds = info.botline - info.topline + 1 == info.height
 
+  info.queued_redraws = info.queued_redraws or {} ---@type [integer, integer][]
+  info.redrawn_lines = info.redrawn_lines or {} ---@type table<integer, boolean>
+  utils.clear_table(info.redrawn_lines)
+
   self.wins_info[winid] = info
 end
 
@@ -231,57 +235,6 @@ function self.parse_listchars(str)
     pos = comma + 1
   end
   return result
-end
-
-local queued_redraws_by_window = {} ---@type { [integer]: [integer, integer][] }
-local IMMEDIATE_REDRAW_RANGE = false
-
----@param winid integer
----@param first integer
----@param last integer
-function self.redraw_range(winid, first, last)
-  if IMMEDIATE_REDRAW_RANGE then
-    vim.api.nvim__redraw({ win = winid, range = { first - 1, last }, valid = true, flush = false })
-    return
-  end
-
-  local should_schedule = utils.is_empty(queued_redraws_by_window)
-
-  local redraw_range = { first - 1, last }
-  local queue = queued_redraws_by_window[winid]
-  if not queue or not queue[#queue] then
-    queued_redraws_by_window[winid] = { redraw_range }
-  else
-    local last_range = queue[#queue]
-    if not (redraw_range[0] == last_range[0] and redraw_range[1] == last_range[1]) then
-      table.insert(queue, redraw_range)
-    end
-  end
-
-  if should_schedule then
-    vim.schedule(function()
-      for window, ranges in pairs(queued_redraws_by_window) do
-        if vim.api.nvim_win_is_valid(window) then
-          for _, range in ipairs(ranges) do
-            -- Nicely borrowed from <https://github.com/folke/snacks.nvim/blob/bc0630e43be5699bb94dadc302c0d21615421d93/lua/snacks/util/init.lua#L200-L211>.
-            -- The `valid` flag tells Neovim that the contents of the buffer are
-            -- still valid and that only a partial redraw of just the lines
-            -- specified by `range` is desired (this was not immediately obvious
-            -- for me from looking at its documentation). Its name comes from an
-            -- implementation detail: <https://github.com/neovim/neovim/blob/v0.11.5/src/nvim/drawscreen.h#L9-L19>
-            vim.api.nvim__redraw({ win = window, range = range, valid = true, flush = false })
-          end
-        end
-      end
-
-      queued_redraws_by_window = {}
-    end)
-  end
-end
-
-if vim.api.nvim__redraw == nil then
-  ---@type fun(winid: integer, first: integer, last: integer)
-  self.redraw_range = utils.schedule_once_per_tick(function() vim.cmd('redraw!') end)
 end
 
 ---@param line integer
@@ -366,7 +319,7 @@ function self.expand_scope(scope_level, line, up)
   local win_info = self.wins_info[vim.api.nvim_get_current_win()]
   local step = up and -1 or 1
 
-  -- Expand the search radius by one page up and down. This is necessary to draw
+  -- Expand the search radius up and down by one page. This is necessary to draw
   -- the scope correctly when the last line is only partially displayed (due to
   -- wrapping), but also helps with performance when scrolling the buffer by
   -- holding j/l or <C-u>/<C-d>.
@@ -510,9 +463,110 @@ function self.decoration_provider.on_line(_, winid, bufnr, row)
 
     col = next_col
   end
+
+  if vim.api.nvim__redraw then info.redrawn_lines[line] = true end
 end
 
-function self.decoration_provider.on_end(_, tick) end
+function self.decoration_provider.on_end(_, tick)
+  -- for _, info in pairs(self.wins_info) do
+  --   self.execute_queued_redraws_for_window(info)
+  -- end
+end
+
+if vim.api.nvim__redraw then
+  ---@param winid integer
+  ---@param first integer
+  ---@param last integer
+  function self.redraw_range(winid, first, last)
+    local info = self.wins_info[winid]
+    if not info then return end
+
+    local range = { first, last }
+
+    local last_range = info.queued_redraws[#info.queued_redraws]
+    if not last_range or not (range[1] == last_range[1] and range[2] == last_range[2]) then
+      table.insert(info.queued_redraws, range)
+    end
+
+    self.schedule_queued_redraws()
+  end
+else
+  self.redraw_range = utils.schedule_once_per_tick(function() vim.cmd('redraw!') end)
+end
+
+self.schedule_queued_redraws = utils.schedule_once_per_tick(function()
+  for winid, info in pairs(self.wins_info) do
+    if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == info.bufnr then
+      self.execute_queued_redraws(info)
+    end
+  end
+end)
+
+-- <https://nedbatchelder.com/blog/201310/range_overlap_in_two_compares>
+-- <https://stackoverflow.com/questions/36035074/how-can-i-find-an-overlap-between-two-given-ranges>
+local function check_intersection(start1, end1, start2, end2)
+  return not (end2 < start1 or end1 < start2)
+end
+
+---@param info dotfiles.sane_indentline.win_info
+function self.execute_queued_redraws(info)
+  if utils.is_empty(info.queued_redraws) then return end
+
+  local topline = vim.fn.line('w0', info.winid)
+  local botline = vim.fn.line('w$', info.winid)
+
+  local redrawn_first = next(info.redrawn_lines)
+  local redrawn_last = redrawn_first
+  for line, _ in pairs(info.redrawn_lines) do
+    if line < redrawn_first then redrawn_first = line end
+    if line > redrawn_last then redrawn_last = line end
+  end
+
+  for _, range in ipairs(info.queued_redraws) do
+    local first, last = range[1], range[2]
+    if check_intersection(first, last, topline, botline) then
+      first = utils.clamp(first, 1, topline)
+      last = utils.clamp(last, first, botline)
+
+      local redraw_needed = true
+      if
+        (redrawn_first and redrawn_last)
+        and check_intersection(first, last, redrawn_first, redrawn_last)
+      then
+        redraw_needed = false
+        for i = first, last do
+          if not info.redrawn_lines[i] then
+            redraw_needed = true
+            break
+          end
+        end
+
+        if redraw_needed then
+          while info.redrawn_lines[last] do
+            last = last - 1
+          end
+
+          while info.redrawn_lines[first] do
+            first = first + 1
+          end
+        end
+      end
+
+      if redraw_needed then
+        local win = info.winid
+        -- Nicely borrowed from <https://github.com/folke/snacks.nvim/blob/bc0630e43be5699bb94dadc302c0d21615421d93/lua/snacks/util/init.lua#L200-L211>.
+        -- The `valid` flag tells Neovim that the contents of the buffer haven't
+        -- changed and that only a partial redraw of just the lines specified by
+        -- `range` is desired (this was not immediately obvious for me from
+        -- looking at its documentation). Its name comes from an implementation
+        -- detail: <https://github.com/neovim/neovim/blob/v0.11.5/src/nvim/drawscreen.h#L9-L19>
+        vim.api.nvim__redraw({ win = win, range = { first - 1, last }, valid = true, flush = false })
+      end
+    end
+  end
+
+  utils.clear_table(info.queued_redraws)
+end
 
 function self.setup()
   vim.cmd('hi def link IblIndent Whitespace')
