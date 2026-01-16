@@ -115,12 +115,14 @@ function self.decoration_provider.on_start(_, tick)
   self.bufname_exclude = opt('bufname_exclude', 'bufNameExclude', {})
 end
 
--- <https://github.com/neovim/neovim/pull/26833>
+-- NOTE: The range represented by `toprow` and `botrow` (end-inclusive and
+-- zero-indexed) corresponds to the window's entire viewport (the first and
+-- last visible lines), and not the region that will be redrawn. The
+-- value of `botrow` used to be unreliable though, but that got fixed in v0.10:
+-- <https://github.com/neovim/neovim/pull/26833#issuecomment-1873869653>
 -- <https://github.com/neovim/neovim/commit/dc48a98f9ac614dc94739637c967aa29e064807e>
 -- <https://github.com/neovim/neovim/commit/444f37fe510f4c28c59bade40d7ba152a5ee8f7c>
-local has_correct_botrow_reporting = utils.has('nvim-0.10.0')
-
-function self.decoration_provider.on_win(_, winid, bufnr, toprow, botrow)
+function self.decoration_provider.on_win(_, winid, bufnr, _toprow, _botrow)
   -- Check if we've already encountered this buffer and explicitly rejected it.
   if self.bufs_excluded[bufnr] then return false end
   if self.disable_with_nolist and not vim.wo[winid].list then return false end
@@ -143,22 +145,7 @@ function self.decoration_provider.on_win(_, winid, bufnr, toprow, botrow)
       end
     end
 
-    -- NOTE: The range represented by `toprow` and `botrow` (end-inclusive and
-    -- zero-indexed) corresponds to the window's entire viewport (the first and
-    -- last visible lines), and not the region that will be redrawn. The
-    -- information in `botrow` used to be unreliable though, which was fixed by
-    -- <https://github.com/neovim/neovim/pull/26833#issuecomment-1873869653>.
-    -- NOTE: Additionally, the value for `botrow` is obtained the same way as
-    -- `botline` in the dictionary returned by `getwininfo()`, which actually is
-    -- the last **completely displayed** line (as opposed to a wrapped line that
-    -- does not fit into the window and continues in the off-screen area).
-    -- Therefore, `botrow + 1` would be either the last partially visible line,
-    -- or, when the last line is fully visible, the line number just below it.
-    local botline = has_correct_botrow_reporting and botrow
-      or vim.api.nvim_eval('getwininfo(' .. winid .. ')[0].botline')
-    local topline = toprow + 1
-
-    self.update_win_info(winid, bufnr, topline, botline)
+    self.update_win_info(winid, bufnr)
     if winid == current_win then self.update_scope(winid) end
   end)
 end
@@ -187,19 +174,23 @@ end
 
 ---@param winid integer
 ---@param bufnr integer
----@param topline integer
----@param botline integer
-function self.update_win_info(winid, bufnr, topline, botline)
+function self.update_win_info(winid, bufnr)
   ---@class dotfiles.sane_indentline.win_info
   local info = self.wins_info[winid] or {}
 
   info.last_redraw_tick = self.last_redraw_tick
   info.winid = winid
   info.bufnr = bufnr
-  info.topline = topline
-  info.botline = botline
   info.height = vim.fn.winheight(winid)
   info.view = vim.fn.winsaveview()
+
+  -- NOTE: The value returned by `line("w$")` actually is the last
+  -- **completely displayed** line, as opposed to a wrapped line that does not
+  -- fit into the window and continues into the off-screen area. Therefore,
+  -- `botrow + 1` would be either the last partially visible line, or, when
+  -- the last line is fully visible, the line number just below it.
+  info.botline = vim.fn.line('w$')
+  info.topline = vim.fn.line('w0')
 
   info.shiftwidth = vim.fn.shiftwidth()
   info.breakindent = vim.wo.breakindent
@@ -215,7 +206,7 @@ function self.update_win_info(winid, bufnr, topline, botline)
   -- displayed in the window is the same as its height, we can be sure that no
   -- lines have been folded, and no folds are visible on the screen right now.
   -- NOTE: Keep an eye on this: <https://github.com/neovim/neovim/issues/19226>.
-  info.no_folds = botline - topline + 1 == info.height
+  info.no_folds = info.botline - info.topline + 1 == info.height
 
   self.wins_info[winid] = info
 end
