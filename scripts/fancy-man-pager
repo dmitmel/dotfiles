@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+
+# The actual script is imported from another module, so that the Python
+# interpreter compiles it to avoid re-parsing it every time it is called by
+# `man`. This shaves off a few milliseconds from the run time of the script.
+from dotfiles import fancy_man_pager
+
+if __name__ == "__main__":
+  fancy_man_pager.main()

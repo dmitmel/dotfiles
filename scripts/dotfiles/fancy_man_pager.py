@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # This script is designed to be set as $MANPAGER for man(1). It implements a
 # wonderful feature present in mandoc, BSD's implementation of man(1): it
 # generates a file in the format used by ctags(1) which lists the locations of
