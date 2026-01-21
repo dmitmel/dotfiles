@@ -153,9 +153,7 @@ def _get_disks():
       # skip cd-rom drives with no disk in it on Windows; they may raise ENOENT,
       # pop-up a Windows GUI error for a non-ready partition or just hang
       continue
-    elif psutil.LINUX and (
-      disk.mountpoint.startswith("/snap/") or disk.mountpoint.startswith("/var/snap/")
-    ):
+    elif psutil.LINUX and disk.mountpoint.startswith(("/snap/", "/var/snap/")):
       # skip active snap packages
       continue
 

@@ -111,3 +111,11 @@ if ! is_function _rustc && ! is_function _rust; then
   autoload -Uz -- "${ZSH}/plugins/rust/_rustc"
   compdef _rustc rustc
 fi
+
+# Generate completions for my `icat` which simply wraps `kitten icat`.
+_icat() {
+  words[1]=(kitten icat)
+  (( CURRENT += 1 ))
+  _normal "$@"
+}
+compdef _icat icat

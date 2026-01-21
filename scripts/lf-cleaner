@@ -1,2 +1,16 @@
 #!/bin/sh
-exec kitten icat --stdin no --transfer-mode memory --clear </dev/null >/dev/tty
+exec 2>&1
+set -u
+
+# This file is responsible for erasing image previews from the screen once they
+# are no longer needed (due to switching to another file, for example).
+# <https://github.com/gokcehan/lf/wiki/Previews#with-kitty-and-pistol>
+
+image_id="$id"
+
+cmd_begin='\e'"${TMUX:+'Ptmux;\e\e'}"
+cmd_end="${TMUX:+'\e\e\\'}"'\e\\'
+
+# `kitten icat --clear` doesn't work with images rendered with Unicode
+# placeholders, and also doesn't add escapes for passthrough through tmux.
+printf "${cmd_begin}_Ga=d,d=I,i=%d${cmd_end}" "$image_id" >"${VIM_TTY:-/dev/tty}"

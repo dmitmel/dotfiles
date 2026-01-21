@@ -75,7 +75,7 @@ endif
 " terminal by querying its capabilities. In other cases, such as in older
 " versions of Nvim or in regular Vim, I only do a very rudimentary check as
 " described here: <https://github.com/termstandard/colors#truecolor-detection>.
-if has('termguicolors') && !has('nvim-0.10.0') && ($COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
+if has('termguicolors') && ($COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit')
   set termguicolors
 endif
 
@@ -99,6 +99,21 @@ if has('nvim')
     let s:remote_cmd = !empty(s:nvr) ? [s:nvr, '--servername', v:servername] : []
   endif
   let $NVIM_REMOTE = join(map(s:remote_cmd, 'shellescape(v:val)'))
+endif
+
+if has('libcall') && has('unix') && !exists('$VIM_TTY')
+  try
+    " Provide the TTY that Vim is running in to `../scripts/icat`. This approach
+    " is very hacky and non-portable, but I don't know of a cleaner way of doing
+    " this. ttyname(3) returns path to the device of the terminal that is
+    " connected to a given file descriptor. An empty string to |libcall()|
+    " refers to libc, at least on GNU/Linux systems. Determining the file name
+    " of libc portably on other systems is much harder:
+    " <https://github.com/vim/vim/blob/110656ba607d22bbd6b1b25f0c05a1f7bad205c0/src/testdir/test_functions.vim#L2749-L2778>
+    let $VIM_TTY = libcall(has('mac') ? 'libc.dylib' : '', 'ttyname', 1)
+  catch /^Vim\%((\a\+)\)\=:\%(E364:\|dlerror = \)/
+    " E364: Library call failed
+  endtry
 endif
 
 if has('nvim-0.5.0')

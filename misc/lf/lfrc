@@ -90,6 +90,7 @@ map <backspace> nvr --remote-send '<C-\><C-n><C-w>h'
 
 set previewer lf-preview
 set cleaner   lf-cleaner
+set nopreload
 
 # clear the selection and clean up the preview
 cmd on-quit :clear; %{{
@@ -98,6 +99,14 @@ cmd on-quit :clear; %{{
 }}
 
 cmd less ${{
+  if [ -n "$lf_previewer" ]; then
+    export LESSOPEN='| DOTFILES_ICAT_MODE=less exec "$lf_previewer" %s "$COLUMNS" "$((LINES-1))" 0 0'
+    # Mark U+10EEEE as a normal (non-wide) printable character - it is used by
+    # `icat` which might get invoked by the previewer. By default, less(1)
+    # treats all Unicode characters from the Private Use Area as unprintable.
+    export LESSUTFCHARDEF="${LESSUTFCHARDEF}${LESSUTFCHARDEF:+,}U+10EEEE:p"
+  fi
+
   set -- +0 -- "${@:-$f}"
 
   less_help="$(less --help)"
@@ -109,15 +118,15 @@ cmd less ${{
     (*[[:space:]]--no-vbell[[:space:]]*) set -- --quiet --no-vbell "$@" ;;
   esac
   case "$less_help" in
+    # there is a typo in the help text, this option is referred to as `--lesskey-context` there
     (*[[:space:]]--lesskey-conte[nx]t=*)
-      # there is a typo in the help text, this option is referred to as `--lesskey-context` there
       set -- --lesskey-content='i quit; h left-scroll; l right-scroll' "$@" ;;
   esac
   # These options have been supported by less(1) since basically forever
   # <https://github.com/gwsw/less/blame/master/less.hlp>
   set -- --RAW-CONTROL-CHARS --chop-long-lines --tabs=4 --tilde --shift=4 --ignore-case --LONG-PROMPT "$@"
 
-  LESSOPEN='| lf-preview %s' less "$@"
+  less "$@"
 }}
 
 cmd jump ${{
