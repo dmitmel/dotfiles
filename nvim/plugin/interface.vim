@@ -1,3 +1,7 @@
+" <https://github.com/neovim/neovim/commit/6a7c904648827ec145fe02b314768453e2bbf4fe>
+" <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
+let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
+
 " The default mapping for clearing the screen is <CTRL-L> which I override to
 " move around windows, and the :mode command is unintitively named at best.
 " However, vim-sensible overrides the default mapping to also do :nohlsearch
@@ -122,7 +126,7 @@ set history=10000
   " buffer navigation {{{
     nnoremap <silent> <Tab>   :<C-u>bnext<CR>
     nnoremap <silent> <S-Tab> :<C-u>bprev<CR>
-    nnoremap <silent> gb      :<C-u>buffer#<CR>
+    nnoremap <silent> <C-\>   :<C-u>buffer#<CR>
   " }}}
 
   " ask for confirmation when closing unsaved buffers
@@ -185,19 +189,25 @@ set history=10000
 
   " Move between windows with CTRL+hjkl
   for s:key in ['h', 'j', 'k', 'l']
-    execute 'nnoremap <C-'.s:key.'> <C-w>'.s:key
-    execute 'xnoremap <C-'.s:key.'> <C-w>'.s:key
+    let s:rhs = (s:has_cmd_mappings ? '<Cmd>' : ':<C-u>')
+            \ . "call dotfiles#splits#navigate('".s:key."')<CR>"
+    execute 'nnoremap <silent> <C-w>'.s:key   s:rhs
+    execute 'xnoremap <silent> <C-w>'.s:key   s:rhs
+    execute 'nnoremap <silent> <C-'.s:key.'>' s:rhs
+    execute 'xnoremap <silent> <C-'.s:key.'>' s:rhs
   endfor
+
+  augroup dotfiles_window_enter_time
+    autocmd!
+    if !exists('s:start_reltime') | let s:start_reltime = reltime() | endif
+    autocmd WinEnter * let w:dotfiles_last_enter_time = reltimefloat(reltime(s:start_reltime))
+  augroup END
 
   " Resize windows with CTRL+arrows
   nnoremap <silent> <C-Up>    :<C-u>resize +<C-r>=v:count1<CR><CR>
   nnoremap <silent> <C-Down>  :<C-u>resize -<C-r>=v:count1<CR><CR>
   nnoremap <silent> <C-Right> :<C-u>vertical resize +<C-r>=v:count1*2<CR><CR>
   nnoremap <silent> <C-Left>  :<C-u>vertical resize -<C-r>=v:count1*2<CR><CR>
-
-  " switch to previous window
-  nnoremap <C-\> <C-w>p
-  xnoremap <C-\> <C-w>p
 
   nnoremap <silent> <M-BS> :<C-u>quit<CR>
 
@@ -211,7 +221,7 @@ set history=10000
   nnoremap <C-t> :<C-u>tab split<CR>
   nnoremap <A-t> :<C-u>tabclose<CR>
 
-  " Check if this floating windows are supported (or, rather,
+  " Check if this floating windows are supported (or, rather, whether
   " `dotutils#is_floating_window` can detect them in any way).
   if exists('*win_gettype') || exists('*nvim_win_get_config')
     function! s:close_floating_popup(rhs) abort
