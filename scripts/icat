@@ -129,9 +129,21 @@ def main(argv: "list[str]") -> int:
       cmd.append(f"--place={cols}x{rows}@0x0")
     cmd.extend(argv[1:])
 
-    proc = subprocess.run(cmd, check=False, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
-      return proc.returncode
+    try:
+      proc = subprocess.run(cmd, check=True, stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+      if e.returncode < 0:  # Exited due to a signal
+        print(e)
+        # This is just a convention used by most shells, such an exit code is
+        # not special and doesn't actually give any information to the operating
+        # system. More info here: <https://www.cons.org/cracauer/sigint.html>.
+        return 0x80 + -e.returncode
+      else:
+        return e.returncode
+    except OSError as e:
+      print(e)
+      return 0x7F
+
     output = proc.stdout
 
     # The mother of all hacks: the loop that parses the ANSI escape sequences
