@@ -52,6 +52,7 @@
     "./scripts/factorio-dump-blueprint",
     "./scripts/factorio-dump-mod-settings",
     "./scripts/fancy-man-pager",
+    "./scripts/icat",
     "./scripts/leveldb-dump",
     "./scripts/mark-as-recently-used",
     "./scripts/mediawiki-preview",
@@ -68,7 +69,8 @@
       "root": "scripts"
     },
     {
-      "root": "colorschemes"
+      "root": "colorschemes",
+      "pythonVersion": "3.12"
     }
   ]
 }
