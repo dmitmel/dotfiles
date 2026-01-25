@@ -26,7 +26,7 @@ local CONFIG_FILE_NAMES = utils.list_to_set({
   '.prettierrc.toml',
 })
 
-local PRETTIER_LS_DIR = utils.script_relative('../../prettier-language-server')
+local PRETTIER_LS_DIR = utils.script_relative('../../../misc/prettier-language-server')
 
 ---@type dotfiles.lsp.Config
 return {
