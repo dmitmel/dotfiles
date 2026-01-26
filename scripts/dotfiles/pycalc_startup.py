@@ -14,7 +14,11 @@ class _LazyImporter:
   def __init__(self, module: str, var_name: str) -> None:
     self._module = module
     self._var_name = var_name
-    print(f"{module} available as `{var_name}`")
+
+    import os
+
+    if not os.environ.get("DOTFILES_SILENT_PYCALC_STARTUP"):
+      print(f"{module} available as `{var_name}`")
 
   @staticmethod
   def _import(myself: "_LazyImporter") -> object:

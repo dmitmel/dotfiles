@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+import os
 import sys
+
+os.environ["DOTFILES_SILENT_PYCALC_STARTUP"] = "1"
 
 from dotfiles.pycalc_startup import *
 
