@@ -5,62 +5,52 @@
 # <https://www.devdungeon.com/content/working-binary-data-python>
 
 import struct
-from typing import IO, Any, Dict, List
+from typing import IO, Any, Generator, Tuple
 
 
 def read_bool(buf: IO[bytes]) -> bool:
   return buf.read(1)[0] == 1
 
 
-def read_number(buf: IO[bytes]) -> float:
-  return struct.unpack("<d", buf.read(8))[0]
-
-
-def _read_length(buf: IO[bytes]) -> int:
-  return struct.unpack("<I", buf.read(4))[0]
+def read_struct(buf: IO[bytes], format: str) -> Tuple[Any, ...]:
+  return struct.unpack(format, buf.read(struct.calcsize(format)))
 
 
 def read_string(buf: IO[bytes]) -> str:
   is_empty = read_bool(buf)
   if is_empty:
     return ""
-  len_ = buf.read(1)[0]
-  if len_ == 0xFF:
-    len_ = _read_length(buf)
-  return buf.read(len_).decode("utf8")
+  length = buf.read(1)[0]
+  if length == 0xFF:
+    length = read_struct(buf, "<I")[0]
+  return buf.read(length).decode("utf8")
 
 
-def read_dictionary(buf: IO[bytes]) -> Dict[str, Any]:
-  len_ = _read_length(buf)
-  value: Dict[str, Any] = {}
-  for _ in range(len_):
+def _read_dict(buf: IO[bytes]) -> Generator[Tuple[str, Any]]:
+  length = read_struct(buf, "<I")[0]
+  for _ in range(length):
     key = read_string(buf)
-    value[key] = read(buf)
-  return value
-
-
-def read_list(buf: IO[bytes]) -> List[Any]:
-  len_ = _read_length(buf)
-  value: List[Any] = []
-  for _ in range(len_):
-    read_string(buf)
-    value.append(read(buf))
-  return value
+    value = read(buf)
+    yield key, value
 
 
 def read(buf: IO[bytes]) -> Any:
-  type_, _any_type_flag = buf.read(2)
-  if type_ == 0:
+  typ, _any_type_flag = buf.read(2)
+  if typ == 0:
     return None
-  elif type_ == 1:
+  elif typ == 1:
     return read_bool(buf)
-  elif type_ == 2:
-    return read_number(buf)
-  elif type_ == 3:
+  elif typ == 2:  # double
+    return read_struct(buf, "<d")[0]
+  elif typ == 3:
     return read_string(buf)
-  elif type_ == 4:
-    return read_list(buf)
-  elif type_ == 5:
-    return read_dictionary(buf)
+  elif typ == 4:
+    return list(value for _key, value in _read_dict(buf))
+  elif typ == 5:
+    return dict(_read_dict(buf))
+  elif typ == 6:  # signed long
+    return read_struct(buf, "<q")[0]
+  elif typ == 7:  # unsigned long
+    return read_struct(buf, "<Q")[0]
   else:
-    raise Exception(f"unknown property tree type 0x{type_:02x}")
+    raise Exception(f"unknown property tree type 0x{typ:02x}")
