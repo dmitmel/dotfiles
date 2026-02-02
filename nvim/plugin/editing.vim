@@ -434,8 +434,8 @@ endif
     let s:show_search_count_cmd = 'ShowSearchIndex'
   elseif exists('*searchcount')
     " <https://github.com/neovim/neovim/commit/e498f265f46355ab782bfd87b6c85467da2845e3>
-    command! -bar -bang ShowSearchIndex call dotfiles#search#show_count({'no_limits': <bang>0})
-    let s:show_search_count_cmd = 'call dotfiles#search#show_count_async({})'
+    command! -bar -bang ShowSearchIndex call dotfiles#searchcount#show({'no_limits': <bang>0})
+    let s:show_search_count_cmd = 'call dotfiles#searchcount#async({})'
   endif
 
   " The following section is based on
