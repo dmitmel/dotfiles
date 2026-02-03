@@ -5,33 +5,27 @@
 # <https://github.com/credomane/factoriomodsettings/blob/master/src/FactorioModSettings.js>
 
 import json
-import struct
-from pathlib import Path
+import os
+import sys
 
-from dotfiles.factorio import property_tree
+from dotfiles import factorio
 
 if __name__ == "__main__":
-  with open(Path.home() / ".factorio" / "mods" / "mod-settings.dat", "rb") as f:
-    version_main: int
-    version_major: int
-    version_minor: int
-    version_developer: int
-    version_main, version_major, version_minor, version_developer = struct.unpack(
-      "<HHHH", f.read(8)
-    )
+  if len(sys.argv) >= 2:
+    settings_path = sys.argv[1]
+  else:
+    settings_path = os.path.expanduser("~/.factorio/mods/mod-settings.dat")
 
-    always_false_flag = property_tree.read_bool(f)
+  with open(settings_path, "rb") as f:
+    version = factorio.read_factorio_version(f)
+
+    always_false_flag = factorio.read_bool(f)
     if always_false_flag:
       raise Exception("the always-False-flag is True for some reason")
 
     deserialized_data = {
-      "factorio_version": {
-        "main": version_main,
-        "major": version_major,
-        "minor": version_minor,
-        "developer": version_developer,
-      },
-      "data": property_tree.read(f),
+      "factorio_version": version._asdict(),
+      "data": factorio.read_property_tree(f),
     }
 
-    print(json.dumps(deserialized_data, indent=2))
+    print(json.dumps(deserialized_data, indent=2, ensure_ascii=False))
