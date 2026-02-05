@@ -57,7 +57,7 @@
   "vim.sneakUseIgnorecaseAndSmartcase": true,
   "vim.showMarksInGutter": true,
   "vim.vimrc.enable": true,
-  "vim.vimrc.path": "/home/dmitmel/dotfiles/vscode/config.vim",
+  "vim.vimrc.path": "/home/dmitmel/dotfiles/misc/vscode/config.vim",
   "vim.leader": ",",
   "extensions.experimental.affinity": {
     "vscodevim.vim": 1,
@@ -184,5 +184,6 @@
     "nnoremap",
     "xnoremap"
   ],
-  "errorLens.excludeBySource": ["cSpell"]
+  "errorLens.excludeBySource": ["cSpell"],
+  "evenBetterToml.formatter.indentString": "  "
 }

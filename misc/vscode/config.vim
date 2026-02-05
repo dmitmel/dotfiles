@@ -1,6 +1,6 @@
 """"""""""""""""""""""""""""""""" Text editing """""""""""""""""""""""""""""""""
 
-" Use VSCoded's built-in undo handling.
+" Use VSCode's built-in undo handling.
 nnoremap u undo
 nnoremap U undo
 nnoremap <C-r> redo
