@@ -29,7 +29,9 @@ self.decoration_provider = self.decoration_provider or {}
 ---@param dict? vim.var_accessor
 ---@return T
 function self.get_option_from_vim(ibl_name, il_name, default, dict)
-  dict = dict or vim.g
+  if dict == nil then
+    dict = vim.g --[[@as vim.var_accessor]]
+  end
   local ibl_opt = dict['indent_blankline_' .. ibl_name]
   if ibl_opt ~= nil then return ibl_opt end
   if il_name then
@@ -579,6 +581,18 @@ function self.setup()
     on_line = function(...) return self.decoration_provider.on_line(...) end,
     on_end = function(...) return self.decoration_provider.on_end(...) end,
   })
+
+  local function implement_command(name, should_enable)
+    return vim.api.nvim_create_user_command(name, function(args)
+      local dict = args.bang and vim.g or vim.b
+      dict['indentLine_enabled'] = should_enable(utils.is_truthy(dict['indentLine_enabled']))
+      vim.cmd('redraw!')
+    end, { bar = true, bang = true })
+  end
+
+  implement_command('IndentLinesEnable', function() return true end)
+  implement_command('IndentLinesDisable', function() return false end)
+  implement_command('IndentLinesToggle', function(prev) return not prev end)
 end
 
 return self

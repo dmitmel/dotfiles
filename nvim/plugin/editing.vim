@@ -155,20 +155,7 @@ endif
     " Nothing here, no further configuration is necessary for this plugin.
   elseif has('nvim-0.5.0')
     lua dotfiles.sane_indentline.setup()
-
-    function! s:indent_lines_set(global, status) abort
-      let dict = a:global ? g: : b:
-      let status = a:status is# 'toggle' ? !get(dict, 'indentLine_enabled', 1) : a:status
-      let dict['indentLine_enabled'] = status
-      redraw!
-    endfunction
-
-    command! -bar -bang IndentLinesEnable  call s:indent_lines_set(<bang>0, 1)
-    command! -bar -bang IndentLinesDisable call s:indent_lines_set(<bang>0, 0)
-    command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
     execute dotutils#cmd_alias('IL', 'IndentLinesToggle')
-
-    "
   elseif has('patch-8.2.5066') || has('nvim-0.8.0')
     " <https://www.reddit.com/r/neovim/comments/17aponn/i_feel_like_leadmultispace_deserves_more_attention/>
     " <https://github.com/gravndal/shiftwidth_leadmultispace.nvim/blob/6f524bb6b2e21215d0c35553d09d826c65f97062/plugin/shiftwidth_leadmultispace.lua>
