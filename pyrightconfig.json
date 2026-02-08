@@ -66,11 +66,15 @@
 
   "executionEnvironments": [
     {
-      "root": "scripts"
+      "root": "./scripts"
     },
     {
-      "root": "colorschemes",
+      "root": "./colorschemes",
       "pythonVersion": "3.12"
+    },
+    {
+      "root": "./misc/ranger",
+      "extraPaths": ["./scripts"]
     }
   ]
 }

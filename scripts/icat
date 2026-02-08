@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+from dotfiles import icat
+
+if __name__ == "__main__":
+  icat.main()

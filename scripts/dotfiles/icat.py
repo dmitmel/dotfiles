@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # This script is a giant bodge that exists solely to make image previews in the
 # LF file manager work when LF is running inside (neo)vim. It wraps the `icat`
 # utility provided by the Kitty terminal, which is used to print images directly
@@ -68,7 +66,7 @@ import sys
 from contextlib import ExitStack
 from fcntl import ioctl
 from termios import TIOCGWINSZ
-from typing import IO
+from typing import BinaryIO, List, Optional, Tuple
 
 # <https://github.com/alacritty/alacritty/wiki/ANSI-References>
 # <https://vt100.net/emu/dec_ansi_parser>
@@ -97,6 +95,10 @@ class winsize(ctypes.Structure):  # noqa: N801
     ("ws_xpixel", ctypes.c_ushort),
     ("ws_ypixel", ctypes.c_ushort),
   )
+  ws_row: int
+  ws_col: int
+  ws_xpixel: int
+  ws_ypixel: int
 
 
 # Opens a TTY device without making it the controlling terminal of this process.
@@ -105,9 +107,8 @@ def open_noctty(path: str, mode: int) -> int:
   return os.open(path, mode | os.O_NOCTTY)
 
 
-def main(argv: "list[str]") -> int:
-  stdout = sys.stdout.buffer
-  cols, rows = get_terminal_size(stdout)
+def run(argv: List[str], stdout: BinaryIO, mode: Optional[str] = None) -> int:
+  cols, rows = get_terminal_size(stdout.fileno())
 
   # Vim is supposed to provide this variable, see `../nvim/init.vim`
   vim_tty = os.environ.get("VIM_TTY", "") or os.ctermid()
@@ -116,10 +117,6 @@ def main(argv: "list[str]") -> int:
     ioctl(vim_tty, TIOCGWINSZ, vim)
     xpixels = vim.ws_xpixel * cols // vim.ws_col
     ypixels = vim.ws_ypixel * rows // vim.ws_row
-
-    # The script must apply some modifications to the outputted escape sequences
-    # to adapt to the application it was invoked from.
-    mode = os.environ.get("DOTFILES_ICAT_MODE")
 
     cmd = ["kitten", "icat", f"--use-window-size={cols},{rows},{xpixels},{ypixels}"]
     if mode == "lf-preview":
@@ -227,7 +224,7 @@ def main(argv: "list[str]") -> int:
 # which makes debugging more painful than it has to be. Also, importing `shutil`
 # imports a lot of other useless stuff (namely, compression algorithms).
 # <https://github.com/python/cpython/blob/v3.13.9/Lib/shutil.py#L1439-L1482>
-def get_terminal_size(stream: "IO[bytes] | IO[str] | int | None") -> "tuple[int, int]":
+def get_terminal_size(stream: int) -> Tuple[int, int]:
   final_cols, final_rows = 0, 0
   for attempt in range(3):
     size = winsize(0, 0, 0, 0)
@@ -245,7 +242,7 @@ def get_terminal_size(stream: "IO[bytes] | IO[str] | int | None") -> "tuple[int,
 
     elif attempt == 1:
       try:
-        ioctl(stream if stream is not None else sys.stdout, TIOCGWINSZ, size)
+        ioctl(stream, TIOCGWINSZ, size)
       except OSError:
         continue
 
@@ -267,5 +264,9 @@ def get_terminal_size(stream: "IO[bytes] | IO[str] | int | None") -> "tuple[int,
   return 0, 0
 
 
+def main() -> None:
+  sys.exit(run(sys.argv, sys.stdout.buffer, os.environ.get("DOTFILES_ICAT_MODE")))
+
+
 if __name__ == "__main__":
-  sys.exit(main(sys.argv))
+  main()
