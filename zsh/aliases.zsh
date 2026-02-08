@@ -149,9 +149,6 @@ alias gtime="command time -v"
 
 alias yarn="yarn --emoji false"
 
-# <https://mpv.io/manual/stable/#pseudo-gui-mode>
-alias mpv='mpv --player-operation-mode=pseudo-gui'
-
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'
 
 if [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
