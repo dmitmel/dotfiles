@@ -205,9 +205,9 @@
     unset reply
 
     local -A command_manpage_name_overrides=(
-      [hub]=git
-      [systemctl]=systemd
-      [icat]=kitten-icat
+      hub git
+      systemctl systemd
+      icat kitten-icat
     )
 
     local -a precommands=(

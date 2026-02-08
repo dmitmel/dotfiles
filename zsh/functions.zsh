@@ -23,10 +23,14 @@ print_null() { print -rNC1 -- "$@"; }
 print_table() { print -raC2 -- "${(P@kvq+)1}"; }
 # complete the names of associative array variables for `print_table`
 compdef '_parameters -g "association*"' print_table
+
 # Checks if the array referred to by the name in the 1st argument contains the
 # string in the 2nd argument. The condition is a more complicated form of
 # `${array[(re)$elem]+1}`, which expands to `1` if `$array` contains `$elem`.
 contains() { [[ -n "${${(P)1}[(re)${2}]+1}" ]]; }
+
+# Checks if a given variable is defined (even if it is set to an empty string).
+is_defined() { [[ -n "${${(P)1}+defined}" ]]; }
 
 # Checks if a word can be meaningfully executed as a command (aliases, functions
 # and builtins also count).
@@ -395,7 +399,7 @@ if is_command apt; then
     # <https://github.com/Debian/apt/blob/2.0.10/apt-private/private-cmndline.cc>
     # Output colorization should only be enabled if:
     # <https://github.com/Debian/apt/blob/2.8.2/apt-private/private-output.cc#L89>
-    if [[ "$#" -gt 1 && "$1" == search && -t 1 && ! -v NO_COLOR ]]; then
+    if [[ "$#" -gt 1 && "$1" == search && -t 1 ]] && ! is_defined NO_COLOR; then
       shift 1
 
       local grep_opts=(

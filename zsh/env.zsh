@@ -98,7 +98,7 @@ fi
 # <https://github.com/sharkdp/bat#8-bit-themes>
 export BAT_THEME="base16-256"
 
-if [[ ! -v KITTY_INSTALLATION_DIR ]]; then
+if ! is_defined KITTY_INSTALLATION_DIR; then
   for KITTY_INSTALLATION_DIR in \
     ${commands[kitty]:+"${commands[kitty]:A:h:h}/lib/kitty"} \
     /usr/lib/kitty /usr/local/lib/kitty \
@@ -113,6 +113,6 @@ if [[ ! -v KITTY_INSTALLATION_DIR ]]; then
   done
 fi
 
-if [[ -v KITTY_INSTALLATION_DIR ]]; then
+if is_defined KITTY_INSTALLATION_DIR; then
   export KITTY_SHELL_INTEGRATION="${KITTY_SHELL_INTEGRATION:-enabled}"
 fi
