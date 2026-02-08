@@ -235,7 +235,7 @@ exe dotplug#define_plug_here()
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter', {
             \ 'branch': 'master', 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', {
-            \ 'requires': 'nvim-treesitter' }
+            \ 'branch': 'master', 'requires': 'nvim-treesitter' }
     endif
   endif
 " }}}
