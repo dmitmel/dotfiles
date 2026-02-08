@@ -152,9 +152,19 @@ alias yarn="yarn --emoji false"
 
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'
 
-if [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
+# Check if the binary of `man` is actually symlinked to `mandoc`.
+if is_command mandoc && [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
   alias man='man -O width="$((COLUMNS - 1))"'
 else
   # Search for some string in all man pages
   alias mangrep='man -wK'
 fi
+
+# Find all commands whose names match the given pattern. This is possible with
+# `${list[(I)pattern]}` in Zsh. We need a list though, so the `k` modifier is
+# used to pick just the keys of the `$commands` associative array.
+for python in "${(@k)commands[(I)*python(|[0-9]|[0-9].[0-9]|[0-9].[0-9][0-9])]}"; do
+  # Replace the *last* occurrence of the substring `python` with `pycalc`.
+  pycalc="${python%python*}pycalc${python##*python}"
+  aliases[${pycalc}]="PYTHONSTARTUP=${(q)ZSH_DOTFILES:h}/scripts/dotfiles/pycalc_startup.py ${(q)python}"
+done; unset python pycalc

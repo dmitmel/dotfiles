@@ -1,2 +1,0 @@
-#!/bin/sh
-PYTHONSTARTUP="$(dirname "$0")/dotfiles/pycalc_startup.py" exec python3 "$@"
