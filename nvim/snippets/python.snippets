@@ -15,4 +15,24 @@ snippet __dir__ Save path to the script's parent directory into __dir__
 	__dir__ = os.path.dirname(os.path.realpath(__file__))
 snippet ifmain if __name__ == "__main__"
 	if __name__ == "__main__":
+		${0:pass}
+snippet try try-catch block
+	try:
 		$0
+	except ${1:Exception}:
+		pass
+snippet if if block
+	if ${1:condition}:
+		${0:pass}
+snippet elif elif block
+	elif:
+		${0:pass}
+snippet else else block
+	else:
+		${0:pass}
+snippet while while loop
+	while ${1:condition}:
+		${0:pass}
+snippet for for loop
+	for ${1:var} in ${2:iterable}:
+		${0:pass}

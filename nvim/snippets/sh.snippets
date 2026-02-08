@@ -6,6 +6,9 @@ snippet if if block
 	if ${1:condition}; then
 		$0
 	fi
+snippet elif elif block
+	elif ${1:condition}; then
+		$0
 snippet for for loop
 	for ${1:item} in ${2:list}; do
 		$0
@@ -16,6 +19,10 @@ snippet case case block
 	esac
 snippet while while loop
 	while ${1:condition}; do
+		$0
+	done
+snippet until until loop
+	until ${1:condition}; do
 		$0
 	done
 snippet fori for loop with counter
