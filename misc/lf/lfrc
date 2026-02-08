@@ -7,6 +7,7 @@ set hidden
 set mouse
 set incsearch
 set tabstop 4
+set icons
 
 # The following options are set to mimic the appearance and behavior of Ranger.
 # <https://github.com/gokcehan/lf/wiki/Ranger>

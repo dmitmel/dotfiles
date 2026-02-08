@@ -1,0 +1,17 @@
+# vim: ft=conf noet
+# <https://github.com/gokcehan/lf/issues/1476>
+ln	@
+or	@
+ex	*
+su	$
+sg	$
+so	=
+pi	|
+bd	b
+cd	c
+tw	/
+ow	/
+st	/
+di	/
+# No icon for plain files:
+fi
