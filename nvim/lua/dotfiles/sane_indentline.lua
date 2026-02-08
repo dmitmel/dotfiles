@@ -586,7 +586,8 @@ function self.setup()
   local function implement_command(name, should_enable)
     return vim.api.nvim_create_user_command(name, function(args)
       local dict = args.bang and vim.g or vim.b
-      dict['indentLine_enabled'] = should_enable(utils.is_truthy(dict['indentLine_enabled']))
+      dict['indentLine_enabled'] =
+        should_enable(utils.is_truthy(utils.if_nil(dict['indentLine_enabled'], true)))
       vim.cmd('redraw!')
     end, { bar = true, bang = true })
   end
