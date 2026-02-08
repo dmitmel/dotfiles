@@ -133,9 +133,6 @@ VIRTUAL_ENV_DISABLE_PROMPT=true
 PROMPT+='${PYENV_VERSION:+" %F{blue}pyenv:%F{magenta}${PYENV_VERSION//\%/%%}%f"}'
 PYENV_VIRTUAL_ENV_DISABLE_PROMPT=true
 
-# lf
-PROMPT+='${LF_LEVEL:+" %F{blue}lf:%F{magenta}${LF_LEVEL//\%/%%}%f"}'
-
 PROMPT+=' '
 
 # command execution time
@@ -155,6 +152,11 @@ PROMPT+=$'\n'
 
 # Begin the second line of the prompt.
 PROMPT+='%b%F{8}└─'
+
+# For shells started by pressing `w` in the LF file manager.
+for (( i = 1; i <= LF_LEVEL; i++ )); do
+  PROMPT+='lf'
+done
 
 # The prompt ends with a dollar sign for regular users and a hash for root,
 # repeated as many times as there are nested shells.
