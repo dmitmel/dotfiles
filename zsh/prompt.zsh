@@ -100,8 +100,21 @@ PROMPT='%F{8}┌─%f%B'
 # username
 PROMPT+='%F{%(!.red.yellow)}%n%f'
 
-# hostname
-PROMPT+=' at %F{${${SSH_CONNECTION:+blue}:-green}}%m%f'
+# Make hostname blue if we are connected to a remote machine. I used to check
+# $SSH_CONNECTION to determine this, but apparently $SSH_TTY works better for
+# that: compare how they behave when attaching through SSH to a tmux session
+# started from a local terminal. $SSH_CONNECTION is inserted into environment of
+# tabs/windows created from a remote terminal and $SSH_TTY is not. When working
+# simultaneously from local and remote terminals (I sometimes do that if I SSH
+# from one of my laptops into the other one to work from both of them) using
+# $SSH_CONNECTION here creates a mix of tabs where some shells consider
+# themselves local and some remote, which is just inconsistent and annoys me.
+# Besides, checking $SSH_TTY matches the behavior of Kitty's shell integration
+# script, which is responsible for setting the title of the terminal session:
+# <https://github.com/kovidgoyal/kitty/blob/v0.45.0/shell-integration/zsh/kitty-integration#L257-L269>
+# Other environment variables which tmux reads from the currently used client:
+# <https://github.com/tmux/tmux/blob/3.6/options-table.c#L981-L982>.
+PROMPT+=' at %F{${${SSH_TTY:+blue}:-green}}%m%f'
 
 # working directory
 PROMPT+=' in %F{cyan}%~%f'
