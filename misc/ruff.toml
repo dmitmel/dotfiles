@@ -27,6 +27,7 @@ select = [
   "PLW",  # pylint (warnings)
   "RUF1", # checks noqa directives
   "RUF2", # checks pyproject.toml
+  # "UP",   # pyupgrade
 ]
 
 ignore = [
@@ -40,6 +41,7 @@ ignore = [
   "B009",    # `getattr()` with a constant string
   "B010",    # `setattr()` with a constant string
   "PLC0415", # `import` should be at the top level
+  "N806",    # variable `SOME_LOCAL_CONSTANT` in function should be lowercase
 ]
 
 extend-unsafe-fixes = [

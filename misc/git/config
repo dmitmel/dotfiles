@@ -1,4 +1,4 @@
-# vim:ft=gitconfig
+# vim: ft=gitconfig
 
 [color]
   ui = true
@@ -40,3 +40,7 @@
 
 [alias]
   initial-commit = commit --message 'initial commit' --allow-empty
+  unstage = restore --staged
+
+[init]
+  defaultBranch = master

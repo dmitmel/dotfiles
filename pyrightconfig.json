@@ -2,6 +2,7 @@
   "typeCheckingMode": "strict",
   "reportPrivateUsage": "none",
   "reportMissingModuleSource": "none", // erroneously generated for imports from `gi.repository`
+  "reportMissingTypeStubs": "none",
 
   // I want to be conservative with the versions of Python I am targetting for
   // my scripts, so that they are usable even on older versions of distros like

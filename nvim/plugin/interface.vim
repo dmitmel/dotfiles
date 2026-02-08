@@ -2,14 +2,6 @@
 " <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
 let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
 
-" The default mapping for clearing the screen is <CTRL-L> which I override to
-" move around windows, and the :mode command is unintitively named at best.
-" However, vim-sensible overrides the default mapping to also do :nohlsearch
-" and :diffupdate. The first one doesn't exactly match the purpose of the key,
-" but the latter may be useful.
-" <https://github.com/tpope/vim-sensible/blob/2d9f34c09f548ed4df213389caa2882bfe56db58/plugin/sensible.vim#L35>
-command! -bar ClearScreen exe 'mode' | if has('diff') | exe 'diffupdate' | endif
-
 if dotplug#has('lazy.nvim')
   nnoremap <leader>l :<C-u>Lazy<CR>
 else
@@ -136,11 +128,11 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
   function! s:close_buffer(b) abort
-    if !empty(getcmdwintype()) || dotutils#is_floating_window(0)
+    if !empty(getcmdwintype()) || s:is_floating_window(0)
       return 'close'
     elseif &buftype ==# 'terminal'
       " Always wipe out the terminal buffers, so that they don't show up in the
-      " jump history, and close the stopped ones with `:bwipeout!`.
+      " jump history, and skip confirmation when closing the stopped ones.
       return a:b . (dotutils#is_terminal_running('%') ? 'wipeout' : 'wipeout!')
     elseif (&previewwindow || (&buftype !=# '' && &buftype !=# 'acwrite'))
           \ && win_findbuf(bufnr('%')) ==# [win_getid()]
@@ -200,7 +192,7 @@ set history=10000
   augroup dotfiles_window_enter_time
     autocmd!
     if !exists('s:start_reltime') | let s:start_reltime = reltime() | endif
-    autocmd WinEnter * let w:dotfiles_last_enter_time = reltimefloat(reltime(s:start_reltime))
+    autocmd WinEnter * let w:dotfiles_last_visit_time = reltimefloat(reltime(s:start_reltime))
   augroup END
 
   " Resize windows with CTRL+arrows
@@ -221,11 +213,21 @@ set history=10000
   nnoremap <C-t> :<C-u>tab split<CR>
   nnoremap <A-t> :<C-u>tabclose<CR>
 
-  " Check if this floating windows are supported (or, rather, whether
-  " `dotutils#is_floating_window` can detect them in any way).
+  function! s:is_floating_window(id) abort
+    if exists('*win_gettype')
+      return win_gettype(a:id) ==# 'popup'
+    elseif exists('*nvim_win_get_config')
+      return !empty(nvim_win_get_config(a:id).relative)
+    else
+      return 0
+    endif
+  endfunction
+
+  " Check if this floating windows are supported (or, rather, whether we can
+  " detect them in any way).
   if exists('*win_gettype') || exists('*nvim_win_get_config')
     function! s:close_floating_popup(rhs) abort
-      if dotutils#is_floating_window(0) && !exists('w:fzf_lua_preview')
+      if s:is_floating_window(0) && !exists('w:fzf_lua_preview')
         return "\<C-w>c"
       elseif exists('b:lsp_floating_preview') && nvim_win_is_valid(b:lsp_floating_preview)
         " Can't close a window within an |<expr>| mapping because of textlock.
@@ -540,8 +542,17 @@ endif
           \|endif
           \|unlet! s:prev_buflist
     nnoremap <Plug>dotfilesKeywordprg <Cmd>Keywordprg<CR>
+    xnoremap <Plug>dotfilesKeywordprg <Cmd>Keywordprg<CR>
   else
     nnoremap <Plug>dotfilesKeywordprg K
+    xnoremap <Plug>dotfilesKeywordprg K
+  endif
+
+  if empty(maparg('K', 'n'))
+    nnoremap <silent> K <Plug>dotfilesKeywordprg
+  endif
+  if empty(maparg('K', 'x'))
+    xnoremap <silent> K <Plug>dotfilesKeywordprg
   endif
 
   " Disable the default autocommand which auto-closes terminal buffers started
@@ -567,9 +578,16 @@ if exists('*nvim_get_proc_children')
   endfunction
 
   function! s:list_editor_processes() abort
+    let pids = []
+    for chan in nvim_list_chans()
+      let pid = get(get(get(chan, 'client', {}), 'attributes', {}), 'pid', 0)
+      if pid != 0 | call add(pids, pid) | endif
+    endfor
+    call s:all_proc_children(getpid(), pids)
+
     let ps_columns = ['user', 'pid', 'pcpu', 'pmem', 'rss', 'etime', 'cmd']
     execute
-    \ '!ps --forest --format' join(ps_columns, ',') join(s:all_proc_children(getpid(), []), ' ')
+    \ '!ps --forest --format' join(ps_columns, ',') join(pids, ' ')
     \ '| numfmt --header=1 --field='.(index(ps_columns, 'rss') + 1).' --to=iec --from-unit=1024'
     \ '| column --table'
     \          '--table-columns-limit='.len(ps_columns)
@@ -581,7 +599,7 @@ if exists('*nvim_get_proc_children')
 endif
 
 
-" This is a fix for an ancient bug that exists ever since Neovim v0.3.1
+" This is a fix for an ancient bug that has persisted ever since Neovim v0.3.1
 " (introduced by this PR: <https://github.com/neovim/neovim/pull/8578>): when an
 " hlgroup is linked to `Normal`, the cursor line/column background will not be
 " drawn over it. Such linked groups occasionally appear in syntax files, and it

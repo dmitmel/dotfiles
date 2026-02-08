@@ -9,6 +9,8 @@ exe dotplug#define_plug_here()
   " Modelines have caused several arbitrary code execution vulnerabilities over
   " the years, see <https://security.stackexchange.com/a/157739>.
   Plug 'https://github.com/ypcrts/securemodelines'
+  " Undo tree visualizer.
+  Plug 'https://github.com/mbbill/undotree'
 " }}}
 
 " Editing {{{
@@ -162,11 +164,9 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/raymond-w-ko/vim-lua-indent'
   Plug 'https://github.com/plasticboy/vim-markdown'
   Plug 'https://github.com/vim-python/python-syntax'
+  Plug 'https://github.com/cakebaker/scss-syntax.vim'
   " (this one highlights function invocations which the default one does not do)
   Plug 'https://github.com/bfrg/vim-cpp-modern'
-  " The indenting script here is just so much better than the default one.
-  " Discovered this plugin thanks to vim-polyglot.
-  Plug 'https://github.com/Vimjas/vim-python-pep8-indent'
 
   " JavaScript and TypeScript development:
   Plug 'https://github.com/pangloss/vim-javascript'
@@ -194,7 +194,6 @@ exe dotplug#define_plug_here()
   " Some niche languages that were not included with Vim until recently:
   Plug 'https://github.com/tikhomirov/vim-glsl', { 'if': !has('nvim-0.11.0') && !has('patch-9.1.0610') }
   Plug 'https://github.com/cespare/vim-toml', { 'if': !has('nvim-0.6.0') && !has('patch-8.2.3520') }
-  Plug 'https://github.com/cakebaker/scss-syntax.vim', { 'if': !has('nvim-0.5.0') && !has('patch-8.1.2397') }
 
   " An alternative optimized filetype detection system. No longer required as it
   " was integrated into the Neovim core in v0.7.0:

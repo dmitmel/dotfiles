@@ -25,6 +25,7 @@ let g:vim_ide = get(g:, 'vim_ide', 0)
 
 " Make sure everybody knows that comma is the leader!
 let g:mapleader = ','
+
 " Use Nvim's new filetype detection system if it is available.
 let g:do_filetype_lua = has('nvim-0.7.0')
 

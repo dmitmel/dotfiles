@@ -4,6 +4,7 @@ set -euo pipefail
 if package="$(set -euo pipefail; {
 
   expac --sync '%r/%a/%n %v - %d'
+
   curl --silent --location --fail --max-time 10 'https://aur.archlinux.org/packages.gz' |
     gzip -d | awk '!/^#/ { print "aur/" $0 }'
 

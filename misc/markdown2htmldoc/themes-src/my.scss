@@ -110,7 +110,7 @@ article {
   max-width: 960px;
   margin: 0 auto;
   padding: 32px;
-  @media (max-width: 768px - 1px) {
+  @media (max-width: (768px - 1px)) {
     padding: 24px;
   }
 

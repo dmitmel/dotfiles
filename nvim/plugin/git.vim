@@ -47,6 +47,7 @@ nnoremap <leader>gC :<C-u>Git commit --amend
 nnoremap <leader>gl :<C-u>Gclog<CR>
 nnoremap <leader>gp :<C-u>Git push
 nnoremap <leader>gP :<C-u>Git push --force-with-lease
+nnoremap <leader>gr :<C-u>Git rebase --interactive<space>
 
 if dotplug#has('gitsigns.nvim')
   nnoremap <silent><expr> [c &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"

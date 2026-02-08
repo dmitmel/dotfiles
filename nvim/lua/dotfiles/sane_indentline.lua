@@ -390,13 +390,14 @@ function self.decoration_provider.on_line(_, winid, bufnr, row)
   local shiftwidth = info.shiftwidth
 
   local indent, blank_line = -1, false
-  -- NOTE: Folds are window-local, so we need to switch to the respective window
-  -- to check them. |nvim_win_call()| also switches the current buffer.
   local function obtain_indent()
     if info.no_folds or self.show_on_folded_lines or vim.fn.foldclosed(line) < 0 then
       indent, blank_line = self.get_blankline_indent(line)
     end
   end
+
+  -- NOTE: Folds are window-local, so we need to switch to the respective window
+  -- to check them. |nvim_win_call()| also switches the current buffer.
   if vim.api.nvim_get_current_win() == winid then
     obtain_indent()
   else

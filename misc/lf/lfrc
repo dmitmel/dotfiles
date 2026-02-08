@@ -39,10 +39,14 @@ cmd q  quit
 cmd qa quit
 cmd x  quit
 
+# Typing this command is a habit carried over from Vim.
+cmd mode redraw
+
 cmd touch %touch "$@"
 cmd mkdir %mkdir "$@"
 cmd chmod %IFS=$'\n'; chmod "$@" -- $fx
 cmd chown %IFS=$'\n'; chown "$@" -- $fx
+cmd dragon %IFS=$'\n'; dragon-drop "$@" $fx
 cmd vidir $vidir "$@"
 
 cmap <tab>     cmd-menu-complete

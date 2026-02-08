@@ -10,8 +10,9 @@ if !has('nvim')
   " Linux they also configure Vim to do that by default:
   " <https://gitlab.archlinux.org/archlinux/packaging/packages/vim/-/blob/b9e5d92ac3e9cb865dc821ce9c18f6305108d02a/archlinux.vim#L22-40>
   function! s:set_dir_option(option_name, dir_name) abort
+    let option_value = eval('&' . a:option_name)
     " Only adjust those options whose first entry points to the current directory
-    if split(eval('&'.a:option_name), ',')[0] !=# '.' | return | endif
+    if (option_value . ',')[0:1] !=# '.,' | return | endif
 
     let dir = expand(has('win32') ? '$HOME/vimfiles' : '~/.vim') . '/' . a:dir_name
     try
@@ -29,6 +30,7 @@ if !has('nvim')
   call s:set_dir_option('undodir', 'undo')
   if has('patch-8.1.0251')  " <https://github.com/vim/vim/commit/b782ba475a3f8f2b0be99dda164ba4545347f60f>
     call s:set_dir_option('backupdir', 'backup')
+    set backupdir^=.  " <https://github.com/neovim/neovim/blob/v0.11.5/src/nvim/option.c#L363>
   endif
 endif
 
@@ -70,7 +72,7 @@ set undofile
 augroup dotfiles_undo_persistance
   autocmd!
   autocmd BufWritePre * if &l:undofile != &g:undofile | setlocal undofile< | endif
-  autocmd BufWritePre /tmp/*,/var/tmp/*,/private/tmp/* setlocal noundofile
+  autocmd BufWritePre /tmp/*,/var/tmp/*,/private/tmp/*,$TMPDIR/* setlocal noundofile
 augroup END
 
 " Time to wait before CursorHold (and also before writing the swap file...)
@@ -129,6 +131,13 @@ set nofixendofline
     " -H = --with-filename
     let &grepprg = 'grep -R -I -n -H'
   endif " }}}
+
+  " if executable('fd')
+  "   let s:fd_cmd = 'fd --type=file --hidden --follow'
+  "   let s:fd_cmd .= &wildignorecase ? ' --ignore-case' : ' --case-sensitive'
+  "   let s:fd_cmd .= ' --exclude=' . shellescape('{'.&wildignore.'}')
+  "   let $FZF_DEFAULT_COMMAND = s:fd_cmd
+  " endif
 
   function! s:grep_word() abort
     let word = expand('<cword>')
@@ -349,7 +358,8 @@ augroup dotfiles_zip
   " ccmod - packed Crosscode mods
   " xpi - Firefox extensions
   " whl - Python wheels
-  autocmd BufReadCmd *.ggb,*.ccmod,*.xpi,*.whl call zip#Browse(expand('<amatch>'))
+  " vsix - VSCode extensions
+  autocmd BufReadCmd *.ggb,*.ccmod,*.xpi,*.whl,*.vsix call zip#Browse(expand('<amatch>'))
 augroup END
 
 

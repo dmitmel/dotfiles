@@ -154,15 +154,16 @@ function! s:setup() " NOTE: not abort
 
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
-    " hi! link @function.builtin      PreProc
+    " hi! link @function.builtin      Special
     hi! link @type.builtin          Type
 
     hi! link @lsp.type.comment                    NONE
     hi! link @lsp.type.variable                   NONE
     hi! link @lsp.type.operator                   NONE
+    hi! link @lsp.type.decorator                  Special
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
     hi! link @lsp.typemod.variable.definition.go  @variable.declaration
-    hi! link @lsp.typemod.function.defaultLibrary PreProc
+    hi! link @lsp.typemod.function.defaultLibrary Special
     hi! link @lsp.typemod.function.defaultLibrary.rust NONE
     hi! link @lsp.typemod.function.defaultLibrary.c NONE
     hi! link @lsp.typemod.function.defaultLibrary.cpp NONE
@@ -171,7 +172,7 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.typemod.variable.global         PreProc
     hi! link @lsp.typemod.variable.readonly       Constant
     hi! link @lsp.typemod.variable.readonly.c     NONE
-    hi! link @lsp.typemod.function.readonly.cpp   NONE
+    hi! link @lsp.typemod.variable.readonly.cpp   NONE
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
     hi! link @markup.raw            String
@@ -731,7 +732,7 @@ function! s:setup() " NOTE: not abort
   hi! link jsParens            Delimiter
   hi! link jsOperator          Operator
   hi! link jsStorageClass      StorageClass
-  hi! link jsThis              Variable
+  hi! link jsThis              Special
   hi! link jsSuper             jsThis
   hi! link jsClassDefinition   Type
   hi! link jsFunction          Keyword
@@ -744,7 +745,7 @@ function! s:setup() " NOTE: not abort
   hi! link jsGlobalNodeObjects Type
   hi! link jsException         Exception
   hi! link jsExceptions        Type
-  hi! link jsBuiltins          jsFuncName
+  hi! link jsBuiltins          Special
   hi! link jsNull              Constant
   hi! link jsUndefined         Constant
   hi! link jsOperatorKeyword   Keyword
@@ -844,10 +845,12 @@ function! s:setup() " NOTE: not abort
   hi! link pythonClass       Type
   hi! link pythonBuiltinType pythonClass
   hi! link pythonExClass     pythonClass
-  hi! link pythonBuiltinObj  pythonFunction
+  hi! link pythonBuiltinObj  Special
+  hi! link pythonBuiltinFunc Special
   hi! link pythonClassVar    Special
   hi! link pythonStrTemplate PreProc
   hi! link pythonStrFormat   PreProc
+  hi! link pythonDecorator   Special
   " }}}
 
   " Ruby {{{
@@ -947,6 +950,11 @@ function! s:setup() " NOTE: not abort
   hi! link perlStatementControl Statement
   hi! link perlStatementStorage StorageClass
   hi! link perlStatementInclude Include
+  " }}}
+
+  " Changelogs {{{
+  hi! link changelogFiles String
+  hi! link changelogFuncs Function
   " }}}
 
 endfunction

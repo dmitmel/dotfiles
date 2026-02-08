@@ -230,7 +230,7 @@ endif
 
   " <https://github.com/neovim/neovim/commit/f89a275e32110a63e8ee1fc6ca75e0cf09194185>
   " <https://github.com/neovim/neovim/commit/3d1110674ec330138ad6675f828673ca32575d4b>
-  if has('patch-9.1.0720') || has('patch-8.2.3160')
+  if has('patch-9.1.0720') || has('nvim-0.11.0')
     set breakindentopt+=list:-1
   endif
 
@@ -583,7 +583,7 @@ endif
   endfunction
   command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
   execute dotutils#cmd_alias('Sp', 'SpellCheck')
-  nnoremap <script> <leader>s <SID>:SpellCheck<CR>
+  nnoremap <script> <leader>s :<C-u>SpellCheck<CR>
 
 " }}}
 
@@ -726,6 +726,13 @@ endif
   let g:python_recommended_style = 0
   let g:python_highlight_all = 1
 
+  let g:pyindent_disable_parentheses_indenting = 0
+  let g:pyindent_open_paren = 'shiftwidth()'
+  let g:pyindent_nested_paren = 'shiftwidth()'
+  let g:pyindent_continue = 'shiftwidth()'
+  let g:python_indent = get(g:, 'python_indent', {})
+  let g:python_indent.closed_paren_align_last_line = 0
+
   " Seems to be the closest one to SQLite. <https://www.sqlite.org/lang.html>
   let g:sql_type_default = 'sqlinformix'
 
@@ -771,5 +778,7 @@ endif
   let g:go_highlight_generate_tags = 1
   let g:go_highlight_variable_assignments = 0
   let g:go_highlight_variable_declarations = 0
+
+  " let g:vim_indent_cont = 0
 
 " }}}

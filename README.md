@@ -5,7 +5,7 @@ a collection of scripts. Written for and work on various UNIX-like OSes, primari
 
 - Arch Linux,
 - Linux Mint,
-- server Ubuntu,
+- Ubuntu,
 - macOS with GNU coreutils (i.e. BSDs are not supported),
 - Android with Termux.
 

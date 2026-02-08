@@ -37,7 +37,7 @@ function! dotfiles#splits#navigate(direction) abort
     let min_time = 0
     let min_winid = 0
     for winid in neighbors
-      let time = getwinvar(winid, 'dotfiles_last_enter_time')
+      let time = getwinvar(winid, 'dotfiles_last_visit_time')
       if time > min_time || min_winid == 0
         let min_time = time
         let min_winid = winid

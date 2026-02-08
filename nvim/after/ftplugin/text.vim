@@ -1,6 +1,7 @@
 exe dotfiles#ft#set('&wrap', 1)
 exe dotfiles#ft#set('&textwidth', 0)
 exe dotfiles#ft#set('&colorcolumn', '')
+exe dotfiles#ft#set('&showbreak', 'NONE')
 
 call dotfiles#ft#set('indentLine_enabled', 0)
 

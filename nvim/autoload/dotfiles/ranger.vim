@@ -154,8 +154,7 @@ function! s:open_all(cmd, paths) abort
       " of the original exception, so we have to format an exception error
       " message appropriately ourselves.
       " <https://github.com/neovim/neovim/blob/v0.11.5/src/nvim/message.c#L596>
-      echoerr printf(dotutils#gettext('Error detected while processing %s:'), throwpoint)
-            \ . "\n" . exception
+      echoerr dotutils#format_exception(throwpoint,exception)
     endif
   endfor
 endfunction

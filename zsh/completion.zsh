@@ -10,19 +10,19 @@ zstyle ':completion:*' verbose yes
 zstyle ':completion:*' use-cache yes
 zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR"
 
-# group completion result based on their categories
+# group completion results by their categories
 zstyle ':completion:*' group-name ''
 # format for displaying category names
 zstyle ':completion:*:descriptions' format '%F{yellow}[%d]%f'
 
-# Sometimes zsh completion authors for whatever reason add descriptions for
-# option values, but don't do describe the options themselves (e.g. ffmpeg,
-# some options for GCC). In such cases description of an option can be inferred
-# from the description of its value. That's the purpose of `auto-description`.
+# Sometimes completion script authors for whatever reason add descriptions for
+# option values, but don't do describe the options themselves (e.g. ffmpeg, some
+# options for GCC). In such cases description of an option can be inferred from
+# the description of its value. That's the purpose of `auto-description`.
 zstyle ':completion:*:options' auto-description '%d'
 
 # case insensitive (all), partial-word and substring completion
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}' 'r:|=*' 'l:|=* r:|=*'
 
 zstyle ':completion:*' list-dirs-first yes
 # complete `.` and `..` directories

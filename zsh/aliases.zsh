@@ -74,6 +74,7 @@ alias chown='chown -v'
 alias chgrp='chgrp -v'
 alias ln='ln -iv'
 alias mkdir='mkdir -v' md='mkdir -p'
+alias vidir='vidir -v'
 
 for n in {1..9}; do
   alias "$n"="cd +$n"
@@ -106,14 +107,14 @@ if [[ "$EDITOR" == *vim ]]; then
 fi
 
 # -a = --archive
-# -A = --acls
+# -A = --acls --perms
 # -X = --xattrs
 # -H = --hard-links
 # -z = --compress
 # -P = --partial --progress
 # -v = --verbose
 # -h = --human-readable
-alias rsync-backup='rsync -aAXHzPvh --info=progress2'
+alias rsync-backup='rsync -aAXHzPvh --info=progress2 --no-i-r'
 
 if command_exists ncdu; then
   alias ncdu='ncdu --confirm-quit'

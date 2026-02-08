@@ -65,7 +65,7 @@ function! dotfiles#titlestring#get() abort
   else
     " %F is the file name as presented in `:ls`
     " %m is the Modified flag: [+] if &modified is true, [-] if &modifiable is
-    " off (the latter  I don't like)
+    " off (the latter I don't like)
     let buf_title = &modifiable ? '%F%m' : '%F'
   endif
   return '%{dotfiles#titlestring#user_and_host()}' . buf_title . ' (%{v:progname})'

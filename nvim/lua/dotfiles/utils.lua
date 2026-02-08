@@ -196,8 +196,9 @@ end
 function M.read_file(path, opts)
   opts = opts or {}
   local file = assert(io.open(path, opts.binary and 'rb' or 'r'))
-  local data = assert(file:read('*a'))
+  local data, err = file:read('*a')
   file:close()
+  if err then error(err) end
   return data
 end
 
@@ -207,9 +208,12 @@ end
 function M.write_file(path, data, opts)
   opts = opts or {}
   local file = assert(io.open(path, opts.binary and 'wb' or 'w'))
-  assert(file:write(data))
-  assert(file:flush())
+  local _, err = file:write(data)
+  if not err then
+    _, err = file:flush()
+  end
   file:close()
+  if err then error(err) end
 end
 
 --- Same as `vim.fs.normalize()`, but does not expand any characters with special meaning.

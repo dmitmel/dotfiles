@@ -199,6 +199,13 @@ function! dotutils#gettext(str) abort
   return exists('*gettext') ? gettext(a:str) : a:str
 endfunction
 
+function! dotutils#format_exception(throwpoint, exception) abort
+  return
+  \ (empty(a:throwpoint) ? '' :
+  \ printf(dotutils#gettext('Error detected while processing %s:'), a:throwpoint) . "\n")
+  \ . substitute(a:exception, '^Vim\%((\a\+)\)\=:', '', '')
+endfunction
+
 function! dotutils#literal_regex(pat) abort
   let pat = escape(a:pat, '\')
   let pat = substitute(pat, '\n', '\\n', 'g')
@@ -240,7 +247,7 @@ function! dotutils#file_size_fmt(bytes) abort
   endfor
   let number_str = printf('%.2f', (a:bytes * 1.0) / factor)
   " remove trailing zeros
-  let number_str = substitute(number_str, '\v(\.0*)=$', '', '')
+  let number_str = substitute(number_str, '\.0\+$', '', '')
   return number_str . unit
 endfunction
 
@@ -250,16 +257,6 @@ function! dotutils#is_terminal_running(buf) abort
     return jobwait([job], 0)[0] == -1
   elseif has('terminal')
     return term_getstatus(a:buf) =~# '\<running\>'
-  else
-    return 0
-  endif
-endfunction
-
-function! dotutils#is_floating_window(id) abort
-  if exists('*win_gettype')
-    return win_gettype(a:id) ==# 'popup'
-  elseif exists('*nvim_win_get_config')
-    return !empty(nvim_win_get_config(a:id).relative)
   else
     return 0
   endif

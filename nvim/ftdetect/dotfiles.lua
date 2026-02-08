@@ -4,6 +4,7 @@ vim.filetype.add({
   extension = {
     log = 'log',
     LOG = 'log',
+    ioc = 'jproperties', -- STM32CubeMX project settings
   },
   filename = {
     ['.clangd'] = 'yaml',
