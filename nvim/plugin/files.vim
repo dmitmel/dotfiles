@@ -34,28 +34,33 @@ endif
 
 " Definitely one of my most useful mappings. Writes the current buffer and all
 " other modified buffers to the disk. With regards to the implementation, I
-" shold point out three major things:
+" should point out three major things.
 "
-" 1. In some buftypes <CR> has different Normal-mode behavior, for instance in
-"    the quickfix list it opens the selected entry -- this is accounted for by
-"    the <expr> condition. Note that this is not of concern if a plugin defines
-"    a buffer-local mapping on <CR> because that will simply shadow and override
-"    my global mapping, this matters only where the different behavior is a
-"    implemented in Vim itself.
+" 1. Firstly, In some buftypes <CR> has different Normal-mode behavior, for
+"    instance in the quickfix list it opens the selected entry -- this is
+"    accounted for by the <expr> condition. Note that this is not of concern if
+"    a plugin defines a buffer-local mapping for <CR> because it will simply
+"    override my global mapping. Checking buftype matters only where the
+"    different behavior is implemented in Vim itself.
 "
 " 2. The useful payload after the buftype check is a bit convoluted, but that is
 "    just a hack to ensure that |:wall| is not executed if |:write| fails or
 "    gets cancelled (see |'confirm'|). This can't be done within a function or a
-"    try-endtry block because then the stack trace is always displayed (I want a
-"    one-line error message as if |:write| was typed in by hand).
+"    try-endtry block because that causes the stack trace message to always be
+"    displayed (I want a one-line error message as if |:write| was typed in by
+"    hand into the command prompt). Also, Vim stops execution of a mapping if an
+"    error is encountered within it, which effectively makes it act like a
+"    try-catch block (see |map-error|).
 "
 " 3. The |:write| before |:wall| is executed so that the current buffer is
 "    ALWAYS written, regardless of whether it was modified or not. This is
 "    useful to kick off a build or to run on-save actions such as code
 "    formatting.
 "
-nnoremap <silent><expr> <CR> (!empty(&buftype) && &buftype !=# 'acwrite') ? "\<CR>" :
-\ ":\<C-u>let v:errmsg=''<bar>write<bar>if empty(v:errmsg) && !&modified<bar>wall<bar>endif\<CR>"
+nnoremap <silent><expr> <CR>
+\ (empty(&buftype) \|\| &buftype ==# 'acwrite')
+\   ? ":\<C-u>write<bar>if !&modified<bar>wall<bar>endif\<CR>"
+\   : "\<CR>"
 
 " Automatically reload the file if it was changed outside of Vim.
 set autoread
