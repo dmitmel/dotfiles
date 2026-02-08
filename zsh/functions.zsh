@@ -32,15 +32,12 @@ contains() { [[ -n "${${(P)1}[(re)${2}]+1}" ]]; }
 # Checks if a given variable is defined (even if it is set to an empty string).
 is_defined() { [[ -n "${${(P)1}+defined}" ]]; }
 
-# Checks if a word can be meaningfully executed as a command (aliases, functions
-# and builtins also count).
-command_exists() { whence -- "$@" &>/dev/null; }
-# Searches the command binary in PATH.
-command_locate() { whence -p -- "$@"; }
+function_exists() { typeset -f -- "$@" &>/dev/null; }
+alias_exists() { alias -- "$@" &>/dev/null; }
+command_exists() { whence -p -- "$@" &>/dev/null; }
 
-is_function() { typeset -f -- "$@" &>/dev/null; }
-is_alias() { alias -- "$@" &>/dev/null; }
-is_command() { whence -p -- "$@" &>/dev/null; }
+# Searches the command binary in PATH.
+locate_command() { whence -p -- "$@"; }
 
 lazy_load() {
   local name="$1"
@@ -122,7 +119,7 @@ git_current_branch() {
   print -r -- "${ref#refs/heads/}"
 }
 
-if is_command swapoff && is_command swapon; then
+if command_exists swapoff && command_exists swapon; then
   deswap() { sudo sh -c 'swapoff --all && swapon --all'; }
 fi
 
@@ -231,7 +228,7 @@ vim-startuptime() {
 
 allow-ptrace() {
   local program
-  if ! program="$(command_locate "$1")"; then
+  if ! program="$(locate_command "$1")"; then
     printf "$0: command not found: %s\n" "$1"
     return 1
   fi
@@ -376,7 +373,7 @@ keep-sudo() {
   fi
 }
 
-if is_command apt; then
+if command_exists apt; then
   # A wrapper around apt(1) which patches its `search` subcommand, which is
   # notoriously unhelpful for actually finding necessary packages because it
   # likes to return lots of unrelated results and sorts them all alphabetically,
@@ -454,7 +451,7 @@ if is_command apt; then
   }
 fi
 
-if is_command wdiff; then
+if command_exists wdiff; then
   # Inspired by <https://github.com/junghans/cwdiff/blob/de56a73f37eb72edfb78ea610798a5744b8dcf10/cwdiff#L54-L61>.
   wdiff() {
     if [[ -t 1 ]]; then

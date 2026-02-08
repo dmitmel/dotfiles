@@ -18,7 +18,7 @@ alias diff='diff --color=auto --unified'
 alias sudoe="sudoedit"
 alias sue="sudoedit"
 
-if is_command dmesg; then
+if command_exists dmesg; then
   # `--human` makes `dmesg` display timestamps in the logs in a more
   # human-readable way, and also start the pager automatically
   alias dmesg='dmesg --human'
@@ -153,7 +153,7 @@ alias yarn="yarn --emoji false"
 alias gdb='DOTFILES_GDB_DASHBOARD=1 gdb'
 
 # Check if the binary of `man` is actually symlinked to `mandoc`.
-if is_command mandoc && [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
+if command_exists mandoc && [[ "${commands[man]:A}" == "${commands[mandoc]:A}" ]]; then
   alias man='man -O width="$((COLUMNS - 1))"'
 else
   # Search for some string in all man pages

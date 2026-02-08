@@ -81,12 +81,12 @@ fi
 eval "${(F)_deferred_compdefs}"  # the (F) flag joins all elements of an array with newlines
 unset _deferred_compdefs
 
-if ! is_function _rustup && command_exists rustup; then
+if ! function_exists _rustup && command_exists rustup; then
   lazy_load _rustup 'source <(rustup completions zsh)'
   compdef _rustup rustup
 fi
 
-if is_function _rustup; then
+if function_exists _rustup; then
   # For some reason, the completions provided by the default script for Rustup
   # are off-by-one: you get an autocompletion for a subcommand twice, i.e. the
   # first argument, and arguments after that are completed just fine. Fix that
@@ -100,12 +100,12 @@ if is_function _rustup; then
   compdef _rustup_fixed rustup
 fi
 
-if ! is_function _cargo && command_exists rustup && command_exists rustc; then
+if ! function_exists _cargo && command_exists rustup && command_exists rustc; then
   lazy_load _cargo 'source "$(rustc --print sysroot)/share/zsh/site-functions/_cargo"'
   compdef _cargo cargo
 fi
 
-if ! is_function _rustc && ! is_function _rust; then
+if ! function_exists _rustc && ! function_exists _rust; then
   # Load the completion script included with Oh-My-Zsh, without loading the
   # entirety of its `rust` plugin.
   autoload -Uz -- "${ZSH}/plugins/rust/_rustc"

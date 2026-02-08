@@ -1,6 +1,6 @@
 if [[ -z "$EDITOR" ]]; then
   for EDITOR in nvim vim nano; do
-    if is_command "$EDITOR"; then
+    if command_exists "$EDITOR"; then
       export EDITOR
       export VISUAL="${VISUAL:-$EDITOR}"
       break
@@ -21,7 +21,7 @@ export CLICOLOR=1
 export LSCOLORS="Gxfxcxdxbxegedabagacad"  # BSD ls colors
 export -T LS_COLORS ls_colors ':'  # GNU ls colors (tie this variable to a `:`-separated array
 
-if is_command dircolors; then  # (this program is also part of GNU coreutils)
+if command_exists dircolors; then  # (this program is also part of GNU coreutils)
   # While not being a particularly complex task, executing `dircolors` still
   # requires forking to an external binary to essentially just get an unchanging
   # string of code to `eval`, and this is noticeable on systems where disk I/O
@@ -83,7 +83,7 @@ export -T JQ_COLORS jq_colors=(
   "0;39"      # objects
 ) ':'
 
-if is_command brew; then
+if command_exists brew; then
   export HOMEBREW_NO_EMOJI=1
   export HOMEBREW_NO_AUTO_UPDATE=1
   export HOMEBREW_NO_INSTALL_UPGRADE=1
@@ -91,7 +91,7 @@ if is_command brew; then
 fi
 
 export FZF_DEFAULT_OPTS="--height=40% --reverse --bind=change:first"
-if is_command rg; then
+if command_exists rg; then
   export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob='!{.git,.svn,.hg,.DS_Store,*~}'"
 fi
 

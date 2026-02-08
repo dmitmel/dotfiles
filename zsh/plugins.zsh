@@ -13,7 +13,7 @@ plugin completions 'zsh-users/zsh-completions' \
     omz_features+=(termsupport)
   fi
 
-  if ! is_function command_not_found_handler; then
+  if ! function_exists command_not_found_handler; then
     omz_plugins+=(command-not-found)
   fi
 
@@ -51,8 +51,8 @@ plugin completions 'zsh-users/zsh-completions' \
 # The `${var=default}` syntax sets a `$var` to `default` only if it was not
 # defined before (but not if it is set to an empty string -- this counts as the
 # variable being defined).
-if ! is_command fzf; then : ${DOTFILES_INSTALL_FZF=yes}; fi
-if ! is_command lf;  then : ${DOTFILES_INSTALL_LF=yes};  fi
+if ! command_exists fzf; then : ${DOTFILES_INSTALL_FZF=yes}; fi
+if ! command_exists lf;  then : ${DOTFILES_INSTALL_LF=yes};  fi
 
 if [[ -n "$DOTFILES_INSTALL_FZF" ]]; then
   plugin fzf 'junegunn/fzf' \
@@ -112,7 +112,7 @@ plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
   before_load='plugin-cfg-path fpath prepend .' \
   ${${(M)${DOTFILES_REAL_TERM:-$TERM}:#linux}:+"ignore=*"}  # a shitty ternary operator, adds ignore=* if $TERM == "linux"
 
-if is_function fast-theme; then
+if function_exists fast-theme; then
   set-my-syntax-theme() {
     fast-theme "$ZSH_DOTFILES/my-syntax-theme.ini" "$@"
   }
