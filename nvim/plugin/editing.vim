@@ -773,34 +773,3 @@ endif
   let g:go_highlight_variable_declarations = 0
 
 " }}}
-
-
-" Script-writing and debugging {{{
-
-  function! PutOutput(cmd) abort
-    let output = ''
-    silent! let output = dotfiles#sandboxed_execute#capture(a:cmd)
-    call dotutils#open_scratch_preview_win({ 'title': a:cmd, 'text': output })
-  endfunction
-  command! -nargs=+ -complete=command PutOutput call PutOutput(<q-args>)
-
-  " Same as typing commands literally, but creating local variables doesn't
-  " pollute the global scope. Intended for interactive-mode debugging of
-  " Vimscript.
-  command! -nargs=+ -complete=command Execute try | call dotfiles#sandboxed_execute#(<q-args>) | catch | echoerr v:exception | endtry
-
-  command! -nargs=+ -complete=command Timeit try | echo reltimefloat(dotfiles#sandboxed_execute#timeit(<q-args>)) | catch | echoerr v:exception | endtry
-
-  function! Hex(n) abort
-    return printf('%x', a:n)
-  endfunction
-
-  function! Bin(n) abort
-    return printf('%b', a:n)
-  endfunction
-
-  function! Oct(n) abort
-    return printf('%o', a:n)
-  endfunction
-
-" }}}
