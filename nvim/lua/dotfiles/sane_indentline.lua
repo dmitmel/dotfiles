@@ -582,19 +582,6 @@ function self.setup()
     on_line = function(...) return self.decoration_provider.on_line(...) end,
     on_end = function(...) return self.decoration_provider.on_end(...) end,
   })
-
-  local function implement_command(name, should_enable)
-    return vim.api.nvim_create_user_command(name, function(args)
-      local dict = args.bang and vim.g or vim.b
-      dict['indentLine_enabled'] =
-        should_enable(utils.is_truthy(utils.if_nil(dict['indentLine_enabled'], true)))
-      vim.cmd('redraw!')
-    end, { bar = true, bang = true })
-  end
-
-  implement_command('IndentLinesEnable', function() return true end)
-  implement_command('IndentLinesDisable', function() return false end)
-  implement_command('IndentLinesToggle', function(prev) return not prev end)
 end
 
 return self
