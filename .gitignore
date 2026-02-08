@@ -1,3 +1,4 @@
-*.pyc
+*.py[cod]
 node_modules/
 *.md.html
+Session.vim

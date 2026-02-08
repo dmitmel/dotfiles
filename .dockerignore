@@ -1,0 +1,7 @@
+**/.git/
+**/node_modules/
+**/__pycache__/
+*.py[cod]
+Session.vim
+*~
+.DS_Store
