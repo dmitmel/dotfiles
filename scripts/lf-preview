@@ -48,10 +48,10 @@ draw() {
   elif [ -n "${VIM_TTY-}" ] || [ -n "${TMUX-}" ] || [ -n "${DOTFILES_ICAT_MODE-}" ]; then
     DOTFILES_ICAT_MODE="${DOTFILES_ICAT_MODE:-lf-preview}" \
     COLUMNS="$w" LINES="$h" icat --stdin=no --transfer-mode=stream --passthrough=detect \
-        --align=left --image-id="$image_id" --unicode-placeholder --no-trailing-newline "$1"
+        --align=left --image-id="$image_id" --unicode-placeholder --no-trailing-newline -- "$1"
   else
     kitten icat --stdin=no --transfer-mode=stream --place "${w}x${h}@${x}x${y}" \
-        --align=left --image-id="$image_id" "$1" >/dev/tty
+        --align=left --image-id="$image_id" -- "$1" >/dev/tty
   fi
 }
 
