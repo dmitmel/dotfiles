@@ -1,22 +1,18 @@
 " <https://github.com/neovim/neovim/commit/6a7c904648827ec145fe02b314768453e2bbf4fe>
 " <https://github.com/vim/vim/commit/957cf67d50516ba98716f59c9e1cb6412ec1535d>
-let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.2')
+let s:has_cmd_mappings = has('patch-8.2.1978') || has('nvim-0.3.0')
 
-" HACK: This has to be one of my coolest hacks. The |<Cmd>| pseudo-key can be
-" emulated in older versions of Vim simply by prepending code to the mapping to
-" re-enter the previous mode. I create a mapping called `<SID>:` that should be
-" used in place of |<Cmd>|, which appropriately handles execution of the command
-" depending on the current mode. It is defined with |<SID>| and not |<Plug>| to
-" allow using it from non-recursive mappings -- see |:map-script|. The only
-" downside of my hack is that it is tricky to make it work well in the Insert
-" mode, but that is addressed by the function `s:Cmd(...)`, which can be used in
-" an <expr> mapping and works in ALL modes.
+" HACK: This has to be one of my most beautiful hacks. The |<Cmd>| pseudo-key
+" can be emulated in older versions of Vim simply by prepending code to a
+" mapping to re-enter the previous mode. I create a mapping called `<SID>:` that
+" should be used in place of |<Cmd>|, which appropriately handles execution of
+" the command depending on the current mode. It is defined with |<SID>| and not
+" |<Plug>| to enable its usage in non-recursive mappings (see |:map-script|).
+" The only downside of this hack is that it is tricky to make it work well from
+" the Insert mode.
 if s:has_cmd_mappings
   noremap  <SID>: <Cmd>
   inoremap <SID>: <Cmd>
-  function! s:Cmd(cmd) abort
-    return "\<Cmd>" . a:cmd . "\<CR>"
-  endfunction
 else
   " <C-u> is still needed in the Normal mode to erase the entered |count|.
   nnoremap <SID>: :<C-u>
@@ -27,43 +23,28 @@ else
   onoremap <SID>: :<C-u>
   " The main culprit: the Visual mode.
   xnoremap <SID>: :<C-u>exe'norm!gv'<bar>
-  " It gets a lil bit tricky in the Select mode because we first need to switch
-  " to the Visual mode with <C-g>, then re-enter it in the command-line and go
-  " back to the Select mode from Visual with <C-g>.
+  " It gets a lil trickier in the Select mode because we first need to switch to
+  " the Visual mode with <C-g>, then re-enter it in the command-line and go back
+  " to the Select mode from Visual with <C-g>.
   snoremap <SID>: <C-g>:<C-u>exe"norm!gv<C-g>"<bar>
-  " NOTE: <C-o> causes the statusline to flicker! `s:Cmd` is better suited for
-  " mappings that must work in the Insert mode!!! |i_CTRL-R_=| is required to
-  " execute code or normal-mode commands, and theoretically, it is possible
-  " to replace this mapping with something like `<C-r>=execute(input())<CR>`,
-  " but in practice that makes it too slow.
+  " NOTE: <C-o> causes the statusline to flicker!
   inoremap <SID>: <C-o>:<C-u>
-
-  let s:cmd_payload = {
-  \ 'n':                          ":\<C-u>call".expand('<SID>')."exec_cmd()\<CR>",
-  \ 'v':             ":\<C-u>exe'norm!gv'|call".expand('<SID>')."exec_cmd()\<CR>",
-  \ 's': "\<C-g>:\<C-u>exe'norm!gv\<C-g>'|call".expand('<SID>')."exec_cmd()\<CR>",
-  \ 'i':                              "\<C-r>=".expand('<SID>')."exec_cmd()\<CR>",
-  \ 't':  "\<C-\>\<C-n>:\<C-u>startinsert|call".expand('<SID>')."exec_cmd()\<CR>",
-  \ }
-
-  for s:alias in ['Vv', "\<C-v>v", 'Ss', "\<C-s>s", 'Ri', 'ci']
-    let s:cmd_payload[s:alias[0]] = s:cmd_payload[s:alias[1]]
-  endfor
-
-  " Execute the provided command as-is after evaluating an <expr> mapping.
-  function! s:Cmd(cmd) abort
-    let s:queued_cmd = a:cmd
-    return s:cmd_payload[mode()]
-  endfunction
-
-  " Note that this function is not marked with |abort|, both |:execute| and
-  " |:unlet| should be allowed to fail
-  function! s:exec_cmd()
-    execute s:queued_cmd
-    unlet   s:queued_cmd
-    return  ''
-  endfunction
+  " NOTE: This does not cause flicker, but works too slow in practice.
+  "inoremap <SID>: <C-r>=execute(input())<CR>
 endif
+
+function! s:escape_string_for_mapping(str) abort
+  let str = substitute(a:str, '<' , '<lt>', 'g')
+  return '"' . escape(str, '\"<') . '"'
+endfunction
+
+function! s:map_command_from_insert(command) abort
+  if s:has_cmd_mappings
+    return '<Cmd>exe' . s:escape_string_for_mapping(a:command) . '<CR>'
+  else
+    return '<C-r>=execute(' . s:escape_string_for_mapping(a:command) . ')<CR>'
+  endif
+endfunction
 
 " Allow moving cursor just after the last character of the line.
 set virtualedit=onemore
@@ -262,11 +243,12 @@ endif
 
   " My final attempt at untangling the mess that are the <Up> and <Down> keys.
   for s:key in ['<Up>', '<Down>']
+    let s:rhs = s:map_command_from_insert('norm!g'.s:key)
     " `./completion.vim` might remap <Up> and <Down> before `./editing.vim` runs,
     " so make the wrapped <Up/Down> keys available as <Plug>dotfiles<Up/Down>,
     " which `./completion.vim` can use.
-    exe printf('inoremap <silent><expr> %s (&wrap && v:count == 0) ? <SID>Cmd("normal! g%s") : "%s"',
-          \ '<Plug>dotfiles' . s:key, s:key, s:key)
+    exe printf('inoremap <silent><expr> <Plug>dotfiles%s (&wrap && v:count == 0) ? %s : %s',
+          \ s:key, s:escape_string_for_mapping(s:rhs), s:escape_string_for_mapping(s:key))
     if empty(maparg(s:key, 'i'))
       exe 'imap' s:key '<Plug>dotfiles'.s:key
     endif
@@ -351,7 +333,7 @@ endif
     let s:lhs = '<M-' . s:lhs . '>'
     execute 'noremap' s:lhs s:rhs
     execute 'ounmap' s:lhs
-    execute 'inoremap <silent><expr>' s:lhs '<SID>Cmd("normal! '.s:rhs.'")'
+    execute 'inoremap <silent>' s:lhs s:map_command_from_insert('norm!' . s:rhs)
   endfor
 
   " Helpers to apply A/I to every line selected in Visual mode.
