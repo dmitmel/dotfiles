@@ -28,7 +28,7 @@ function! airline#extensions#filesize#get() abort
     let b:dotfiles_filesize = bytes
     let b:dotfiles_filesize_str = dotutils#file_size_fmt(bytes)
     let b:dotfiles_filesize_changedtick = b:changedtick
-    let b:dotfiles_filesize_timer = reltimefloat(reltime())
+    let b:dotfiles_filesize_timer = reltimefloat(reltime(s:start_reltime))
   endif
 
   return b:dotfiles_filesize_str
