@@ -20,12 +20,17 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
     then yes | unminimize; else apt-get dist-upgrade -y; fi
 
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
-  apt-get install --no-install-recommends -y ninja-build gettext cmake curl build-essential git ca-certificates
+  apt-get install --no-install-recommends -y \
+    ccache ninja-build gettext cmake curl build-essential git ca-certificates
 
-RUN \
-  nvim_dir=$(mktemp -d neovim-XXXXXXXXXX) && trap 'rm -rf "$nvim_dir"' EXIT && \
-  git -c advice.detachedHead=false clone --progress https://github.com/neovim/neovim.git --branch=stable --depth=1 "$nvim_dir" && \
-  make -C "$nvim_dir" CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX=/usr/local CMAKE_EXTRA_FLAGS='-DENABLE_LTO=OFF' install || true
+RUN --mount=type=cache,sharing=locked,target=/var/cache/ccache \
+  nvim_dir=/neovim && \
+  git -c advice.detachedHead=false clone --progress --branch=stable --depth=1 -- \
+    'https://github.com/neovim/neovim.git' "$nvim_dir" && \
+  export PATH="/usr/lib/ccache:$PATH" CCACHE_DIR='/var/cache/ccache' && \
+  make -C "$nvim_dir" CMAKE_INSTALL_PREFIX=/usr/local CMAKE_BUILD_TYPE=RelWithDebInfo \
+    CMAKE_EXTRA_FLAGS='-DENABLE_LTO=OFF' install || true && \
+  ccache -s
 
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
   packages='' && \
