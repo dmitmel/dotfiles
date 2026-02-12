@@ -25,12 +25,14 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
 RUN \
   nvim_dir=$(mktemp -d neovim-XXXXXXXXXX) && trap 'rm -rf "$nvim_dir"' EXIT && \
   git -c advice.detachedHead=false clone --progress https://github.com/neovim/neovim.git --branch=stable --depth=1 "$nvim_dir" && \
-  make -C "$nvim_dir" CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX=/usr/local CMAKE_EXTRA_FLAGS='-DENABLE_LTO=OFF' install
+  make -C "$nvim_dir" CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX=/usr/local CMAKE_EXTRA_FLAGS='-DENABLE_LTO=OFF' install || true
 
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
-  apt-get install --no-install-recommends -y \
-    build-essential curl wget zsh vim neovim git pv jq zip unzip kitty-terminfo file less man-db \
-    command-not-found python3 python-is-python3 python3-psutil python3-colorama python3-distro && \
+  packages='' && \
+  for name in build-essential curl wget zsh vim neovim git pv jq zip unzip kitty-terminfo file \
+    less man-db tree python3 python-is-python3 python3-psutil python3-colorama python3-distro \
+    command-not-found; do if apt-cache show "$name" >/dev/null; then packages="${packages} ${name}"; fi; done && \
+  apt-get install --no-install-recommends -y $packages && \
   apt-get update  # to update the command-not-found database
 
 ARG dotfiles_dir=/dotfiles
@@ -49,6 +51,6 @@ RUN \
   mkdir -p /usr/local/lib/kitty && \
   curl -Lf https://github.com/kovidgoyal/kitty/archive/refs/heads/master.tar.gz | \
     tar -C /usr/local/lib/kitty -xzvf - --strip-components=1 kitty-master/shell-integration && \
-  DOTFILES_ZSHRC_SILENT=1 zsh -i -c 'nvim --headless +"qa!"'
+  DOTFILES_ZSHRC_SILENT=1 zsh -i -c 'nvim --headless +"qa!" || true'
 
 CMD /bin/zsh

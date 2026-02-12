@@ -92,6 +92,8 @@ typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGI
 # this function to change the plugin loading strategy.
 (( ${+functions[_zplg_load]} )) || function _zplg_load { source "$@"; }
 
+autoload -Uz is-at-least
+
 # plugin sources {{{
 # See documentation of the `plugin` function for description.
 
@@ -106,7 +108,17 @@ typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGI
 
   _zplg_source_git_download() {
     local plugin_url="$1" plugin_dir="$2"
-    git clone --progress --filter=blob:none --recurse-submodules -- "$plugin_url" "$plugin_dir"
+
+    local output='' has_partial_clone=''
+    output=$(git --version)
+    output=${output#'git version '}
+    # <https://github.blog/open-source/git/highlights-from-git-2-25/>
+    if is-at-least 2.25 "$output"; then
+      has_partial_clone=yes
+    fi
+
+    git clone --progress --recurse-submodules ${has_partial_clone:+'--filter=blob:none'} \
+      -- "$plugin_url" "$plugin_dir"
   }
 
   _zplg_source_git_upgrade() {

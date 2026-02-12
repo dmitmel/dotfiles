@@ -30,7 +30,7 @@ compdef '_parameters -g "association*"' print_table
 contains() { [[ -n "${${(P)1}[(re)${2}]+1}" ]]; }
 
 # Checks if a given variable is defined (even if it is set to an empty string).
-is_defined() { [[ -n "${${(P)1}+defined}" ]]; }
+is_defined() { [[ -n "${(P)1+defined}" ]]; }
 
 function_exists() { typeset -f -- "$@" &>/dev/null; }
 alias_exists() { alias -- "$@" &>/dev/null; }
