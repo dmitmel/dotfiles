@@ -23,14 +23,18 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
   apt-get install --no-install-recommends -y \
     ccache ninja-build gettext cmake curl build-essential git ca-certificates
 
-RUN --mount=type=cache,sharing=locked,target=/var/cache/ccache \
-  nvim_dir=/neovim && \
+RUN --mount=type=cache,sharing=shared,target=/var/cache/ccache \
+  nvim_dir='/usr/local/src/neovim' && \
   git -c advice.detachedHead=false clone --progress --branch=stable --depth=1 -- \
     'https://github.com/neovim/neovim.git' "$nvim_dir" && \
   export PATH="/usr/lib/ccache:$PATH" CCACHE_DIR='/var/cache/ccache' && \
-  make -C "$nvim_dir" CMAKE_INSTALL_PREFIX=/usr/local CMAKE_BUILD_TYPE=RelWithDebInfo \
+  make -C "$nvim_dir" CMAKE_INSTALL_PREFIX='/usr/local' CMAKE_BUILD_TYPE='RelWithDebInfo' \
     CMAKE_EXTRA_FLAGS='-DENABLE_LTO=OFF' install || true && \
-  ccache -s
+  ccache -s && rm -rf -- "$nvim_dir"
+
+# Delete the compilation cache from my container. It will still be preserved in
+# Docker's database, but absent from the resulting container.
+RUN rm -rf '/var/cache/ccache'
 
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
   packages='' && \
