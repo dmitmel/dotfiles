@@ -8,7 +8,7 @@
     "argparse": "^2.0.1",
     "github-markdown-css": "^5.5.0",
     "github-slugger": "^1.5.0",
-    "markdown-it": "^14.0.0",
+    "markdown-it": "^14.1.1",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
     "prismjs": "^1.30.0"
