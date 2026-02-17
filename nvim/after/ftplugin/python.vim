@@ -8,7 +8,7 @@ setlocal cinoptions+=#1
 call dotfiles#ft#undo_set('&cinoptions')
 
 if exists('loaded_matchit') && !exists('b:match_skip')
-  call dotfiles#ft#set('match_skip', 's:string\|comment\|pythonBytes\|pythonRawBytes')
+  call dotfiles#ft#set('match_skip', 's:string\|comment\|bytes')
 endif
 
 call dotfiles#ft#set('surround_'.char2nr('i'), "if ...:\r")
