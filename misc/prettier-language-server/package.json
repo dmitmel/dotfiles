@@ -7,15 +7,15 @@
     "node": ">=12.2.0"
   },
   "dependencies": {
-    "eslint": "^8.57.1",
     "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel",
-    "prettier": "^3.5.3",
-    "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.12",
-    "vscode-uri": "^3.1.0"
+    "prettier": "^3.0.0",
+    "vscode-languageserver": "^9.0.0",
+    "vscode-languageserver-textdocument": "^1.0.0",
+    "vscode-uri": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
+    "eslint": "^8.57.1",
     "eslint-plugin-node": "^11.1.0"
   }
 }

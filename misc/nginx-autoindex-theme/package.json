@@ -1,13 +1,13 @@
 {
   "private": true,
   "dependencies": {
-    "@babel/code-frame": "^7.23.5",
-    "cssnano": "^6.0.3",
-    "postcss": "^8.4.33",
+    "@babel/code-frame": "^7.29.0",
+    "cssnano": "^7.1.2",
+    "postcss": "^8.5.6",
     "postcss-reporter": "^7.1.0",
-    "terser": "^5.27.0"
+    "terser": "^5.46.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.5"
+    "@types/node": "^25.2.3"
   }
 }

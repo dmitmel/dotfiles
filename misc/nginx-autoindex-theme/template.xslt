@@ -163,7 +163,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 <style type="text/css"><!-- include styles.css start -->
   <xsl:text>*{box-sizing:border-box}body{background:#383838;color:#dadada;font-family:monospace;line-height:1.2;margin:8px}a{color:#7eafe9;text-decoration:none}a:active,a:focus,a:hover{color:#d1c5e9;</xsl:text>
-  <xsl:text>text-decoration:underline}a:active{color:#e6bdbc}svg.icon{height:1em;width:1em;fill:currentColor;vertical-align:-.125em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:</xsl:text>
+  <xsl:text>text-decoration:underline}a:active{color:#e6bdbc}svg.icon{fill:currentColor;height:1em;vertical-align:-.125em;width:1em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:</xsl:text>
   <xsl:text>auto}.nav{background:#404040;padding:6px 12px}.nav&gt;*{display:inline-block;margin-right:3px}table{border-spacing:0;width:100%}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}</xsl:text>
   <xsl:text>table&gt;:last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:</xsl:text>
   <xsl:text>focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#4c4c4c}tr&gt;*{text-align:left;white-space:nowrap}th{font-weight:700}th.sort&gt;a,tr&gt;*{padding:4px 12px}th.sort{padding:0}th.sort&gt;a{color:unset;cursor:pointer;</xsl:text>
@@ -274,11 +274,11 @@ POSSIBILITY OF SUCH DAMAGE.
   <xsl:text>Intl?new Intl.Collator(void 0,{numeric:!0}).compare:(a,b)=&gt;a.localeCompare(b)):("size"===sortCol||"mtime"===sortCol)&amp;&amp;(getValue=td=&gt;nan2null(parseInt(td.dataset.val,10))),(a,b)=&gt;compare(getValue(</xsl:text>
   <xsl:text>findCol(a)),getValue(findCol(b)))*sortDir},updateSortIcons=(clickedTh,sortDir)=&gt;{for(let th of tHeaders){let sortDirStr="none",icon="none";th===clickedTh&amp;&amp;(sortDirStr=sortDir&gt;0?"asc":sortDir&lt;0?"dsc":"</xsl:text>
   <xsl:text>none",icon="sort-"+sortDirStr),th.dataset.sortDir=sortDirStr;for(let svgUse of th.querySelectorAll("svg.icon &gt; use"))svgUse.setAttribute("href","#icon-"+icon)}};for(let th of tHeaders){th.classList.</xsl:text>
-  <xsl:text>add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",(event=&gt;{let </xsl:text>
+  <xsl:text>add("sort");let thBtn=document.createElement("a");thBtn.href="#";for(let child of Array.from(th.childNodes))thBtn.appendChild(child);th.appendChild(thBtn),thBtn.addEventListener("click",event=&gt;{let </xsl:text>
   <xsl:text>newSortDir;event.preventDefault(),newSortDir="asc"===th.dataset.sortDir?-1:"dsc"===th.dataset.sortDir?0:1,updateSortIcons(th,newSortDir);let newRows=tRows.slice();0!==newSortDir&amp;&amp;newRows.sort(</xsl:text>
-  <xsl:text>createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)}))}}window.addEventListener("keydown",(event=&gt;{if(!(event.shiftKey||event.altKey||event.ctrlKey||event.metaKey)){</xsl:text>
+  <xsl:text>createSorterFn(th.dataset.col,newSortDir));for(let tr of newRows)tBody.appendChild(tr)})}}window.addEventListener("keydown",event=&gt;{if(!(event.shiftKey||event.altKey||event.ctrlKey||event.metaKey)){</xsl:text>
   <xsl:text>let dir;switch(event.code){case"ArrowUp":case"KeyK":dir=-1;break;case"ArrowDown":case"KeyJ":dir=1;break;default:return}event.preventDefault();let focusable=Array.from(document.querySelectorAll("tbody </xsl:text>
-  <xsl:text>a")),idx=focusable.indexOf(document.activeElement);idx&lt;0?idx=dir&gt;0?0:focusable.length-1:idx+=dir,null!=focusable[idx]&amp;&amp;focusable[idx].focus()}}))})();</xsl:text>
+  <xsl:text>a")),idx=focusable.indexOf(document.activeElement);idx&lt;0?idx=dir&gt;0?0:focusable.length-1:idx+=dir,null!=focusable[idx]&amp;&amp;focusable[idx].focus()}})})();</xsl:text>
 <!-- include script.js end --></script>
 
       </body>
