@@ -60,6 +60,28 @@ command! -nargs=* -complete=file Open call dotutils#open_uri(empty(<q-args>) ? e
 
 command! -nargs=* -complete=file Reveal call dotutils#reveal_file(empty(<q-args>) ? expand('%') : <q-args>)
 
+if has('nvim')
+  command! -bar -bang -nargs=? -complete=command Sudo
+    \ call dotfiles#nvim#sudo#enable('%') | <args>
+
+  command! -bar -bang -nargs=? -complete=file SudoWrite
+    \ call dotfiles#nvim#sudo#enable('%') |
+    \ setlocal noreadonly |
+    \ write<bang> <args>
+
+  command! -bar -bang -nargs=? -complete=file SudoEdit
+    \ call dotfiles#nvim#sudo#enable('%')
+    \|setlocal noreadonly |
+    \ let s:undoreload = &l:undoreload
+    \|let &l:undoreload = 0
+    \|try
+    \|  exe 'edit<bang>' <q-args>
+    \|finally
+    \|  let &l:undoreload = s:undoreload
+    \|  unlet s:undoreload
+    \|endtry
+endif
+
 if exists(':Man') != 2
   " In regular Vim the :Man command is not defined by default, see `:h man.vim`
   runtime! ftplugin/man.vim

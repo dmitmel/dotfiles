@@ -344,10 +344,26 @@ set nofixendofline
   execute dotutils#cmd_alias('nowq',  'NoFormat wq')
   execute dotutils#cmd_alias('nowqa', 'NoFormat wqa')
 
+  function! s:on_readonly_file() abort
+    if confirm("The file you are trying to edit is read-only.\n"
+          \   ."Do you wish to re-open it with `:SudoEdit`?", "&Yes\n&No") == 1
+      stopinsert
+      setlocal noreadonly
+      call timer_start(0, { -> dotfiles#nvim#sudo#enable('%') })
+    else
+      redraw
+      setlocal noreadonly
+      echohl WarningMsg
+      echomsg dotutils#gettext('W10: Warning: Changing a readonly file')
+      echohl NONE
+    endif
+  endfunction
+
   augroup dotfiles_on_save
     autocmd!
     autocmd BufWritePre * unsilent call s:Format()
     autocmd BufWritePre * unsilent call s:CreateParentDir()
+    " autocmd FileChangedRO * nested call s:on_readonly_file()
   augroup END
 
 " }}}
