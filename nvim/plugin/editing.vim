@@ -340,9 +340,15 @@ endif
   xnoremap <expr> A (mode() ==# 'V' ? ':normal! A' : 'A')
   xnoremap <expr> I (mode() ==# 'V' ? ':normal! I' : 'I')
 
-  " Break undo on CTRL-W and CTRL-U in the Insert mode.
+  " Break undo sequences on CTRL-W and CTRL-U in the Insert mode, see |undo-break|
   inoremap <C-u> <C-g>u<C-u>
-  inoremap <C-w> <C-g>u<C-w>
+  " Additionally, fix the INCREDIBLY ANNOYING behavior that when a prompt buffer
+  " is focused and the editor is in the Insert mode, CTRL-W does not delete a
+  " word, but instead begins a Normal-mode window command. To actually delete a
+  " word in a prompt buffer, you need to press CTRL-SHIFT-W, but guess what: in
+  " almost every GUI terminal emulator this sequence closes the current window!
+  " This weird-ass behavior is documented deep in the help for |prompt-buffer|.
+  inoremap <expr> <C-w> (&buftype ==# 'prompt' ? "\<C-g>u\<C-S-W>" : "\<C-g>u\<C-w>")
 
   " Make <BS> and others work in the Select mode as expected. Otherwise, if <BS>
   " is pressed when a snippet placeholder is selected, the placeholder will be
