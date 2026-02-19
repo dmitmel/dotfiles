@@ -141,7 +141,7 @@ endfunction
 
 function! s:BufReadCmd() abort
   let file = expand('<afile>')
-  exe 'silent doautocmd <nomodeline> BufReadPre' fnameescape(file)
+  exe 'silent doautocmd BufReadPre' fnameescape(file)
 
   " let prev_undoreload = &l:undoreload
   " let &l:undoreload = 0  " `:help clear-undo`
@@ -151,7 +151,18 @@ function! s:BufReadCmd() abort
     try
       if dotfiles#nvim#sudo#system('cat -- '.shellescape(file).' > '.shellescape(tempfile))
         silent %delete _
-        exe 'keepalt noautocmd read ++edit' v:cmdarg '!cat' shellescape(tempfile, 1)
+
+        let read_msg = execute('keepalt noautocmd read ++edit '.v:cmdarg.' '.fnameescape(tempfile))
+        let read_msg = read_msg[0] ==# "\n" ? read_msg[1:] : read_msg
+
+        let expected_prefix = '"' . fnamemodify(tempfile, ':~') . '" '
+        if dotutils#starts_with(read_msg, expected_prefix)
+          let read_msg = '"' . fnamemodify(file, ':~') . '" ' . read_msg[len(expected_prefix):]
+        endif
+
+        redraw
+        echomsg read_msg
+
         silent 1delete _
         setlocal nomodified
       else
@@ -181,7 +192,18 @@ function! s:BufWriteCmd() abort
 
   let tempfile = tempname()
   try
-    exe 'keepalt noautocmd write' v:cmdarg '!tee >/dev/null' shellescape(tempfile, 1)
+    let written_msg = execute('keepalt noautocmd write '.v:cmdarg.' '.fnameescape(tempfile))
+    let written_msg = written_msg[0] ==# "\n" ? written_msg[1:] : written_msg
+
+    let expected_prefix = '"' . fnamemodify(tempfile, ':~') . '" '
+    if dotutils#starts_with(written_msg, expected_prefix)
+      let info = written_msg[len(expected_prefix):]
+      " It will always say [New] because the saving is done into a new temporary
+      " file every time.
+      let info = substitute(info, dotutils#literal_regex(dotutils#gettext('[New]')), '', '')
+      let info = info[0] ==# ' ' ? info[1:] : info
+      let written_msg = '"' . fnamemodify(file, ':~') . '" ' . info
+    endif
 
     if dotfiles#nvim#sudo#system('mkdir -p -- '.fnamemodify(file, ':h:S').' >/dev/null')
       if dotfiles#nvim#sudo#system('tee -- '.shellescape(file).' < '.shellescape(tempfile).' >/dev/null')
@@ -190,6 +212,9 @@ function! s:BufWriteCmd() abort
         endif
 
         setlocal nomodified
+
+        redraw
+        echomsg written_msg
       endif
     endif
 
