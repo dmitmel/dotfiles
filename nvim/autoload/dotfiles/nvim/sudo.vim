@@ -139,121 +139,116 @@ endfunction
 
 " TODO: swapfile
 
-function! s:BufReadCmd() abort
-  let file = expand('<afile>')
-  exe 'silent doautocmd BufReadPre' fnameescape(file)
+function! s:read(range, cmdarg, tempfile, real_path) abort
+  let message = execute('keepalt noautocmd '.a:range.'read'.a:cmdarg.' '.fnameescape(a:tempfile))
+  let message = message[0] ==# "\n" ? message[1:] : message
 
-  " let prev_undoreload = &l:undoreload
-  " let &l:undoreload = 0  " `:help clear-undo`
+  let expected_prefix = '"' . fnamemodify(a:tempfile, ':~') . '" '
+  if dotutils#starts_with(message, expected_prefix)
+    let message = '"' . fnamemodify(a:real_path, ':~') . '" ' . message[len(expected_prefix):]
+  endif
+
+  return message
+endfunction
+
+function! s:write(range, cmdarg, tempfile, real_path) abort
+  let message = execute('keepalt noautocmd '.a:range.'write'.a:cmdarg.' '.fnameescape(a:tempfile))
+  let message = message[0] ==# "\n" ? message[1:] : message
+
+  let expected_prefix = '"' . fnamemodify(a:tempfile, ':~') . '" '
+  if dotutils#starts_with(message, expected_prefix)
+    let info = message[len(expected_prefix):]
+    " It will always say [New] because the saving is done into a new temporary
+    " file every time.
+    let info = substitute(info, dotutils#literal_regex(dotutils#gettext('[New]')), '', '')
+    let info = info[0] ==# ' ' ? info[1:] : info
+    let message = '"' . fnamemodify(a:real_path, ':~') . '" ' . info
+  endif
+
+  return message
+endfunction
+
+function! dotfiles#nvim#sudo#BufReadCmd(path) abort
+  let tempfile = tempname()
   try
-    let tempfile = tempname()
+    if dotfiles#nvim#sudo#system('cat -- '.shellescape(a:path).' > '.shellescape(tempfile))
+      silent %delete _
 
-    try
-      if dotfiles#nvim#sudo#system('cat -- '.shellescape(file).' > '.shellescape(tempfile))
-        silent %delete _
+      let read_msg = s:read('', v:cmdarg . ' ++edit', tempfile, a:path)
 
-        let read_msg = execute('keepalt noautocmd read ++edit '.v:cmdarg.' '.fnameescape(tempfile))
-        let read_msg = read_msg[0] ==# "\n" ? read_msg[1:] : read_msg
+      silent 1delete _
+      setlocal nomodified
 
-        let expected_prefix = '"' . fnamemodify(tempfile, ':~') . '" '
-        if dotutils#starts_with(read_msg, expected_prefix)
-          let read_msg = '"' . fnamemodify(file, ':~') . '" ' . read_msg[len(expected_prefix):]
-        endif
-
-        redraw
-        echomsg read_msg
-
-        silent 1delete _
-        setlocal nomodified
-      else
-        return
+      if &l:undofile && filereadable(a:path)
+        try
+          silent rundo `=undofile(a:path)`
+        catch /^Vim\%((\a\+)\)\=:E822:/
+          " Cannot open undo file for reading
+        endtry
       endif
-    finally
-      silent! call delete(tempfile)
-    endtry
 
-    if &l:undofile && filereadable(file)
-      try
-        silent rundo `=undofile(file)`
-      catch /^Vim\%((\a\+)\)\=:E822:/
-        " Cannot open undo file for reading
-      endtry
+      echomsg read_msg
     endif
-
   finally
-    " let &l:undoreload = prev_undoreload
-    exe 'silent doautocmd BufReadPost' fnameescape(file)
+    silent! call delete(tempfile)
   endtry
 endfunction
 
-function! s:BufWriteCmd() abort
-  let file = expand('<afile>')
-  exe 'silent doautocmd BufWritePre' fnameescape(file)
-
+function! dotfiles#nvim#sudo#BufWriteCmd(path) abort
   let tempfile = tempname()
   try
-    let written_msg = execute('keepalt noautocmd write '.v:cmdarg.' '.fnameescape(tempfile))
-    let written_msg = written_msg[0] ==# "\n" ? written_msg[1:] : written_msg
+    let written_msg = s:write('', v:cmdarg, tempfile, a:path)
 
-    let expected_prefix = '"' . fnamemodify(tempfile, ':~') . '" '
-    if dotutils#starts_with(written_msg, expected_prefix)
-      let info = written_msg[len(expected_prefix):]
-      " It will always say [New] because the saving is done into a new temporary
-      " file every time.
-      let info = substitute(info, dotutils#literal_regex(dotutils#gettext('[New]')), '', '')
-      let info = info[0] ==# ' ' ? info[1:] : info
-      let written_msg = '"' . fnamemodify(file, ':~') . '" ' . info
-    endif
-
-    if dotfiles#nvim#sudo#system('mkdir -p -- '.fnamemodify(file, ':h:S').' >/dev/null')
-      if dotfiles#nvim#sudo#system('tee -- '.shellescape(file).' < '.shellescape(tempfile).' >/dev/null')
-        if &l:undofile && filereadable(file)
-          silent wundo `=undofile(file)`
+    if dotfiles#nvim#sudo#system('mkdir -p -- '.fnamemodify(a:path, ':h:S').' >/dev/null')
+      if dotfiles#nvim#sudo#system('tee -- '.shellescape(a:path).' < '.shellescape(tempfile).' >/dev/null')
+        if &l:undofile && filereadable(a:path)
+          silent wundo `=undofile(a:path)`
         endif
 
         setlocal nomodified
 
-        redraw
         echomsg written_msg
       endif
     endif
-
   finally
     silent! call delete(tempfile)
-    exe 'silent doautocmd BufWritePost' fnameescape(file)
   endtry
 endfunction
 
-function! s:set_autocommands(buf, enable) abort
-  let buf = bufnr(a:buf)
-  if buf <= 0
-    throw 'buffer not found: ' . a:buf
-  endif
-
-  augroup dotfiles_nvim_sudo
-    exe 'autocmd! * <buffer='.buf.'>'
-    if a:enable
-      exe 'autocmd BufDelete,BufWipeout <buffer='.buf.'>'
-            \ 'silent! autocmd! dotfiles_nvim_sudo * <buffer='.buf.'>'
-      exe 'autocmd BufReadCmd  <buffer='.buf.'> unsilent call s:BufReadCmd()'
-      exe 'autocmd BufWriteCmd <buffer='.buf.'> unsilent call s:BufWriteCmd()'
+function! dotfiles#nvim#sudo#FileReadCmd(path) abort
+  let tempfile = tempname()
+  try
+    if dotfiles#nvim#sudo#system('cat -- '.shellescape(a:path).' > '.shellescape(tempfile))
+      let read_msg = s:read('', v:cmdarg, tempfile, a:path)
+      echomsg read_msg
     endif
-  augroup END
+  finally
+    silent! call delete(tempfile)
+  endtry
 endfunction
 
-function! dotfiles#nvim#sudo#enable(buf) abort
-  call s:set_autocommands(a:buf, 1)
+function! dotfiles#nvim#sudo#FileWriteCmd(path) abort
+  let tempfile = tempname()
+  try
+    let written_msg = s:write("'[,']", v:cmdarg, tempfile, a:path)
+    if dotfiles#nvim#sudo#system('tee -- '.shellescape(a:path).' < '.shellescape(tempfile).' >/dev/null')
+      echomsg written_msg
+    endif
+  finally
+    silent! call delete(tempfile)
+  endtry
 endfunction
 
-function! dotfiles#nvim#sudo#disable(buf) abort
-  call s:set_autocommands(a:buf, 0)
-endfunction
-
-function! dotfiles#nvim#sudo#is_enabled(buf) abort
-  let buf = bufnr(a:buf)
-  return buf > 0 && exists('#dotfiles_nvim_sudo#BufWriteCmd#<buffer='.buf.'>')
-endfunction
-
-function! dotfiles#nvim#sudo#toggle(buf) abort
-  call s:set_autocommands(a:buf, !dotfiles#nvim#sudo#is_enabled(a:buf))
+function! dotfiles#nvim#sudo#FileAppendCmd(path) abort
+  let tempfile = tempname()
+  try
+    " create an empty temporary file because appending can only be done to a file that exists
+    call writefile([], tempfile, 'b')
+    let appended_msg = s:write("'[,']", v:cmdarg . ' >>', tempfile, a:path)
+    if dotfiles#nvim#sudo#system('tee -a -- '.shellescape(a:path).' < '.shellescape(tempfile).' >/dev/null')
+      echomsg appended_msg
+    endif
+  finally
+    silent! call delete(tempfile)
+  endtry
 endfunction

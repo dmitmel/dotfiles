@@ -61,25 +61,44 @@ command! -nargs=* -complete=file Open call dotutils#open_uri(empty(<q-args>) ? e
 command! -nargs=* -complete=file Reveal call dotutils#reveal_file(empty(<q-args>) ? expand('%') : <q-args>)
 
 if has('nvim')
-  command! -bar -bang -nargs=? -complete=command Sudo
-    \ call dotfiles#nvim#sudo#enable('%') | <args>
-
+  " These commands must be defined here to overwrite the ones created by vim-eunuch:
+  " <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L347-L363>
   command! -bar -bang -nargs=? -complete=file SudoWrite
-    \ call dotfiles#nvim#sudo#enable('%') |
-    \ setlocal noreadonly |
-    \ write<bang> <args>
+    \ execute <q-mods> 'write<bang>' fnameescape('sudo://' .
+    \   substitute(empty(<q-args>) ? expand('%:p') : <q-args>, '^sudo://', '', ''))
 
   command! -bar -bang -nargs=? -complete=file SudoEdit
-    \ call dotfiles#nvim#sudo#enable('%')
-    \|setlocal noreadonly |
-    \ let s:undoreload = &l:undoreload
-    \|let &l:undoreload = 0
-    \|try
-    \|  exe 'edit<bang>' <q-args>
-    \|finally
-    \|  let &l:undoreload = s:undoreload
-    \|  unlet s:undoreload
-    \|endtry
+    \ execute <q-mods> 'edit<bang>' fnameescape('sudo://' .
+    \   substitute(empty(<q-args>) ? expand('%:p') : <q-args>, '^sudo://', '', ''))
+
+  augroup dotfiles_nvim_sudo
+    autocmd!
+
+    autocmd BufReadCmd sudo://*
+      \ execute 'silent doautocmd BufReadPre' fnameescape(expand('<afile>')) |
+      \ call dotfiles#nvim#sudo#BufReadCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
+      \ execute 'silent doautocmd BufReadPost' fnameescape(expand('<afile>'))
+
+    autocmd FileReadCmd sudo://*
+      \ execute 'silent doautocmd FileReadPre' fnameescape(expand('<afile>')) |
+      \ call dotfiles#nvim#sudo#FileReadCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
+      \ execute 'silent doautocmd FileReadPost' fnameescape(expand('<afile>'))
+
+    autocmd BufWriteCmd sudo://*
+      \ execute 'silent doautocmd BufWritePre' fnameescape(expand('<afile>')) |
+      \ call dotfiles#nvim#sudo#BufWriteCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
+      \ execute 'silent doautocmd BufWritePost' fnameescape(expand('<afile>'))
+
+    autocmd FileWriteCmd sudo://*
+      \ execute 'silent doautocmd FileWritePre' fnameescape(expand('<afile>')) |
+      \ call dotfiles#nvim#sudo#FileWriteCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
+      \ execute 'silent doautocmd FileWritePost' fnameescape(expand('<afile>'))
+
+    autocmd FileAppendCmd sudo://*
+      \ execute 'silent doautocmd FileAppendPre' fnameescape(expand('<afile>')) |
+      \ call dotfiles#nvim#sudo#FileAppendCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
+      \ execute 'silent doautocmd FileAppendPost' fnameescape(expand('<afile>'))
+  augroup END
 endif
 
 if exists(':Man') != 2
