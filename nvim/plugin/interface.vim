@@ -115,12 +115,6 @@ set history=10000
   " Don't print filename and cursor position when switching between files.
   set shortmess+=F
 
-  " buffer navigation {{{
-    nnoremap <silent> <Tab>   :<C-u>bnext<CR>
-    nnoremap <silent> <S-Tab> :<C-u>bprev<CR>
-    nnoremap <silent> <C-\>   :<C-u>buffer#<CR>
-  " }}}
-
   " ask for confirmation when closing unsaved buffers
   set confirm
 
@@ -163,6 +157,10 @@ set history=10000
   " Delete the buffer, but also close the window (that is, if it is not the last one).
   nnoremap <silent> <Del> :<C-u>execute <SID>close_buffer('b')<CR>
 
+  " Navigating between buffers:
+  nnoremap <silent> <Tab>   :<C-u>bnext<CR>
+  nnoremap <silent> <S-Tab> :<C-u>bprev<CR>
+
   augroup dotfiles_special_buffers
     autocmd!
     " How Neovim creates |:checkhealth| buffers:
@@ -195,7 +193,7 @@ set history=10000
     execute 'xnoremap <silent> <C-'.s:key.'>' s:rhs
   endfor
 
-  augroup dotfiles_window_enter_time
+  augroup dotfiles_window_visit_time
     autocmd!
     if !exists('s:start_reltime') | let s:start_reltime = reltime() | endif
     autocmd WinEnter * let w:dotfiles_last_visit_time = reltimefloat(reltime(s:start_reltime))
@@ -206,6 +204,10 @@ set history=10000
   nnoremap <silent> <C-Down>  :<C-u>resize -<C-r>=v:count1<CR><CR>
   nnoremap <silent> <C-Right> :<C-u>vertical resize +<C-r>=v:count1*2<CR><CR>
   nnoremap <silent> <C-Left>  :<C-u>vertical resize -<C-r>=v:count1*2<CR><CR>
+
+  " switch to previous window
+  nnoremap <C-\> <C-w>p
+  xnoremap <C-\> <C-w>p
 
   nnoremap <silent> <M-BS> :<C-u>quit<CR>
 
