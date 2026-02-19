@@ -35,7 +35,6 @@ nnoremap <leader>gg :<C-u>G
 nnoremap <leader>g  :<C-u>Git<space>
 nnoremap <leader>gs :<C-u>vertical Git<CR>
 nnoremap <leader>gS :<C-u>tab Git<CR>
-nnoremap <leader>gd :<C-u>tab Gdiffsplit<bar>normal!zvzz<CR>
 nnoremap <leader>gb :<C-u>Git blame<bar>normal!zvzz<CR>
 nnoremap <leader>gw :<C-u>GBrowse<CR>
 nnoremap <leader>gW :<C-u>.GBrowse<CR>
@@ -48,6 +47,18 @@ nnoremap <leader>gl :<C-u>Gclog<CR>
 nnoremap <leader>gp :<C-u>Git push
 nnoremap <leader>gP :<C-u>Git push --force-with-lease
 nnoremap <leader>gr :<C-u>Git rebase --interactive<space>
+
+function! s:after_gdiffsplit(visual) abort
+  let t:dotfiles_tab_is_for_git_diff = 1
+  wincmd p
+  normal! zvzz
+  if a:visual
+    normal! gvzv
+  endif
+endfunction
+
+nnoremap <silent> <leader>gd :<C-u>tab Gdiffsplit<bar>call <SID>after_gdiffsplit(0)<CR>
+xnoremap <silent> <leader>gd :<C-u>tab Gdiffsplit<bar>call <SID>after_gdiffsplit(1)<CR>
 
 if dotplug#has('gitsigns.nvim')
   nnoremap <silent><expr> [c &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"

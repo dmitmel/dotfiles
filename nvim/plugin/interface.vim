@@ -130,6 +130,8 @@ set history=10000
   function! s:close_buffer(b) abort
     if !empty(getcmdwintype()) || s:is_floating_window(0) || &previewwindow
       return 'close'
+    elseif tabpagenr('$') > 1 && exists('t:dotfiles_tab_is_for_git_diff')
+      return 'tabclose'
     elseif &buftype =~# '^\(quickfix\|help\|nofile\|nowrite\)$'
       \ || &bufhidden =~# '^\(unload\|delete\|wipe\)$'
       " This covers the special temporary buffer types, which are usually
