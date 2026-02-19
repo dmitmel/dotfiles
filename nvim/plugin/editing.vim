@@ -561,7 +561,7 @@ endif
       let &l:spelllang = a:lang
     endif
   endfunction
-  command -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
+  command! -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
   execute dotutils#cmd_alias('Sp', 'SpellCheck')
   nnoremap <script> <leader>s :<C-u>SpellCheck<CR>
 
@@ -665,7 +665,7 @@ endif
   \ }
 
   if has('nvim-0.9.0')
-    command HLT Inspect
+    command! HLT Inspect
     nmap <leader>hlt <Cmd>Inspect<CR>
     " Toggle treesitter highlighting in the buffer.
     nmap <leader>ht <Cmd>lua vim.treesitter[vim.b.ts_highlight and 'stop' or 'start']()<CR>

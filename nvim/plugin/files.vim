@@ -238,7 +238,7 @@ set nofixendofline
       let &l:filetype = getbufvar('#', '&filetype', '')
       wincmd p
     endfunction
-    command -bar DiffOrig call s:DiffOrig()
+    command! -bar DiffOrig call s:DiffOrig()
   " }}}
 
   " EditGlob {{{
@@ -255,7 +255,7 @@ set nofixendofline
         endfor
       endfor
     endfunction
-    command -nargs=* -complete=file -bar EditGlob call s:EditGlob(<f-args>)
+    command! -nargs=* -complete=file -bar EditGlob call s:EditGlob(<f-args>)
   " }}}
 
   " EditClist {{{
@@ -268,7 +268,7 @@ set nofixendofline
       call setqflist(list)
       copen
     endfunction
-    command -nargs=* -complete=file -bar EditList call s:EditList(<f-args>)
+    command! -nargs=* -complete=file -bar EditList call s:EditList(<f-args>)
   " }}}
 
   " DragOut {{{
@@ -283,7 +283,7 @@ set nofixendofline
       endfor
       echoerr 'Please install <https://github.com/mwh/dragon> for the DragOut command to work.'
     endfunction
-    command -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
+    command! -nargs=* -complete=file DragOut call s:DragOut(empty(<q-args>) ? expand('%') : <q-args>)
   " }}}
 
 " }}}
@@ -314,7 +314,7 @@ set nofixendofline
     keeppatterns %s/\($\n\s*\)\+\%$//e
     call setpos('.', pos)
   endfunction
-  command -bar StripWhitespace call s:StripWhitespace()
+  command! -bar StripWhitespace call s:StripWhitespace()
 
   let g:format_on_save = { 'diff': 0, 'gitsendemail': 0, 'snippets': 0 }
   function! s:Format() abort
@@ -334,9 +334,9 @@ set nofixendofline
     endif
   endfunction
 
-  command -bar Format call s:Format()
-  command -bar FormatIgnore let g:format_on_save[&filetype] = 0 | echo "Disabled auto-formatting for buffers with filetype '".&ft."'"
-  command -nargs=+ -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
+  command! -bar Format call s:Format()
+  command! -bar FormatIgnore let g:format_on_save[&filetype] = 0 | echo "Disabled auto-formatting for buffers with filetype '".&ft."'"
+  command! -nargs=+ -complete=command NoFormat let s:noformat = 1 | execute <q-args> | let s:noformat = 0
 
   execute dotutils#cmd_alias('nof',   'NoFormat')
   execute dotutils#cmd_alias('now',   'NoFormat write')
