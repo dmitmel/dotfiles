@@ -482,7 +482,7 @@ nnoremap <F5> :<C-u><C-r>=<SID>run_file()<CR><CR>
 
 
 if exists('*api_info')
-  command! -bar -bang NvimApi call dotfiles#nvim_api_cheat_sheet#open()
+  command! -bar -bang NvimApi call dotfiles#nvim#api_cheat_sheet#open()
 endif
 
 

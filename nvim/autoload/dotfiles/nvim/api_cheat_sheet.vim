@@ -1,6 +1,6 @@
 if !exists('*api_info') | finish | endif
 
-function! dotfiles#nvim_api_cheat_sheet#print() abort
+function! dotfiles#nvim#api_cheat_sheet#print() abort
   let api_info = api_info()
   for fn_data in api_info.functions
     if has_key(fn_data, 'deprecated_since') | continue | endif
@@ -18,9 +18,9 @@ function! dotfiles#nvim_api_cheat_sheet#print() abort
   endfor
 endfunction
 
-function! dotfiles#nvim_api_cheat_sheet#open() abort
+function! dotfiles#nvim#api_cheat_sheet#open() abort
   redir => text
-  silent call dotfiles#nvim_api_cheat_sheet#print()
+  silent call dotfiles#nvim#api_cheat_sheet#print()
   redir END
   let result = dotutils#open_scratch_preview_win({ 'title': 'Neovim API Reference', 'text': text })
   call setbufvar(result.bufnr, '&syntax', 'typescript')
