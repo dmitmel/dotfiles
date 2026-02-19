@@ -128,20 +128,24 @@ set history=10000
   command! -bar -bang -complete=buffer -nargs=? Bwipeout exe dotfiles#bufclose#cmd('bwipeout<bang>', <q-args>)
 
   function! s:close_buffer(b) abort
-    if !empty(getcmdwintype()) || s:is_floating_window(0)
+    if !empty(getcmdwintype()) || s:is_floating_window(0) || &previewwindow
       return 'close'
+    elseif &buftype =~# '^\(quickfix\|help\|nofile\|nowrite\)$'
+      \ || &bufhidden =~# '^\(unload\|delete\|wipe\)$'
+      " This covers the special temporary buffer types, which are usually
+      " created by commands which also split a new dedicated window just for the
+      " said buffer. Examples include: the quickfix/location lists, help or the
+      " manpage viewer, the fugitive repository window or the commit prompt, and
+      " so on and so on. It just makes sense to tear down the temporary splits
+      " together with these buffers. But also, don't do too much on a single
+      " press of <Backspace>: if the buffer is displayed in multiple windows,
+      " |:bdelete| will take down all of them simultaneously, so |:close| only
+      " the current split.
+      return len(win_findbuf(bufnr('%'))) > 1 ? 'close' : 'bdelete'
     elseif &buftype ==# 'terminal'
       " Always wipe out the terminal buffers, so that they don't show up in the
       " jump history, and skip confirmation when closing the stopped ones.
       return a:b . (dotutils#is_terminal_running('%') ? 'wipeout' : 'wipeout!')
-    elseif (&previewwindow || (&buftype !=# '' && &buftype !=# 'acwrite'))
-          \ && win_findbuf(bufnr('%')) ==# [win_getid()]
-      " This covers windows which are created just to hold a single special
-      " buffer, such as the quickfix list, help or a manpage viewer, the
-      " fugitive window and so on and so on. Commands that create those usually
-      " open a new temporary split, so it makes sense to just close this split
-      " if the buffer is not open in some other window as well.
-      return 'bdelete'
     else
       " NOTE: Don't use `:bwipeout` for closing normal buffers, it breaks
       " quickfix/loclists! When these lists are initialized, they also create
@@ -223,8 +227,8 @@ set history=10000
     endif
   endfunction
 
-  " Check if this floating windows are supported (or, rather, whether we can
-  " detect them in any way).
+  " Check if floating windows are supported (or, rather, whether we can detect
+  " them in any way).
   if exists('*win_gettype') || exists('*nvim_win_get_config')
     function! s:close_floating_popup(rhs) abort
       if s:is_floating_window(0) && !exists('w:fzf_lua_preview')
