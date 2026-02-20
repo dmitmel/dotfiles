@@ -137,8 +137,6 @@ function! dotfiles#nvim#sudo#askpass(prompt) abort
   endtry
 endfunction
 
-" TODO: swapfile
-
 function! s:read(range, cmdarg, tempfile, real_path) abort
   let message = execute('keepalt noautocmd '.a:range.'read'.a:cmdarg.' '.fnameescape(a:tempfile))
   let message = message[0] ==# "\n" ? message[1:] : message
@@ -173,13 +171,15 @@ function! dotfiles#nvim#sudo#BufReadCmd(path) abort
   try
     if dotfiles#nvim#sudo#system('cat -- '.shellescape(a:path).' > '.shellescape(tempfile))
       silent %delete _
-
       let read_msg = s:read('', v:cmdarg . ' ++edit', tempfile, a:path)
-
       silent 1delete _
+
       setlocal nomodified
 
-      if &l:undofile && filereadable(a:path)
+      if !filereadable(a:path)
+        " This is a secret file, avoid leaking any information about it or its contents.
+        setlocal noswapfile noundofile nomodeline
+      elseif &l:undofile
         try
           silent rundo `=undofile(a:path)`
         catch /^Vim\%((\a\+)\)\=:E822:/
@@ -201,7 +201,9 @@ function! dotfiles#nvim#sudo#BufWriteCmd(path) abort
 
     if dotfiles#nvim#sudo#system('mkdir -p -- '.fnamemodify(a:path, ':h:S').' >/dev/null')
       if dotfiles#nvim#sudo#system('tee -- '.shellescape(a:path).' < '.shellescape(tempfile).' >/dev/null')
-        if &l:undofile && filereadable(a:path)
+        if !filereadable(a:path)
+          setlocal noswapfile noundofile nomodeline
+        elseif &l:undofile
           silent wundo `=undofile(a:path)`
         endif
 
