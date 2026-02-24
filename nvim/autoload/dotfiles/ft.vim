@@ -1,11 +1,13 @@
 " Utilities for my ftplugins and indent plugins.
 
 function! dotfiles#ft#undo(...) abort
-  let b:undo_ftplugin = (exists('b:undo_ftplugin') ? (b:undo_ftplugin . ' | ') : '') . join(a:000, ' | ')
+  let commands = [get(b:, 'undo_ftplugin', '')] + a:000
+  let b:undo_ftplugin = join(filter(commands, '!empty(v:val)'), ' | ')
 endfunction
 
 function! dotfiles#ft#indent_undo(...) abort
-  let b:undo_indent = (exists('b:undo_indent') ? (b:undo_indent . ' | ') : '') . join(a:000, ' | ')
+  let commands = [get(b:, 'undo_indent', '')] + a:000
+  let b:undo_indent = join(filter(commands, '!empty(v:val)'), ' | ')
 endfunction
 
 function! dotfiles#ft#undo_set(name) abort
