@@ -164,9 +164,7 @@ function! dotfiles#ranger#run_in_terminal(cmd, callback) abort
   let self.on_exit = function('s:terminal_job_exited', [], self)
 
   if has('nvim')
-    enew
-    setlocal nobuflisted
-    let self.terminal_buf = bufnr('%')
+    let [self.terminal_buf, self.terminal_winid] = s:open_terminal_buffer()
     if has('nvim-0.11')
       call jobstart(a:cmd, { 'term': v:true, 'on_exit': self.on_exit })
     else
@@ -178,6 +176,7 @@ function! dotfiles#ranger#run_in_terminal(cmd, callback) abort
 
   if has('terminal')
     let self.terminal_buf = term_start(a:cmd, { 'curwin': 1, 'exit_cb': self.on_exit })
+    let self.terminal_winid = win_getid()
     call setbufvar(self.terminal_buf, '&buflisted', 0)
     return self.terminal_buf
   endif
@@ -199,6 +198,65 @@ endfunction
 " parameter which represents the event type, which for the exit callback is
 " always the string "exit". I make them fully compatible by means of varargs.
 function! s:terminal_job_exited(job_id, code, ...) dict abort
-  execute 'Bwipeout!' self.terminal_buf
+  if a:code is 0
+    call s:close_terminal_buffer('TermClose', self.terminal_buf, self.terminal_winid)
+  endif
   call self.callback(a:code)
+endfunction
+
+function! s:open_terminal_buffer() abort
+  if !get(g:, 'dotfiles#ranger#show_in_floating_window', 0) || !exists('*nvim_open_win')
+    enew
+    setlocal nobuflisted
+    return [bufnr('%'), 0]
+  endif
+
+  let bufnr = nvim_create_buf(v:false, v:true) " create an unlisted scratch buffer
+
+  let screen_width  = &columns
+  let screen_height = &lines - &cmdheight
+  let config = { 'relative': 'editor', 'zindex': 20 }
+  " `... / 2 * 2` in these calculations is done to ensure that margins from the
+  " opposite edges of the screen are equal.
+  let config.width  = screen_width  - float2nr(round(screen_width  * 0.20)) / 2 * 2
+  let config.height = screen_height - float2nr(round(screen_height * 0.15)) / 2 * 2
+  let config.col   = (screen_width  - config.width ) / 2
+  let config.row   = (screen_height - config.height) / 2
+
+  if has('nvim-0.5.0')
+    let config.border = 'single'
+    let config.border = luaeval('dotfiles.utils.border_styles.outset')
+    let config.width -= 2
+    let config.height -= 2
+  endif
+
+  let winid = nvim_open_win(bufnr, v:true, config)
+  if has('nvim-0.5.0')
+    set winhighlight+=NormalFloat:Normal,FloatBorder:WinSeparator
+  endif
+
+  augroup dotfiles_ranger_terminal
+    execute printf('autocmd! * <buffer=%d>', bufnr)
+    for event in ['BufHidden', 'BufLeave', 'BufDelete', 'BufWipeout']
+      execute printf("autocmd %s <buffer=%d> nested call s:close_terminal_buffer('%s', %d, %d)",
+                    \ event, bufnr, event, bufnr, winid)
+    endfor
+  augroup END
+
+  return [bufnr, winid]
+endfunction
+
+function! s:close_terminal_buffer(event, bufnr, winid) abort
+  if a:winid
+    try
+      execute 'autocmd! dotfiles_ranger_terminal * <buffer='.a:bufnr.'>'
+    catch /^Vim\%((\a\+)\)\=:E216:/
+      " No such group or event
+    endtry
+    " Must be done with a bang, as older Neovim versions ask before closing the
+    " terminal buffer even if the process in it had already exited.
+    execute 'bwipeout!' a:bufnr
+  elseif a:bufnr
+    execute 'Bwipeout!' a:bufnr
+  endif
 endfunction
