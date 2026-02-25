@@ -1,4 +1,34 @@
+if vim.treesitter == nil then return end
 local utils = require('dotfiles.utils')
+
+if vim.show_pos and vim.treesitter.inspect_tree then
+  vim.api.nvim_create_user_command('HLT', 'Inspect', {})
+  vim.keymap.set('n', '<leader>hlt', vim.show_pos)
+  vim.keymap.set('n', '<F12>', vim.treesitter.inspect_tree)
+end
+
+if vim.treesitter.start and vim.treesitter.stop and vim.treesitter.highlighter then
+  -- Toggle treesitter highlighting for the current buffer.
+  vim.keymap.set('n', '<leader>ht', function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    if vim.treesitter.highlighter.active[bufnr] then
+      vim.treesitter.stop(bufnr)
+    else
+      local _parser, err_msg
+      if utils.has('nvim-0.11.0') then
+        _parser, err_msg = vim.treesitter.get_parser(bufnr, nil, { error = false })
+      else
+        _parser, err_msg = pcall(vim.treesitter.get_parser, bufnr, nil)
+      end
+
+      if err_msg then
+        vim.notify(('[vim.treesitter] %s'):format(err_msg), vim.log.levels.ERROR)
+      else
+        vim.treesitter.start(bufnr)
+      end
+    end
+  end)
+end
 
 vim.treesitter._really_start = vim.treesitter._really_start or vim.treesitter.start
 function vim.treesitter.start(bufnr, lang)

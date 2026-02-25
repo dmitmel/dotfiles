@@ -675,17 +675,9 @@ endif
   \ 'riscv': '# %s',
   \ }
 
-  if has('nvim-0.9.0')
-    command! HLT Inspect
-    nmap <leader>hlt <Cmd>Inspect<CR>
-    " Toggle treesitter highlighting in the buffer.
-    nmap <leader>ht <Cmd>lua vim.treesitter[vim.b.ts_highlight and 'stop' or 'start']()<CR>
-    nmap <F12> <Cmd>lua vim.treesitter.inspect_tree()<CR>
-  else
-    " Workaround for a select-mode mapping definition in:
-    " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
-    nmap <silent> <leader>hlt <Plug>HiLinkTrace
-  endif
+  " Workaround for a select-mode mapping definition in:
+  " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
+  nmap <silent> <leader>hlt <Plug>HiLinkTrace
 
   let g:closetag_filetypes = 'html,xhtml,phtml,xslt'
   let g:closetag_xhtml_filetypes = 'xhtml,xslt'
