@@ -165,19 +165,6 @@ if dotplug.has('nvim-treesitter') then
     },
   })
 
-  utils.augroup('dotfiles_treesitter'):autocmd('FileType', function()
-    if utils.exists('g:loaded_matchit') and not utils.exists('b:match_skip') then
-      local expr = table.concat({
-        "synIDattr(synID(line('.'), col('.'), 1), 'name') =~? 'comment\\|string' || (",
-        " exists('b:ts_highlight') &&",
-        " !empty(filter(v:lua.vim.treesitter.get_captures_at_pos(0, line('.') - 1, col('.') - 1),",
-        " { _, x -> x.capture ==# 'comment' || x.capture ==# 'string' }))",
-        ')',
-      })
-      vim.call('dotfiles#ft#set', 'match_skip', expr)
-    end
-  end)
-
   local clear_underlined_urls ---@type function|nil
 
   local function highlight_url_under_cursor()

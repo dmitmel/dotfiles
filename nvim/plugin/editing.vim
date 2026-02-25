@@ -613,6 +613,7 @@ endif
 
   augroup dotfiles_matchup
     autocmd!
+
     if has('nvim-0.11.0')
       " Since Neovim 0.11 the highlight groups in the statusline are now blended
       " with the background of the statusline instead of the Normal background,
@@ -624,6 +625,16 @@ endif
       \ if exists('w:matchup_statusline') && &l:statusline is# w:matchup_statusline
       \|  let w:matchup_statusline = substitute(w:matchup_statusline, '%\@1<!%#Normal#', '%#StatusLine#', 'g')
       \|  let &l:statusline = w:matchup_statusline
+      \|endif
+    endif
+
+    if dotplug#has('nvim-treesitter') && dotplug#has('vim-matchup')
+      autocmd FileType *
+      \ if exists('g:loaded_matchit') && !exists('b:match_skip')
+      \|  call dotfiles#ft#set('match_skip',
+      \     "exists('b:ts_highlight') ? matchup#ts_syntax#skip_expr(line('.'),col('.')) : " .
+      \     "synIDattr(synID(line('.'),col('.'),1),'name') =~? 'comment\\|string'"
+      \   )
       \|endif
     endif
   augroup END
