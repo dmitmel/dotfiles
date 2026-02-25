@@ -87,7 +87,7 @@ if dotplug.has('fzf-lua') then
 
     local update_preview_title = self.update_preview_title
     function self:update_preview_title(title)
-      update_preview_title(title)
+      update_preview_title(self, title)
       vim.fn.win_execute(self.fzf_winid, 'redrawstatus')
     end
 
