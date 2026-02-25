@@ -639,9 +639,6 @@ endif
     endif
   augroup END
 
-  let g:surround_{char2nr('*')} = "**\r**"
-  let g:surround_{char2nr('~')} = "~~\r~~"
-
   xmap <leader>a <Plug>(LiveEasyAlign)
   nmap <leader>a <Plug>(LiveEasyAlign)
 

@@ -15,3 +15,6 @@ call dotfiles#ft#set('delimitMate_nesting_quotes', ['`'])
 
 setlocal matchpairs-=<:>
 call dotfiles#ft#undo_set('&matchpairs')
+
+call dotfiles#ft#set('surround_'.char2nr('*'), "**\r**")
+call dotfiles#ft#set('surround_'.char2nr('~'), "~~\r~~")
