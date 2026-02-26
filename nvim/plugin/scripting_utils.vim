@@ -12,9 +12,12 @@ endfunction
 
 " Colllect the output of an Ex command and display it in a new window.
 command! -nargs=+ -complete=command CollectOutput
-  \ silent! let s:output = execute(<q-args>)
-  \|call dotutils#open_scratch_preview_win({ 'title': <q-args>, 'text': s:output })
-  \|unlet s:output
+  \ silent! let s:output = execute(<q-args>) |
+  \ new |
+  \ setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodeline |
+  \ setlocal nospell nofoldenable colorcolumn= |
+  \ call append(1, split(s:output, "\n")) | 1 delete _ |
+  \ unlet s:output
 
 " Same as typing Ex commands literally, but creating local variables doesn't
 " pollute the global scope.

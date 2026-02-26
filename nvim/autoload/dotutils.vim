@@ -18,63 +18,6 @@ function! dotutils#cmd_alias(lhs, rhs) abort
   \             a:lhs, string(a:rhs), string(a:lhs))
 endfunction
 
-function! dotutils#open_scratch_preview_win(opts) abort
-  let result = {}
-
-  " Actual implementation of :pedit
-  " <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/ex_cmds.c#L4585-L4624>
-  " <https://github.com/neovim/neovim/blob/v0.5.0/src/nvim/ex_docmd.c#L8596-L8617>
-
-  " I hope that the wisdom of Python optimization applies and that implied
-  " loops (i.e. filter and map) are faster than real loops. Also, I don't
-  " remember get() working on arrays! Oh, wait, that was in Python again...
-  let pwin_info = get(filter(getwininfo(), "gettabwinvar(v:val.tabnr, v:val.winnr, '&previewwindow')"), 0)
-
-  let open_cmd = ['noswapfile']
-  call extend(open_cmd, get(a:opts, 'create_modifiers', []))
-
-  let setup_cmds = ['setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodeline']
-  " These were copied from the C code:
-  call add(setup_cmds, 'setlocal previewwindow winfixheight foldcolumn=0')
-  call extend(setup_cmds, get(a:opts, 'setup_commands', []))
-  " Why is there no Vimscript function to do this???
-  call add(setup_cmds, 'silent file ' . fnameescape('preview://' . get(a:opts, 'title', '[Scratch]')))
-
-  " :pedit is not used here directly because it has troubles splitting
-  " vertically. Plus, a nice side-effect of using :new (and its variations) is
-  " that we won't ever accidentally open an existing file.
-  if empty(pwin_info)
-    call add(open_cmd, get(a:opts, 'vertical', 0) ? 'vnew' : &previewheight . 'new')
-    call add(open_cmd, '+' . fnameescape(join(setup_cmds, ' | ')))
-    execute join(open_cmd, ' ')
-  else
-    call win_gotoid(pwin_info.winid)
-    call add(open_cmd, 'enew')
-    execute join(open_cmd, ' ')
-    " Yeah, :enew can't handle the +cmd operand, unlike its relatives...
-    execute join(setup_cmds, ' | ')
-  endif
-
-  let result.winid = win_getid()
-  let [result.tabnr, result.winnr] = win_id2tabwin(result.winid)
-  let result.bufnr = winbufnr(result.winid)
-
-  " Switching back and forth causes Airline to consistently redraw. Otherwise
-  " it won't detect that the window has &previewwindow set.
-  wincmd w
-  if get(a:opts, 'switch', 1)
-    call win_gotoid(result.winid)
-  endif
-
-  if has_key(a:opts, 'text_lines')
-    call setbufline(result.bufnr, 1, a:opts.text_lines)
-  elseif has_key(a:opts, 'text')
-    call setbufline(result.bufnr, 1, split(a:opts.text, "\n"))
-  endif
-
-  return result
-endfunction
-
 let g:dotutils#use_lua_for_open_uri = get(g:, 'dotutils#use_lua_for_open_uri', has('nvim-0.12.0'))
 
 " Opens the URI with a system viewer program.
