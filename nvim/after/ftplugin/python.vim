@@ -3,9 +3,8 @@ call dotfiles#ft#set('runfileprg', 'python -- %')
 
 " Allow shifting lines that start with `#`.
 " <https://www.reddit.com/r/vim/comments/r70y6i/comment/hmz1exi/>
-setlocal cinoptions-=#0
-setlocal cinoptions+=#1
-call dotfiles#ft#undo_set('&cinoptions')
+exe dotfiles#ft#setlocal('cinoptions-=#0')
+exe dotfiles#ft#setlocal('cinoptions+=#1')
 
 if exists('loaded_matchit') && !exists('b:match_skip')
   call dotfiles#ft#set('match_skip', 's:string\|comment\|bytes')

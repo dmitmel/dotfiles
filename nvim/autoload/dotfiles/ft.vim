@@ -10,25 +10,27 @@ function! dotfiles#ft#indent_undo(...) abort
   let b:undo_indent = join(filter(commands, '!empty(v:val)'), ' | ')
 endfunction
 
-function! dotfiles#ft#undo_set(name) abort
-  call dotfiles#ft#undo(a:name =~# '^&[a-z]\+$' ? ('setlocal ' . a:name[1:] . '<') : ('unlet! b:' . a:name))
-endfunction
-
 function! dotfiles#ft#undo_map(mode, mappings) abort
   for lhs in type(a:mappings) != type([]) ? [a:mappings] : a:mappings
     call dotfiles#ft#undo('silent! ' . a:mode . 'unmap <buffer> ' . lhs)
   endfor
 endfunction
 
+function! dotfiles#ft#setlocal(args) abort
+  let name = matchstr(a:args, '\C^\%(no\)\=\zs[a-z]\+')
+  if empty(name) | throw 'need an option name' | endif
+  call dotfiles#ft#undo('setl ' . name . '<')
+  " The caller has to `:execute` this line, so that `verbose set {option}?`
+  " displays an appropriate location.
+  return 'setl ' . escape(a:args, ' \"|')
+endfunction
+
 function! dotfiles#ft#set(name, value) abort
-  call dotfiles#ft#undo_set(a:name)
-  if a:name =~# '^&[a-z]\+$'
-    " The caller has to `:execute` this line, so that `verbose set {option}?`
-    " displays an appropriate location.
-    return 'let &l:' . a:name[1:] . ' = ' . json_encode(a:value)
+  if a:name[0] ==# '&'
+    call dotfiles#ft#undo('setl ' . a:name[1:] . '<')
+    call setbufvar('%', a:name, a:value)
   else
-    " This validates the correctness of variable names for us.
+    call dotfiles#ft#undo('unlet! b:' . a:name)
     let b:{a:name} = a:value
-    return ''
   endif
 endfunction

@@ -1,3 +1,2 @@
-setlocal matchpairs-=<:>
-call dotfiles#ft#undo_set('&matchpairs')
+exe dotfiles#ft#setlocal('matchpairs-=<:>')
 call dotfiles#ft#set('runfileprg', 'node -- %')

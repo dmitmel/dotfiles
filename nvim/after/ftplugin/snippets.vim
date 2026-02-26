@@ -1,2 +1,2 @@
-exe dotfiles#ft#set('&expandtab', 0)
-exe dotfiles#ft#set('&foldenable', 0)
+exe dotfiles#ft#setlocal('noexpandtab')
+exe dotfiles#ft#setlocal('nofoldenable')

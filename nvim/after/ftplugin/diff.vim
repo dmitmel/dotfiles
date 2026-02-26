@@ -1,2 +1,2 @@
-exe dotfiles#ft#set('&foldenable', 0)
-exe dotfiles#ft#set('&foldmethod', 'manual')
+exe dotfiles#ft#setlocal('nofoldenable')
+exe dotfiles#ft#setlocal('foldmethod=manual')

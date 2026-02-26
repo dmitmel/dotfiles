@@ -1,4 +1,4 @@
-exe dotfiles#ft#set('&commentstring', '//%s')
+exe dotfiles#ft#setlocal('commentstring=//%s')
 
 function! s:patch_c_comments() abort
   " The regex matches a comma not preceded by a backslash.
@@ -17,7 +17,7 @@ function! s:patch_c_comments() abort
   " Add special Doxygen comment markers before the normal double-slash comments.
   call insert(comments, ':///<,://!<,:///,://!', idx)
 
-  exe dotfiles#ft#set('&comments', join(comments, ','))
+  call dotfiles#ft#set('&comments', join(comments, ','))
 endfunction
 call s:patch_c_comments()
 

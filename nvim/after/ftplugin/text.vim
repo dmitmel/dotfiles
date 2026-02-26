@@ -1,7 +1,7 @@
-exe dotfiles#ft#set('&wrap', 1)
-exe dotfiles#ft#set('&textwidth', 0)
-exe dotfiles#ft#set('&colorcolumn', '')
-exe dotfiles#ft#set('&showbreak', 'NONE')
+exe dotfiles#ft#setlocal('wrap')
+exe dotfiles#ft#setlocal('textwidth=0')
+exe dotfiles#ft#setlocal('colorcolumn=')
+exe dotfiles#ft#setlocal('showbreak=' . (has('nvim-0.6.0') ? 'NONE' : ''))
 
 call dotfiles#ft#set('indentLine_enabled', 0)
 

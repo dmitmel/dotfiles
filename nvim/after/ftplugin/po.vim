@@ -1,1 +1,1 @@
-exe dotfiles#ft#set('&commentstring', '#%s')
+exe dotfiles#ft#setlocal('commentstring=#%s')

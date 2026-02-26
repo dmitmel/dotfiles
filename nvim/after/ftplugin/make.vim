@@ -1,1 +1,1 @@
-exe dotfiles#ft#set('&expandtab', 0)
+exe dotfiles#ft#setlocal('noexpandtab')

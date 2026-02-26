@@ -1,5 +1,5 @@
-exe dotfiles#ft#set('&colorcolumn', '')
-exe dotfiles#ft#set('&signcolumn', 'auto')
+exe dotfiles#ft#setlocal('colorcolumn=')
+exe dotfiles#ft#setlocal('signcolumn=auto')
 
 call dotfiles#ft#set('disable_secure_modelines', 1)
 

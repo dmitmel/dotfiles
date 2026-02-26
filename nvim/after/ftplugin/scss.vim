@@ -1,2 +1,2 @@
 source <sfile>:h/css.vim
-exe dotfiles#ft#set('&makeprg', 'sass -- %:S:%:S.css')
+exe dotfiles#ft#setlocal('makeprg=sass -- %:S:%:S.css')

@@ -1,2 +1,1 @@
-setlocal iskeyword+=-
-call dotfiles#ft#undo_set('&iskeyword')
+exe dotfiles#ft#setlocal('iskeyword+=-')

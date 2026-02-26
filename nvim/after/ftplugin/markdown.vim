@@ -8,13 +8,12 @@ endif
 
 source <sfile>:h/text.vim
 
-exe dotfiles#ft#set('&makeprg', 'markdown2htmldoc -- %:S %:S.html')
+exe dotfiles#ft#setlocal('makeprg=markdown2htmldoc -- %:S %:S.html')
 call dotfiles#ft#set('runfileprg', ':Open %.html')
 
 call dotfiles#ft#set('delimitMate_nesting_quotes', ['`'])
 
-setlocal matchpairs-=<:>
-call dotfiles#ft#undo_set('&matchpairs')
+exe dotfiles#ft#setlocal('matchpairs-=<:>')
 
 call dotfiles#ft#set('surround_'.char2nr('*'), "**\r**")
 call dotfiles#ft#set('surround_'.char2nr('~'), "~~\r~~")
