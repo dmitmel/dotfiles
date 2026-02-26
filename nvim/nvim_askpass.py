@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# NOTE: Unused, see `./nvim_askpass.sh`
 
 import os
 import sys

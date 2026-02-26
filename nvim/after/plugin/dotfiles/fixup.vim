@@ -74,27 +74,27 @@ if has('nvim')
   augroup dotfiles_nvim_sudo
     autocmd!
 
-    autocmd BufReadCmd sudo://*
+    autocmd BufReadCmd sudo://* nested
       \ execute 'silent doautocmd BufReadPre' fnameescape(expand('<afile>')) |
       \ call dotfiles#nvim#sudo#BufReadCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
       \ execute 'silent doautocmd BufReadPost' fnameescape(expand('<afile>'))
 
-    autocmd FileReadCmd sudo://*
+    autocmd FileReadCmd sudo://* nested
       \ execute 'silent doautocmd FileReadPre' fnameescape(expand('<afile>')) |
       \ call dotfiles#nvim#sudo#FileReadCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
       \ execute 'silent doautocmd FileReadPost' fnameescape(expand('<afile>'))
 
-    autocmd BufWriteCmd sudo://*
+    autocmd BufWriteCmd sudo://* nested
       \ execute 'silent doautocmd BufWritePre' fnameescape(expand('<afile>')) |
       \ call dotfiles#nvim#sudo#BufWriteCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
       \ execute 'silent doautocmd BufWritePost' fnameescape(expand('<afile>'))
 
-    autocmd FileWriteCmd sudo://*
+    autocmd FileWriteCmd sudo://* nested
       \ execute 'silent doautocmd FileWritePre' fnameescape(expand('<afile>')) |
       \ call dotfiles#nvim#sudo#FileWriteCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
       \ execute 'silent doautocmd FileWritePost' fnameescape(expand('<afile>'))
 
-    autocmd FileAppendCmd sudo://*
+    autocmd FileAppendCmd sudo://* nested
       \ execute 'silent doautocmd FileAppendPre' fnameescape(expand('<afile>')) |
       \ call dotfiles#nvim#sudo#FileAppendCmd(substitute(expand('<afile>'), '^sudo://', '', '')) |
       \ execute 'silent doautocmd FileAppendPost' fnameescape(expand('<afile>'))
