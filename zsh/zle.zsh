@@ -7,14 +7,18 @@
   _fzf_history_widget() {
     local selected
     if selected=( $(
-      sep="[[:space:]]\{1,\}" col="[^[:space:]]\{1,\}"
-      pat="^\([[:space:]]*\)\(${col}\)\(${sep}\)\(${col}${sep}${col}\)\(${sep}\)\(.*\)$"
-      rep="\1${fg[yellow]}\2${reset_color}\3${fg[blue]}\4${reset_color}\5\6"
       # `-l` - list all history events
       # `-r` - reverse the order, list everything from newest to oldest
-      # `-i` - print timestamps next to history entries
+      # `-t` - print timestamps in the given format next to history entries
       #  `1` - the event number to start from
-      fc -lri 1 | sed "s/${pat}/${rep}/" | fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
+      # Also, don't forget to escape the percent signs in the variables we are
+      # plugging into the time format string!
+      fc -lr -t "${fg[yellow]//\%/%%}%Y-%m-%d %H:%M${reset_color//\%/%%}" 1 |
+        # As far as I know, the characters `\`, `/` and `&` need to be escaped
+        # on the right-hand side of the `s` command in sed. Also, sed is faster
+        # than awk for this use-case.
+        sed "s/^/${${${fg[blue]//\\/\\\\}//\//\\\/}//&/\\&}/" |
+        fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
     ) ) && [[ -n "${selected[1]}" ]]; then
       zle vi-fetch-history -n "${selected[1]}"
     fi
