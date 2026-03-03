@@ -1,5 +1,3 @@
-// vim: filetype=jsonc
-
 {
   // Text editor
   "window.zoomLevel": 0.8, // each increment above 0 => 20% zoom increase
@@ -44,7 +42,7 @@
     "terminal.ansiBrightBlue": "#6699cc",
     "terminal.ansiBrightMagenta": "#cc99cc",
     "terminal.ansiBrightCyan": "#66cccc",
-    "terminal.ansiBrightWhite": "#f2f0ec"
+    "terminal.ansiBrightWhite": "#f2f0ec",
   },
 
   // Vim emulation
@@ -61,7 +59,7 @@
   "vim.leader": ",",
   "extensions.experimental.affinity": {
     "vscodevim.vim": 1,
-    "asvetliakov.vscode-neovim": 1
+    "asvetliakov.vscode-neovim": 1,
   },
 
   // Features that I don't need
@@ -84,12 +82,12 @@
   "chat.commandCenter.enabled": false,
   "chat.implicitContext.enabled": {
     "editing-session": "never",
-    "panel": "never"
+    "panel": "never",
   },
   "github.copilot.editor.enableAutoCompletions": false,
   "github.copilot.editor.enableCodeActions": false,
   "github.copilot.enable": {
-    "*": false
+    "*": false,
   },
 
   // Git
@@ -103,7 +101,7 @@
   // Language-specific settings
   "files.associations": {
     "*.json.patch": "json",
-    ".latexmkrc": "perl"
+    ".latexmkrc": "perl",
   },
 
   // Markdown
@@ -111,8 +109,8 @@
 
   "[markdown]": {
     "editor.quickSuggestions": {
-      "other": "on"
-    }
+      "other": "on",
+    },
   },
 
   // JavaScript
@@ -133,25 +131,28 @@
   "json.schemas": [
     {
       "fileMatch": ["*.json.patch"],
-      "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json"
-    }
+      "url": "https://raw.githubusercontent.com/dmitmel/ultimate-crosscode-typedefs/master/json-schemas/patch-steps.json",
+    },
   ],
 
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
+
+  // TOML
+  "evenBetterToml.formatter.indentString": "  ",
 
   // LaTeX
   "latex-workshop.formatting.latex": "latexindent",
 
   "[latex]": {
     "editor.formatOnSave": false,
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "on",
   },
 
   "[bibtex]": {
     "editor.formatOnSave": false,
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "on",
   },
 
   // MATLAB
@@ -169,7 +170,7 @@
   "files.readonlyInclude": {
     "**/.cargo/registry/src/**/*.rs": true,
     "**/.cargo/git/checkouts/**/*.rs": true,
-    "**/lib/rustlib/src/rust/library/**/*.rs": true
+    "**/lib/rustlib/src/rust/library/**/*.rs": true,
   },
 
   // Unsorted
@@ -182,8 +183,7 @@
     "Jakub",
     "Meleshko",
     "nnoremap",
-    "xnoremap"
+    "xnoremap",
   ],
   "errorLens.excludeBySource": ["cSpell"],
-  "evenBetterToml.formatter.indentString": "  "
 }

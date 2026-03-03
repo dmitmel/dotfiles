@@ -1,4 +1,3 @@
-// vim: filetype=jsonc
 // <https://code.visualstudio.com/api/references/when-clause-contexts>
 
 [
@@ -16,48 +15,48 @@
   {
     "key": "alt+enter",
     "command": "editor.action.quickFix",
-    "when": "editorTextFocus && vim.active"
+    "when": "editorTextFocus && vim.active",
   },
   {
     "key": "alt+l",
     "command": "vim.remap",
     "when": "editorTextFocus && vim.active",
-    "args": { "after": ["z", "l"] }
+    "args": { "after": ["z", "l"] },
   },
   {
     "key": "alt+h",
     "command": "vim.remap",
     "when": "editorTextFocus && vim.active",
-    "args": { "after": ["z", "h"] }
+    "args": { "after": ["z", "h"] },
   },
   {
     "key": "shift+alt+l",
     "command": "vim.remap",
     "when": "editorTextFocus && vim.active",
-    "args": { "after": ["z", "L"] }
+    "args": { "after": ["z", "L"] },
   },
   {
     "key": "shift+alt+h",
     "command": "vim.remap",
     "when": "editorTextFocus && vim.active",
-    "args": { "after": ["z", "H"] }
+    "args": { "after": ["z", "H"] },
   },
   {
     "key": "ctrl+shift+v", // Old habits die hard
     "command": "vim.remap",
     "when": "editorTextFocus && vim.active",
-    "args": { "after": ["<C-v>"] }
+    "args": { "after": ["<C-v>"] },
   },
 
   {
     "key": "ctrl+,",
     "command": "workbench.action.openSettingsJson",
-    "when": "inSettingsEditor"
+    "when": "inSettingsEditor",
   },
   {
     "key": "ctrl+k ctrl+s",
     "command": "workbench.action.openGlobalKeybindingsFile",
-    "when": "inKeybindings"
+    "when": "inKeybindings",
   },
 
   {
@@ -66,25 +65,25 @@
     "args": {
       "commands": [
         "workbench.action.minimizeOtherEditorsHideSidebar",
-        "workbench.action.evenEditorWidths"
-      ]
+        "workbench.action.evenEditorWidths",
+      ],
     },
-    "when": "focusedView == '' && !listHasSelectionOrFocus && !editorFocus"
+    "when": "focusedView == '' && !listHasSelectionOrFocus && !editorFocus",
   },
   {
     "key": "escape",
     "command": "workbench.action.closeSidebar",
-    "when": "sideBarFocus && !listHasSelectionOrFocus && !inputFocus"
+    "when": "sideBarFocus && !listHasSelectionOrFocus && !inputFocus",
   },
   {
     "key": "escape",
     "command": "workbench.scm.action.focusNextResourceGroup",
-    "when": "scmRepository && inputFocus && !editorFocus"
+    "when": "scmRepository && inputFocus && !editorFocus",
   },
   {
     "key": "escape",
     "command": "workbench.action.blur",
-    "when": "inputFocus && !scmRepository && !editorFocus && !editorHasSelection && !suggestWidgetVisible && !listHasSelectionOrFocus"
+    "when": "inputFocus && !scmRepository && !editorFocus && !editorHasSelection && !suggestWidgetVisible && !listHasSelectionOrFocus",
   },
   // {
   //   "key": "escape",
@@ -115,5 +114,5 @@
   { "key": "ctrl+l ctrl+-", "command": "-latex-workshop.shortcut.textsubscript" },
   { "key": "ctrl+l ctrl+6", "command": "-latex-workshop.shortcut.textsuperscript" },
   { "key": "ctrl+l ctrl+t", "command": "-latex-workshop.shortcut.texttt" },
-  { "key": "ctrl+l ctrl+u", "command": "-latex-workshop.shortcut.underline" }
+  { "key": "ctrl+l ctrl+u", "command": "-latex-workshop.shortcut.underline" },
 ]
