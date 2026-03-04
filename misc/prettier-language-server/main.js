@@ -82,6 +82,8 @@ let globalSettings = null;
 let documentSettings = new Map();
 /** @type {Map<string, CachedPrettierModule>} */
 let cachedPrettierModules = new Map();
+/** @type {Map<string, Promise<string|null> | (string|null|undefined)>} */
+let configResolutionCache = new Map();
 
 /** Poor man's optional chaining (replacement for the `a?.b` operator). */
 function get(/** @type {any} */ obj, /** @type {Array<string|number>} */ ...path) {
@@ -125,14 +127,38 @@ connection.onInitialized(() => {
   }
 });
 
-connection.onDidChangeConfiguration(({ settings }) => {
-  globalSettings = get(settings, 'prettier');
+connection.onDidChangeConfiguration((event) => {
+  globalSettings = get(event.settings, 'prettier');
   documentSettings.clear();
+  for (let prettier of cachedPrettierModules.values()) {
+    prettier.module.clearConfigCache();
+  }
 });
 
 documents.onDidClose((/** @type {LS.TextDocumentChangeEvent<TextDocument>} */ event) => {
-  documentSettings.delete(event.document.uri);
-  cachedPrettierModules.delete(event.document.uri);
+  let { uri } = event.document;
+  documentSettings.delete(uri);
+  cachedPrettierModules.delete(uri);
+  configResolutionCache.delete(uri);
+});
+
+documents.onDidSave((/** @type {LS.TextDocumentChangeEvent<TextDocument>} */ event) => {
+  let savedFilePath = URI.parse(event.document.uri).fsPath;
+
+  for (let [fileUri, maybePromise] of configResolutionCache) {
+    if (maybePromise instanceof Promise) {
+      maybePromise.then(checkThisConfig);
+    } else {
+      checkThisConfig(maybePromise);
+    }
+
+    function checkThisConfig(/** @type {string|null|undefined} */ path) {
+      if (path === savedFilePath) {
+        let prettier = cachedPrettierModules.get(fileUri);
+        if (prettier) prettier.module.clearConfigCache();
+      }
+    }
+  }
 });
 
 connection.onDocumentFormatting(formattingHandler);
@@ -157,7 +183,7 @@ async function formattingHandler(params) {
       enable = true,
       disableLanguages = [],
       prettierPath,
-      ignorePath = '.prettierignore',
+      ignorePath,
       configPath,
       withNodeModules = false,
       requireConfig = false,
@@ -186,7 +212,6 @@ async function formattingHandler(params) {
     }
 
     let cacheKey = document.uri;
-    let wasCached = cachedPrettierModules.has(cacheKey);
     let prettier = loadPrettierModuleCached(cacheKey, uri, {
       onlyUseLocalVersion,
       prettierPath: resolveWorkspaceRelativePath(prettierPath),
@@ -199,17 +224,38 @@ async function formattingHandler(params) {
     let resolvedConfig = null;
     if (uri.scheme === 'file') {
       // Configuration files and Editorconfig can be resolved only for local files.
+
+      configPath = resolveWorkspaceRelativePath(configPath);
+      if (!configPath) {
+        if (!configResolutionCache.has(cacheKey)) {
+          // `resolveConfigFile()` bypasses Prettier's internal cache, so we
+          // must do the caching ourselves.
+          configResolutionCache.set(cacheKey, prettier.module.resolveConfigFile(uri.fsPath));
+        }
+        let resolvedConfigPath = await configResolutionCache.get(cacheKey);
+        configResolutionCache.set(cacheKey, resolvedConfigPath);
+
+        if (resolvedConfigPath) {
+          configPath = resolvedConfigPath;
+          // If a config file is found, assume that `.prettierignore` resides
+          // beside it in the same folder, instead of at the very root of the
+          // workspace.
+          ignorePath = ignorePath || Path.join(Path.dirname(configPath), '.prettierignore');
+        }
+      }
+
       resolvedConfig = await prettier.module.resolveConfig(uri.fsPath, {
-        config: resolveWorkspaceRelativePath(configPath),
+        config: configPath,
         editorconfig: useEditorConfig,
-        useCache: wasCached,
+        // the caches used by this function can be invalidated with `clearConfigCache()`
+        useCache: true,
       });
       if (requireConfig && !resolvedConfig) return [];
     }
 
     let { ignored, inferredParser } = await prettier.module.getFileInfo(uri.fsPath, {
       resolveConfig: uri.scheme === 'file',
-      ignorePath: resolveWorkspaceRelativePath(ignorePath),
+      ignorePath: resolveWorkspaceRelativePath(ignorePath || '.prettierignore'),
       withNodeModules,
     });
     if (ignored) return [];
@@ -277,8 +323,9 @@ function getDocumentSettings(/** @type {string} */ uri) {
       documentSettings.set(uri, promise);
     }
     return promise;
+  } else {
+    return Promise.resolve(globalSettings);
   }
-  return Promise.resolve(globalSettings);
 }
 
 /**
