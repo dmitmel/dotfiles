@@ -7,6 +7,28 @@ if vim.show_pos and vim.treesitter.inspect_tree then
   vim.keymap.set('n', '<F12>', vim.treesitter.inspect_tree)
 end
 
+---@param bufnr integer?
+---@param lang string?
+---@return vim.treesitter.LanguageTree?
+---@return string?
+function dotfiles.maybe_get_treesitter_parser(bufnr, lang)
+  if utils.has('nvim-0.11.0') then
+    return vim.treesitter.get_parser(bufnr, lang, { error = false })
+  else
+    local ok, parser_or_error = pcall(vim.treesitter.get_parser, bufnr, lang)
+    if ok then
+      return parser_or_error, nil
+    else
+      return nil, parser_or_error --[[@as string]]
+    end
+  end
+end
+
+function dotfiles.treesitter_parser_exists(bufnr, lang)
+  local _, err = dotfiles.maybe_get_treesitter_parser(bufnr, lang)
+  return err == nil
+end
+
 if vim.treesitter.start and vim.treesitter.stop and vim.treesitter.highlighter then
   -- Toggle treesitter highlighting for the current buffer.
   vim.keymap.set('n', '<leader>ht', function()
@@ -14,13 +36,7 @@ if vim.treesitter.start and vim.treesitter.stop and vim.treesitter.highlighter t
     if vim.treesitter.highlighter.active[bufnr] then
       vim.treesitter.stop(bufnr)
     else
-      local _parser, err_msg
-      if utils.has('nvim-0.11.0') then
-        _parser, err_msg = vim.treesitter.get_parser(bufnr, nil, { error = false })
-      else
-        _parser, err_msg = pcall(vim.treesitter.get_parser, bufnr, nil)
-      end
-
+      local _, err_msg = dotfiles.maybe_get_treesitter_parser(bufnr)
       if err_msg then
         vim.notify(('[vim.treesitter] %s'):format(err_msg), vim.log.levels.ERROR)
       else

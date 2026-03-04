@@ -629,11 +629,20 @@ endif
     endif
 
     if dotplug#has('nvim-treesitter') && dotplug#has('vim-matchup')
+      function! s:treesitter_parser_exists() abort
+        let cached_var = 'dotfiles_match_skip_treesitter_support'
+        if !exists('b:'.cached_var)
+          let b:{cached_var} = v:lua.dotfiles.treesitter_parser_exists(0)
+        endif
+        return b:{cached_var}
+      endfunction
+
       autocmd FileType *
       \ if exists('g:loaded_matchit') && !exists('b:match_skip')
       \|  call dotfiles#ft#set('match_skip',
-      \     "exists('b:ts_highlight') ? matchup#ts_syntax#skip_expr(line('.'),col('.')) : " .
-      \     "synIDattr(synID(line('.'),col('.'),1),'name') =~? 'comment\\|string'"
+      \     "exists('b:ts_highlight') && ".expand('<SID>')."treesitter_parser_exists()" .
+      \     " ? matchup#ts_syntax#skip_expr(line('.'),col('.'))" .
+      \     " : synIDattr(synID(line('.'),col('.'),1),'name') =~? 'comment\\|string'"
       \   )
       \|endif
     endif
