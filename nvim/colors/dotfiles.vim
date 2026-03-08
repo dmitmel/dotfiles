@@ -63,7 +63,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Italic',        { 'fg': magenta, 'attr': 'italic' })
   call Hi('Bold',          { 'fg': yellow, 'attr': 'bold' })
   call Hi('Underlined',    { 'fg': blue, 'attr': 'underline' })
-  call Hi('Strikethrough', { 'attr': strikethrough })
+  call Hi('Strikethrough', { 'fg': green, 'attr': strikethrough })
   call Hi('Title',         { 'fg': blue })
   hi! link Directory         Title
   call Hi('Conceal',       { 'fg': gray[4] })
@@ -131,6 +131,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Special',     { 'fg': cyan })
   hi! link SpecialKey      Special
   hi! link SpecialComment  Special
+  hi! link Macro           Special
   call Hi('Type',        { 'fg': yellow })
   hi! link Typedef         Type
   call Hi('Operator',    { 'fg': fg })
@@ -150,7 +151,6 @@ function! s:setup() " NOTE: not abort
     hi! link @variable.declaration      Variable
     hi! link @variable.cmake            Variable
     hi! link @variable.parameter.bash   @none
-    hi! link @variable.parameter.vimdoc Special
 
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
@@ -160,6 +160,7 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.type.comment                    NONE
     hi! link @lsp.type.variable                   NONE
     hi! link @lsp.type.operator                   NONE
+    hi! link @lsp.type.typeParameter              Macro
     hi! link @lsp.type.decorator                  Special
     hi! link @lsp.typemod.variable.declaration    @variable.declaration
     hi! link @lsp.typemod.variable.definition.go  @variable.declaration
@@ -170,9 +171,7 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary.go NONE
     hi! link @lsp.typemod.variable.global         PreProc
-    hi! link @lsp.typemod.variable.readonly       Constant
-    hi! link @lsp.typemod.variable.readonly.c     NONE
-    hi! link @lsp.typemod.variable.readonly.cpp   NONE
+    hi! link @lsp.typemod.variable.readonly.python Constant
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
 
     hi! link @markup.raw            String
@@ -187,6 +186,13 @@ function! s:setup() " NOTE: not abort
     hi! link @markup.italic         Italic
     hi! link @markup.strikethrough  Strikethrough
     hi! link @markup.underline      Underlined
+
+    hi! link @variable.parameter.vimdoc Special
+    hi! link @label.vimdoc              Title
+    hi! link @markup.heading.1.vimdoc   PreProc
+    hi! link @markup.heading.2.vimdoc   PreProc
+    hi! link @markup.heading.3.vimdoc   Keyword
+    hi! link @markup.heading.4.vimdoc   PreProc
 
     hi! link @keyword.directive     PreProc
     hi! link @tag.delimiter         Comment
@@ -501,7 +507,7 @@ function! s:setup() " NOTE: not abort
   hi! link CocSemTypeSelfTypeKeyword Type
   hi! link CocSemTypeBuiltinType Type
   hi! link CocSemTypeTypeAlias Type
-  hi! link CocSemTypeTypeParameter Special
+  hi! link CocSemTypeTypeParameter Macro
   hi! link CocSemTypeDecorator Special
 
   hi! link CocSemTypeModParameterDeclaration Variable
@@ -674,7 +680,7 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " C {{{
-  hi! link cOperator Special
+  hi! link cOperator Keyword
   hi! link cFormat   PreProc
   " }}}
 
@@ -825,12 +831,14 @@ function! s:setup() " NOTE: not abort
   call Hi('mkdBlockquote', { 'fg': gray[4] })
   hi! link mkdLinkDef    TypeDef
   hi! link mkdID         Type
-  hi! link mkdRule       PreProc
+  hi! link mkdRule       Special
   hi! link mkdHeading    Keyword
   hi! link mkdBold       htmlBold
   hi! link mkdItalic     htmlItalic
   hi! link mkdBoldItalic htmlBoldItalic
   hi! link mkdStrike     htmlStrike
+  hi! link mkdURL        Underlined
+  hi! link mkdLink       String
   " }}}
 
   " Mail {{{
