@@ -3,22 +3,25 @@
 # http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets
 
 # FZF {{{
+  _fzf_history_list() {
+    # `-l` - list all history events
+    # `-r` - reverse the order, list everything from newest to oldest
+    # `-t` - print timestamps in the given format next to history entries
+    #  `1` - the event number to start from
+    # Also, don't forget to escape the percent signs in the variables we are
+    # plugging into the time format string!
+    fc -lr -t "${fg[yellow]//\%/%%}%Y-%m-%d %H:%M${reset_color//\%/%%}" 1 |
+      # As far as I know, the characters `\`, `/` and `&` need to be escaped
+      # on the right-hand side of the `s` command in sed. Also, sed is faster
+      # than awk for this use-case.
+      sed "s/^[[:space:]]*[0-9][0-9]*/${${${fg[blue]//\\/\\\\}//\//\\\/}//&/\\&}&${${${reset_color//\\/\\\\}//\//\\\/}//&/\\&}/"
+  }
+
   # Based on <https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh>
   _fzf_history_widget() {
     local selected
     if selected=( $(
-      # `-l` - list all history events
-      # `-r` - reverse the order, list everything from newest to oldest
-      # `-t` - print timestamps in the given format next to history entries
-      #  `1` - the event number to start from
-      # Also, don't forget to escape the percent signs in the variables we are
-      # plugging into the time format string!
-      fc -lr -t "${fg[yellow]//\%/%%}%Y-%m-%d %H:%M${reset_color//\%/%%}" 1 |
-        # As far as I know, the characters `\`, `/` and `&` need to be escaped
-        # on the right-hand side of the `s` command in sed. Also, sed is faster
-        # than awk for this use-case.
-        sed "s/^/${${${fg[blue]//\\/\\\\}//\//\\\/}//&/\\&}/" |
-        fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
+      _fzf_history_list | fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
     ) ) && [[ -n "${selected[1]}" ]]; then
       zle vi-fetch-history -n "${selected[1]}"
     fi
