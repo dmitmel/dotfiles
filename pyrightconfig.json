@@ -52,6 +52,7 @@
     "./scripts/discord-whois",
     "./scripts/factorio-dump-blueprint",
     "./scripts/factorio-dump-mod-settings",
+    "./scripts/factorio-make-blueprint",
     "./scripts/fancy-man-pager",
     "./scripts/icat",
     "./scripts/leveldb-dump",

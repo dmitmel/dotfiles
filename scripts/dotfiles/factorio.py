@@ -4,8 +4,11 @@
 # <https://github.com/credomane/factoriomodsettings/blob/master/src/ModSettingsSerialiser.js>
 # <https://www.devdungeon.com/content/working-binary-data-python>
 
+import base64
+import json
 import struct
-from typing import IO, Any, Generator, NamedTuple, Tuple
+import zlib
+from typing import IO, Any, Generator, NamedTuple, Tuple, Union
 
 
 def read_bool(buf: IO[bytes]) -> bool:
@@ -69,14 +72,16 @@ def read_property_tree(buf: IO[bytes]) -> Any:
 
 
 # <https://wiki.factorio.com/Blueprint_string_format>
-def load_blueprint_string(data: bytes) -> Any:
-  import base64
-  import json
-  import zlib
-
+def load_blueprint_string(data: Union[str, bytes, bytearray]) -> Any:
   version, data = data[:1], data[1:]
   if version != b"0":
     raise ValueError("unsupported blueprint string version")
-  data = base64.b64decode(data)
-  data = zlib.decompress(data)
-  return json.loads(data)
+
+  return json.loads(zlib.decompress(base64.b64decode(data)).decode("utf-8"))
+
+
+def make_blueprint_string(data: Union[Any, bytes, bytearray]) -> bytes:
+  if not (isinstance(data, bytes) or isinstance(data, bytearray)):
+    data = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+  return b"0" + base64.b64encode(zlib.compress(data, level=9))

@@ -6,10 +6,5 @@ import sys
 from dotfiles import factorio
 
 if __name__ == "__main__":
-  print(
-    json.dumps(
-      factorio.load_blueprint_string(sys.stdin.buffer.read()),
-      ensure_ascii=False,
-      indent=2,
-    )
-  )
+  data = factorio.load_blueprint_string(sys.stdin.buffer.read())
+  json.dump(data, sys.stdout, ensure_ascii=False, indent=2)

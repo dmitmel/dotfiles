@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+
+import json
+import sys
+
+from dotfiles import factorio
+
+if __name__ == "__main__":
+  sys.stdout.buffer.write(factorio.make_blueprint_string(json.load(sys.stdin)))
