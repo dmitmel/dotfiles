@@ -134,8 +134,24 @@ function! dotutils#reveal_file(path) abort
   endif
 endfunction
 
+function! dotutils#split_with_escapes(string, separators) abort
+  " see `:help /\]` for which symbols must be escaped inside character classes
+  let seps = escape(a:separators, '\]^-')
+  if stridx(a:string, '\') < 0  " Take the fast path if no characters are escaped
+    " the last parameter is a flag for keeping empty entries
+    return split(a:string, '\C['.seps.']', 1)
+  else
+    " <https://stackoverflow.com/a/249937/12005228>
+    return split(a:string, '\C^\%([^\\'.seps.']\|\\.\)*\zs['.seps.']', 1)
+  endif
+endfunction
+
 function! dotutils#list_runtime_paths() abort
-  return exists('*nvim_list_runtime_paths') ? nvim_list_runtime_paths() : split(&runtimepath, ',')
+  if exists('*nvim_list_runtime_paths')
+    return nvim_list_runtime_paths()
+  else
+    return dotutils#split_with_escapes(&runtimepath, ',')
+  endif
 endfunction
 
 function! dotutils#gettext(str) abort
@@ -167,15 +183,15 @@ function! dotutils#escape_and_wrap_regex(pat) abort
   return '/'.pat.'/'
 endfunction
 
-" Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L459-L462>
+" Copied from <https://github.com/tpope/vim-unimpaired/blob/db65482581a28e4ccf355be297f1864a4e66985c/plugin/unimpaired.vim#L469-L472>
 function! dotutils#url_encode(str, allowed_chars) abort
   " iconv trick to convert utf-8 bytes to 8bits indiviual char.
   let bytestr = iconv(a:str, 'latin1', 'utf-8')
-  let regex = '[^' . escape(a:allowed_chars, ']\') . 'A-Za-z0-9_.~-]'
+  let regex = '[^' . escape(a:allowed_chars, '\]^-') . 'A-Za-z0-9_.~-]'
   return substitute(bytestr, regex, '\="%".printf("%02X",char2nr(submatch(0)))', 'g')
 endfunction
 
-" Copied from <https://github.com/tpope/vim-unimpaired/blob/master/plugin/unimpaired.vim#L464-L467>
+" Copied from <https://github.com/tpope/vim-unimpaired/blob/db65482581a28e4ccf355be297f1864a4e66985c/plugin/unimpaired.vim#L474-L477>
 function! dotutils#url_decode(str) abort
   let str = substitute(substitute(substitute(a:str, '%0[Aa]\n$', '%0A', ''), '%0[Aa]', '\n', 'g'), '+', ' ', 'g')
   return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')

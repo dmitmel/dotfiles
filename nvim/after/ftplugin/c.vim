@@ -1,8 +1,7 @@
 exe dotfiles#ft#setlocal('commentstring=//%s')
 
 function! s:patch_c_comments() abort
-  " The regex matches a comma not preceded by a backslash.
-  let comments = split(&comments, '\\\@1<!,')
+  let comments = dotutils#split_with_escapes(&comments, ',')
 
   let idx = index(comments, ':///')
   if idx >= 0

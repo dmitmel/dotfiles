@@ -380,11 +380,8 @@ augroup dotfiles_typescript_crlf
   "   curl -f "https://registry.npmjs.org/typescript/-/typescript-${version}.tgz" |
   "     tar -C "$dir" --strip-components=1 -xzvf -
   " done
-  "
-  " The weird pattern in the condition checks whether `v:cmdarg` contains an
-  " explicit `++ff=...` option preceded by an unescaped space character.
   autocmd BufReadPost */node_modules/typescript/lib/lib.*.d.ts nested
-    \ if &l:fileformat !=# 'dos' && (empty(v:cmdarg) || v:cmdarg !~# '\\\@1<! ++ff=')
+    \ if &l:fileformat !=# 'dos' && match(dotutils#split_with_escapes(v:cmdarg, " \t"), '^++ff=') < 0
     \|  execute 'edit ++ff=dos'
     \|endif
 augroup END
