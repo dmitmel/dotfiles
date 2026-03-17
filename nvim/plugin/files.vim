@@ -14,7 +14,7 @@ if !has('nvim')
     " Only adjust those options whose first entry points to the current directory
     if (option_value . ',')[0:1] !=# '.,' | return | endif
 
-    let dir = expand(has('win32') ? '$HOME/vimfiles' : '~/.vim') . '/' . a:dir_name
+    let dir = expand(has('win32') ? '~/vimfiles' : '~/.vim') . '/' . a:dir_name
     try
       " These directories are created with restricted permissions as a mitigation for CVE-2017-1000382
       call mkdir(dir, 'p', 0700)
@@ -352,6 +352,7 @@ set nofixendofline
 
 " }}}
 
+
 augroup dotfiles_zip
   autocmd!
   " ggb - GeoGebra files
@@ -360,6 +361,32 @@ augroup dotfiles_zip
   " whl - Python wheels
   " vsix - VSCode extensions
   autocmd BufReadCmd *.ggb,*.ccmod,*.xpi,*.whl,*.vsix call zip#Browse(expand('<amatch>'))
+augroup END
+
+
+augroup dotfiles_typescript_crlf
+  autocmd!
+  " Some of the stock declaration files that come with TypeScript (for the base
+  " language, ECMAScript editions, DOM APIs etc) use mixed line endings for some
+  " nondescript reason. Such files can be found with:
+  "
+  " $ rg -l '\r' node_modules/typescript/ | xargs --no-run-if-empty rg -l --multiline '[^\r]\n' | sort
+  "
+  " All versions of the `typescript` package can be downloaded with:
+  "
+  " for version in $(npm view typescript versions --json | jq -r 'map(select(contains("-")|not))'); do
+  "   dir="typescript-${version}"
+  "   mkdir -p "$dir"
+  "   curl -f "https://registry.npmjs.org/typescript/-/typescript-${version}.tgz" |
+  "     tar -C "$dir" --strip-components=1 -xzvf -
+  " done
+  "
+  " The weird pattern in the condition checks whether `v:cmdarg` contains an
+  " explicit `++ff=...` option preceded by an unescaped space character.
+  autocmd BufReadPost */node_modules/typescript/lib/lib.*.d.ts nested
+    \ if &l:fileformat !=# 'dos' && (empty(v:cmdarg) || v:cmdarg !~# '\\\@1<! ++ff=')
+    \|  execute 'edit ++ff=dos'
+    \|endif
 augroup END
 
 

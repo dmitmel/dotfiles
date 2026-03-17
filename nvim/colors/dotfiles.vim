@@ -810,6 +810,8 @@ function! s:setup() " NOTE: not abort
   hi! link typescriptMethodAccessor      Keyword
   hi! link typescriptClassName           jsClassDefinition
   hi! link typescriptClassHeritage       jsClassDefinition
+  hi! link typescriptInterfaceName       typescriptClassName
+  hi! link typescriptInterfaceHeritage   typescriptClassHeritage
   hi! link typescriptExceptions          jsException
   hi! link typescriptTry                 typescriptExceptions
   hi! link typescriptEnumKeyword         typescriptClassKeyword
