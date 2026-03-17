@@ -74,13 +74,19 @@ endif
 " Indentination {{{
 " <https://vim.fandom.com/wiki/Indenting_source_code>
 
+  " NOTE: Don't enable `smartindent` globally! That option turns on an algorithm
+  " designed for C and C-like languages that, most notably, breaks in languages
+  " which use the hash `#` symbol for starting a comment. When `smartindent` is
+  " enabled, the `#` character is recognized as a beginning of a C preprocessor
+  " command, which makes the |>| command avoid right-shifting lines which start
+  " with `#`, as it is conventional in C to not indent lines with preprocessor
+  " commands like `#ifdef` together with the rest of the code. Unfortunately,
+  " this is super annoying when working with languages like Python or Shell,
+  " when you want to indent a block of comments by pressing |>|. See also:
+  " <https://www.reddit.com/r/vim/comments/r70y6i/comment/hmwkg0m/>
+
+  " When starting a new line, copy the indentation from the previous one.
   set autoindent
-  " `smartindent` is a "fallback" autoindentation mechanism which just uses
-  " curly brackets and the words from `cinwords` for determining indentation
-  " and is activated when `cindent` and `indentexpr` are not set. This will be
-  " the case only for buffers without a filetype AND text files because most
-  " ftplugins already define reasonable indentation settings.
-  set smartindent
   " <Tab> inserts `shiftwidth` number spaces in front of a line, <BS> deletes
   " `shiftwidth` number spaces in front of a line.
   set smarttab
