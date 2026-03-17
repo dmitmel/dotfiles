@@ -737,6 +737,7 @@ endif
   " <https://github.com/preservim/vim-markdown/blob/8f6cb3a6ca4e3b6bcda0730145a0b700f3481b51/ftplugin/markdown.vim#L770-L779>
   let g:vim_markdown_no_default_key_mappings = 1
   let g:vim_markdown_folding_disabled = 1
+  let g:vim_markdown_strikethrough = 1
   let g:vim_markdown_fenced_languages = [
   \ 'c++=cpp',
   \ 'viml=vim',
@@ -756,6 +757,11 @@ endif
   let g:c_gnu = 1
   let g:cpp_attributes_highlight = 1
   let g:cpp_member_highlight = 1
+  " Highlighting of functions in C was added only *very* recently to Vim/Neovim:
+  " <https://github.com/neovim/neovim/commit/0c1119ac7581e99d970b194d969b8776255cff44>
+  " Before that, I rely on the `vim-c-cpp-modern` plugin to add this feature.
+  let g:c_functions = !dotplug#has('vim-c-cpp-modern')
+  let g:c_functions_pointers = g:c_functions
 
   let g:lua_version = 5
   let g:lua_subversion = 1

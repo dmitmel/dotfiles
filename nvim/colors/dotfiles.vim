@@ -127,6 +127,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Identifier',  { 'fg': red })
   hi! link Variable        Identifier
   call Hi('PreProc',     { 'fg': yellow })
+  hi! link Define          PreProc
   call Hi('Label',       { 'fg': yellow })
   call Hi('Special',     { 'fg': cyan })
   hi! link SpecialKey      Special
@@ -492,7 +493,7 @@ function! s:setup() " NOTE: not abort
 
   hi! link CocSemTypeFunction Function
   hi! link CocSemTypeMethod Function
-  hi! link CocSemTypeMacro Define
+  hi! link CocSemTypeMacro Macro
   hi! link CocSemTypeModMacroDeclaration Function
   hi! link CocSemTypeModMacroDefinition Function
   hi! link CocSemTypeAttribute PreProc
@@ -680,8 +681,10 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " C {{{
-  hi! link cOperator Keyword
-  hi! link cFormat   PreProc
+  hi! link cOperator Keyword  " `sizeof`, `typeof`, `static_assert`, `_Generic` and so on
+  hi! link cFormat   PreProc  " printf() format qualifiers: `%d`, `%.*s`, `%2.3f` etc
+  hi! link cAnsiName Macro    " <https://github.com/bfrg/vim-c-cpp-modern/blob/b194a25209ed99ae73175cc5cbc94b2d5684f657/after/syntax/c.vim#L68-L71>
+  hi! link cDefine   Define   " linked to `Macro` by default, but I want it to be `Define`
   " }}}
 
   " C++ {{{
@@ -690,11 +693,13 @@ function! s:setup() " NOTE: not abort
 
   " Rust {{{
   hi! link rustEnumVariant    Function
-  hi! link rustSelf           Variable
+  hi! link rustSelf           Special
   hi! link rustSigil          rustOperator
   hi! link rustMacroVariable  Variable
   hi! link rustModPath        Identifier
   hi! link rustCommentLineDoc Comment
+  hi! link rustAssert         rustMacro
+  hi! link rustPanic          rustMacro
   " }}}
 
   " HTML {{{
@@ -860,7 +865,7 @@ function! s:setup() " NOTE: not abort
   hi! link pythonClassVar    Special
   hi! link pythonStrTemplate PreProc
   hi! link pythonStrFormat   PreProc
-  hi! link pythonDecorator   Special
+  hi! link pythonDecorator   Macro
   " }}}
 
   " Ruby {{{
