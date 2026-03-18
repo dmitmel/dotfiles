@@ -381,8 +381,8 @@ augroup dotfiles_typescript_crlf
   "     tar -C "$dir" --strip-components=1 -xzvf -
   " done
   autocmd BufReadPost */node_modules/typescript/lib/lib.*.d.ts nested
-    \ if &l:fileformat !=# 'dos' && match(dotutils#split_with_escapes(v:cmdarg, " \t"), '^++ff=') < 0
-    \|  execute 'edit ++ff=dos'
+    \ if &l:fileformat !=# 'dos' && match(dotutils#split_with_escapes(v:cmdarg, '\s'), '^++ff=') < 0
+    \|  execute 'edit' v:cmdarg '++ff=dos'
     \|endif
 augroup END
 

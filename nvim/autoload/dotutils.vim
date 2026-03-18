@@ -134,15 +134,13 @@ function! dotutils#reveal_file(path) abort
   endif
 endfunction
 
-function! dotutils#split_with_escapes(string, separators) abort
-  " see `:help /\]` for which symbols must be escaped inside character classes
-  let seps = escape(a:separators, '\]^-')
+function! dotutils#split_with_escapes(string, separator) abort
   if stridx(a:string, '\') < 0  " Take the fast path if no characters are escaped
-    " the last parameter is a flag for keeping empty entries
-    return split(a:string, '\C['.seps.']', 1)
+    " the last parameter is a flag for keeping the empty entries
+    return split(a:string, a:separator, 1)
   else
-    " <https://stackoverflow.com/a/249937/12005228>
-    return split(a:string, '\C^\%([^\\'.seps.']\|\\.\)*\zs['.seps.']', 1)
+    " based on a regex from <https://stackoverflow.com/a/249937/12005228>
+    return split(a:string, '^\%([^\\]\|\\.\)\{-}\zs' . a:separator, 1)
   endif
 endfunction
 
