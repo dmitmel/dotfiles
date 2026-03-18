@@ -134,12 +134,19 @@ function M.jump(method, list_type, opts)
   M.cancellable_request(0, method, make_params, function(_, results, all_clients)
     local items = {} ---@type vim.quickfix.entry[]
     local clients_with_results = {} ---@type vim.lsp.Client[]
+
     for client_id, result in pairs(results) do
       local client = assert(lsp.get_client_by_id(client_id))
       local locations = not utils.is_list(result) and { result } or result
       local client_items = lsp.util.locations_to_items(locations, client.offset_encoding)
-      vim.list_extend(items, client_items)
-      if #client_items > 0 then table.insert(clients_with_results, client) end
+
+      if #client_items > 0 then
+        table.insert(clients_with_results, client)
+        for _, item in ipairs(client_items) do
+          item.user_data._offset_encoding = client.offset_encoding
+          items[#items + 1] = item
+        end
+      end
     end
 
     if #items == 0 then
@@ -176,9 +183,9 @@ function M.jump(method, list_type, opts)
 
     vim.api.nvim_set_current_win(current_win)
     vim.cmd('lclose')
-    if #items == 1 and #clients_with_results == 1 then
+    if #items == 1 then
       local location = items[1].user_data --[[@as lsp.Location | lsp.LocationLink]]
-      lsp.util.show_document(location, clients_with_results[1].offset_encoding, { focus = true })
+      lsp.util.show_document(location, (location --[[@as any]])._offset_encoding, { focus = true })
       vim.cmd('normal! zz')
     else
       vim.fn.setloclist(current_win, {}, ' ', {
