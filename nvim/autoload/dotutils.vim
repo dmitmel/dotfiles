@@ -117,20 +117,31 @@ endfunction
 function! dotutils#reveal_file(path) abort
   if empty(a:path) | throw 'The path must not be empty' | endif
   let path = fnamemodify(a:path, ':p')
+
   if has('macunix')
-    call system('open -R ' . shellescape(path, 0))
+    let command = ['open', '-R', path]
+  elseif has('win32')
+    let command = ['explorer', '/select,', path]  " the comma after `/select` is not a typo
   elseif has('unix') && executable('dbus-send')
+    " <https://github.com/tauri-apps/plugins-workspace/issues/999>
     " <http://www.freedesktop.org/wiki/Specifications/file-manager-interface/>
-    let output = system([ 'dbus-send',
+    let command = ['dbus-send', '--session', '--type=method_call',
     \ '--print-reply', '--reply-timeout=1000', '--dest=org.freedesktop.FileManager1',
     \ '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
-    \ 'array:string:' . ('file://' . dotutils#url_encode(path,'/')), "string:''" ])
-    if v:shell_error
-      throw output
-    endif
+    \ 'array:string:' . ('file://' . dotutils#url_encode(path,'/')), 'string:']
   else
-    " for other systems let's just open the file's parent directory
+    let command = []
+  endif
+
+  if empty(command)
+    " for unsupported systems let's just open the file's parent directory
     call dotutils#open_uri(fnamemodify(path, ':h'))
+  else
+    let output = system(command)
+    if v:shell_error
+      let output = substitute(output, '\n*$', '', '')  " remove the final newline
+      echoerr printf("%s exited with code %d:\n%s", command[0], v:shell_error, output)
+    endif
   endif
 endfunction
 
