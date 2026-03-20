@@ -481,23 +481,22 @@ endif
   xnoremap ? <Esc>?\%V
 
   " * and # in the Visual mode will search the selected text
-  function! s:VisualStarSearch() abort
-    let tmp = @"
-    try
-      normal! gvy
-      let @/ = dotutils#literal_regex(@")
-    finally
-      let @" = tmp
-    endtry
+  function! s:selection_into_pattern(type) abort
+    let lines = dotutils#get_visually_selected_text()
+    " <https://github.com/neovim/neovim/blob/v0.11.6/src/nvim/normal.c#L3503-L3506>
+    let characters_to_escape = '\/^$' . (a:type ==# '#' ? '?' : '') . (&magic ? '.*~[' : '')
+    call map(lines, 'escape(v:val, characters_to_escape)')
+    return join(lines, "\\n")
   endfunction
-  " These must be recursive to display the number of results after the search.
-  xmap * :<C-u>call <SID>VisualStarSearch()<CR>/<CR>
-  xmap # :<C-u>call <SID>VisualStarSearch()<CR>?<CR>
+  " These must be recursive to trigger the `<SID>after_search` mapping in order
+  " to display the number of results after the search.
+  xmap * <SID>:let @/ = <SID>selection_into_pattern('*')<CR>/<C-r>/<CR>
+  xmap # <SID>:let @/ = <SID>selection_into_pattern('#')<CR>?<C-r>/<CR>
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
-  command! -nargs=+ Search        let @/ =       escape(<q-args>, '/') | normal! /<C-r>/<CR>
+  command! -nargs=+ Search        let @/ =       escape(<q-args>, '/') | normal /<C-r>/<CR>
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
-  command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal! /<C-r>/<CR>
+  command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal /<C-r>/<CR>
 
 " }}}
 

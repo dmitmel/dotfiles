@@ -149,19 +149,14 @@ set nofixendofline
       call feedkeys(":\<C-u>" . cmd, 'nt')
     endif
   endfunction
-  nnoremap <silent> <leader>* :<C-u>call <SID>grep_word()<CR>
 
   function! s:grep_visual() abort
-    let tmp = @"
-    try
-      normal! gvy
-      let text = @"
-    finally
-      let @" = tmp
-    endtry
-    let cmd = 'grep -F -- ' . shellescape(text, 1)
+    let text = dotutils#get_visually_selected_text()
+    let cmd = 'grep -F -- ' . shellescape(join(text, "\n"), 1)
     call feedkeys(":\<C-u>" . cmd, 'nt')
   endfunction
+
+  nnoremap <silent> <leader>* :<C-u>call <SID>grep_word()<CR>
   xnoremap <silent> <leader>* :<C-u>call <SID>grep_visual()<CR>
 
 " }}}
@@ -420,17 +415,12 @@ nnoremap <silent> yP :<C-u>call setreg(v:register, expand('%:p'))<CR>
   " disable all default mappings from Neovim.
   " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
 
-  function! s:gx_get_selection() abort
-    let tmp = @"
-    try
-      normal! gvy
-      return substitute(@", '[ \t\n\r]*', '', 'g')
-    finally
-      let @" = tmp
-    endtry
+  function! s:get_url_from_selection() abort
+    let lines = dotutils#get_visually_selected_text()
+    return substitute(join(lines, ''), '[ \t\n\r]*', '', 'g')
   endfunction
 
   nnoremap <silent> gx :<C-u>call dotutils#open_uri(dotutils#url_under_cursor())<CR>
-  xnoremap <silent> gx :<C-u>call dotutils#open_uri(<SID>gx_get_selection())<CR>
+  xnoremap <silent> gx :<C-u>call dotutils#open_uri(<SID>get_url_from_selection())<CR>
 
 " }}}

@@ -85,6 +85,7 @@ function! dotfiles#searchcount#show(opts) abort
   endif
 
   execute 'echohl' hl
-  echo msg . '  /' . @/ . '/'
+  " Newline characters in the search register represent NUL bytes, see |NL-used-for-Nul|
+  echo msg . '  /' . substitute(@/, "\n", '<00>', 'g') . '/'
   echohl None
 endfunction

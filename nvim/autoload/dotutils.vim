@@ -224,7 +224,7 @@ function! dotutils#is_terminal_running(buf) abort
     let job = getbufvar(a:buf, exists('&channel') ? '&channel' : 'terminal_job_id', 0)
     return jobwait([job], 0)[0] == -1
   elseif has('terminal')
-    return term_getstatus(a:buf) =~# '\<running\>'
+    return index(split(term_getstatus(a:buf), ','), 'running') >= 0
   else
     return 0
   endif
@@ -271,4 +271,39 @@ function! dotutils#list_loaded_scripts() abort
     call add(scripts, { 'name': fnamemodify(groups[2], ':p'), 'sid': str2nr(groups[1], 10) })
   endfor
   return scripts
+endfunction
+
+function! dotutils#get_visually_selected_text() abort
+  if mode() !~# "^[vV\<C-v>]$"  " check if not in the Visual mode already
+    silent! normal! gv
+  endif
+
+  let reg = 'a'
+
+  " We need these two patches to be able to properly save and restore register
+  " contents if they contain NUL bytes:
+  " <https://github.com/vim/vim/commit/b7cb42bc3878fcb62ed407f47f0a2cc960aa7c1e>
+  " <https://github.com/vim/vim/commit/5a50c2255c447838d08d3b4895a3be3a41cd8eda>
+  let getreg_distinguishes_nul_bytes = has('patch-7.4.242') && has('patch-7.4.243')
+
+  if exists('*getreginfo')
+    let old_reg_info = getreginfo(reg)
+  else
+    let old_reg_text = getreg_distinguishes_nul_bytes ? getreg(reg, 1, 1) : getreg(reg)
+    let old_reg_type = getregtype(reg)
+  endif
+
+  try
+    " Suppress the "N lines yanked" message
+    exe 'silent! normal! "'.reg.'y'
+    let text = getreg_distinguishes_nul_bytes ? getreg(reg, 1, 1) : split(getreg(reg), '\n', 1)
+  finally
+    if exists('*getreginfo')
+      call setreg(reg, old_reg_info)
+    else
+      call setreg(reg, old_reg_text, old_reg_type)
+    endif
+  endtry
+
+  return text
 endfunction
