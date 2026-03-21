@@ -84,8 +84,23 @@ function! dotfiles#searchcount#show(opts) abort
     let msg = 'Match '. result.current .' of '. matches
   endif
 
-  execute 'echohl' hl
-  " Newline characters in the search register represent NUL bytes, see |NL-used-for-Nul|
-  echo msg . '  /' . substitute(@/, "\n", '<00>', 'g') . '/'
-  echohl None
+  let pattern = strtrans(@/)
+  " This code is based on a snippet from vim-dispatch:
+  " <https://github.com/tpope/vim-dispatch/blob/a2ff28abdb2d89725192db5b8562977d392a4d3f/autoload/dispatch.vim#L377-L409>.
+  " Even though |v:echospace| was added relatively recently, I chose not to
+  " implement a fallback for older Vim versions Consequently, fallbacks for
+  " `strchars(..., 1)` and `strcharpart(..., 1)` are also not necessary.
+  if exists('v:echospace')
+    let echospace = (&cmdheight - 1) * &columns + v:echospace
+    let ellipsis = '…'
+    let truncation = strchars(msg . '  /' . pattern . '/', 1) - (echospace - strchars(ellipsis, 1))
+    if truncation > 0
+      let pattern = strcharpart(pattern, 0, strchars(pattern, 1) - truncation, 1) . ellipsis
+    endif
+  endif
+  let msg .= '  /' . pattern . '/'
+
+  exe 'echohl' hl
+  echo msg
+  echohl NONE
 endfunction
