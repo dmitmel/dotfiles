@@ -157,16 +157,23 @@ function! dotplug#end() abort
   if v:version > 704 || (v:version == 704 && has("patch148"))
     " <https://github.com/folke/lazy.nvim/blob/6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a/lua/lazy/core/loader.lua#L168-L172>
     let def_prio = g:dotplug#default_priority
-    call sort(g:plugs_order, { name1, name2 -> get(g:plugs[name1], 'priority', def_prio) -
-    \                                          get(g:plugs[name2], 'priority', def_prio) })
+    call sort(g:plugs_order, { name1, name2 ->
+      \ get(g:plugs[name1], 'priority', def_prio) -
+      \ get(g:plugs[name2], 'priority', def_prio) })
   endif
   call plug#end()
 endfunction
 
 function! dotplug#check_sync() abort
-  let need_clean = {}
   " <https://stackoverflow.com/a/13908273/12005228>
-  for subdir in glob(fnameescape(g:dotplug#plugins_dir) . '/{,.}*/', 1, 1)
+  " I use |glob()| instead of |readdir()| here for compatibility with old Vim
+  " versions. And also because that's how vim-plug reads directories:
+  " <https://github.com/junegunn/vim-plug/blob/34467fc07d1bf1b3a6588e9d62711b9f7a8afda3/plug.vim#L266-L268>
+  " <https://github.com/junegunn/vim-plug/blob/34467fc07d1bf1b3a6588e9d62711b9f7a8afda3/plug.vim#L853-L855>
+  " NOTE: a brace pattern like `${dir}/{,.}*/` is not used to avoid this bug:
+  " <https://github.com/vim/vim/issues/19822>
+  let need_clean = {}
+  for subdir in glob(fnameescape(g:dotplug#plugins_dir) . '/*/', 1, 1)
     let subdir = fnamemodify(subdir, ":h:t")
     if subdir !=# "." && subdir !=# ".."
       let need_clean[subdir] = 1
