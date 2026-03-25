@@ -463,45 +463,90 @@ local snacks_config = {
   input = {
     enabled = false,
     icon = '',
-    expand = true, -- NOTE: `expand=true` is too laggy. TODO: fix this.
+    expand = true,
 
     win = {
       relative = 'cursor',
-      border = 'none',
-      row = 1,
-      col = -1,
+      border = 'single',
+      row = -1,
+      col = -2,
       title_pos = 'left',
 
       on_buf = function(win) ---@param win snacks.win
-        local min_width = 0
+        local initial_text_width = nil
+        local min_window_width = 15
+
+        -- A new buffer is created before opening a new window, so we've still
+        -- got the chance to patch the function for determining the width of the
+        -- input window.
         win.opts.width = function()
-          local width = vim.api.nvim_strwidth(win:text())
-          if min_width == 0 then min_width = width end
-          local borders_width = 2
-          return math.max(min_width, width) + borders_width
+          local title = win.opts.title
+          local title_width = 0
+          if type(title) == 'string' then
+            title_width = vim.api.nvim_strwidth(title)
+          elseif type(title) == 'table' then
+            for _, chunk in ipairs(title) do
+              title_width = title_width + vim.api.nvim_strwidth(chunk[1])
+            end
+          end
+
+          -- Add 1 cell to the width for the padding on the left in the
+          -- statuscolumn, and 1 more to fit the cursor when it is at the end.
+          local text_width = vim.api.nvim_strwidth(win:text()) + 2
+          if initial_text_width == nil then initial_text_width = text_width end
+
+          return math.max(initial_text_width, title_width, text_width, min_window_width)
         end
       end,
 
       wo = { virtualedit = 'none' },
+      bo = { undolevels = -1 }, -- Disable undo
 
       keys = {
-        n_esc = {
-          '<esc>',
-          vim.schedule_wrap(function(win) ---@param win snacks.win
-            win:execute('cancel')
-          end),
+        -- Fix for the cursor getting moved after leaving the input window by
+        -- means of pressing CTRL-C to interrupt text entry.
+        i_ctrl_c = {
+          mode = 'i',
+          '<c-c>',
+          function(win)
+            vim.cmd.stopinsert()
+            vim.schedule(function() win:execute('cancel') end)
+          end,
+        },
+
+        -- Map both `u` and CTRL-R to <Esc> to generate beeps.
+        -- n_u = { mode = 'n', expr = true, 'u', '<esc>' },
+        -- n_ctrl_r = { mode = 'n', expr = true, '<c-r>', '<esc>' },
+
+        -- The following abomination is a to work around a weird deficiency of
+        -- the prompt buffers: the undo history is tracked within them, the `u`
+        -- but key is hard-coded to not work even though the `:undo` command
+        -- works, however, the CTRL-R key works just fine!
+        -- <https://github.com/neovim/neovim/blob/v0.11.6/src/nvim/normal.c#L4466-L4469>
+        -- Also, for the love of god, I couldn't figure out the semantics of the
+        -- [count] given before `u` and CTRL-R keys.
+        n_u = {
           mode = 'n',
+          expr = true,
+          replace_keycodes = false,
+          'u',
+          function()
+            local rhs = '<Cmd>exe repeat("undo\\n", ' .. vim.v.count1 .. ')<CR>'
+            return vim.call('repeat#wrap', vim.api.nvim_replace_termcodes(rhs, true, true, true), 0)
+          end,
         },
 
-        i_cr = {
-          '<cr>',
-          vim.schedule_wrap(function(win) ---@param win snacks.win
-            win:execute('confirm')
-          end),
-          mode = { 'i', 'n' },
+        n_ctrl_r = {
+          mode = 'n',
+          expr = true,
+          replace_keycodes = false,
+          '<c-r>',
+          function()
+            local rhs = '<Cmd>exe repeat("redo\\n", ' .. vim.v.count1 .. ')<CR>'
+            return vim.call('repeat#wrap', vim.api.nvim_replace_termcodes(rhs, true, true, true), 0)
+          end,
         },
 
-        i_esc = false, -- In insert mode <Esc> should exit to Normal mode
         i_tab = false,
       },
     },
