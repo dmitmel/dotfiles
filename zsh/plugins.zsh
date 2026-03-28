@@ -92,7 +92,7 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
 
     local lf_archive_name="lf-${lf_os}-${lf_arch}.tar.gz"
     plugin lf "https://github.com/gokcehan/lf/releases/latest/download/${lf_archive_name}" from=url \
-      build='mkdir -p bin && tar -C bin --no-same-owner -xzf "$lf_archive_name" lf && chmod +x bin/lf' \
+      build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${lf_archive_name}" lf && chmod +x bin/lf" \
       build='_zplg_source_url_download \
         "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/lf.1" \
         "${plugin_dir}/man/man1"' \
