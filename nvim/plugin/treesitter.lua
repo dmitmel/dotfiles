@@ -110,6 +110,7 @@ function vim.treesitter.start(bufnr, lang)
     -- since those give vastly better results than the regexp engine, and don't
     -- suffer from performance issues as much.
     if caller.source == '@' .. vim.fs.normalize('$VIMRUNTIME/ftplugin/lua.lua') then return end
+    if caller.source == '@' .. vim.fs.normalize('$VIMRUNTIME/ftplugin/markdown.lua') then return end
   end
   -- No exit route was taken -- we can start Treesitter.
   return vim.treesitter._really_start(bufnr, lang)

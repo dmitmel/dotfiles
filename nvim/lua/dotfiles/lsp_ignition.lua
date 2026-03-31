@@ -359,8 +359,7 @@ function Igniter:resolve_settings(scope_uri, trigger)
     igniter = self,
   }
 
-  local lsp_config = client and client.config --[[@as dotfiles.lsp.Config]]
-    or self.config
+  local lsp_config = client and client.config --[[@as dotfiles.lsp.Config]] or self.config
 
   ---@param name dotfiles.lsp.SettingsBuildStep
   local function step(name, data)
@@ -572,7 +571,7 @@ function Igniter:stop_client(force, callback)
       if callback then vim.schedule(callback) end
     end)
 
-    lsp.stop_client(self.client_id, force)
+    self:get_client():stop(force)
   end
 end
 

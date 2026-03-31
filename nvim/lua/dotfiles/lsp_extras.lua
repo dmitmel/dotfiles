@@ -357,7 +357,9 @@ function M.hover(opts)
       renderer:push_separator()
       local client = assert(lsp.get_client_by_id(client_id))
       if many_clients then renderer:parse_markdown_section('# ' .. client.name) end
-      if hover.contents then renderer:parse_documentation_sections(hover.contents) end
+      if hover.contents ~= nil and hover.contents ~= vim.NIL then
+        renderer:parse_documentation_sections(hover.contents)
+      end
     end
 
     if renderer:is_empty() then

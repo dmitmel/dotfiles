@@ -7,7 +7,9 @@ local lsp_extras = require('dotfiles.lsp_extras')
 local lsp_ignition = require('dotfiles.lsp_ignition')
 local lsp_settings = require('dotfiles.lsp_settings')
 
-lsp_log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
+if not utils.has('nvim-0.12') then
+  lsp_log.set_format_func(function(arg) return vim.inspect(arg, { newline = ' ', indent = '' }) end)
+end
 lsp_log.set_level(utils.if_nil(lsp_log.levels[vim.env.NVIM_LSP_LOG], lsp_log.levels.WARN))
 
 vim.api.nvim_create_user_command(
@@ -294,6 +296,8 @@ if dotplug.has('fidget.nvim') then
     ['textDocument/completion'] = true,
     ['completionItem/resolve'] = true,
     ['textDocument/diagnostic'] = true,
+    ['textDocument/inlayHint'] = true,
+    ['textDocument/documentColor'] = true,
   }
 
   -- This displays in-progress LSP requests with fidget.nvim. Inspired by
@@ -426,7 +430,7 @@ require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(
     end
   end
 
-  if opts.documentation then
+  if opts.documentation ~= nil and opts.documentation ~= vim.NIL then
     local separation_line = renderer.linenr + 1
     renderer:parse_documentation_sections(opts.documentation)
     -- Insert a separator between the details and the documentation blocks, if

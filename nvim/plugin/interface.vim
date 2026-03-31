@@ -300,6 +300,7 @@ set history=10000
   if has('nvim-0.5') && g:vim_ide == 2 | call add(s:ext, 'nvimlsp')                     | endif
   if dotplug#has('snacks.nvim')        | call add(s:ext, 'snacks_picker')               | endif
   if dotplug#has('fzf-lua')            | call insert(s:ext, 'fzf_lua')                  | endif
+  if has('nvim-0.4')                   | call insert(s:ext, 'avoid_nvim_float_windows') | endif
   let g:airline_extensions = s:ext
 
   let g:airline_detect_iminsert = 1
@@ -566,13 +567,22 @@ endif
   " Disable the default autocommand which auto-closes terminal buffers started
   " without any explicit arguments, as it uses `:bdelete` to do its job, which
   " breaks the window layout. <https://github.com/neovim/neovim/pull/15440>
-  if exists('#nvim_terminal#TermClose')
-    autocmd! nvim_terminal TermClose *
-  endif
-  " They changed the naming scheme of built-in autocommands in v0.11.0:
-  " <https://github.com/neovim/neovim/commit/09e01437c968be4c6e9f6bb3ac8811108c58008c>
-  if exists('#nvim.terminal#TermClose')
-    autocmd! nvim.terminal TermClose *
+  if has('nvim-0.10')
+    " They changed the naming scheme of built-in autocommands in v0.11.0:
+    " <https://github.com/neovim/neovim/commit/09e01437c968be4c6e9f6bb3ac8811108c58008c>
+    let s:augroup = has('nvim-0.11') ? 'nvim.terminal' : 'nvim_terminal'
+    if exists('#'.s:augroup)
+      " Since v0.12.0 the `[Process exited]` text is now shown via another
+      " autocommand (instead of from the C code) which was added to this augroup,
+      " so I need to be careful about which autocommands I am deleting. The only
+      " good way I see to find the one I want is by filtering them by description.
+      " <https://github.com/neovim/neovim/commit/63642ebf80cb1142e84fa6ded98f7541f15739be>
+      for s:autocmd in nvim_get_autocmds({ 'group': s:augroup, 'event': 'TermClose' })
+        if s:autocmd.desc =~? 'automatically' && s:autocmd.desc =~? 'close'
+          call nvim_del_autocmd(s:autocmd.id)
+        endif
+      endfor
+    endif
   endif
 
 " }}}
