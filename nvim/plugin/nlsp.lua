@@ -414,7 +414,7 @@ function lsp.util.stylize_markdown(bufnr, contents, opts)
   renderer:highlight_code_blocks(bufnr)
 end
 
---- Replacement for <https://github.com/saghen/blink.cmp/blob/v1.3.1/lua/blink/cmp/lib/window/docs.lua>
+--- Replacement for <https://github.com/saghen/blink.cmp/blob/v1.10.2/lua/blink/cmp/lib/window/docs.lua>
 ---@param opts blink.cmp.RenderDetailAndDocumentationOpts
 require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(opts)
   local details = opts.detail
@@ -440,7 +440,9 @@ require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(
     end
   end
 
+  vim.bo[opts.bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(opts.bufnr, 0, -1, true, renderer:get_lines())
+  vim.bo[opts.bufnr].modifiable = false
   vim.bo[opts.bufnr].modified = false
 
   if opts.use_treesitter_highlighting then
