@@ -52,6 +52,22 @@ set virtualedit=onemore
 " Use the three-curly-brace markers ({{{ ... }}}) for folding.
 set foldmethod=marker
 
+augroup dotfiles_foldmethod
+  autocmd!
+  " Disable folding in large files because at that point computing the fold
+  " regions starts taking considerable amount of time.
+  let g:dotfiles_folding_max_line_count = 1 * 1000 * 1000
+  let g:dotfiles_folding_max_file_size = 100 * 1024 * 1024
+  autocmd BufReadPost *
+    \ if !exists('b:dotfiles_did_check_foldmethod')
+    \|  let b:dotfiles_did_check_foldmethod = 1
+    \|  if line('$') > g:dotfiles_folding_max_line_count ||
+    \      dotutils#get_inmemory_buffer_size() > g:dotfiles_folding_max_file_size
+    \|    setlocal foldmethod=manual
+    \|  endif
+    \|endif
+augroup END
+
 " Make the backspace key work everywhere.
 set backspace=indent,eol,start
 

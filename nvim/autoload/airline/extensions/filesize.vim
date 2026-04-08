@@ -23,8 +23,7 @@ function! airline#extensions#filesize#get() abort
   if empty(get(b:, 'dotfiles_filesize_str', '')) ||
       \ (get(b:, 'dotfiles_filesize_changedtick', 0) != b:changedtick &&
       \ reltimefloat(reltime(s:start_reltime)) - get(b:, 'dotfiles_filesize_timer') >= s:update_interval)
-    " MUCH faster than wordcount().bytes because it does a lot less work.
-    let bytes = max([0, line2byte(line('$') + 1) - 1])
+    let bytes = dotutils#get_inmemory_buffer_size()
     let b:dotfiles_filesize = bytes
     let b:dotfiles_filesize_str = dotutils#file_size_fmt(bytes)
     let b:dotfiles_filesize_changedtick = b:changedtick

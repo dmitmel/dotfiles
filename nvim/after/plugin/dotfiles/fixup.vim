@@ -105,3 +105,11 @@ if exists(':Man') != 2
   " In regular Vim the :Man command is not defined by default, see `:h man.vim`
   runtime! ftplugin/man.vim
 endif
+
+" Prevent this code from executing:
+" <https://github.com/mbbill/undotree/blob/6fa6b57cda8459e1e4b2ca34df702f55242f4e4d/plugin/undotree.vim#L219-L222>
+" <https://github.com/mbbill/undotree/blob/6fa6b57cda8459e1e4b2ca34df702f55242f4e4d/autoload/undotree.vim#L1549-L1569>
+if exists('#undotreeDetectPersistenceUndo')
+  autocmd! undotreeDetectPersistenceUndo *
+  augroup! undotreeDetectPersistenceUndo
+endif

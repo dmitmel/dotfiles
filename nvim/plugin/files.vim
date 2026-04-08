@@ -69,10 +69,21 @@ set autoread
 
 " Persistent undo history
 set undofile
+
 augroup dotfiles_undo_persistance
   autocmd!
   autocmd BufWritePre * if &l:undofile != &g:undofile | setlocal undofile< | endif
   autocmd BufWritePre /tmp/*,/var/tmp/*,/private/tmp/*,$TMPDIR/* setlocal noundofile
+
+  let g:dotfiles_undofile_max_file_size = 100 * 1024 * 1024
+  autocmd BufReadPre *
+    \ if !exists('b:dotfiles_did_check_undofile_size')
+    \|  let b:dotfiles_did_check_undofile_size = 1
+    \|  let s:file_size = getfsize(expand('<amatch>'))
+    \|  if s:file_size == -2 || (s:file_size > 0 && s:file_size > g:dotfiles_undofile_max_file_size)
+    \|    setlocal noundofile
+    \|  endif
+    \|endif
 augroup END
 
 " Time to wait before CursorHold (and also before writing the swap file...)

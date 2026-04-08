@@ -206,6 +206,16 @@ function! dotutils#url_decode(str) abort
   return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')
 endfunction
 
+function! dotutils#get_inmemory_buffer_size() abort
+  if exists('*nvim_buf_get_offset')
+    let bufnr = 0
+    return nvim_buf_get_offset(bufnr, nvim_buf_line_count(bufnr))
+  else
+    " MUCH faster than wordcount().bytes because it does a lot less work.
+    return max([0, line2byte(line('$') + 1) - 1])
+  endif
+endfunction
+
 function! dotutils#file_size_fmt(bytes) abort
   let next_factor = 1
   for unit in ['B', 'K', 'M', 'G', 'T']
