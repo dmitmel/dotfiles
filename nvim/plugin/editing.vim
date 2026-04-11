@@ -29,12 +29,13 @@ else
   snoremap <SID>: <C-g>:<C-u>exe"norm!gv<C-g>"<bar>
   " NOTE: <C-o> causes the statusline to flicker!
   inoremap <SID>: <C-o>:<C-u>
-  " NOTE: This does not cause flicker, but works too slow in practice.
+  " NOTE: This does not cause flicker, but works too slowly to be practical.
   "inoremap <SID>: <C-r>=execute(input())<CR>
 endif
 
 function! s:escape_string_for_mapping(str) abort
   let str = substitute(a:str, '<' , '<lt>', 'g')
+  let str = substitute(str, '|' , '<bar>', 'g')
   return '"' . escape(str, '\"<') . '"'
 endfunction
 
@@ -44,6 +45,14 @@ function! s:map_command_from_insert(command) abort
   else
     return '<C-r>=execute(' . s:escape_string_for_mapping(a:command) . ')<CR>'
   endif
+endfunction
+
+function! s:unmap(modes, keys) abort
+  for mode in a:modes
+    for key in a:keys
+      execute mode . 'unmap ' . key
+    endfor
+  endfor
 endfunction
 
 " Allow moving cursor just after the last character of the line.
@@ -191,8 +200,7 @@ endif
   noremap <script><silent> ( <SID>:call dotfiles#indent_motion#run(1)<CR>
   noremap <script><silent> ) <SID>:call dotfiles#indent_motion#run(0)<CR>
   " Don't pollute the Select mode.
-  sunmap (
-  sunmap )
+  call s:unmap(['s'], ['(', ')'])
 
 " }}}
 
@@ -259,20 +267,20 @@ endif
   for s:key in ['j', 'k', '0', '^', '$', '<Up>', '<Down>', '<Home>', '<End>']
     exe printf('noremap <expr> %s  (&wrap && v:count == 0) ? "g%s" : "%s"', s:key, s:key, s:key)
     exe printf('noremap <expr> g%s (&wrap && v:count == 0) ? "%s" : "g%s"', s:key, s:key, s:key)
-    exe 'sunmap '.s:key | exe 'sunmap g'.s:key
-    exe 'ounmap '.s:key | exe 'ounmap g'.s:key
+    call s:unmap(['s', 'o'], [s:key, 'g' . s:key])
   endfor
 
   " My final attempt at untangling the mess that are the <Up> and <Down> keys.
   for s:key in ['<Up>', '<Down>']
+    let s:lhs = '<Plug>dotfiles'.s:key
     let s:rhs = s:map_command_from_insert('norm!g'.s:key)
     " `./completion.vim` might remap <Up> and <Down> before `./editing.vim` runs,
     " so make the wrapped <Up/Down> keys available as <Plug>dotfiles<Up/Down>,
     " which `./completion.vim` can use.
-    exe printf('inoremap <silent><expr> <Plug>dotfiles%s (&wrap && v:count == 0) ? %s : %s',
-          \ s:key, s:escape_string_for_mapping(s:rhs), s:escape_string_for_mapping(s:key))
+    exe 'inoremap <silent><expr>' s:lhs '(&wrap && v:count == 0)'
+        \ '?' s:escape_string_for_mapping(s:rhs) ':' s:escape_string_for_mapping(s:key)
     if empty(maparg(s:key, 'i'))
-      exe 'imap' s:key '<Plug>dotfiles'.s:key
+      exe 'imap' s:key s:lhs
     endif
   endfor
 " }}}
@@ -351,7 +359,7 @@ endif
   " Alt+Shift+hjkl          - scroll half a page
   for [s:lhs, s:rhs] in items({
   \ 'h': 'zh', 'H': 'zH', 'l': 'zl', 'L': 'zL', 'Left': 'z<Left>', 'Right': 'z<Right>',
-  \ 'j': '<C-e>', 'k': '<C-y>', 'J': '<C-d>', 'K': '<C-u>', 'Down': '<C-e>', 'Up': '<C-y>' })
+  \ 'j': '<C-e>', 'k': '<C-y>', 'J': '<C-f>', 'K': '<C-b>', 'Down': '<C-e>', 'Up': '<C-y>' })
     let s:lhs = '<M-' . s:lhs . '>'
     execute 'noremap' s:lhs s:rhs
     execute 'ounmap' s:lhs
@@ -364,13 +372,17 @@ endif
 
   " Break undo sequences on CTRL-W and CTRL-U in the Insert mode, see |undo-break|
   inoremap <C-u> <C-g>u<C-u>
-  " Additionally, fix the INCREDIBLY ANNOYING behavior that when a prompt buffer
-  " is focused and the editor is in the Insert mode, CTRL-W does not delete a
-  " word, but instead begins a Normal-mode window command. To actually delete a
-  " word in a prompt buffer, you need to press CTRL-SHIFT-W, but guess what: in
-  " almost every GUI terminal emulator this sequence closes the current window!
+  inoremap <C-w> <C-g>u<C-w>
+  " Additionally, fix the INCREDIBLY ANNOYING behavior that pressing CTRL-W in
+  " Insert mode in a prompt buffer does not delete a word, but instead begins a
+  " Normal-mode window command. To actually delete a word you must to press
+  " CTRL-SHIFT-W, but guess what: this is impossible to do because in almost
+  " every GUI terminal emulator this is a shortcut to close the current window!
   " This weird-ass behavior is documented deep in the help for |prompt-buffer|.
-  inoremap <expr> <C-w> (&buftype ==# 'prompt' ? "\<C-g>u\<C-S-W>" : "\<C-g>u\<C-w>")
+  " <https://github.com/neovim/neovim/commit/28134f4e78819c2bbf0344326b9d44f21eb0d736>
+  if has('patch-8.1.0035') || has('nvim-0.7.0')
+    inoremap <expr> <C-w> (&buftype ==# 'prompt' ? "\<C-g>u\<C-S-W>" : "\<C-g>u\<C-w>")
+  endif
 
   " Make <BS> and others work in the Select mode as expected. Otherwise, if <BS>
   " is pressed when a snippet placeholder is selected, the placeholder will be
@@ -378,7 +390,7 @@ endif
   " CTRL-G switches from Select mode to Visual, preserving the selected range.
   " Afterwards, `c` deletes the selected text and goes back into Insert mode.
   snoremap <silent> <BS>  <C-g>"_c
-  snoremap <silent> <DEL> <C-g>"_c
+  snoremap <silent> <Del> <C-g>"_c
   snoremap <silent> <C-h> <C-g>"_c
   snoremap          <C-r> <C-g>"_c<C-r>
   " Prevent coc.nvim from defining these for us:
@@ -402,7 +414,7 @@ endif
 
   " Make <C-w> work the same across all kinds of filetypes. This is based on
   " <https://stackoverflow.com/a/77929847/12005228>.
-  cnoremap <script><C-w> <SID>backup_isk<C-w><SID>restore_isk
+  cnoremap <script> <C-w> <SID>backup_isk<C-w><SID>restore_isk
 
 " }}}
 
@@ -450,14 +462,14 @@ endif
 
   " The following section is based on
   " <https://github.com/henrik/vim-indexed-search/blob/5af020bba084b699d0453f242d7d76711d64b1e3/plugin/indexed-search.vim#L94-L152>.
-  function! s:after_search()
+  function! s:after_search() abort
     let fdo = split(&foldopen, ',')
     if index(fdo, 'all') >= 0 || index(fdo, 'search') >= 0
+      " Open the folds under the cursor
       normal! zv
     endif
-    if get(g:, 'indexed_search_center', 0)
-      normal! zz
-    endif
+    " Center the viewport on the search result
+    normal! zz
     execute s:show_search_count_cmd
     return ''
   endfunction
@@ -473,13 +485,10 @@ endif
   noremap <script>       #   #<SID>after_search
   noremap <script>       g*  g*<SID>after_search
   noremap <script>       g#  g#<SID>after_search
-  noremap <script><expr> n  'Nn'[v:searchforward] . "<SID>after_search"
-  noremap <script><expr> N  'nN'[v:searchforward] . "<SID>after_search"
-  for s:key in ['*', '#', 'g*', 'g#', 'n', 'N']
-    " Remove those from the Select and Operator modes.
-    exe 'sunmap' s:key
-    exe 'ounmap' s:key
-  endfor
+  noremap <script><expr> n  (v:searchforward ? 'n' : 'N') . "<SID>after_search"
+  noremap <script><expr> N  (v:searchforward ? 'N' : 'n') . "<SID>after_search"
+  " Remove those from the Select and Operator modes.
+  call s:unmap(['s', 'o'], ['*', '#', 'g*', 'g#', 'n', 'N'])
 
   " The built-in message that shows the number of search results should be
   " enabled only if a search counting plugin is not available at the moment.
@@ -510,7 +519,7 @@ endif
   xmap # <SID>:let @/ = <SID>selection_into_pattern('#')<CR>?<C-r>/<CR>
 
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_slash_as_normal_text>
-  command! -nargs=+ Search        let @/ =       escape(<q-args>, '/') | normal /<C-r>/<CR>
+  command! -nargs=+ Search        let @/ =      escape(<q-args>, '/')  | normal /<C-r>/<CR>
   " <https://vim.fandom.com/wiki/Searching_for_expressions_which_include_slashes#Searching_for_all_characters_as_normal_text>
   command! -nargs=+ SearchLiteral let @/ = '\V'.escape(<q-args>, '/\') | normal /<C-r>/<CR>
 
@@ -572,7 +581,7 @@ endif
 
 " Spell checking {{{
 
-  function! SetSpellCheck(bang, lang) abort
+  function! s:SetSpellCheck(bang, lang) abort
     if a:bang
       let &l:spell = 0
     elseif empty(a:lang)
@@ -582,7 +591,7 @@ endif
       let &l:spelllang = a:lang
     endif
   endfunction
-  command! -nargs=? -bar -bang SpellCheck call SetSpellCheck(<bang>0, <q-args>)
+  command! -nargs=? -bar -bang SpellCheck call s:SetSpellCheck(<bang>0, <q-args>)
   execute dotutils#cmd_alias('Sp', 'SpellCheck')
   nnoremap <script> <leader>s :<C-u>SpellCheck<CR>
 
