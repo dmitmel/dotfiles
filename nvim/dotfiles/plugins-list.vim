@@ -81,10 +81,6 @@ exe dotplug#define_plug_here()
 " Text objects {{{
   " Library for creating custom text objects.
   Plug 'https://github.com/kana/vim-textobj-user'
-  " Entire contents of the buffer - `ae` and `ie`.
-  Plug 'https://github.com/kana/vim-textobj-entire', { 'requires': 'vim-textobj-user' }
-  " A single line - `al` (with indentation) and `il` (without indentation).
-  Plug 'https://github.com/kana/vim-textobj-line', { 'requires': 'vim-textobj-user' }
   " This one is really handy: a code block determined by indentation (when it is
   " the same or indented deeper) - `ai` (include blank lines) and `ii` (exclude
   " blanks, selecting a single paragraph).

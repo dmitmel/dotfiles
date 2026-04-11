@@ -416,6 +416,50 @@ endif
   " <https://stackoverflow.com/a/77929847/12005228>.
   cnoremap <script> <C-w> <SID>backup_isk<C-w><SID>restore_isk
 
+  " Selects the entire contents of a buffer.
+  " Based on <https://github.com/kana/vim-textobj-entire/blob/64a856c9dff3425ed8a863b9ec0a21dbaee6fb3a/autoload/textobj/entire.vim>
+  function! s:entire_textobj(inner) abort
+    normal! m'
+
+    if mode() !=# 'V'
+      normal! V
+    endif
+
+    keepjumps normal! gg0
+    if a:inner
+      " Meanings of the flags:
+      " `W` - don't wrap around the end of the file
+      " `c` - don't move the cursor if the pattern matches at the cursor position
+      call search('^.', 'Wc')
+    endif
+
+    keepjumps normal! oG$
+    if a:inner
+      " In addition to `W` and `c`:
+      " `b` - search backwards
+      " `e` - position the cursor at the end of the match
+      call search('.$', 'Wcbe')
+      normal! $
+    endif
+  endfunction
+
+  " Selects a single line (with or without indentation).
+  " <https://github.com/kana/vim-textobj-line/blob/1a6780d29adcf7e464e8ddbcd0be0a9df1a37339/autoload/textobj/line.vim>
+  function! s:line_textobj(inner) abort
+    if getline('.') =~# '\S'
+      execute 'normal! '
+        \ . (mode() !=# 'v' ? 'v' : '')
+        \ . (a:inner ? '^' : '0') . 'o'
+        \ . (a:inner ? 'g_' : (&selection ==# 'inclusive' ? '$h' : '$'))
+    endif
+  endfunction
+
+  noremap <silent> ae :<C-u>call <SID>entire_textobj(0)<CR>
+  noremap <silent> ie :<C-u>call <SID>entire_textobj(1)<CR>
+  noremap <silent> al :<C-u>call <SID>line_textobj(0)<CR>
+  noremap <silent> il :<C-u>call <SID>line_textobj(1)<CR>
+  call s:unmap(['s', 'n'], ['ae', 'ie', 'al', 'il'])
+
 " }}}
 
 
