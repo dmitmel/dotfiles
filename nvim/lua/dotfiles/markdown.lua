@@ -278,7 +278,9 @@ function renderer:parse_documentation_sections(sections)
       end
     else -- MarkedString or MarkedString[].
       -- <https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markedString>
-      if not utils.is_list(sections) then sections = { sections } end
+      if not utils.is_list(sections) then ---@cast sections lsp.MarkedStringWithLanguage[]
+        sections = { sections }
+      end
       for idx, section in ipairs(sections) do
         if type(section) == 'string' then
           if section ~= '' then
@@ -789,10 +791,17 @@ function renderer:highlight_code_blocks(bufnr)
       ft = syntax_name_mapping[ft] or ft
 
       if not loaded_syntaxes[ft] and not failed_syntaxes[ft] then
+        local syntax_file_patterns = utils.has('nvim-0.10.0')
+            -- These patterns were changed in v0.10:
+            -- <https://github.com/neovim/neovim/blob/v0.10.0/runtime/syntax/synload.vim#L53>
+            and ('syntax/%s[.]{vim,lua} syntax/%s/*.{vim,lua}'):format(ft, ft)
+          -- Previous versions loaded `*.vim` scripts before `*.lua` ones:
+          -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/syntax/synload.vim#L58-L59>
+          or ('syntax/%s.vim syntax/%s/*.vim syntax/%s.lua syntax/%s/*.lua'):format(ft, ft, ft, ft)
+
         local cluster_name = '@' .. ft:upper()
         vim.b.current_syntax = nil
-        local ok, err =
-          pcall(vim.cmd.syntax, { 'include', cluster_name, 'syntax/' .. ft .. '.vim' })
+        local ok, err = pcall(vim.cmd.syntax, { 'include', cluster_name, syntax_file_patterns })
         vim.b.current_syntax = nil
 
         if not ok then
