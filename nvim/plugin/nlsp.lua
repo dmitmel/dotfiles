@@ -12,14 +12,13 @@ if not utils.has('nvim-0.12') then
 end
 lsp_log.set_level(utils.if_nil(lsp_log.levels[vim.env.NVIM_LSP_LOG], lsp_log.levels.WARN))
 
-vim.api.nvim_create_user_command(
-  'LspLog',
-  '<mods> edit<bang> `=v:lua.vim.lsp.get_log_path()`',
-  { bar = true, bang = true }
-)
-
-vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', { bar = true })
-vim.cmd("execute dotutils#cmd_alias('LI', 'LspInfo')")
+vim.cmd([[
+  command! -bar -bang LspLog  :<mods> edit<bang> `=v:lua.vim.lsp.get_log_path()`
+  command! -bar       LspInfo :checkhealth vim.lsp
+  exe dotutils#cmd_alias('LI', 'LspInfo')
+  exe dotutils#cmd_alias('LR', 'LspRestart')
+  exe dotutils#cmd_alias('LW', 'LspWorkspace')
+]])
 
 if dotplug.has('neoconf.nvim') then
   local NeoconfUtil = require('neoconf.util')

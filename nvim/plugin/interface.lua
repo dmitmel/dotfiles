@@ -1,7 +1,7 @@
 local utils = require('dotfiles.utils')
 
 if dotplug.has('nvim-bqf') then
-  -- setting a Vim variable is equivalent to |:unlet|
+  -- setting a Vim variable to `nil` is equivalent to |:unlet|
   vim.g.qf_mapping_ack_style = nil -- the mappings will be added by bqf
 
   ---@diagnostic disable-next-line: missing-fields
@@ -676,6 +676,7 @@ local snacks_config = {
 
       lines = { layout = { preset = 'dotfiles_fzf', preview = 'main', reverse = false } },
       grep_buffers = { layout = { reverse = false, preview = false } },
+      undo = { layout = { reverse = false } },
 
       files = {
         hidden = true,

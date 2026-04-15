@@ -168,3 +168,7 @@ for python in "${(@k)commands[(I)*python(|[0-9]|[0-9].[0-9]|[0-9].[0-9][0-9])]}"
   pycalc="${python%python*}pycalc${python##*python}"
   aliases[${pycalc}]="PYTHONSTARTUP=${(q)ZSH_DOTFILES:h}/scripts/dotfiles/pycalc_startup.py ${(q)python}"
 done; unset python pycalc
+
+if command_exists litecli; then
+  alias litecli='LESS+=" --chop-long-lines" litecli'
+fi

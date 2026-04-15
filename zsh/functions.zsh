@@ -125,7 +125,7 @@ fi
 
 # Taken from <https://vi.stackexchange.com/a/7810/34615>
 sudoedit() {
-  SUDO_COMMAND="sudoedit $@" command sudoedit "$@"
+  SUDO_COMMAND="sudoedit $*" command sudoedit "$@"
 }
 
 # <https://github.com/ohmyzsh/ohmyzsh/blob/706b2f3765d41bee2853b17724888d1a3f6f00d9/plugins/last-working-dir/last-working-dir.plugin.zsh>
@@ -262,7 +262,7 @@ j() {
   local lines=("${(@f)$(z -l)}")
   # Apply a replacement on every element of `$lines`, removing the first column
   # with numeric scores. `(*)` enables `EXTENDED_GLOB` for this substitution.
-  local paths=("${(*)lines[@]/#[0-9]## ##/}")
+  local paths=("${(*)lines[@]/#[0-9]##\ ##/}")
   # Format the paths for display in the picker. The `(D)` will try to shorten
   # every path in the array by replacing the leading part with `~` or `~name` if
   # it corresponds to $HOME or a named directory. `(Q)` removes unnecessary
@@ -456,8 +456,8 @@ if command_exists wdiff; then
   wdiff() {
     if [[ -t 1 ]]; then
       command wdiff \
-        --start-delete="${fg[red]}[-" --end-delete="-]${reset_color}" \
-        --start-insert="${fg[green]}{+" --end-insert "+}${reset_color}" \
+        --start-delete="${fg[red]}[-"   --end-delete="-]${reset_color}" \
+        --start-insert="${fg[green]}{+" --end-insert="+}${reset_color}" \
         "$@"
     else
       command wdiff "$@"

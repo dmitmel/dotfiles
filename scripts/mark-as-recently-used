@@ -11,5 +11,6 @@ from gi.repository import Gio, GLib, Gtk
 rec_mgr = Gtk.RecentManager.get_default()
 for arg in sys.argv[1:]:
   rec_mgr.add_item(Gio.File.new_for_path(arg).get_uri())
+
 GLib.idle_add(Gtk.main_quit)
 Gtk.main()

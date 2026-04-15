@@ -1,19 +1,19 @@
 # This... is my DIY plugin manager for Zsh. "Why did I reinvent the wheel yet
 # again and created my own plugin manager?" you might ask. Well, some of them
 # are too slow (antigen, zplug), some are too complicated (antigen-hs, zplugin)
-# and some are too simple (zgen, antibody). So, I decided to go into into my
-# cave for a couple of weeks and now, I proudly present to you MY ZSH PLUGIN
-# MANAGER (ZPLG for short). It is very fast even without caching (that's why it
-# isn't implemented), has the most essential features and is not bloated. The
-# code is rather complex at the first glance because of two reasons:
+# and some are too simple (zgen, antibody). So, I decided to go into my cave for
+# a couple of weeks and now, I proudly present to you MY ZSH PLUGIN MANAGER
+# (ZPLG for short). It is very fast even without caching (that's why it isn't
+# implemented), has the most essential features and is not bloated. The code is
+# rather complex at the first glance because of two reasons:
 #
-# 1. The syntax of the shell language, to put it simply, utter trash designed
+# 1. The syntax of the shell language, to put it simply, is utter trash designed
 #    40 (!!!) years ago.
 # 2. The shell language, especially when it comes to Zsh, is rather slow, so I
 #    had to use as little abstraction as possible.
 #
-# But, read my comments and they'll guide you through this jungle of shell
-# script mess.
+# But fear not, read my comments and they'll guide you through this jungle of
+# shell script mess.
 
 # Also:
 #
@@ -25,19 +25,18 @@
 #    I do this instead of `setopt local_options err_exit` because some plugins
 #    may not be compatitable with ERREXIT.
 
-# $ZPLG_HOME is a directory where all your plugins are downloaded, it also
-# might contain in the future some kind of state/lock/database files. It is
-# recommended to change it before `source`-ing this script because you may end
-# up with a broken plugin directory.
+# $ZPLG_HOME is a directory where all your plugins are downloaded. In the future
+# it might also contain some kind of state/lock/database files. This variable
+# can only be modified before `source`-ing this script.
 ZPLG_HOME="${ZPLG_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zplg}"
 
 # Default plugin source, see the `plugin` function for description.
 ZPLG_DEFAULT_SOURCE="${ZPLG_DEFAULT_SOURCE:-github}"
 
-# Directory in which plugins are stored. It is separate from $ZPLG_HOME for
+# Directory where plugins are stored. It is separate from $ZPLG_HOME for
 # compatibility with future versions, in case I decide to put more stuff in
 # $ZPLG_HOME later.
-ZPLG_PLUGINS_DIR="${ZPLG_HOME}/plugins"
+ZPLG_PLUGINS_DIR="${ZPLG_PLUGINS_DIR:-${ZPLG_HOME}/plugins}"
 
 # basic logging {{{
 
@@ -524,7 +523,7 @@ _zplg_run_commands() {
         # procedure. First, I get encoded string. Then with the (z) modifier I
         # split it into array taking into account quoting. Then with the (Q)
         # modifier I unquote every value.
-        plugin_build=("${(@Q)${(z)${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}}}")
+        plugin_build=("${(@Q)${(z) ${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} }}")
         _zplg_log "building $plugin_id"
         ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
       fi

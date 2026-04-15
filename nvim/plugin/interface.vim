@@ -92,6 +92,7 @@ set history=10000
 
 " Buffers {{{
 
+  " Don't automatically unload buffers when they are no longer displayed in any window.
   set hidden
 
   " open diffs in vertical splits by default
@@ -126,8 +127,8 @@ set history=10000
       return 'close'
     elseif tabpagenr('$') > 1 && exists('t:dotfiles_tab_is_for_git_diff')
       return 'tabclose'
-    elseif &buftype =~# '^\(quickfix\|help\|nofile\|nowrite\)$'
-      \ || &bufhidden =~# '^\(unload\|delete\|wipe\)$'
+    elseif index(['quickfix', 'help', 'nofile', 'nowrite'], &buftype) >= 0
+      \ || index(['unload', 'delete', 'wipe'], &bufhidden) >= 0
       " This covers the special temporary buffer types, which are usually
       " created by commands which also split a new dedicated window just for the
       " said buffer. Examples include: the quickfix/location lists, help or the
@@ -176,6 +177,7 @@ set history=10000
     " `colorcolumn` and `signcolumn` enabled actually makes sense.
     autocmd FileType help if &buftype ==# 'help' | setlocal signcolumn=no colorcolumn= | endif
     autocmd FileType netrw,gitsigns-blame,man setlocal signcolumn=no colorcolumn= nolist
+    autocmd FileType qf setlocal norelativenumber number colorcolumn= signcolumn=auto
   augroup END
 
 " }}}
@@ -645,7 +647,7 @@ EOF
     " Okay, so the fallback implementation is really jank, but it works well and
     " is pretty fast.
     function! s:patch_highlights() abort
-      let lines = split(execute('highlight'), "\n")
+      let lines = split(execute(':highlight'), "\n")
       let idx = 0
       while 1
         " This function will find the first string in the array that matches the

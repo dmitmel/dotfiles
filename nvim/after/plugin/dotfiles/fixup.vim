@@ -9,7 +9,7 @@ if !exists('g:dotfiles_ready_to_fixup_plugins')
 endif
 
 if exists('g:loaded_fzf_vim') && exists(':Snippets') == 2 && !exists(':UltiSnipsEdit')
-  " This command only works with Ultisnips, which I don't use.
+  " This command only works with UltiSnips, which I don't use.
   delcommand Snippets
 endif
 
@@ -25,7 +25,11 @@ endif
 augroup dotfiles_session
   autocmd!
 
-  autocmd SourcePre * let s:saved_shortmess = &shortmess
+  if exists('##SessionLoadPre')
+    autocmd SessionLoadPre * let s:saved_shortmess = &shortmess
+  else
+    autocmd SourcePre * let s:saved_shortmess = &shortmess
+  endif
   if exists('##SourcePost')
     autocmd SourcePost * unlet! s:saved_shortmess
   endif
@@ -48,7 +52,7 @@ augroup END
 " Patch for the |eunuch-:Delete| command, to make it use my `:Bdelete` instead
 " of |:bdelete|. The code in |eunuch-:Unlink| is close enough to parasitise on.
 " <https://github.com/tpope/vim-eunuch/blob/e86bb794a1c10a2edac130feb0ea590a00d03f1e/plugin/eunuch.vim#L109-L119>
-command! -bar -bang Delete try | Unlink<bang> | Bdelete<bang> | endtry
+command! -bar -bang Delete try | Unlink! | Bdelete<bang> | endtry
 execute dotutils#cmd_alias('Del', 'Delete')
 
 " This command must be added in `after/plugin/` because Vim 9+ and Nvim 0.11+

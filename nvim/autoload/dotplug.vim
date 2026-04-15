@@ -192,16 +192,9 @@ function! dotplug#check_sync() abort
     endif
   endfor
 
-  if !g:dotplug#autoinstall
-    let need_install = {}
-  endif
-  if !g:dotplug#autoclean
-    let need_clean = {}
-  endif
-
-  if !empty(need_install)
+  if g:dotplug#autoinstall && !empty(need_install)
     PlugInstall --sync
-  elseif !empty(need_clean)
+  elseif g:dotplug#autoclean && !empty(need_clean)
     PlugClean
   endif
 endfunction

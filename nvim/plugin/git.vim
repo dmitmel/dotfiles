@@ -48,7 +48,8 @@ nnoremap <leader>gp :<C-u>Git push
 nnoremap <leader>gP :<C-u>Git push --force-with-lease
 nnoremap <leader>gr :<C-u>Git rebase --interactive<space>
 
-function! s:after_gdiffsplit(visual) abort
+function! s:gdiffsplit(visual) abort
+  tab Gdiffsplit
   let t:dotfiles_tab_is_for_git_diff = 1
   wincmd p
   normal! zvzz
@@ -57,8 +58,8 @@ function! s:after_gdiffsplit(visual) abort
   endif
 endfunction
 
-nnoremap <silent> <leader>gd :<C-u>tab Gdiffsplit<bar>call <SID>after_gdiffsplit(0)<CR>
-xnoremap <silent> <leader>gd :<C-u>tab Gdiffsplit<bar>call <SID>after_gdiffsplit(1)<CR>
+nnoremap <silent> <leader>gd :<C-u>call <SID>gdiffsplit(0)<CR>
+xnoremap <silent> <leader>gd :<C-u>call <SID>gdiffsplit(1)<CR>
 
 if dotplug#has('gitsigns.nvim')
   nnoremap <silent><expr> [c &diff ? '[c' : "\<Cmd>Gitsigns prev_hunk\<CR>"
@@ -66,7 +67,7 @@ if dotplug#has('gitsigns.nvim')
   onoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
   xnoremap <silent>       ih :<C-u>Gitsigns select_hunk<CR>
 
-  nnoremap <leader>gb :<C-u>exe'Gitsigns blame'<bar>normal!zvzz<CR>
+  nnoremap <leader>gb :<C-u>Gitsigns blame<CR>
 endif
 
 let g:fugitive_browse_handlers = get(g:, 'fugitive_browse_handlers', [])

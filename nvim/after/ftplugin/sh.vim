@@ -10,5 +10,5 @@ exe dotfiles#ft#setlocal('iskeyword<')
 " <https://github.com/vim/vim/commit/d49ba7b92a14e6f3c1c413d396df72d36e934f78>
 if exists('loaded_matchit') && !exists('b:match_skip')
 \  || b:match_skip is# "synIDattr(synID(line('.'),col('.'),0),'name') =~ 'shSnglCase'"
-  call dotfiles#ft#set('match_skip', 's:Comment\|String\|shHereDoc\|shSnglCase')
+  call dotfiles#ft#set('match_skip', 's:Comment\|String\|shHereDoc\|shSnglCase\|shCaseStart\|shSingleQuote\|shDoubleQuote')
 endif

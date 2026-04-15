@@ -23,7 +23,7 @@ command! -nargs=+ -complete=command CollectOutput
 " pollute the global scope.
 command! -nargs=+ -complete=command LocalScope call s:execute_with_local_scope(<q-args>)
 
-function! s:execute_with_local_scope(cmd) abort
+function! s:execute_with_local_scope(cmd)
   execute a:cmd
 endfunction
 

@@ -72,7 +72,7 @@ map p : paste; clear
 map ZZ quit
 map ZQ quit
 
-# Suspend lf and put it into background using the job control feature of the shell.
+# Suspend lf and put it into background using the job control features of the shell.
 map <c-z> $kill -TSTP "$id"
 
 # A helper command for communicating with a parent Neovim if lf is running within one.

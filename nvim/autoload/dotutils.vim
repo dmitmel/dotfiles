@@ -188,7 +188,10 @@ function! dotutils#escape_and_wrap_regex(pat) abort
   let pat = substitute(pat, '\n', '\\n', 'g')
   let pat = substitute(pat, '\r', '\\r', 'g')
   let pat = escape(pat, '/')
-  let pat .= pat[-1] ==# '\' ? '\' : ''
+  " Check if the pattern ends with an odd number of backslashes, in which case
+  " another backslash needs to be added so that the delimiter character at the
+  " end does not get escaped.
+  let pat .= (len(matchstr(pat, '\\\+$')) % 2 != 0) ? '\' : ''
   return '/'.pat.'/'
 endfunction
 
@@ -275,7 +278,7 @@ endfunction
 function! dotutils#list_loaded_scripts() abort
   if exists('*getscriptinfo') | return getscriptinfo() | endif
   let scripts = []
-  for line in split(execute('scriptnames'), "\n")
+  for line in split(execute(':scriptnames'), "\n")
     let groups = matchlist(line, '\v^\s*(\d+):\s*(.*)\s*$')
     if empty(groups) | continue | endif
     call add(scripts, { 'name': fnamemodify(groups[2], ':p'), 'sid': str2nr(groups[1], 10) })

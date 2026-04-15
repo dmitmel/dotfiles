@@ -411,7 +411,9 @@ function! s:setup() " NOTE: not abort
 
   hi! link SnacksNormal                   Normal
   hi! link SnacksPicker                   Normal
-  hi! link SnacksInputNormal              NormalFloat
+  hi! link SnacksInputNormal              Normal
+  hi! link SnacksInputBorder              Normal
+  call Hi('SnacksInputBorder',          { 'fg': gray[3] })
   hi! link SnacksPickerInput              NormalFloat
   hi! link SnacksPickerBorder             WinSeparator
   call Hi('SnacksPickerListCursorLine', { 'bg': gray[1], 'attr': 'bold' })
@@ -890,8 +892,8 @@ function! s:setup() " NOTE: not abort
   hi! link luaOperator       Keyword
   hi! link luaLocal          StorageClass
   hi! link luaSpecialTable   PreProc
-  hi! link luaSpecialValue   PreProc
-  hi! link luaErrHand        PreProc
+  hi! link luaSpecialValue   Special
+  hi! link luaErrHand        Special
   hi! link luaFunc           PreProc
   hi! link luaFuncArgName    Variable
   hi! link luaBuiltIn        Special

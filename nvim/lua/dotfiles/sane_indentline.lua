@@ -189,7 +189,7 @@ function self.update_win_info(winid, bufnr)
   -- NOTE: The value returned by `line("w$")` actually is the last
   -- **completely displayed** line, as opposed to a wrapped line that does not
   -- fit into the window and continues into the off-screen area. Therefore,
-  -- `botrow + 1` would be either the last partially visible line, or, when
+  -- `line("w$") + 1` would be either the last partially visible line, or, when
   -- the last line is fully visible, the line number just below it.
   info.botline = vim.fn.line('w$')
   info.topline = vim.fn.line('w0')

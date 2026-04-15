@@ -34,7 +34,7 @@ if command_exists dircolors; then  # (this program is also part of GNU coreutils
   # Clear cached dircolors scripts every once in a while. The glob selects
   # regular files which were modified more than a week ago.
   for stale in "${ZSH_CACHE_DIR}/dircolors"*.sh(N.mw+0); do
-    command rm -- "$stale";
+    command rm -f -- "$stale";
   done; unset stale
 
   if should_rebuild "$cached_dircolors" "${commands[dircolors]}"; then

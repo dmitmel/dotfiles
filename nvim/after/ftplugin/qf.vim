@@ -1,6 +1,3 @@
-exe dotfiles#ft#setlocal('colorcolumn=')
-exe dotfiles#ft#setlocal('signcolumn=auto')
-
 call dotfiles#ft#set('disable_secure_modelines', 1)
 
 nnoremap <buffer> q <C-w>c

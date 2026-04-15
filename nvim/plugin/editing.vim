@@ -157,14 +157,21 @@ endif
   let g:indentLine_first_char = g:indentLine_char
   let g:indentLine_showFirstIndentLevel = 1
   let g:indentLine_fileTypeExclude =
-  \ ['text', 'help', 'tutor', 'man', 'fugitive', 'git', 'diff', 'fidget', 'snacks_picker_preview']
+  \ [ 'text', 'help', 'tutor', 'man', 'fugitive', 'git', 'diff', 'gitcommit',
+  \   'gitsendemail', 'fidget', 'snacks_picker_preview', 'snacks_input' ]
   let g:indentLine_bufTypeExclude = ['terminal', 'nofile']
   let g:indentLine_defaultGroup = 'IndentLine'
   let g:indent_blankline_show_trailing_blankline_indent = v:false
   let g:indent_blankline_show_current_context = v:true
 
   if dotplug#has('indentLine')
-    " Nothing here, no further configuration is necessary for this plugin.
+    " The old `indentLine` plugin relied on the conceal feature being always
+    " active to show the indentation guides, so it couldn't be used with syntax
+    " concealing in filetypes that have that.
+    let g:vim_markdown_conceal = 0
+    let g:vim_markdown_conceal_code_blocks = 0
+    let g:vim_json_conceal = 0
+
   elseif has('nvim-0.5.0')
     lua dotfiles.sane_indentline.setup()
 
@@ -180,7 +187,6 @@ endif
     command! -bar -bang IndentLinesToggle  call s:indent_lines_set(<bang>0, 'toggle')
     execute dotutils#cmd_alias('IL', 'IndentLinesToggle')
 
-    "
   elseif has('patch-8.2.5066') || has('nvim-0.8.0')
     " <https://www.reddit.com/r/neovim/comments/17aponn/i_feel_like_leadmultispace_deserves_more_attention/>
     " <https://github.com/gravndal/shiftwidth_leadmultispace.nvim/blob/6f524bb6b2e21215d0c35553d09d826c65f97062/plugin/shiftwidth_leadmultispace.lua>
@@ -366,9 +372,9 @@ endif
     execute 'inoremap <silent>' s:lhs s:map_command_from_insert('norm!' . s:rhs)
   endfor
 
-  " Helpers to apply A/I to every line selected in Visual mode.
-  xnoremap <expr> A (mode() ==# 'V' ? ':normal! A' : 'A')
-  xnoremap <expr> I (mode() ==# 'V' ? ':normal! I' : 'I')
+  " Append/prepend text to every line selected in Visual mode.
+  xnoremap <expr> A (mode() ==# 'V' ? "\<C-v>0o$A" : 'A')
+  xnoremap <expr> I (mode() ==# 'V' ? "\<C-v>0o$I" : 'I')
 
   " Break undo sequences on CTRL-W and CTRL-U in the Insert mode, see |undo-break|
   inoremap <C-u> <C-g>u<C-u>
@@ -706,7 +712,7 @@ endif
       function! s:treesitter_parser_exists() abort
         let cached_var = 'dotfiles_match_skip_treesitter_support'
         if !exists('b:'.cached_var)
-          let b:{cached_var} = v:lua.dotfiles.treesitter_parser_exists(0)
+          call dotfiles#ft#set(cached_var, v:lua.dotfiles.treesitter_parser_exists(0))
         endif
         return b:{cached_var}
       endfunction
@@ -759,11 +765,6 @@ endif
   " <https://github.com/gerw/vim-HiLinkTrace/blob/64da6bf463362967876fdee19c6c8d7dd3d0bf0f/plugin/hilinks.vim#L45-L48>
   nmap <silent> <leader>hlt <Plug>HiLinkTrace
 
-  let g:closetag_filetypes = 'html,xhtml,phtml,xslt'
-  let g:closetag_xhtml_filetypes = 'xhtml,xslt'
-  let g:closetag_filenames = ''
-  let g:closetag_xhtml_filenames = ''
-
   let g:linediff_buffer_type = 'scratch'
 
 " }}}
@@ -774,15 +775,6 @@ endif
   let g:rust_recommended_style = 0
   " <https://github.com/vigoux/dotfiles/blob/eec3b72d2132a55f5cfeb6902f88b25106a33a36/neovim/.config/nvim/after/ftplugin/rust.vim#L6>
   let g:cargo_makeprg_params = 'build --message-format=short'
-
-  " The old `indentLine` plugin relied on the conceal feature being always
-  " active to show the indentation guides, so it couldn't be used with syntax
-  " concealing in filetypes that have that.
-  if dotplug#has('indentLine')
-    let g:vim_markdown_conceal = 0
-    let g:vim_markdown_conceal_code_blocks = 0
-    let g:vim_json_conceal = 0
-  endif
 
   let g:vala_syntax_folding_enabled = 0
 
@@ -814,6 +806,8 @@ endif
   \ 'ini=dosini',
   \ 'js=javascript',
   \ 'ts=typescript',
+  \ 'jsx=javascriptreact',
+  \ 'tsx=typescriptreact',
   \ 'objective-c=objc',
   \ 'objective-cpp=objcpp',
   \]

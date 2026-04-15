@@ -100,6 +100,7 @@ nnoremap <leader>t workbench.action.openSettingsJson
 nnoremap <leader>T workbench.action.openSettings
 nnoremap <leader>V vim.editVimrc
 
+nnoremap ! workbench.action.createTerminalEditor
 
 
 """"""""""""""""""""""""""""" Buffers and Windows """"""""""""""""""""""""""""""

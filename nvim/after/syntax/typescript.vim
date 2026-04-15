@@ -24,7 +24,7 @@ if exists('b:dotfiles_lsp_markdown')
   syntax match typescriptHoverConstructor /\K\k*/ contained nextgroup=@typescriptCallSignature
 
   hi def link typescriptHover Keyword
-  syntax match typescriptHover /(\(method\|property\|getter\|setter\|local var\|local function\))/hs=s+1,he=e-1
+  syntax match typescriptHover /(\%(method\|property\|getter\|setter\|local var\|local function\))/hs=s+1,he=e-1
         \ contained skipwhite nextgroup=typescriptHoverFunction,typescriptHoverVariable,typescriptHoverMember
   syntax match typescriptHover /(parameter)/hs=s+1,he=e-1
         \ contained skipwhite nextgroup=typescriptHoverVariable
@@ -35,7 +35,7 @@ if exists('b:dotfiles_lsp_markdown')
     syntax match typescriptLspSignature /^\ze#\?\K\k*(/ nextgroup=typescriptMember transparent
     syntax match typescriptLspSignature /^\ze(/ nextgroup=@memberNextGroup transparent
   else
-    syntax match typescriptHoverStart /^\%1l\%((loading\.\.\.)\)\?/ transparent skipwhite nextgroup=typescriptHover
+    syntax match typescriptHoverStart /^\%((loading\.\.\.)\)\?/ transparent skipwhite nextgroup=typescriptHover
   endif
 
 endif

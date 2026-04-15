@@ -1,4 +1,6 @@
 {
+  "$schema": "vscode://schemas/settings/user",
+
   // Text editor
   "window.zoomLevel": 0.8, // each increment above 0 => 20% zoom increase
   "editor.fontSize": 13,
@@ -15,8 +17,13 @@
   "editor.renderLineHighlight": "all",
   "editor.cursorBlinking": "solid",
 
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always",
+    "source.fixAll.ts": "never",
+  },
+
   // Syntax highlighting
-  "workbench.colorTheme": "One Dark Pro Darker",
+  "workbench.colorTheme": "Catppuccin Macchiato",
   "catppuccin.italicComments": false,
   "catppuccin.italicKeywords": false,
   "editor.bracketPairColorization.enabled": false,
@@ -126,6 +133,10 @@
   "prettier.bracketSameLine": true,
   "prettier.arrowParens": "always",
   "prettier.proseWrap": "preserve",
+
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
 
   // JSON
   "json.schemas": [

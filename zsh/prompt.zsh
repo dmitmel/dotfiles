@@ -155,7 +155,7 @@ PROMPT+='%b%F{8}└─'
 
 # For shells started by pressing `w` in the LF file manager.
 for (( i = 1; i <= LF_LEVEL; i++ )); do
-  PROMPT+='lf'
+  PROMPT+='(lf)'
 done
 
 # The prompt ends with a dollar sign for regular users and a hash for root,

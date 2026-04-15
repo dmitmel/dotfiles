@@ -422,8 +422,7 @@ nnoremap <silent> yP :<C-u>call setreg(v:register, expand('%:p'))<CR>
 
   " In nvim v0.11.0 `gx` was completely replaced with a Lua implementation:
   " <https://github.com/neovim/neovim/commit/4913b7895cdd3fffdf1521ffb0c13cdeb7c1d27e>
-  " However, this a default mapping is set at editor startup, but also I
-  " disable all default mappings from Neovim.
+  " See also:
   " <https://github.com/vim/vim/commit/c729d6d154e097b439ff264b9736604824f4a5f4>
 
   function! s:get_url_from_selection() abort
