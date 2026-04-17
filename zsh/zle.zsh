@@ -3,7 +3,7 @@
 # http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets
 
 # FZF {{{
-  _fzf_history_list() {
+  _fzf_history_picker() {
     # `-l` - list all history events
     # `-r` - reverse the order, list everything from newest to oldest
     # `-t` - print timestamps in the given format next to history entries
@@ -14,15 +14,14 @@
       # As far as I know, the characters `\`, `/` and `&` need to be escaped
       # on the right-hand side of the `s` command in sed. Also, sed is faster
       # than awk for this use-case.
-      sed "s/^[[:space:]]*[0-9][0-9]*/${${${fg[blue]//\\/\\\\}//\//\\\/}//&/\\&}&${${${reset_color//\\/\\\\}//\//\\\/}//&/\\&}/"
+      sed "s/^[[:space:]]*[0-9][0-9]*/${${${fg[blue]//\\/\\\\}//\//\\\/}//&/\\&}&${${${reset_color//\\/\\\\}//\//\\\/}//&/\\&}/" |
+      fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
   }
 
   # Based on <https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh>
   _fzf_history_widget() {
     local selected
-    if selected=( $(
-      _fzf_history_list | fzf --ansi --nth=4.. --scheme=history --query="$LBUFFER"
-    ) ) && [[ -n "${selected[1]}" ]]; then
+    if selected=( $(_fzf_history_picker) ) && [[ -n "${selected[1]}" ]]; then
       zle vi-fetch-history -n "${selected[1]}"
     fi
     # Can't use `zle redisplay` here, it may cause multiline prompts to move up
