@@ -142,6 +142,13 @@ endif
   command! -nargs=? -bar IndentTabs  call s:indent_cmd(1, <q-args>, <q-mods>)
   command! -nargs=0 -bar IndentReset setlocal expandtab< shiftwidth< tabstop< softtabstop<
 
+  if dotplug#has('guess-indent.nvim')
+    call v:lua.require('guess-indent').setup({
+      \ 'on_tab_options':   { 'expandtab': v:false, 'shiftwidth': 0          },
+      \ 'on_space_options': { 'expandtab': v:true,  'shiftwidth': 'detected' },
+      \ })
+  endif
+
   function! s:reindent(use_tabs, arg, line1, line2) abort
     let sw = shiftwidth()
     let spaces = a:use_tabs ? "\t" : repeat(' ', a:arg)

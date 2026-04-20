@@ -75,7 +75,11 @@ exe dotplug#define_plug_here()
     Plug 'https://github.com/alvan/vim-closetag'
   endif
   " Automatic indentation detection.
-  Plug 'https://github.com/tpope/vim-sleuth'
+  if has('nvim-0.7.0')
+    Plug 'https://github.com/NMAC427/guess-indent.nvim'
+  else
+    Plug 'https://github.com/tpope/vim-sleuth'
+  endif
 " }}}
 
 " Text objects {{{
