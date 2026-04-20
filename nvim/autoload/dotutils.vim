@@ -320,3 +320,14 @@ function! dotutils#get_visually_selected_text() abort
 
   return text
 endfunction
+
+function! dotutils#syn_exists(group) abort
+  try
+    execute 'silent syntax list' a:group
+    return 1
+  catch /^Vim\%((\a\+)\)\=:E392:/   " No such syntax cluster: @xxx
+    return 0
+  catch /^Vim\%((\a\+)\)\=:E28:/    " No such highlight group name: xxx
+    return 0
+  endtry
+endfunction
