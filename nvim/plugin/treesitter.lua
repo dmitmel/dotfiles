@@ -152,6 +152,7 @@ if dotplug.has('nvim-treesitter') then
       'toml',
       'tsx',
       'typescript',
+      'typst',
       'vim',
       'vimdoc',
       'xml',

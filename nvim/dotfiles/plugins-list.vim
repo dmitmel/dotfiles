@@ -163,6 +163,7 @@ exe dotplug#define_plug_here()
   Plug 'https://github.com/cakebaker/scss-syntax.vim'
   " (this one highlights function invocations which the default one does not do)
   Plug 'https://github.com/bfrg/vim-c-cpp-modern'
+  Plug 'https://github.com/kaarmu/typst.vim'
 
   " JavaScript and TypeScript development:
   Plug 'https://github.com/pangloss/vim-javascript'

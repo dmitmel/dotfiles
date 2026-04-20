@@ -425,7 +425,9 @@ require('blink.cmp.lib.window.docs').render_detail_and_documentation = function(
   for _, v in ipairs(details) do
     if #v > 0 and not seen_details[v] then
       seen_details[v] = true
-      renderer:parse_plaintext_section(v, vim.bo.filetype)
+      local ft = vim.bo.filetype
+      if ft == 'typst' then ft = 'typc' end
+      renderer:parse_plaintext_section(v, ft)
     end
   end
 

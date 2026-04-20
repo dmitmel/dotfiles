@@ -786,11 +786,43 @@ function renderer:highlight_code_blocks(bufnr)
     -- Ignore any extra metadata in the "fence info". The pattern for the
     -- language name also implicitly checks that the string won't have any
     -- special characters when interpolated into the `syntax include` command.
-    local ft = range.syntax:match('^%s*([a-zA-Z0-9_-]+)') or ''
-    if ft ~= '' and not disabled_syntaxes[ft] then
-      ft = syntax_name_mapping[ft] or ft
+    local lang = range.syntax:match('^%s*([a-zA-Z0-9_-]+)') or ''
+    if lang ~= '' and not disabled_syntaxes[lang] then
+      lang = syntax_name_mapping[lang] or lang
 
-      if not loaded_syntaxes[ft] and not failed_syntaxes[ft] then
+      if not loaded_syntaxes[lang] and not failed_syntaxes[lang] then
+        local ft = lang
+        local include_name = '@' .. ft:upper()
+        local toplevel_cluster = include_name
+
+        -- Typst is a bit of a special case because it features a few
+        -- sub-languages and the language server for it is happy to produce code
+        -- blocks with these sub-languages. So, when viewing the documentation
+        -- of, say, the function `text()`, it will return
+        --
+        --     ```typc
+        --     let text(...);
+        --     ```
+        --
+        -- instead of
+        --
+        --     ```typ
+        --     #let text(...);
+        --     ```
+        --
+        -- Fortunately, the syntax file for Typst is structured in such a way
+        -- that we can simply use a different syntax cluster as the toplevel one
+        -- when embedding this language and it will highlight correctly.
+        if lang == 'typc' then
+          ft = 'typst'
+          toplevel_cluster = '@typstCode'
+        elseif lang == 'typm' then
+          ft = 'typst'
+          toplevel_cluster = '@typstMath'
+        elseif lang == 'typ' then
+          ft = 'typst'
+        end
+
         local syntax_file_patterns = utils.has('nvim-0.10.0')
             -- These patterns were changed in v0.10:
             -- <https://github.com/neovim/neovim/blob/v0.10.0/runtime/syntax/synload.vim#L53>
@@ -799,27 +831,30 @@ function renderer:highlight_code_blocks(bufnr)
           -- <https://github.com/neovim/neovim/blob/v0.5.0/runtime/syntax/synload.vim#L58-L59>
           or ('syntax/%s.vim syntax/%s/*.vim syntax/%s.lua syntax/%s/*.lua'):format(ft, ft, ft, ft)
 
-        local cluster_name = '@' .. ft:upper()
         vim.b.current_syntax = nil
-        local ok, err = pcall(vim.cmd.syntax, { 'include', cluster_name, syntax_file_patterns })
+        local ok, err = pcall(vim.cmd.syntax, { 'include', include_name, syntax_file_patterns })
         vim.b.current_syntax = nil
 
         if not ok then
-          failed_syntaxes[ft] = true
+          failed_syntaxes[lang] = true
           vim.notify(module.name .. ': ' .. err, vim.log.levels.WARN)
         else
-          loaded_syntaxes[ft] = cluster_name
+          loaded_syntaxes[lang] = toplevel_cluster
         end
       end
 
-      if loaded_syntaxes[ft] then
+      if loaded_syntaxes[lang] then
         -- NOTE: The end line is be exclusive here, and both start and end are 1-based indexes.
         vim.cmd.syntax({
           'region',
           'dotmarkCodeBlock' .. region_id,
           'start=/\\%' .. (range.start_row + 1) .. 'l/',
           'end=/\\%' .. (range.end_row + 2) .. 'l/',
-          'contains=' .. loaded_syntaxes[ft],
+          'contains=' .. loaded_syntaxes[lang],
+          -- Make sure that some unterminated syntax region inside this code
+          -- block (like an unclosed string) does not bleed out of the code
+          -- block region and extend the highlighting past the final line of the
+          -- block.
           'keepend',
         })
         region_id = region_id + 1

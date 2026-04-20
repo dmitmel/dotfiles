@@ -171,9 +171,12 @@ function! s:setup() " NOTE: not abort
     hi! link @lsp.typemod.function.defaultLibrary.cpp NONE
     hi! link @lsp.typemod.variable.defaultLibrary PreProc
     hi! link @lsp.typemod.variable.defaultLibrary.go NONE
+    hi! link @lsp.typemod.variable.defaultLibrary.rust NONE
     hi! link @lsp.typemod.variable.global         PreProc
     hi! link @lsp.typemod.variable.readonly.python Constant
     hi! link @lsp.typemod.keyword.documentation   SpecialComment
+    " Made transparent because it hides Vim's highlighting of escape sequences in strings.
+    hi! link @lsp.type.string.typst NONE
 
     hi! link @markup.raw            String
     hi! link @markup.raw.block      NONE
@@ -972,6 +975,13 @@ function! s:setup() " NOTE: not abort
   " Changelogs {{{
   hi! link changelogFiles String
   hi! link changelogFuncs Function
+  " }}}
+
+  " Typst {{{
+  hi! link typstMarkupLabel      Label
+  hi! link typstCodeLabel        Label
+  hi! link typstMarkupBulletList Identifier
+  hi! link typstMarkupEnumList   Identifier
   " }}}
 
 endfunction
