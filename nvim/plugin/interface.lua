@@ -94,10 +94,10 @@ if dotplug.has('fzf-lua') then
     local update_statusline = self.update_statusline
     function self:update_statusline(...)
       if
-        vim.fn.exists('#airline') == 0
-        and not utils.is_truthy(vim.call('airline#util#stl_disabled', self.fzf_winid))
+        not utils.exists('#airline')
+        or utils.is_truthy(vim.call('airline#util#stl_disabled', self.fzf_winid))
       then
-        return update_statusline(...)
+        return update_statusline(self, ...)
       end
     end
 
