@@ -1,36 +1,45 @@
-let s:palette = {}
-
-let s:colors = g:dotfiles#colorscheme#base16_colors
-function! s:base16(fg, bg) abort
-  let fg = s:colors[a:fg]
-  let bg = s:colors[a:bg]
-  return [fg.gui, bg.gui, fg.cterm, bg.cterm]
+function! s:pair(fg, bg) abort
+  return [a:fg.gui, a:bg.gui, a:fg.cterm, a:bg.cterm]
 endfunction
 
-let s:section_a = s:base16(0x1, 0xB)
-let s:section_b = s:base16(0x6, 0x2)
-let s:section_c = s:base16(0x9, 0x1)
-let s:palette.normal = airline#themes#generate_color_map(s:section_a, s:section_b, s:section_c)
+function! s:make_palette() abort
+  let palette = {}
 
-let s:inactive  = s:base16(0x5, 0x1)
-let s:palette.inactive = airline#themes#generate_color_map(s:inactive, s:inactive, s:inactive)
+  let base16 = g:dotfiles#colorscheme#base16_colors
+  let [red, orange, yellow, green, cyan, blue, magenta, brown] = base16[8:15]
+  let gray = base16[0:7]
 
-for [s:mode, s:color] in items({
-\ 'insert'      : s:base16(0x1, 0xD),
-\ 'visual'      : s:base16(0x1, 0xE),
-\ 'replace'     : s:base16(0x1, 0x8),
-\ 'terminal'    : s:base16(0x1, 0xD),
-\ 'commandline' : s:base16(0x1, 0xC),
-\ })
-  let s:palette[s:mode] = { 'airline_a': s:color, 'airline_z': s:color }
-endfor
+  let section_a = s:pair(gray[1], green)
+  let section_b = s:pair(gray[6], gray[2])
+  let section_c = s:pair(orange, gray[1])
+  let palette.normal = airline#themes#generate_color_map(section_a, section_b, section_c)
 
-for s:mode in keys(s:palette)
-  call extend(s:palette[s:mode], {
-  \ 'airline_warning': s:base16(0x0, 0xA),
-  \ 'airline_error':   s:base16(0x0, 0x8),
-  \ 'airline_term':    s:base16(0x9, 0x1),
+  let inactive  = s:pair(gray[5], gray[1])
+  let palette.inactive = airline#themes#generate_color_map(inactive, inactive, inactive)
+
+  for [mode, color] in items({
+  \ 'insert'      : s:pair(gray[1], blue),
+  \ 'visual'      : s:pair(gray[1], magenta),
+  \ 'replace'     : s:pair(gray[1], red),
+  \ 'terminal'    : s:pair(gray[1], blue),
+  \ 'commandline' : s:pair(gray[1], cyan),
   \ })
-endfor
+    let palette[mode] = { 'airline_a': color, 'airline_z': color }
+  endfor
 
-let airline#themes#dotfiles#palette = s:palette
+  for mode in keys(palette)
+    call extend(palette[mode], {
+    \ 'airline_warning': s:pair(gray[0], yellow),
+    \ 'airline_error':   s:pair(gray[0], red),
+    \ 'airline_term':    s:pair(orange, gray[1]),
+    \ })
+  endfor
+
+  let palette.accents = map(
+  \ { 'red': red, 'green': green, 'blue': blue, 'yellow': yellow, 'orange': orange, 'purple': magenta },
+  \ '[v:val.gui, "", v:val.cterm, ""]')
+
+  return palette
+endfunction
+
+let airline#themes#dotfiles#palette = s:make_palette()
