@@ -181,14 +181,17 @@ function! dotfiles#ranger#run_in_terminal(cmd, callback) abort
     return self.terminal_buf
   endif
 
+  let cmd = a:cmd is v:t_list ? join(map(copy(a:cmd), 'shellescape(v:val, 1)'), ' ') : a:cmd
   " Regular Vim executes commands in the TTY, so spawning Ranger with `:!` will
   " work just fine. `:silent` is needed to disable the "hit enter" prompt. The
   " only problem I encountered with this method is that Vim may fail to clear
   " the screen after you exit it after using Ranger like this once, leaving the
   " TUI of the editor in the scrollback of your terminal.
-  execute 'silent !' . join(map(copy(a:cmd), 'shellescape(v:val, 1)'), ' ')
+  execute 'silent !' . cmd
   redraw!   " re-paint the TUI
-  call a:callback(v:shell_error)
+  if !empty(a:callback)
+    call a:callback(v:shell_error)
+  endif
   return 0  " no new buffer was created
 endfunction
 
@@ -201,7 +204,9 @@ function! s:terminal_job_exited(job_id, code, ...) dict abort
   if a:code is 0
     call s:close_terminal_buffer('TermClose', self.terminal_buf, self.terminal_winid)
   endif
-  call self.callback(a:code)
+  if !empty(self.callback) " this will check if the callback is a non null-ish value
+    call self.callback(a:code)
+  endif
 endfunction
 
 function! s:open_terminal_buffer() abort

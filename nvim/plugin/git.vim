@@ -72,3 +72,12 @@ endif
 
 let g:fugitive_browse_handlers = get(g:, 'fugitive_browse_handlers', [])
 call dotutils#add_unique(g:fugitive_browse_handlers, function('dotfiles#fugitive#aur#handler'))
+
+function! s:run_tig(args) abort
+  let cmd = 'tig'
+  let git_dir = FugitiveGitDir()
+  let cmd = 'tig' . (!empty(git_dir) ? ' -C ' . shellescape(git_dir) : '') . ' ' . a:args
+  let callback = 0
+  call dotfiles#ranger#run_in_terminal(cmd, callback)
+endfunction
+command! -nargs=* -complete=file -bar Tig call s:run_tig(<q-args>)
