@@ -679,15 +679,6 @@ EOF
 
   function! s:on_colorscheme() abort
     let s:done_syntaxes = {}
-
-    " The `Ignore` a built-in hlgroup that is used for concealed characters in
-    " Vim Help files. In Nvim v0.10.0 it became linked to Normal in the C code:
-    " <https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/highlight_group.c#L203>.
-    " I actually never knew this group even existed because it is always
-    " concealed in the |:help| viewer, but this became a problem in Fzf-Lua's
-    " |:Helptags| searcher.
-    hi! link Ignore NONE
-
     call s:patch_highlights()
   endfunction
 

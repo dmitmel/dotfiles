@@ -58,59 +58,27 @@ function! s:setup() " NOTE: not abort
   let strikethrough = has('patch-8.0.1038') ? 'strikethrough' : 'NONE'
 
   " General syntax highlighting {{{
+  call Hi('Normal', { 'fg': fg, 'bg': bg })
 
-  call Hi('Normal',        { 'fg': fg, 'bg': bg })
-  call Hi('Italic',        { 'fg': magenta, 'attr': 'italic' })
-  call Hi('Bold',          { 'fg': yellow, 'attr': 'bold' })
-  call Hi('Underlined',    { 'fg': blue, 'attr': 'underline' })
-  call Hi('Strikethrough', { 'fg': green, 'attr': strikethrough })
-  call Hi('Title',         { 'fg': blue, 'attr': 'bold' })
-  call Hi('Conceal',       { 'fg': gray[4] })
-  call Hi('MatchParen',    { 'fg': orange, 'bg': gray[2], 'attr': 'bold' })
-  call Hi('NonText',       { 'fg': gray[3] })
-  " `nocombine` is necessary for indentation because:
-  " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/72>
-  call Hi('IblIndent',     { 'fg': gray[2], 'attr': nocombine })
-  hi! link IndentLine        IblIndent
-  call Hi('IblSpace',      { 'fg': gray[3], 'attr': nocombine })
-  call Hi('IblScope',      { 'fg': gray[3], 'attr': nocombine })
-  call Hi('Added',         { 'fg': green   })
-  call Hi('Removed',       { 'fg': red     })
-  call Hi('Changed',       { 'fg': magenta })
+  call Hi('Italic',        { 'fg': magenta, 'attr': 'italic'      })
+  call Hi('Bold',          { 'fg': yellow,  'attr': 'bold'        })
+  call Hi('Underlined',    { 'fg': blue,    'attr': 'underline'   })
+  call Hi('Strikethrough', { 'fg': green,   'attr': strikethrough })
 
   if get(g:, 'dotfiles_highlight_url_under_cursor', 0)
     call Hi('Underlined',       { 'fg': blue, 'attr': 'underline', 'sp': gray[2] })
     call Hi('ReallyUnderlined', { 'fg': blue, 'attr': 'underline', 'sp': blue })
   endif
 
-  let rainbow_indent_opacity = get(g:, 'dotfiles_rainbow_indent_opacity', 0)
-  let indent_scope_opacity   = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
-
-  if indent_scope_opacity != 0
-    exe 'hi IblScope guifg=' . s:mix_colors(gray[2], blue, indent_scope_opacity)
-  endif
-
-  let g:indent_blankline_char_highlight_list    = []
-  let g:indent_blankline_context_highlight_list = []
-  for color in range(7)
-    exe 'hi clear IblIndent' . color
-    exe 'hi clear IblScope'  . color
-    if rainbow_indent_opacity != 0
-      call add(g:indent_blankline_char_highlight_list,    'IblIndent' . color)
-      call add(g:indent_blankline_context_highlight_list, 'IblScope' . color)
-      exe 'hi IblIndent'.color 'guifg='.s:mix_colors(bg, base16[8 + color], rainbow_indent_opacity)
-      exe 'hi IblScope'.color  'guifg='.s:mix_colors(bg, base16[8 + color], indent_scope_opacity)
-    endif
-  endfor
-
   call Hi('Keyword',     { 'fg': magenta })
   hi! link Statement       Keyword
+  hi! link Conditional     Keyword
   hi! link Repeat          Keyword
+  hi! link Structure       Keyword
   hi! link StorageClass    Keyword
   hi! link Exception       Keyword
-  hi! link Structure       Keyword
-  hi! link Conditional     Keyword
   hi! link Include         Keyword
+  hi! link Debug           Keyword
   call Hi('Constant',    { 'fg': orange })
   hi! link Boolean         Constant
   hi! link Float           Constant
@@ -118,26 +86,38 @@ function! s:setup() " NOTE: not abort
   call Hi('String',      { 'fg': green })
   hi! link Character       String
   hi! link Quote           String
-  hi! link StringDelimiter String
   call Hi('Comment',     { 'fg': gray[3] })
   call Hi('Todo',        { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
   call Hi('Function',    { 'fg': blue })
+  " `Tag` does not refer to XML or HTML tags, instead it is used for items that
+  " you can double click or use CTRL-] on to jump to (like in the Vim manual).
   hi! link Tag             Function
-  call Hi('Directory',   { 'fg': blue })
   call Hi('Identifier',  { 'fg': red })
   hi! link Variable        Identifier
   call Hi('PreProc',     { 'fg': yellow })
   hi! link Define          PreProc
+  hi! link PreCondit       PreProc
   call Hi('Label',       { 'fg': yellow })
   call Hi('Special',     { 'fg': cyan })
-  hi! link SpecialKey      Special
+  hi! link SpecialChar     Special
   hi! link SpecialComment  Special
   hi! link Macro           Special
   call Hi('Type',        { 'fg': yellow })
   hi! link Typedef         Type
   call Hi('Operator',    { 'fg': fg })
   call Hi('Delimiter',   { 'fg': fg })
+  call Hi('Added',       { 'fg': green })
+  call Hi('Removed',     { 'fg': red })
+  call Hi('Changed',     { 'fg': magenta })
+  call Hi('Error',       { 'fg': red, 'bg': bg, 'attr': 'reverse' })
 
+  " `Ignore` a built-in group that is used for concealed characters in the Vim
+  " Help files. In Nvim v0.10 it became linked to `Normal` in the C code:
+  " <https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/highlight_group.c#L203>.
+  " I actually never knew this group even existed because it is always concealed
+  " in the |:help| viewer, but this became a problem in Fzf-Lua's |:Helptags|
+  " previewer, which doesn't enable concealing.
+  hi! link Ignore NONE
   " }}}
 
   if has('nvim-0.8.0') " Treesitter {{{
@@ -214,31 +194,43 @@ function! s:setup() " NOTE: not abort
 
   endif " }}}
 
-  " User interface {{{
+  " Indentation guides {{{
 
-  call Hi('Error',      { 'fg': red, 'bg': bg, 'attr': 'reverse' })
-  call Hi('ErrorMsg',   { 'fg': red })
-  call Hi('WarningMsg', { 'fg': orange })
-  call Hi('Debug',      { 'fg': red })
+  " `nocombine` is necessary because:
+  " <https://github.com/lukas-reineke/indent-blankline.nvim/issues/72>
+  call Hi('IblIndent', { 'fg': gray[2], 'attr': nocombine })
+  call Hi('IblSpace',  { 'fg': gray[3], 'attr': nocombine })
+  call Hi('IblScope',  { 'fg': gray[3], 'attr': nocombine })
+  hi! link IndentLine    IblIndent
 
-  call Hi('CocSelectedText',  { 'fg': magenta, 'bg': gray[1], 'attr': 'bold' })
-  call Hi('CocSearch',        { 'fg': blue })
-  call Hi('CocVirtualText',   { 'fg': gray[4] })
-  hi! link CocCodeLens          CocVirtualText
-  hi! link CocInlayHint         CocVirtualText
-  call Hi('CocFadeOut',       { 'fg': gray[3] })
-  hi! link CocDisabled          CocFadeOut
-  hi! link CocFloatDividingLine WinSeparator
-  call Hi('CocUnderline',     { 'attr': 'underline' })
-  call Hi('CocStrikeThrough', { 'attr': strikethrough })
-  hi! link CocMarkdownLink      Underlined
-  hi! link CocLink              Underlined
-  hi! link CocDiagnosticsFile   Directory
-  hi! link CocOutlineName       NONE
-  hi! link CocExtensionsLoaded  NONE
-  hi! link CocSymbolsName       NONE
-  hi! link CocOutlineIndentLine IndentLine
-  hi! link CocSymbolsFile       Directory
+  let indent_scope_opacity   = get(g:, 'dotfiles_indent_scope_opacity', 0.2)
+  let rainbow_indent_opacity = get(g:, 'dotfiles_rainbow_indent_opacity', 0)
+
+  if indent_scope_opacity != 0
+    exe 'hi IblScope guifg='.s:mix_colors(gray[2], blue, indent_scope_opacity)
+  endif
+
+  let g:indent_blankline_char_highlight_list    = []
+  let g:indent_blankline_context_highlight_list = []
+  for color in range(7)
+    exe 'hi clear IblIndent' . color
+    exe 'hi clear IblScope'  . color
+    if rainbow_indent_opacity != 0
+      call add(g:indent_blankline_char_highlight_list,    'IblIndent' . color)
+      call add(g:indent_blankline_context_highlight_list, 'IblScope'  . color)
+      exe 'hi IblIndent'.color 'guifg='.s:mix_colors(bg, base16[8 + color], rainbow_indent_opacity)
+      exe 'hi IblScope'.color  'guifg='.s:mix_colors(bg, base16[8 + color], indent_scope_opacity)
+    endif
+  endfor
+  " }}}
+
+  " Diagnostics {{{
+  call Hi('DiagnosticUnnecessary',       { 'fg': gray[3] })
+  call Hi('DiagnosticDeprecated',        { 'attr': strikethrough })
+  hi! link DiagnosticUnderlineUnnecessary  DiagnosticUnnecessary
+  hi! link DiagnosticUnderlineDeprecated   DiagnosticDeprecated
+  hi! link CocUnusedHighlight              DiagnosticUnnecessary
+  hi! link CocDeprecatedHighlight          DiagnosticDeprecated
 
   for [severity, color] in items({
         \ 'Error': red, 'Warn': yellow, 'Info': blue, 'Hint': blue, 'Ok': green })
@@ -289,19 +281,15 @@ function! s:setup() " NOTE: not abort
     " syntax-related hlgroups, in particular qfError/qfWarning/qfInfo/qfNote.
     call Hi('qf'.qf_severity, { 'fg': color, 'attr': 'reverse,bold' })
   endfor
+  " }}}
 
-  " This links to Normal by default, which looks super ugly when `cursorline` is enabled.
-  hi! link qfText NONE
+  " User interface {{{
 
-  call Hi('DiagnosticUnnecessary',       { 'fg': gray[3] })
-  call Hi('DiagnosticDeprecated',        { 'attr': strikethrough })
-  hi! link DiagnosticUnderlineUnnecessary  DiagnosticUnnecessary
-  hi! link DiagnosticUnderlineDeprecated   DiagnosticDeprecated
-  hi! link CocUnusedHighlight              DiagnosticUnnecessary
-  hi! link CocDeprecatedHighlight          DiagnosticDeprecated
-
-  hi! link LspReferenceText Visual
-  call Hi('LspSignatureActiveParameter', { 'attr': 'underline' })
+  call Hi('Title',     { 'fg': blue, 'attr': 'bold' })
+  call Hi('Directory', { 'fg': blue })
+  call Hi('NonText',   { 'fg': gray[3] })
+  call Hi('Conceal',   { 'fg': gray[4] })
+  hi! link SpecialKey    Special
 
   call Hi('IncSearch', { 'fg': orange, 'bg': bg, 'attr': 'reverse' })
   call Hi('Search',    { 'fg': yellow, 'bg': bg, 'attr': 'reverse' })
@@ -312,13 +300,16 @@ function! s:setup() " NOTE: not abort
   " call Hi('Search',    { 'fg': yellow, 'bg': gray[7], 'attr': 'reverse' })
   " exe 'hi Search guifg='.s:mix_colors(gray[0], yellow, 0.33) 'ctermbg='.(bg.cterm)
 
-  call Hi('ModeMsg',  { 'fg': green, 'attr': 'bold' })
-  call Hi('Question', { 'fg': green })
-  hi! link MoreMsg      Question
-  call Hi('Visual',   { 'bg': gray[2] })
-  call Hi('WildMenu', { 'fg': gray[1], 'bg': fg })
+  call Hi('ErrorMsg',   { 'fg': red    })
+  call Hi('WarningMsg', { 'fg': orange })
+  call Hi('OkMsg',      { 'fg': green  })
+  call Hi('ModeMsg',    { 'fg': green, 'attr': 'bold' })
+  call Hi('Question',   { 'fg': green  })
+  hi! link MoreMsg        Question
 
   call Hi('Cursor',         { 'fg': bg, 'bg': fg })
+  call Hi('Visual',         { 'bg': gray[2] })
+  call Hi('MatchParen',     { 'fg': orange, 'bg': gray[2], 'attr': 'bold' })
   call Hi('CursorLine',     { 'bg': gray[1] })
   hi! link CursorColumn       CursorLine
   call Hi('ColorColumn',    { 'bg': gray[1] })
@@ -340,33 +331,61 @@ function! s:setup() " NOTE: not abort
   hi! link TabLine          StatusLine
   hi! link TabLineFill      StatusLine
   call Hi('TabLineSel',   { 'fg': green,   'bg': gray[1] })
+  call Hi('WinBar',       { 'fg': gray[6], 'bg': gray[2] })
+  call Hi('WinBarNC',     { 'fg': fg,      'bg': gray[1] })
   call Hi('NormalFloat',  { 'fg': fg,      'bg': gray[1] })
   call Hi('FloatBorder',  { 'fg': gray[2], 'bg': gray[1] })
   hi! link CocFloating      NormalFloat
-  call Hi('WinBar',       { 'fg': gray[6], 'bg': gray[2] })
-  call Hi('WinBarNC',     { 'fg': fg,      'bg': gray[1] })
-  hi! link BqfPreviewRange  Search
-  hi! link BqfPreviewTitle  Label
-  hi! link BqfPreviewBorder WinSeparator
 
   if has('nvim-0.4.0')
     highlight FloatShadow        ctermbg=Black guibg=Black blend=70
     highlight FloatShadowThrough ctermbg=Black guibg=Black blend=100
   endif
 
-  call Hi('Pmenu',                  { 'fg': fg, 'bg': gray[1] })
-  call Hi('PmenuSel',               { 'fg': bg, 'bg': blue })
-  hi! link PmenuSbar                  Pmenu
-  call Hi('PmenuThumb',             { 'bg': gray[5] })
-  call Hi('PmenuKind',              { 'fg': blue })
-  call Hi('PmenuExtra',             { 'fg': gray[4] })
-  call Hi('PmenuMatch',             { 'fg': yellow })
-  hi! link PmenuMatchSel              PmenuSel
-  hi! link CocMenuSel                 PmenuSel
-  hi! link CocPumSearch               PmenuMatch
-  hi! link CocPumDetail               PmenuExtra
-  hi! link CocPumShortcut             CocPumDetail
-  hi! link CocListSearch              PmenuMatch
+  " This links to Normal by default, which looks super ugly when `cursorline` is enabled.
+  hi! link qfText NONE
+
+  hi! link LspReferenceText Visual
+  call Hi('LspSignatureActiveParameter', { 'attr': 'underline' })
+
+  hi! link BqfPreviewRange  Search
+  hi! link BqfPreviewTitle  Label
+  hi! link BqfPreviewBorder WinSeparator
+
+  call Hi('CocSelectedText',  { 'fg': magenta, 'bg': gray[1], 'attr': 'bold' })
+  call Hi('CocSearch',        { 'fg': blue })
+  call Hi('CocVirtualText',   { 'fg': gray[4] })
+  hi! link CocCodeLens          CocVirtualText
+  hi! link CocInlayHint         CocVirtualText
+  call Hi('CocFadeOut',       { 'fg': gray[3] })
+  hi! link CocDisabled          CocFadeOut
+  hi! link CocFloatDividingLine WinSeparator
+  call Hi('CocUnderline',     { 'attr': 'underline' })
+  call Hi('CocStrikeThrough', { 'attr': strikethrough })
+  hi! link CocMarkdownLink      Underlined
+  hi! link CocLink              Underlined
+  hi! link CocDiagnosticsFile   Directory
+  hi! link CocOutlineName       NONE
+  hi! link CocExtensionsLoaded  NONE
+  hi! link CocSymbolsName       NONE
+  hi! link CocOutlineIndentLine IndentLine
+  hi! link CocSymbolsFile       Directory
+
+  call Hi('WildMenu',   { 'fg': gray[1], 'bg': fg })
+  call Hi('Pmenu',      { 'fg': fg, 'bg': gray[1] })
+  call Hi('PmenuSel',   { 'fg': bg, 'bg': blue })
+  hi! link PmenuSbar      Pmenu
+  call Hi('PmenuThumb', { 'bg': gray[5] })
+  call Hi('PmenuKind',  { 'fg': blue })
+  call Hi('PmenuExtra', { 'fg': gray[4] })
+  call Hi('PmenuMatch', { 'fg': yellow })
+  hi! link PmenuMatchSel  PmenuSel
+  hi! link CocMenuSel     PmenuSel
+  hi! link CocPumSearch   PmenuMatch
+  hi! link CocPumDetail   PmenuExtra
+  hi! link CocPumShortcut CocPumDetail
+  hi! link CocListSearch  PmenuMatch
+
   hi! link BlinkCmpKind               PmenuKind
   hi! link BlinkCmpLabelMatch         PmenuMatch
   hi! link BlinkCmpLabelDeprecated    DiagnosticDeprecated
@@ -439,6 +458,17 @@ function! s:setup() " NOTE: not abort
     else
       exe 'hi' spell_hl 'cterm=reverse ctermfg=' color.cterm 'ctermbg=' bg.cterm
     endif
+  endfor
+
+  " diff mode
+  for [diff_hl, color] in items({ 'Add': green, 'Delete': red, 'Text': magenta, 'Change': gray[3] })
+    exe 'hi clear Diff'.diff_hl
+    exe 'hi Diff'.diff_hl
+    \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(bg, color, 0.32) : 'NONE')
+    \ 'guibg=' s:mix_colors(bg, color, diff_hl ==# 'Text' ? 0.24 : 0.08)
+    \ 'guisp=' gray[3].gui
+    \ 'ctermfg=' color.cterm
+    \ 'ctermbg=' gray[1].cterm
   endfor
 
   call Hi('Sneak', { 'fg': bg, 'bg': green, 'attr': 'bold' })
@@ -563,17 +593,6 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Diff {{{
-  " diff mode
-  for [diff_hl, color] in items({ 'Add': green, 'Delete': red, 'Text': magenta, 'Change': gray[3] })
-    exe 'hi clear Diff'.diff_hl
-    exe 'hi Diff'.diff_hl
-    \ 'guifg=' (diff_hl ==# 'Delete' ? s:mix_colors(bg, color, 0.32) : 'NONE')
-    \ 'guibg=' s:mix_colors(bg, color, diff_hl ==# 'Text' ? 0.24 : 0.08)
-    \ 'guisp=' gray[3].gui
-    \ 'ctermfg=' color.cterm
-    \ 'ctermbg=' gray[1].cterm
-  endfor
-  " diff file
   hi! link diffAdded       Added
   hi! link diffRemoved     Removed
   hi! link diffChanged     Changed
@@ -586,7 +605,8 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " XML {{{
-  hi! link xmlTagName         Tag
+  " `Tag` is not an appropriate group to link `xmlTagName` to, see why above.
+  hi! link xmlTagName         Function
   hi! link xmlAttrib          Variable
   hi! link xmlTag             Comment
   hi! link xmlEndTag          Comment
@@ -693,6 +713,7 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " C++ {{{
+  " `operator` and `typeid` keywords, plus alternative spellings of operators: `and`, `compl`, `xor_eq`...
   hi! link cppOperator Keyword
   " }}}
 
@@ -873,15 +894,19 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Ruby {{{
-  hi! link rubyPseudoVariable         Variable
-  hi! link rubyClassName              Type
-  hi! link rubyAttribute              rubyFunction
-  hi! link rubyConstant               Constant
-  hi! link rubyInterpolationDelimiter PreProc
-  hi! link rubySymbol                 String
-  hi! link rubyStringDelimiter        StringDelimiter
-  hi! link rubyRegexp                 Special
-  hi! link rubyRegexpDelimiter        rubyRegexp
+  hi! link rubyPseudoVariable          Special       " `self`, `nil`, `__FILE__`, `__LINE__` etc
+  hi! link rubyClassName               Type          " `Name` in `class Name < Parent ... end`
+  hi! link rubyAttribute               Function      " `attr_{accessor,reader,writer}` inside classes
+  hi! link rubyAccess                  StorageClass  " `public`/`protected`/`private` and similar
+  hi! link rubyConstant                Type          " any identifier that starts with an uppercase letter
+  hi! link rubyInterpolationDelimiter  PreProc       " `#{` and `}` inside strings
+  hi! link rubyStringDelimiter         rubyString    " linked to `Delimiter` by default
+  hi! link rubyRegexp                  Special       " linked to `rubyString` by default
+  hi! link rubyRegexpDelimiter         rubyRegexp    " linked to `rubyStringDelimiter` by default
+  hi! link rubyDefine                  Structure     " `def`/`undef`, `class`, `module`, `alias`
+  hi! link rubyEnglishBooleanOperator  Keyword       " `and`, `or`, `not`
+  hi! link rubyMacro                   Keyword       " `extend`, `include`, `refine`, `using` etc
+  hi! link rubyInclude                 PreProc       " `require`, `load`, `gem` etc
   " }}}
 
   " Lua {{{
@@ -906,7 +931,7 @@ function! s:setup() " NOTE: not abort
 
   " Shell {{{
   " <https://github.com/lunacookies/vim-sh/blob/cebda390c56654a4c9f96f66727e9be076a7aee3/syntax/sh.vim#L32-L50>
-  hi! link shQuote        StringDelimiter
+  hi! link shQuote        String
   hi! link zshFunction    Function
   hi! link zshVariable    Variable
   hi! link shArithmetic   NONE
@@ -965,7 +990,7 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Perl {{{
-  hi! link perlStatement Function
+  hi! link perlStatement        Function
   hi! link perlStatementControl Statement
   hi! link perlStatementStorage StorageClass
   hi! link perlStatementInclude Include
