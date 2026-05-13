@@ -64,8 +64,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Bold',          { 'fg': yellow, 'attr': 'bold' })
   call Hi('Underlined',    { 'fg': blue, 'attr': 'underline' })
   call Hi('Strikethrough', { 'fg': green, 'attr': strikethrough })
-  call Hi('Title',         { 'fg': blue })
-  hi! link Directory         Title
+  call Hi('Title',         { 'fg': blue, 'attr': 'bold' })
   call Hi('Conceal',       { 'fg': gray[4] })
   call Hi('MatchParen',    { 'fg': orange, 'bg': gray[2], 'attr': 'bold' })
   call Hi('NonText',       { 'fg': gray[3] })
@@ -124,6 +123,7 @@ function! s:setup() " NOTE: not abort
   call Hi('Todo',        { 'fg': yellow, 'bg': bg, 'attr': 'reverse,bold' })
   call Hi('Function',    { 'fg': blue })
   hi! link Tag             Function
+  call Hi('Directory',   { 'fg': blue })
   call Hi('Identifier',  { 'fg': red })
   hi! link Variable        Identifier
   call Hi('PreProc',     { 'fg': yellow })
@@ -192,7 +192,7 @@ function! s:setup() " NOTE: not abort
     hi! link @markup.underline      Underlined
 
     hi! link @variable.parameter.vimdoc Special
-    hi! link @label.vimdoc              Title
+    hi! link @label.vimdoc              Tag
     hi! link @markup.heading.1.vimdoc   PreProc
     hi! link @markup.heading.2.vimdoc   PreProc
     hi! link @markup.heading.3.vimdoc   Keyword
@@ -545,7 +545,7 @@ function! s:setup() " NOTE: not abort
   " }}}
 
   " Vim Help files {{{
-  hi! link helpHyperTextEntry Function
+  hi! link helpHyperTextEntry Tag
   hi! link helpExample        String
   hi! link helpCommand        String
   " }}}
@@ -581,7 +581,7 @@ function! s:setup() " NOTE: not abort
   hi! link diffOldFile     Removed
   hi! link diffFile        Structure
   hi! link diffIndexLine   Label
-  hi! link diffLine        Title
+  hi! link diffLine        Function
   hi! link diffSubname     Include
   " }}}
 
@@ -607,7 +607,7 @@ function! s:setup() " NOTE: not abort
   call Hi('gitcommitSelectedType',  { 'fg': blue })
   call Hi('gitcommitUnmergedType',  { 'fg': blue })
   call Hi('gitcommitDiscardedType', { 'fg': blue })
-  hi! link gitcommitBranch Function
+  hi! link gitcommitBranch    Directory
   call Hi('gitcommitUntrackedFile', { 'fg': yellow, 'attr': 'bold' })
   call Hi('gitcommitUnmergedFile',  { 'fg': red,    'attr': 'bold' })
   call Hi('gitcommitDiscardedFile', { 'fg': red,    'attr': 'bold' })
@@ -712,7 +712,6 @@ function! s:setup() " NOTE: not abort
   hi! link htmlItalic         Italic
   hi! link htmlStrike         Strikethrough
   call Hi('htmlBoldItalic', { 'fg': magenta, 'attr': 'bold,italic' })
-  hi! link htmlH1             Identifier
   hi! link htmlTag            xmlTag
   hi! link htmlTagName        xmlTagName
   hi! link htmlSpecialTagName PreProc
@@ -844,7 +843,7 @@ function! s:setup() " NOTE: not abort
   hi! link mkdLinkDef    TypeDef
   hi! link mkdID         Type
   hi! link mkdRule       Special
-  hi! link mkdHeading    Keyword
+  hi! link mkdHeading    Title
   hi! link mkdBold       htmlBold
   hi! link mkdItalic     htmlItalic
   hi! link mkdBoldItalic htmlBoldItalic

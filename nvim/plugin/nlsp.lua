@@ -277,11 +277,15 @@ if dotplug.has('fidget.nvim') then
       -- ignore_done_already = true,
       display = {
         done_ttl = 2, -- seconds
+        group_style = 'Constant',
+        progress_style = 'Function',
+        done_style = 'Function',
       },
     },
     notification = {
       window = {
         align = 'bottom',
+        normal_hl = 'CocVirtualText',
       },
     },
   })
