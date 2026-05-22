@@ -20,6 +20,8 @@ vim.filetype.add({
     ['coc-settings.json'] = 'jsonc',
     ['pyrightconfig.json'] = 'jsonc',
     ['.luarc.json'] = 'jsonc',
+    ['fp-lib-table'] = 'kicad',
+    ['sym-lib-table'] = 'kicad',
   },
   pattern = {
     ['.*/assets/.*%.json%.patch'] = 'json',

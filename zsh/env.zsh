@@ -97,6 +97,7 @@ fi
 
 # <https://github.com/sharkdp/bat#8-bit-themes>
 export BAT_THEME="base16-256"
+export BAT_CONFIG_DIR="${ZSH_DOTFILES:h}/misc/bat"
 
 if ! is_defined KITTY_INSTALLATION_DIR; then
   for KITTY_INSTALLATION_DIR in \
