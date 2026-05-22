@@ -5,6 +5,13 @@ vim.filetype.add({
     log = 'log',
     LOG = 'log',
     ioc = 'jproperties', -- STM32CubeMX project settings
+    kicad_pcb = 'kicad',
+    kicad_sch = 'kicad',
+    kicad_dru = 'kicad',
+    kicad_mod = 'kicad',
+    kicad_sym = 'kicad',
+    kicad_prl = 'json',
+    kicad_pro = 'json',
   },
   filename = {
     ['.clangd'] = 'yaml',
