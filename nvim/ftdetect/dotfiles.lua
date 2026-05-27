@@ -10,6 +10,7 @@ vim.filetype.add({
     kicad_dru = 'kicad',
     kicad_mod = 'kicad',
     kicad_sym = 'kicad',
+    kicad_wks = 'kicad',
     kicad_prl = 'json',
     kicad_pro = 'json',
   },
@@ -22,6 +23,7 @@ vim.filetype.add({
     ['.luarc.json'] = 'jsonc',
     ['fp-lib-table'] = 'kicad',
     ['sym-lib-table'] = 'kicad',
+    ['design-block-lib-table'] = 'kicad',
   },
   pattern = {
     ['.*/assets/.*%.json%.patch'] = 'json',

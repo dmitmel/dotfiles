@@ -9,5 +9,6 @@ autocmd BufNewFile,BufRead */.vimspector.json setf jsonc
 autocmd BufNewFile,BufRead */pyrightconfig.json setf jsonc
 autocmd BufNewFile,BufRead */snippets/*.json setf jsonc
 
-autocmd BufNewFile,BufRead *.kicad_pcb,*.kicad_sch,*.kicad_dru,*.kicad_mod,*.kicad_sym setf kicad
+autocmd BufNewFile,BufRead fp-lib-table,sym-lib-table,design-block-lib-table setf kicad
+autocmd BufNewFile,BufRead *.kicad_pcb,*.kicad_sch,*.kicad_dru,*.kicad_mod,*.kicad_sym,*.kicad_wks setf kicad
 autocmd BufNewFile,BufRead *.kicad_prl,*.kicad_pro setf json

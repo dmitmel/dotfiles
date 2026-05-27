@@ -1,4 +1,4 @@
 # vim:ft=conf
---map-syntax "*.kicad_{pcb,sch,dru,mod,sym}:lisp"
---map-syntax "{fp,sym}-lib-table:lisp"
+--map-syntax "*.kicad_{pcb,sch,dru,mod,sym,wks}:lisp"
+--map-syntax "{fp,sym,design-block}-lib-table:lisp"
 --map-syntax "*.kicad_{prl,pro}:json"
