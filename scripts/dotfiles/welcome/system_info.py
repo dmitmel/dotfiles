@@ -7,6 +7,7 @@ import itertools
 import os
 import platform
 import socket
+import sys
 from datetime import datetime, timedelta
 from getpass import getuser
 
@@ -220,11 +221,26 @@ def _get_distro_info():
       sw_vers = plistlib.load(f)
     return "mac", sw_vers["ProductName"], sw_vers["ProductVersion"], ""
 
-  elif _is_android():
-    import subprocess
+  elif (
+    # See <https://stackoverflow.com/questions/48019043/python-detect-android>
+    sys.platform == "android"  # works as of Python 3.13
+    or hasattr(sys, "getandroidapilevel")  # works as of Python 3.7
+    # fallback, found this here: <https://github.com/dylanaraps/neofetch/blob/ccd5d9f52609bbdcd5d8fa78c4fdb0f12954125f/neofetch#L1063>
+    or (os.path.isdir("/system/app") and os.path.isdir("/system/priv-app"))
+  ):
+    if hasattr(platform, "android_ver"):
+      # <https://github.com/python/cpython/issues/71042>
+      # <https://github.com/python/cpython/pull/116674>
+      android_release = platform.android_ver().release  # type: ignore
 
-    android_version = subprocess.check_output(["getprop", "ro.build.version.release"])
-    return "android", "Android", android_version.decode().strip(), ""
+    else:
+      import subprocess
+
+      status, android_release = subprocess.getstatusoutput(["getprop", "ro.build.version.release"])
+      if status != 0:
+        android_release = ""
+
+    return "android", "Android", android_release, ""
 
   elif psutil.LINUX:
     import distro
@@ -232,7 +248,3 @@ def _get_distro_info():
     return distro.id(), distro.name(), distro.version(), distro.codename()
 
   raise NotImplementedError("unsupported OS")
-
-
-def _is_android():
-  return os.path.isdir("/system/app") and os.path.isdir("/system/priv-app")
