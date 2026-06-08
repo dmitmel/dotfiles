@@ -32,23 +32,23 @@ def get_system_info() -> "tuple[str, list[str]]":
   info_lines.append(bright_colored(username, Fore.BLUE) + "@" + bright_colored(hostname, Fore.RED))
   info_lines.append("")
 
-  distro_id, distro_name, distro_version, distro_codename = _get_distro_info()
-  logo_id = distro_id
-  info("OS", " ".join([distro_name, distro_version, distro_codename]))
+  logo_id, os_name = _get_distro_info()
+  info("OS", "%s", os_name)
 
-  info("Kernel", "%s %s", platform.system(), platform.release())
+  uname = platform.uname()
+  info("Kernel", "%s %s", uname.system, uname.release)
 
   uptime = _get_uptime()
   if uptime:
-    info("Uptime", humanize_timedelta(uptime))
+    info("Uptime", "%s", humanize_timedelta(uptime))
 
   users_info = _get_users()
   if users_info:
-    info("Users", users_info)
+    info("Users", "%s", users_info)
 
   shell = _get_shell()
   if shell is not None:
-    info("Shell", shell)
+    info("Shell", "%s", shell)
 
   info_lines.append("")
 
@@ -102,12 +102,15 @@ def _get_users():
 
   for name, terminals in users.items():
     colored_name = bright_colored(name, Fore.BLUE)
-    colored_terminals = [colored(str(term), Style.DIM, Fore.WHITE) for term in terminals]
+    colored_terminals = [colored(str(term), Style.DIM, Fore.WHITE) for term in terminals if term]
 
     terminals_str = ", ".join(colored_terminals)
     if len(colored_terminals) > 1:
       terminals_str = "(%s)" % terminals_str
-    result.append(colored_name + "@" + terminals_str)
+    if terminals_str:
+      colored_name += "@" + terminals_str
+
+    result.append(colored_name)
 
   return ", ".join(result)
 
@@ -150,11 +153,11 @@ def _get_disks():
     # systems such as btrfs, for which we just pick the first mounted partition
     # in the list and print out its metadata.
     disk = next(partitions_by_disk)
-    if psutil.WINDOWS and ("cdrom" in disk.opts or disk.fstype == ""):
+    if os.name == "nt" and ("cdrom" in disk.opts or disk.fstype == ""):
       # skip cd-rom drives with no disk in it on Windows; they may raise ENOENT,
       # pop-up a Windows GUI error for a non-ready partition or just hang
       continue
-    elif psutil.LINUX and disk.mountpoint.startswith(("/snap/", "/var/snap/")):
+    elif os.name == "posix" and disk.mountpoint.startswith(("/snap/", "/var/snap/")):
       # skip active snap packages
       continue
 
@@ -211,15 +214,54 @@ def _get_local_addresses():
 
 
 def _get_distro_info():
-  if psutil.WINDOWS:
-    return "windows", platform.system(), platform.release(), ""
+  if os.name == "nt":
+    # Even though on Windows `platform.uname()` wraps `platform.win32_ver()`,
+    # it's worth it to use the former since it also performs some normalizations
+    # on the results of `win32_ver()`: <https://github.com/python/cpython/blob/v3.14.5/Lib/platform.py#L1014-L1046>
+    uname = platform.uname()
 
-  elif psutil.OSX:
+    windows = ["Microsoft Windows"] if uname.system == "Windows" else [uname.system]
+
+    # The list of all possible values of `uname.release`, as of Python 3.14.5:
+    # <https://github.com/python/cpython/blob/v3.14.5/Lib/platform.py#L359-L385>
+    # This list is updated as new major versions of Windows appear. If an older
+    # version of Python does not include an entry for a future version of
+    # Windows that came out later, the value of `uname.release` will contain the
+    # name of the newest version of Windows that copy of Python is aware of,
+    # with the prefix `post` added in front of it.
+    release = uname.release
+    if release.startswith("post"):
+      release = release[4:]
+      windows.append("newer than")
+
+    # For server versions of Windows, `uname.release` will look something like `2012ServerR2`
+    server_year, server_str, server_release = release.partition("Server")
+    if server_str:
+      windows.extend(["Server", server_year, server_release])
+    elif not uname.version.startswith(release + "."):
+      # When `uname.release` is something numeric, like `10` or `11`, the full
+      # version number will also start with the release number, so there is no
+      # point in repeating that number twice.
+      windows.append(release)
+
+    windows.append(uname.version)
+
+    if release == "11":
+      logo_id = "windows11"
+    elif release == "10":
+      logo_id = "windows10"
+    else:
+      logo_id = "windows"
+
+    return logo_id, " ".join(part for part in windows if part != "")
+
+  elif sys.platform.startswith("darwin"):
     import plistlib
 
     with open("/System/Library/CoreServices/SystemVersion.plist", "rb") as f:
       sw_vers = plistlib.load(f)
-    return "mac", sw_vers["ProductName"], sw_vers["ProductVersion"], ""
+
+    return "mac", "%s %s" % (sw_vers["ProductName"], sw_vers["ProductVersion"])
 
   elif (
     # See <https://stackoverflow.com/questions/48019043/python-detect-android>
@@ -240,11 +282,11 @@ def _get_distro_info():
       if status != 0:
         android_release = ""
 
-    return "android", "Android", android_release, ""
+    return "android", "Android %s" % android_release
 
-  elif psutil.LINUX:
+  elif sys.platform.startswith("linux"):
     import distro
 
-    return distro.id(), distro.name(), distro.version(), distro.codename()
+    return distro.id(), "%s %s %s" % (distro.name(), distro.version(), distro.codename())
 
   raise NotImplementedError("unsupported OS")
