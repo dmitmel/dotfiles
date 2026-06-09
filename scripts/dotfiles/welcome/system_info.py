@@ -285,8 +285,59 @@ def _get_distro_info():
     return "android", "Android %s" % android_release
 
   elif sys.platform.startswith("linux"):
-    import distro
+    try:
+      # <https://github.com/python-distro/distro/blob/v1.9.0/src/distro/distro.py>
+      import distro
+    except ImportError:
+      # Actually, Python used to have a built-in function that did the guesswork
+      # of figuring out which Linux distro we are running on, though it used to
+      # be pretty unreliable (mainly because back in the day there was no
+      # single[1] standardized file like `/etc/os-release`, so it had to rely on
+      # a hardcoded list of known distro-specific filenames which would identify
+      # that distro). This function was deprecated in 3.5 and in 3.8 it was
+      # completely removed from the standard library after a lengthy discussion:
+      # <https://bugs.python.org/issue1322>. The library `distro` has in fact
+      # appeared due to this function being removed, and was developed to be
+      # more robust by both parsing the file `/etc/os-release`, which at that
+      # point has become a standard (though Ubuntu and Debian have long been
+      # including patches[2] to that built-in function, which outfitted it with
+      # the ability of parsing `/etc/lsb-release`[3], a spiritual predecessor to
+      # `/etc/os-release`), and by also using some distro-specific heuristics.
+      # However, we can still fall back on this function if it is available (if
+      # we are running on a sufficiently old version of Python), but the library
+      # `distro` is not.
+      # [1]: <http://linuxmafia.com/faq/Admin/release-files.html>
+      # [2]: <https://git.launchpad.net/ubuntu/+source/python3.5/tree/debian/patches/platform-lsbrelease.diff>
+      # [3]: <https://stackoverflow.com/questions/47838800/etc-lsb-release-vs-etc-os-release>
+      if hasattr(platform, "linux_distribution"):
+        distro_name, distro_version, distro_codename = platform.linux_distribution(  # type: ignore
+          full_distribution_name=True
+        )
+        distro_id, _, _ = platform.linux_distribution(full_distribution_name=False)  # type: ignore
+        return distro_id.lower(), "%s %s %s" % (distro_name, distro_version, distro_codename)
+      # Well, since the standardized `/etc/os-release` file has become quite
+      # ubiquitous over the past decade, having been embraced by every single
+      # Linux distro (and even by FreeBSD), Python folks have added a built-in
+      # function for parsing this file in 3.10, which is a modern (and much less
+      # hacky) alternative to the once removed `platform.linux_distribution()`.
+      # It simply looks for `/etc/os-release` or `/usr/lib/os-release`, parses
+      # it and returns a dictionary with the fields present in that file. Here
+      # are the descriptions of all fields which can be found in those files:
+      # <https://www.freedesktop.org/software/systemd/man/latest/os-release.html>
+      # (yes, this is a part of systemd, this *is* a creation of the great and
+      # terrible Lennart Poettering: <https://0pointer.de/blog/projects/os-release>).
+      elif hasattr(platform, "freedesktop_os_release"):
+        info = platform.freedesktop_os_release()  # type: dict[str, str]  # type: ignore
+        # As the documentation suggests, the fields `NAME` and `VERSION` are
+        # suitable for displaying to the end-user, so I'm simply going to use
+        # those and not bother with finding fallbacks or alternatives (though
+        # on rolling release distros like Arch, `VERSION` is usually empty).
+        return info.get("ID", ""), "%s %s" % (info.get("NAME", ""), info.get("VERSION", ""))
+      else:
+        # Remember that we are still in the exception handler for `ImportError`.
+        # If there are no alternatives to the `distro` library -- notify the user.
+        raise
+    else:
+      return distro.id(), "%s %s" % (distro.name(), distro.version(pretty=True, best=True))
 
-    return distro.id(), "%s %s %s" % (distro.name(), distro.version(), distro.codename())
-
-  raise NotImplementedError("unsupported OS")
+  raise NotImplementedError("unknown OS")
