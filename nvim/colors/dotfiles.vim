@@ -133,6 +133,8 @@ function! s:setup() " NOTE: not abort
     hi! link @variable.cmake            Variable
     hi! link @variable.parameter.bash   @none
 
+    hi! link @punctuation.delimiter.xml Quote  " single or double quotes of attribute values
+
     hi! link @module                Identifier
     hi! link @module.builtin        PreProc
     " hi! link @function.builtin      Special
@@ -607,13 +609,21 @@ function! s:setup() " NOTE: not abort
   " XML {{{
   " `Tag` is not an appropriate group to link `xmlTagName` to, see why above.
   hi! link xmlTagName         Function
-  hi! link xmlAttrib          Variable
-  hi! link xmlTag             Comment
-  hi! link xmlEndTag          Comment
-  hi! link xmlAttribPunct     Delimiter
-  hi! link xmlProcessingDelim Special
-  hi! link xslElement         xmlTagName
+  hi! link dtdTag             xmlTagName
   hi! link xmlNamespace       Label
+  hi! link xmlAttrib          Identifier
+  hi! link xmlEntity          Special    " `nbsp` in `&nbsp;`
+  hi! link xmlEntityPunct     xmlEntity  " `&` and `;` in `&nbsp;` or `&#2137;` (but not `#`, interestingly enough)
+  hi! link xmlTag             Comment    " `<`  and `>` in `<opening-tag>`
+  hi! link xmlEndTag          xmlTag     " `</` and `>` in `</closing-tag>`
+  hi! link xmlAttribPunct     xmlTag     " `:` and `.` in `<xml:foo.tag xml:bar.attribute="etc">`
+  hi! link xmlProcessingDelim xmlTag     " `<?` and `>`
+  hi! link xmlDoctypeDecl     xmlTag     " `<!DOCTYPE`, `>`, `[` and `]` in `<!DOCTYPE something [ inline dtd... ]>`
+  hi! link xmlDocType         Type       " `fontconfig` in `<!DOCTYPE fontconfig SYSTEM "fonts.dtd">`
+  hi! link dtdFunction        xmlTag     " `<!` and `>`
+  hi! link dtdCard            Operator   " wildcards/operators: `|`, `,`, `&`, `?`, `*`, `+`, `ANY`, `EMPTY`
+  hi! link dtdString          String
+  hi! link dtdAttrDef         StorageClass  " `#REQUIRED`, `#IMPLIED`, `#FIXED`
   " }}}
 
   " Git {{{
