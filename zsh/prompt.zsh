@@ -116,6 +116,16 @@ PROMPT+='%F{%(!.red.yellow)}%n%f'
 # <https://github.com/tmux/tmux/blob/3.6/options-table.c#L981-L982>.
 PROMPT+=' at %F{${${SSH_TTY:+blue}:-green}}%m%f'
 
+if command_exists systemd-detect-virt; then
+  # Systemd already contains all of the checks that people recommend on
+  # Stackoverflow for different virtualization and containerization
+  # environments, so I'll just use their existing tool. How the detection
+  # process happens: <https://github.com/systemd/systemd/blob/v260.2/src/basic/virt.c#L632>
+  if _prompt_container="$(systemd-detect-virt --container)" 2>/dev/null; then
+    PROMPT+="%F{magenta}(${_prompt_container//\%/%%})%f"
+  fi; unset _prompt_container
+fi
+
 # working directory
 PROMPT+=' in %F{cyan}%~%f'
 
