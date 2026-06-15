@@ -199,6 +199,14 @@ set history=10000
     autocmd!
     if !exists('s:start_reltime') | let s:start_reltime = reltime() | endif
     autocmd WinEnter * let w:dotfiles_last_visit_time = reltimefloat(reltime(s:start_reltime))
+    " NOTE: the `WinEnter` autocmd is not done for the very first window that is
+    " created when Vim has just started.
+    " NOTE: Also, multiple windows can be created when Vim is started, e.g. with
+    " the `-o` or `-O` options.
+    autocmd VimEnter *
+      \ for s:winid in range(1, winnr('$'))
+      \|  call setwinvar(s:winid, 'dotfiles_last_visit_time', reltimefloat(reltime(s:start_reltime)))
+      \|endfor
   augroup END
 
   " Resize windows with CTRL+arrows
