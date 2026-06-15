@@ -87,6 +87,7 @@ lsp_ignition.enable({
   'prettier',
   'gopls',
   'taplo',
+  'stylua',
 })
 
 if dotplug.has('conform.nvim') then
@@ -94,9 +95,7 @@ if dotplug.has('conform.nvim') then
     default_format_opts = {
       lsp_format = 'fallback',
     },
-    formatters_by_ft = {
-      lua = { 'stylua' },
-    },
+    formatters_by_ft = {},
   })
 end
 

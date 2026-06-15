@@ -189,17 +189,11 @@ augroup dotfiles_coc
   endif
 augroup END
 
-let g:coc_user_config['languageserver.efm'] = #{
-\ command: 'efm-langserver',
-\ filetypes: ['lua'],
+let g:coc_user_config['languageserver.stylua'] = #{
+\ command: ['stylua', '--lsp', '--search-parent-directories'],
+\ filetypes: ['lua', 'luau'],
 \ formatterPriority: 1,
 \ initializationOptions: #{
-\   documentFormatting: v:true,
-\   documentRangeFormatting: v:true,
+\   respect_editor_formatting_options: v:true,
 \ },
 \}
-
-let g:coc_user_config['languageserver.efm.settings.languages.lua'] = [#{
-\ formatCommand: 'stylua --search-parent-directories --stdin-filepath=${INPUT} -',
-\ formatStdin: v:true,
-\}]
