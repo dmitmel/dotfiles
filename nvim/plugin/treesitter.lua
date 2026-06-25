@@ -1,5 +1,7 @@
 if vim.treesitter == nil then return end
+
 local utils = require('dotfiles.utils')
+local augroup = utils.augroup('dotfiles.treesitter')
 
 if vim.show_pos and vim.treesitter.inspect_tree then
   vim.api.nvim_create_user_command('HLT', 'Inspect', {})
@@ -24,6 +26,9 @@ function dotfiles.maybe_get_treesitter_parser(bufnr, lang)
   end
 end
 
+---@param bufnr integer?
+---@param lang string?
+---@return boolean
 function dotfiles.treesitter_parser_exists(bufnr, lang)
   local _, err = dotfiles.maybe_get_treesitter_parser(bufnr, lang)
   return err == nil
@@ -116,13 +121,27 @@ function vim.treesitter.start(bufnr, lang)
   return vim.treesitter._really_start(bufnr, lang)
 end
 
-if dotplug.has('nvim-treesitter') then
-  -- vim.g._ts_force_sync_parsing = true
+---@return vim.treesitter.LanguageTree?
+local function parse_current_buffer()
+  local parser, parser_error = dotfiles.maybe_get_treesitter_parser(0)
+  if parser then
+    parser:parse({ vim.fn.line('w0') - 1, vim.fn.line('w$') })
+    return parser
+  else
+    vim.notify(parser_error, vim.log.levels.ERROR)
+    return nil
+  end
+end
 
-  ---@diagnostic disable-next-line: missing-fields
-  require('nvim-treesitter.configs').setup({
+if dotplug.has('nvim-treesitter') then
+  if vim.fn.executable('tree-sitter') == 0 then
+    vim.notify(
+      'tree-sitter CLI must be installed for building parsers downloaded with nvim-treesitter!',
+      vim.log.levels.ERROR
+    )
+  else
     -- NOTE: Keep this list sorted, please.
-    ensure_installed = {
+    local ensure_installed = {
       'bash',
       'c',
       'cmake',
@@ -135,7 +154,6 @@ if dotplug.has('nvim-treesitter') then
       'jq',
       'jsdoc',
       'json',
-      'jsonc',
       'lua',
       'luadoc',
       'luap',
@@ -157,65 +175,61 @@ if dotplug.has('nvim-treesitter') then
       'vimdoc',
       'xml',
       'yaml',
-    },
+      'zsh',
+    }
 
-    highlight = {
-      enable = utils.is_truthy(vim.g.dotfiles_treesitter_highlighting),
-    },
+    require('nvim-treesitter').install(ensure_installed, {
+      max_jobs = vim.uv.available_parallelism() * 2,
+    })
+  end
 
-    indent = {
-      enable = true,
-    },
+  augroup:autocmd('FileType', function(event)
+    local filetype = event.match
+    if
+      utils.is_truthy(vim.g.dotfiles_treesitter_highlighting)
+      or (filetype == 'query' or filetype == 'nix')
+    then
+      if dotfiles.treesitter_parser_exists(event.buf, filetype) then
+        vim.treesitter.start(event.buf, filetype)
+      end
+    end
+  end, { desc = 'start Treesitter highlighting in the current buffer' })
 
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = '<C-space>',
-        node_incremental = '<C-space>',
-        scope_incremental = false,
-        node_decremental = '<BS>',
-      },
-    },
+  augroup:autocmd('FileType', function(event)
+    local bo = vim.bo[event.buf]
+    local lang = vim.treesitter.language.get_lang(bo.filetype)
+    if lang and vim.treesitter.query.get(lang, 'indents') then
+      bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+  end, { desc = 'enable indentation with Treesitter for the current buffer (if supported)' })
 
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true,
+  require('nvim-ts-autotag').setup()
 
-        keymaps = {
-          ['af'] = '@function.outer',
-          ['if'] = '@function.inner',
-          ['ac'] = '@class.outer',
-          ['ic'] = '@class.inner',
-          ['ab'] = '@block.outer',
-          ['ib'] = '@block.inner',
-          ['aa'] = '@parameter.outer',
-          ['ia'] = '@parameter.inner',
-        },
-      },
-
-      move = {
-        enable = true,
-        set_jumps = true, -- whether to set jumps in the jumplist
-        goto_next_start = {
-          [']]'] = '@function.outer',
-        },
-        goto_next_end = {
-          [']['] = '@function.outer',
-        },
-        goto_previous_start = {
-          ['[['] = '@function.outer',
-        },
-        goto_previous_end = {
-          ['[]'] = '@function.outer',
-        },
-      },
-    },
+  require('nvim-treesitter-textobjects').setup({
+    select = { lookahead = true, include_surrounding_whitespace = false },
+    move = { set_jumps = true },
   })
 
+  for lhs, query in pairs({
+    ['af'] = '@function.outer',
+    ['if'] = '@function.inner',
+    ['ac'] = '@class.outer',
+    ['ic'] = '@class.inner',
+    ['ab'] = '@block.outer',
+    ['ib'] = '@block.inner',
+  }) do
+    vim.keymap.set({ 'x', 'o' }, lhs, function()
+      if parse_current_buffer() then
+        require('nvim-treesitter-textobjects.select').select_textobject(query, 'textobjects')
+      end
+    end)
+  end
+end
+
+if utils.has('nvim-0.10.0') and utils.is_truthy(vim.g.dotfiles_highlight_url_under_cursor) then
   local clear_underlined_urls ---@type function|nil
 
-  local function highlight_url_under_cursor()
+  augroup:autocmd({ 'CursorMoved', 'CursorMovedI', 'WinEnter', 'BufEnter' }, function()
     if clear_underlined_urls ~= nil then
       clear_underlined_urls()
       clear_underlined_urls = nil
@@ -236,12 +250,12 @@ if dotplug.has('nvim-treesitter') then
     local buf_highlighter = vim.treesitter.highlighter.active[bufnr]
     if not buf_highlighter then return end
 
-    local cur_range = { row, col, row, col + 1 }
-    local lang_tree = buf_highlighter.tree:language_for_range(cur_range)
+    local cursor_range = { row, col, row, col + 1 }
+    local lang_tree = buf_highlighter.tree:language_for_range(cursor_range)
     local query = vim.treesitter.query.get(lang_tree:lang(), 'highlights')
     if not query then return end
 
-    local tree = lang_tree:tree_for_range(cur_range)
+    local tree = lang_tree:tree_for_range(cursor_range)
     if not tree then return end
 
     local ns_id = vim.api.nvim_create_namespace('dotfiles_url_under_cursor')
@@ -249,7 +263,7 @@ if dotplug.has('nvim-treesitter') then
 
     for id, node, _metadata, _match in query:iter_captures(tree:root(), bufnr, row, row + 1) do
       local name = query.captures[id]
-      if vim.treesitter.node_contains(node, cur_range) and name:match('[._]url$') then
+      if vim.treesitter.node_contains(node, cursor_range) and name:match('[._]url$') then
         local start_row, start_col, end_row, end_col = node:range()
         extmarks[#extmarks + 1] = vim.api.nvim_buf_set_extmark(bufnr, ns_id, start_row, start_col, {
           end_row = end_row,
@@ -264,36 +278,139 @@ if dotplug.has('nvim-treesitter') then
         vim.api.nvim_buf_del_extmark(bufnr, ns_id, id)
       end
     end
+  end, { desc = 'highlight the URL under the cursor' })
+end
+
+do
+  ---@type table<integer, table<TSNode|nil>>
+  local selections = {}
+  -- TODO: check bufnr and changedtick
+  -- TODO: fails when you start visual mode, don't select anything and press <C-space>
+  -- TODO: doesn't increase selection when a node which ends with a Unicode character is selected
+
+  -- Get the range of the current visual selection.
+  --
+  -- The range starts with 1 and the ending is inclusive.
+  ---@return integer, integer, integer, integer
+  local function visual_selection_range()
+    local _, cursor_row, corsor_col, _ = unpack(vim.fn.getpos('.'))
+    local _, other_row, other_col, _ = unpack(vim.fn.getpos('v'))
+    if other_row < cursor_row or (other_row == cursor_row and other_col <= corsor_col) then
+      return other_row, other_col, cursor_row, corsor_col
+    else
+      return cursor_row, corsor_col, other_row, other_col
+    end
   end
 
-  if utils.has('nvim-0.10.0') and utils.is_truthy(vim.g.dotfiles_highlight_url_under_cursor) then
-    utils
-      .augroup('dotfiles_url_under_cursor')
-      :autocmd(
-        { 'CursorMoved', 'CursorMovedI', 'WinEnter', 'BufEnter' },
-        highlight_url_under_cursor
-      )
+  ---@param node TSNode
+  local function get_vim_range(node)
+    local start_row, start_col, end_row, end_col = node:range()
+    start_row = start_row + 1
+    start_col = start_col + 1
+    end_row = end_row + 1
+
+    -- TODO: what?
+    -- <https://github.com/nvim-treesitter/nvim-treesitter/commit/e4c56e691a56dfb25ead19aad7fa6b08879b569f>
+    if end_col == 0 then
+      end_row = end_row - 1
+      -- Use the value of the last col of the previous row instead.
+      end_col = vim.fn.col({ end_row, '$' }) - 1
+      end_col = math.max(end_col, 1)
+    end
+
+    return start_row, start_col, end_row, end_col
   end
 
-  local function reparse_current_buffer()
-    local parser = require('nvim-treesitter.parsers').get_parser(0)
-    parser:parse({ vim.fn.line('w0') - 1, vim.fn.line('w$') })
+  --- Based on <https://github.com/nvim-treesitter/nvim-treesitter-textobjects/blob/b54cec389e98c5b0babbe618773acec927437cab/lua/nvim-treesitter-textobjects/select.lua#L5-L33>.
+  ---@param node TSNode
+  local function select_node(node)
+    if vim.api.nvim_get_mode().mode ~= 'v' then vim.cmd('normal! v') end
+
+    local start_row, start_col, end_row, end_col = get_vim_range(node)
+    if vim.o.selection == 'exclusive' then end_col = end_col + 1 end
+
+    vim.fn.cursor(start_row, start_col)
+    vim.cmd('normal! o')
+    vim.fn.cursor(end_row, end_col)
   end
 
-  local ts_select = require('nvim-treesitter.textobjects.select')
-  ts_select._old_select_textobject = ts_select._old_select_textobject or ts_select.select_textobject
-  function ts_select.select_textobject(...)
-    reparse_current_buffer()
-    return ts_select._old_select_textobject(...)
+  local function start_selection()
+    if not parse_current_buffer() then return end
+
+    local node = vim.treesitter.get_node({ ignore_injections = false, include_anonymous = false })
+    if not node then return end
+
+    local buf = vim.api.nvim_get_current_buf()
+    selections[buf] = { [1] = node }
+    select_node(node)
   end
 
-  local ts_to_shared = require('nvim-treesitter.textobjects.shared')
-  ts_to_shared._old_get_query_strings_from_regex = ts_to_shared._old_get_query_strings_from_regex
-    or ts_to_shared.get_query_strings_from_regex
-  function ts_to_shared.get_query_strings_from_regex(...)
-    reparse_current_buffer()
-    return ts_to_shared._old_get_query_strings_from_regex(...)
+  local function expand_selection()
+    local lang_tree = parse_current_buffer()
+    if not lang_tree then return end
+
+    local buf = vim.api.nvim_get_current_buf()
+    local nodes = selections[buf]
+
+    local csrow, cscol, cerow, cecol = visual_selection_range()
+    local visual_ts_range = { csrow - 1, cscol - 1, cerow - 1, cecol }
+
+    local srow, scol, erow, ecol = get_vim_range(nodes[#nodes])
+    local range_matches = srow == csrow and scol == cscol and erow == cerow and ecol == cecol
+
+    -- Initialize incremental selection with current selection
+    if not nodes or #nodes == 0 or not range_matches then
+      local node = lang_tree:named_node_for_range(visual_ts_range, { ignore_injections = false })
+      if node then
+        select_node(node)
+        if nodes and #nodes > 0 then
+          table.insert(selections[buf], node)
+        else
+          selections[buf] = { [1] = node }
+        end
+      end
+      return
+    end
+
+    -- Find a node that changes the current selection.
+    local node = nodes[#nodes] ---@type TSNode
+    while true do
+      local parent = node:parent()
+
+      if not parent then
+        local current_parser = lang_tree:language_for_range(visual_ts_range)
+        local parent_parser = current_parser:parent()
+        if not parent_parser then return end
+        parent = parent_parser:named_node_for_range(visual_ts_range)
+        if not parent then return end
+      end
+      node = parent
+
+      local srow, scol, erow, ecol = get_vim_range(node)
+      local same_range = (srow == csrow and scol == cscol and erow == cerow and ecol == cecol)
+      if not same_range then
+        if node ~= nodes[#nodes] then table.insert(nodes, node) end
+        select_node(node)
+        return
+      end
+    end
   end
+
+  local function shrink_selection()
+    local buf = vim.api.nvim_get_current_buf()
+    local nodes = selections[buf]
+    if not nodes or #nodes < 2 then return end
+
+    table.remove(selections[buf])
+    local node = nodes[#nodes] ---@type TSNode
+    select_node(node)
+  end
+
+  vim.keymap.set('n', '<C-space>', start_selection, { desc = 'start incremental selection' })
+  vim.keymap.set('x', '<C-space>', expand_selection, { desc = 'expand selection to parent node' })
+  vim.keymap.set('x', '<BS>', shrink_selection, { desc = 'shrink selection to an inner node' })
+
+  augroup:autocmd('BufLeave', function() end)
 end
 
 if dotplug.has('nvim-ts-autotag') then require('nvim-ts-autotag').setup() end

@@ -230,12 +230,12 @@ exe dotplug#define_plug_here()
       " Manages global and local settings for Language Servers.
       Plug 'https://github.com/folke/neoconf.nvim'
     endif
-    if has('nvim-0.9.0')
+    if has('nvim-0.12')
       " The new parsing and syntax highlighting system for Neovim.
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter', {
-            \ 'branch': 'master', 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
+            \ 'branch': 'main', 'do': ':if exists(":TSUpdate") | TSUpdate | endif' }
       Plug 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects', {
-            \ 'branch': 'master', 'requires': 'nvim-treesitter' }
+            \ 'branch': 'main', 'requires': 'nvim-treesitter' }
     endif
   endif
 " }}}
