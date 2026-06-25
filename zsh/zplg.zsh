@@ -461,7 +461,7 @@ _zplg_run_commands() {
       plugin_ids_var=("${(k)ZPLG_LOADED_PLUGINS[@]}")
     fi
 
-    local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
+    local plugin_id plugin_url plugin_from plugin_dir
     for plugin_id in "${plugin_ids_var[@]}"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
@@ -486,7 +486,7 @@ _zplg_run_commands() {
       return 1
     fi
 
-    local plugin_id plugin_url plugin_from plugin_dir; local -a plugin_build
+    local plugin_id plugin_url plugin_from plugin_dir
     for plugin_id in "$@"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
@@ -513,9 +513,9 @@ _zplg_run_commands() {
       return 1
     fi
 
-    local plugin_id plugin_dir; local -a plugin_build
+    local plugin_id
     for plugin_id in "$@"; do
-      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
+      local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
         # TERRIBLE HACK continued: this monstrosity is used to "decode" build
@@ -523,7 +523,8 @@ _zplg_run_commands() {
         # procedure. First, I get encoded string. Then with the (z) modifier I
         # split it into array taking into account quoting. Then with the (Q)
         # modifier I unquote every value.
-        plugin_build=("${(@Q)${(z) ${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} }}")
+        local plugin_build="${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}"
+        local plugin_build=("${(@Q)${(z)plugin_build}}")
         _zplg_log "building $plugin_id"
         ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
       fi
