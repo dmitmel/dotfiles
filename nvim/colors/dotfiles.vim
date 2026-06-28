@@ -959,6 +959,8 @@ function! s:setup() " NOTE: not abort
   hi! link shDerefSimple  Variable
   hi! link shOperator     Operator
   hi! link zshOperator    Operator
+  hi! link shSource       Statement  " the `.` command
+  hi! link shRepeat       NONE       " conditions of while/until loops (not the loop keywords themselves)
   " }}}
 
   " Assembly {{{
