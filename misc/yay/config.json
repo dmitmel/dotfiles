@@ -2,5 +2,6 @@
   "answerdiff": "All",
   "completioninterval": 1,
   "devel": true,
-  "removemake": "yes"
+  "removemake": "yes",
+  "sudoloop": true
 }
