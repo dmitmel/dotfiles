@@ -76,7 +76,12 @@ if has_vim_ui then
 end
 
 if dotplug.has('fzf-lua') then
+  -- fzf-lua puts its own `dump()` function into the global scope:
+  -- <https://github.com/ibhagwan/fzf-lua/blob/beaa4e83e6be4174af291a464e4f49548c943963/lua/fzf-lua/utils.lua#L1-L7>
+  local my_dump = _G.dump
   local FzfLua = require('fzf-lua')
+  _G.dump = my_dump
+
   local FzfWin = FzfLua.win
 
   FzfWin._real_new = FzfWin._real_new or FzfWin.new
@@ -103,6 +108,8 @@ if dotplug.has('fzf-lua') then
 
     return self
   end)
+
+  FzfLua.deregister_ui_select(--[[ opts = ]] nil, --[[ silent = ]] true)
 
   FzfLua.setup({
     'fzf-vim',
@@ -195,28 +202,6 @@ if dotplug.has('fzf-lua') then
         },
       },
 
-      code_actions = {
-        fzf_opts = {
-          ['--scrollbar'] = '█',
-        },
-
-        fzf_colors = {
-          ['fg'] = { 'fg', 'Pmenu' },
-          ['bg'] = { 'bg', 'Pmenu' },
-          ['gutter'] = { 'bg', 'Pmenu' },
-          ['scrollbar'] = { 'bg', 'PmenuThumb' },
-        },
-
-        winopts = {
-          split = false,
-          relative = 'cursor',
-          row = 1,
-          col = 1,
-          border = 'none',
-          preview = { hidden = true },
-        },
-      },
-
       symbols = {
         fzf_opts = { ['--layout'] = 'reverse-list' },
         symbol_style = 2, -- Show just the icon
@@ -265,35 +250,17 @@ if dotplug.has('fzf-lua') then
         ['enter'] = FzfLua.actions.file_edit, -- the default is file_edit_or_qf
       },
     },
-  })
 
-  FzfLua.deregister_ui_select(--[[ opts = ]] nil, --[[ silent = ]] true)
-  FzfLua.register_ui_select(
-    ---@type dotfiles.ui_select_fn
-    function(opts, items)
+    ui_select = function(ui_opts, items)
       local num_width = string.format('%d. ', #items):len()
       local item_width = 0
       for _, item in ipairs(items) do
-        local text = opts.format_item and opts.format_item(item) or tostring(item)
+        local text = ui_opts.format_item and ui_opts.format_item(item) or tostring(item)
         item_width = math.max(item_width, vim.api.nvim_strwidth(text))
       end
 
-      local winopts = {}
-      if opts.kind == 'codeaction' then
-        winopts.width = utils.clamp(
-          num_width + item_width + 3, -- +1 for the scrollbar
-          vim.o.pumwidth,
-          utils.round(vim.o.columns * 0.5)
-        )
-        winopts.height = utils.clamp(#items + 1, 2, vim.o.pumheight)
-      else
-        local list_height = math.min(#items + 1, utils.round(vim.o.lines * 0.4))
-        winopts.split = string.format('botright %dnew', list_height)
-      end
-
-      return {
-        prompt = (opts.prompt or 'Select'):gsub('^%s*', ''):gsub(':?%s*$', '') .. ': ',
-        winopts = winopts,
+      local opts = {
+        prompt = (ui_opts.prompt or 'Select'):gsub('^%s*', ''):gsub(':?%s*$', '') .. ': ',
         fzf_opts = {
           ['--layout'] = 'reverse-list',
           ['--cycle'] = true,
@@ -304,10 +271,47 @@ if dotplug.has('fzf-lua') then
         keymap = {
           fzf = { ['result'] = 'best' },
         },
+        winopts = {},
       }
-    end
-  )
 
+      if ui_opts.kind == 'codeaction' then
+        opts.winopts.width = utils.clamp(
+          -- +1 for the scrollbar, +2 for the borders of the floating window
+          num_width + item_width + 2 + 1,
+          vim.o.pumwidth --[[ minimum width ]],
+          utils.round(vim.o.columns * 0.5)
+        )
+        opts.winopts.height = utils.clamp(#items + 1, 2, vim.o.pumheight --[[ maximum height ]])
+
+        opts = vim.tbl_deep_extend('force', opts, {
+          winopts = {
+            split = false,
+            relative = 'cursor',
+            row = 1,
+            col = 1,
+            border = 'none',
+            preview = { hidden = true },
+          },
+          fzf_opts = {
+            ['--scrollbar'] = '█',
+          },
+          fzf_colors = {
+            ['fg'] = { 'fg', 'Pmenu' },
+            ['bg'] = { 'bg', 'Pmenu' },
+            ['gutter'] = { 'bg', 'Pmenu' },
+            ['scrollbar'] = { 'bg', 'PmenuThumb' },
+          },
+        })
+      else
+        local list_height = math.min(#items + 1, utils.round(vim.o.lines * 0.4))
+        opts.winopts.split = string.format('botright %dnew', list_height)
+      end
+
+      return opts
+    end,
+  })
+
+  -- assert(require('fzf-lua.providers.ui_select').is_registered())
   -- local fzf_ui_select = vim.ui.select
   -- function vim.ui.select(...)
   --   local _items, opts, _on_choice = ...
