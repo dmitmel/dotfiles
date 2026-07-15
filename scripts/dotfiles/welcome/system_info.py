@@ -13,7 +13,7 @@ from getpass import getuser
 
 import psutil
 
-from .colors import Fore, Style, bright_colored, colored, colorize_percent
+from .colors import BLUE, BOLD, DIM, RED, WHITE, YELLOW, colored, colorize_percent
 from .humanize import humanize_bytes, humanize_timedelta
 
 
@@ -21,7 +21,7 @@ def get_system_info() -> "tuple[str, list[str]]":
   info_lines = []  # type: list[str]
 
   def info(name: str, value: str, *format_args: object) -> None:
-    line = bright_colored(name + ":", Fore.YELLOW) + " " + value
+    line = colored(name + ":", fg=YELLOW, attrs=BOLD) + " " + value
     if format_args:
       line = line % format_args
     info_lines.append(line)
@@ -29,7 +29,9 @@ def get_system_info() -> "tuple[str, list[str]]":
   username = getuser()
   hostname = _get_hostname()
 
-  info_lines.append(bright_colored(username, Fore.BLUE) + "@" + bright_colored(hostname, Fore.RED))
+  info_lines.append(
+    colored(username, fg=BLUE, attrs=BOLD) + "@" + colored(hostname, fg=RED, attrs=BOLD)
+  )
   info_lines.append("")
 
   logo_id, os_name = _get_distro_info()
@@ -101,8 +103,8 @@ def _get_users():
   result = []  # type: list[str]
 
   for name, terminals in users.items():
-    colored_name = bright_colored(name, Fore.BLUE)
-    colored_terminals = [colored(str(term), Style.DIM, Fore.WHITE) for term in terminals if term]
+    colored_name = colored(name, fg=BLUE, attrs=BOLD)
+    colored_terminals = [colored(str(term), fg=WHITE, attrs=DIM) for term in terminals if term]
 
     terminals_str = ", ".join(colored_terminals)
     if len(colored_terminals) > 1:

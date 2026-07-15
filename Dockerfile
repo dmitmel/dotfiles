@@ -39,8 +39,8 @@ RUN rm -rf '/var/cache/ccache'
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt/archives \
   packages='' && \
   for name in build-essential curl wget zsh vim neovim git pv jq zip unzip kitty-terminfo file \
-    less man-db tree python3 python-is-python3 python3-psutil python3-colorama python3-distro \
-    command-not-found; do if apt-cache show "$name" >/dev/null; then packages="${packages} ${name}"; fi; done && \
+    less man-db tree python3 python-is-python3 python3-psutil python3-distro command-not-found; do \
+    if apt-cache show "$name" >/dev/null; then packages="${packages} ${name}"; fi; done && \
   apt-get install --no-install-recommends -y $packages && \
   apt-get update  # to update the command-not-found database
 

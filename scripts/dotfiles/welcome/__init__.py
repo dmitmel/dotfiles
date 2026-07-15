@@ -6,17 +6,21 @@ import os
 import re
 import sys
 
-import colorama
-
-from .colors import COLORS, Style
+from . import colors
 from .system_info import get_system_info
 
 
 def main() -> None:
-  if hasattr(colorama, "just_fix_windows_console"):
-    colorama.just_fix_windows_console()
-  elif sys.platform == "win32":
-    colorama.init()
+  if sys.platform == "win32":
+    try:
+      import colorama
+    except ImportError:
+      pass
+    else:
+      if hasattr(colorama, "just_fix_windows_console"):
+        colorama.just_fix_windows_console()
+      else:
+        colorama.init()
 
   parser = argparse.ArgumentParser()
   parser.add_argument("--hide-logo", action="store_true")
@@ -105,14 +109,16 @@ def main() -> None:
 
 
 LOGO_LINE_TEMPLATE_RE = re.compile(r"{(\d+)}")
+LOGO_COLOR_STRINGS = [colors.sgr(fg=i) for i in range(8)]
+LOGO_LINE_STYLE = colors.sgr(attrs=colors.BOLD)
 
 
 def render_logo_line(line: str, remove_styling: bool = False) -> str:
 
   def logo_line_replacer(match: "re.Match[str]") -> str:
-    return COLORS[int(match.group(1))]
+    return LOGO_COLOR_STRINGS[int(match.group(1))]
 
   if remove_styling:
     return LOGO_LINE_TEMPLATE_RE.sub("", line)
   else:
-    return Style.BRIGHT + LOGO_LINE_TEMPLATE_RE.sub(logo_line_replacer, line) + Style.RESET_ALL
+    return LOGO_LINE_STYLE + LOGO_LINE_TEMPLATE_RE.sub(logo_line_replacer, line) + colors.SGR_RESET
