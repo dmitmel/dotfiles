@@ -29,8 +29,7 @@ def main() -> None:
   parser.add_argument("--list-logos", action="store_true")
   args = parser.parse_args()
 
-  logos_search_dirs = [
-    *args.extra_logos_dir,
+  logos_search_dirs = args.extra_logos_dir + [
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "logos"),
   ]  # type: list[str]
 

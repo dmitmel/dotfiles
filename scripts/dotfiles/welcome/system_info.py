@@ -37,8 +37,8 @@ def get_system_info() -> "tuple[str, list[str]]":
   logo_id, os_name = _get_distro_info()
   info("OS", "%s", os_name)
 
-  uname = platform.uname()
-  info("Kernel", "%s %s", uname.system, uname.release)
+  kernel_name, _, kernel_version, _, _, _ = platform.uname()
+  info("Kernel", "%s %s", kernel_name, kernel_version)
 
   uptime = _get_uptime()
   if uptime:
@@ -90,6 +90,9 @@ def _get_uptime():
 
 
 def _get_users():
+  if not hasattr(psutil, "users"):
+    return ""
+
   users = {}  # type: dict[str, list[str]]
 
   for user in psutil.users():
@@ -196,6 +199,9 @@ def _get_battery():
 
 
 def _get_local_addresses():
+  if not hasattr(psutil, "net_if_addrs"):
+    return []
+
   result = []  # type: list[tuple[str, str, str]]
 
   for interface, addresses in psutil.net_if_addrs().items():
@@ -289,7 +295,7 @@ def _get_distro_info():
   elif sys.platform.startswith("linux"):
     try:
       # <https://github.com/python-distro/distro/blob/v1.9.0/src/distro/distro.py>
-      import distro
+      import distro  # pyright: ignore[reportMissingImports]
     except ImportError:
       # Actually, Python used to have a built-in function that did the guesswork
       # of figuring out which Linux distro we are running on, though it used to
