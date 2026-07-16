@@ -1,5 +1,3 @@
-# pyright: reportTypeCommentUsage=none
-
 from datetime import timedelta
 
 

@@ -4,6 +4,11 @@
   "reportMissingModuleSource": "none", // erroneously generated for imports from `gi.repository`
   "reportMissingTypeStubs": "none",
 
+  // I resort to using the legacy `# type: ...` comments in some scripts to
+  // support Python versions <= 3.5 because the syntax for annotating variables
+  // with types was added only in 3.6.
+  "reportTypeCommentUsage": "none",
+
   // I want to be conservative with the versions of Python I am targetting for
   // my scripts, so that they are usable even on older versions of distros like
   // Ubuntu or Debian, which one can still come by on remote servers or inside

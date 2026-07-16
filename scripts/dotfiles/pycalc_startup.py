@@ -41,7 +41,7 @@ plt = _LazyImporter("matplotlib.pyplot", "plt")
 
 
 def factors(n: int) -> "list[int]":
-  result: "set[int]" = set()
+  result = set()  # type: set[int]
   for i in range(1, int(math.sqrt(n)) + 1):
     if n % i == 0:
       result.add(i)

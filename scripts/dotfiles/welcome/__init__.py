@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyright: reportTypeCommentUsage=none
 
 import argparse
 import itertools

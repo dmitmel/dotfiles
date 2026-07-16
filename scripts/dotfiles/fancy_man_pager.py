@@ -70,11 +70,16 @@
 # This script targets Python versions as old as 3.5. Some modules are imported
 # on demand to improve the execution time of this script (the start-up timing
 # can be profiled with `python -X importtime $0`).
-
-# pyright: reportTypeCommentUsage=none
-#          ^-- I'm forced to resort to the legacy `# type: ...` comments to
-#          support Python 3.5 because the syntax for annotating the types of
-#          variables was added only in 3.6
+#
+# NOTE: It's not worth it to support even older releases of Python. Basically no
+# distro that is still any relevant ships with a Python interpreter older than
+# 3.5 (even Ubuntu 14.04 has both 3.4 and 3.5 in their repos, and it is already
+# more than 12 years old, being the oldest currently supported LTS branch of
+# Ubuntu -- the repos for 12.04 have already been shut down) -- I checked this
+# here: <https://repology.org/project/python/versions>. Additionally, Python 3.4
+# doesn't have the `typing` module, and Python 3.3 doesn't have `contextlib`
+# (also, the function `os.set_blocking` was added only in 3.5, but it can be
+# re-implemented rather trivially by using `fcntl(F_SETFL)` and `O_NONBLOCK`).
 
 import functools
 import os
