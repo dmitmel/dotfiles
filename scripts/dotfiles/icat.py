@@ -65,7 +65,7 @@ import sys
 from contextlib import ExitStack
 from typing import BinaryIO, List, Optional
 
-from .terminal_utils import get_terminal_size, open_noctty, tiocgwinsz
+from .terminal_utils import ctermid, get_terminal_size, open_noctty, tiocgwinsz
 
 # <https://github.com/alacritty/alacritty/wiki/ANSI-References>
 # <https://vt100.net/emu/dec_ansi_parser>
@@ -91,7 +91,7 @@ def run(argv: List[str], stdout: BinaryIO, mode: Optional[str] = None) -> int:
   cols, rows = get_terminal_size(stdout.fileno())
 
   # Vim is supposed to provide this variable, see `../nvim/init.vim`
-  vim_tty = os.environ.get("VIM_TTY", "") or os.ctermid()
+  vim_tty = os.environ.get("VIM_TTY", "") or ctermid()
   with open(vim_tty, "wb", opener=open_noctty) as vim_tty:
     vim = tiocgwinsz(vim_tty.fileno())
     xpixels = vim.ws_xpixel * cols // vim.ws_col

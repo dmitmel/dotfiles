@@ -33,6 +33,11 @@ def open_noctty(path: str, mode: int) -> int:
   return os.open(path, mode | os.O_NOCTTY)
 
 
+def ctermid() -> str:
+  # Some platforms don't have the ctermid(3) function, notably, Android
+  return os.ctermid() if hasattr(os, "ctermid") else "/dev/tty"
+
+
 # The logic in Python's built-in `shutil.get_terminal_size()` function[1] is
 # insufficient, as it only queries the dimensions of the TTY connected to the
 # stdout, and doesn't try `/dev/tty` (see ctermid(3)) if that fails, which
@@ -65,7 +70,7 @@ def get_terminal_size(stream: int) -> "tuple[int, int]":
 
     elif attempt == 2:
       try:
-        with open(os.ctermid(), "rb", opener=open_noctty) as cterm_fd:
+        with open(ctermid(), "rb", opener=open_noctty) as cterm_fd:
           ioctl(cterm_fd, TIOCGWINSZ, size)
       except OSError:
         continue
