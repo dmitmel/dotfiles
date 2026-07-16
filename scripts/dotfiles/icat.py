@@ -58,15 +58,14 @@
 # cross-platform way of obtaining the `TIOCGWINSZ` constant). The startup time
 # can be profiled by running this script with `python -X importtime =icat`.
 
-import ctypes
 import os
 import re
 import subprocess
 import sys
 from contextlib import ExitStack
-from fcntl import ioctl
-from termios import TIOCGWINSZ
-from typing import BinaryIO, List, Optional, Tuple
+from typing import BinaryIO, List, Optional
+
+from .terminal_utils import get_terminal_size, open_noctty, tiocgwinsz
 
 # <https://github.com/alacritty/alacritty/wiki/ANSI-References>
 # <https://vt100.net/emu/dec_ansi_parser>
@@ -88,33 +87,13 @@ DECRC = ESC + b"8"  # restore cursor
 CSI_REGEX = re.compile(rb"^\x1b\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e]")
 
 
-class winsize(ctypes.Structure):  # noqa: N801
-  _fields_ = (
-    ("ws_row", ctypes.c_ushort),
-    ("ws_col", ctypes.c_ushort),
-    ("ws_xpixel", ctypes.c_ushort),
-    ("ws_ypixel", ctypes.c_ushort),
-  )
-  ws_row: int
-  ws_col: int
-  ws_xpixel: int
-  ws_ypixel: int
-
-
-# Opens a TTY device without making it the controlling terminal of this process.
-# Not sure if this is really necessary, though.
-def open_noctty(path: str, mode: int) -> int:
-  return os.open(path, mode | os.O_NOCTTY)
-
-
 def run(argv: List[str], stdout: BinaryIO, mode: Optional[str] = None) -> int:
   cols, rows = get_terminal_size(stdout.fileno())
 
   # Vim is supposed to provide this variable, see `../nvim/init.vim`
   vim_tty = os.environ.get("VIM_TTY", "") or os.ctermid()
   with open(vim_tty, "wb", opener=open_noctty) as vim_tty:
-    vim = winsize()
-    ioctl(vim_tty, TIOCGWINSZ, vim)
+    vim = tiocgwinsz(vim_tty.fileno())
     xpixels = vim.ws_xpixel * cols // vim.ws_col
     ypixels = vim.ws_ypixel * rows // vim.ws_row
 
@@ -215,53 +194,6 @@ def run(argv: List[str], stdout: BinaryIO, mode: Optional[str] = None) -> int:
       i = esc
 
     return 0
-
-
-# The logic in Python's built-in `shutil.get_terminal_size()` function is
-# insufficient, as it only queries the TTY size of the TTY connected to the
-# stdout, and doesn't try `/dev/tty` (see ctermid(3)) if that fails, so this
-# whole script breaks if its output is piped into `| cat -A`, for instance,
-# which makes debugging more painful than it has to be. Also, importing `shutil`
-# imports a lot of other useless stuff (namely, compression algorithms).
-# <https://github.com/python/cpython/blob/v3.13.9/Lib/shutil.py#L1439-L1482>
-def get_terminal_size(stream: int) -> Tuple[int, int]:
-  final_cols, final_rows = 0, 0
-  for attempt in range(3):
-    size = winsize(0, 0, 0, 0)
-
-    if attempt == 0:
-      try:
-        size.ws_col = int(os.environ["COLUMNS"])
-      except (KeyError, ValueError):
-        size.ws_col = 0
-
-      try:
-        size.ws_row = int(os.environ["LINES"])
-      except (KeyError, ValueError):
-        size.ws_row = 0
-
-    elif attempt == 1:
-      try:
-        ioctl(stream, TIOCGWINSZ, size)
-      except OSError:
-        continue
-
-    elif attempt == 2:
-      try:
-        with open(os.ctermid(), "rb", opener=open_noctty) as cterm_fd:
-          ioctl(cterm_fd, TIOCGWINSZ, size)
-      except OSError:
-        continue
-
-    if final_cols <= 0:
-      final_cols = size.ws_col
-    if final_rows <= 0:
-      final_rows = size.ws_row
-
-    if final_cols > 0 and final_rows > 0:
-      return final_cols, final_rows
-
-  return 0, 0
 
 
 def main() -> None:

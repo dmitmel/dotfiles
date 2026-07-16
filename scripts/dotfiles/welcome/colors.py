@@ -15,27 +15,25 @@ WHITE = 7
 BOLD = 1 << 0
 DIM = 1 << 1
 
-SGR_RESET = CSI + "m"
+SGR_RESET = CSI + "0" + "m"
 
 
 def sgr(*, fg: int = -1, bg: int = -1, attrs: int = 0) -> str:
-  commands = []  # type: list[int]
+  commands = []  # type: list[str]
 
   if attrs & BOLD:
-    commands.append(1)
+    commands.append("1")
 
   if attrs & DIM:
-    commands.append(2)
+    commands.append("2")
 
-  if fg >= 0:
-    assert fg < 8
-    commands.append(30 + fg)
+  if 0 <= fg < 8:
+    commands.append(str(30 + fg))
 
-  if bg >= 0:
-    assert bg < 8
-    commands.append(40 + bg)
+  if 0 <= bg < 8:
+    commands.append(str(40 + bg))
 
-  return CSI + ";".join(map(str, commands)) + "m"
+  return CSI + ";".join(commands) + "m"
 
 
 def colored(text: str, *, fg: int = -1, bg: int = -1, attrs: int = 0) -> str:

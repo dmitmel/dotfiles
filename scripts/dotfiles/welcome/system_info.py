@@ -17,59 +17,64 @@ from .colors import BLUE, BOLD, DIM, RED, WHITE, YELLOW, colored, colorize_perce
 from .humanize import humanize_bytes, humanize_timedelta
 
 
-def get_system_info() -> "tuple[str, list[str]]":
-  info_lines = []  # type: list[str]
+def get_system_info() -> "tuple[str, list[tuple[str, str]]]":
+  """
+  Returns logo_id and info_lines.
+  """
 
-  def info(name: str, value: str, *format_args: object) -> None:
-    line = colored(name + ":", fg=YELLOW, attrs=BOLD) + " " + value
-    if format_args:
-      line = line % format_args
-    info_lines.append(line)
+  info_lines = []  # type: list[tuple[str, str]]
+
+  def info(header: str, line: str) -> None:
+    header = colored(header + ":", fg=YELLOW, attrs=BOLD)
+    info_lines.append((header, line))
 
   username = getuser()
   hostname = _get_hostname()
 
-  info_lines.append(
-    colored(username, fg=BLUE, attrs=BOLD) + "@" + colored(hostname, fg=RED, attrs=BOLD)
-  )
-  info_lines.append("")
+  info_lines.append((
+    colored(username, fg=BLUE, attrs=BOLD) + "@" + colored(hostname, fg=RED, attrs=BOLD),
+    "",
+  ))
+
+  separator_line = ("", "")
+  info_lines.append(separator_line)
 
   logo_id, os_name = _get_distro_info()
-  info("OS", "%s", os_name)
+  info("OS", os_name)
 
   kernel_name, _, kernel_version, _, _, _ = platform.uname()
-  info("Kernel", "%s %s", kernel_name, kernel_version)
+  info("Kernel", "%s %s" % (kernel_name, kernel_version))
 
   uptime = _get_uptime()
   if uptime:
-    info("Uptime", "%s", humanize_timedelta(uptime))
+    info("Uptime", humanize_timedelta(uptime))
 
   users_info = _get_users()
   if users_info:
-    info("Users", "%s", users_info)
+    info("Users", users_info)
 
   shell = _get_shell()
   if shell is not None:
-    info("Shell", "%s", shell)
+    info("Shell", shell)
 
-  info_lines.append("")
+  info_lines.append(separator_line)
 
   cpu_usage_info = _get_cpu_usage()
   if cpu_usage_info is not None:
-    info("CPU Usage", "%s", cpu_usage_info)
-  info("Memory", "%s / %s (%s)", *_get_memory())
+    info("CPU Usage", cpu_usage_info)
+  info("Memory", "%s / %s (%s)" % _get_memory())
 
   for disk_info in _get_disks():
-    info("Disk (%s)", "%s / %s (%s)", *disk_info)
+    info("Disk (%s)" % disk_info[0], "%s / %s (%s)" % disk_info[1:])
 
   battery_info = _get_battery()
   if battery_info is not None:
-    info("Battery", "%s (%s)", *battery_info)
+    info("Battery", "%s (%s)" % battery_info)
 
-  info_lines.append("")
+  info_lines.append(separator_line)
 
-  for local_ip_address in _get_local_addresses():
-    info("Local %s Address (%s)", "%s", *local_ip_address)
+  for family, interface, address in _get_local_addresses():
+    info("Local %s Address (%s)" % (family, interface), address)
 
   return logo_id, info_lines
 
@@ -109,10 +114,10 @@ def _get_users():
     colored_name = colored(name, fg=BLUE, attrs=BOLD)
     colored_terminals = [colored(str(term), fg=WHITE, attrs=DIM) for term in terminals if term]
 
-    terminals_str = ", ".join(colored_terminals)
-    if len(colored_terminals) > 1:
-      terminals_str = "(%s)" % terminals_str
-    if terminals_str:
+    if colored_terminals:
+      terminals_str = ", ".join(colored_terminals)
+      if len(colored_terminals) > 1:
+        terminals_str = "(%s)" % terminals_str
       colored_name += "@" + terminals_str
 
     result.append(colored_name)
