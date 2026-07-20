@@ -1,41 +1,18 @@
-import ctypes
 import os
-from fcntl import ioctl
-from termios import TIOCGWINSZ, TIOCSWINSZ
-
-
-class winsize(ctypes.Structure):  # noqa: N801
-  _fields_ = (
-    ("ws_row", ctypes.c_ushort),
-    ("ws_col", ctypes.c_ushort),
-    ("ws_xpixel", ctypes.c_ushort),
-    ("ws_ypixel", ctypes.c_ushort),
-  )
-  ws_row: int
-  ws_col: int
-  ws_xpixel: int
-  ws_ypixel: int
-
-
-def tiocgwinsz(fd: int) -> winsize:
-  size = winsize()
-  ioctl(fd, TIOCGWINSZ, size)
-  return size
-
-
-def tiocswinsz(fd: int, size: winsize) -> None:
-  ioctl(fd, TIOCSWINSZ, size)
 
 
 # Opens a TTY device without making it the controlling terminal of this process.
 # Not sure if this is really necessary, though.
 def open_noctty(path: str, mode: int) -> int:
-  return os.open(path, mode | os.O_NOCTTY)
+  return os.open(path, (mode | os.O_NOCTTY) if hasattr(os, "O_NOCTTY") else mode)
 
 
 def ctermid() -> str:
-  # Some platforms don't have the ctermid(3) function, notably, Android
-  return os.ctermid() if hasattr(os, "ctermid") else "/dev/tty"
+  if hasattr(os, "ctermid"):
+    return os.ctermid()
+  else:
+    # Some platforms don't have the ctermid(3) function, most notably, Windows and Android
+    return "CONOUT$" if os.name == "nt" else "/dev/tty"
 
 
 # The logic in Python's built-in `shutil.get_terminal_size()` function[1] is
@@ -46,39 +23,43 @@ def ctermid() -> str:
 # (namely, compression algorithms), which increases startup time of small
 # scripts that must be super fast (such as my `icat`).
 # [1]: <https://github.com/python/cpython/blob/v3.13.9/Lib/shutil.py#L1439-L1482>
-def get_terminal_size(stream: int) -> "tuple[int, int]":
+def get_terminal_size(fd: int) -> "tuple[int, int]":
   final_cols, final_rows = 0, 0
-  for attempt in range(3):
-    size = winsize(0, 0, 0, 0)
+  attempt = 0
+  while True:
+    attempt += 1
 
-    if attempt == 0:
+    if attempt == 1:
       try:
-        size.ws_col = int(os.environ["COLUMNS"])
+        cols = int(os.environ["COLUMNS"])
       except (KeyError, ValueError):
-        size.ws_col = 0
+        cols = 0
 
       try:
-        size.ws_row = int(os.environ["LINES"])
+        rows = int(os.environ["LINES"])
       except (KeyError, ValueError):
-        size.ws_row = 0
-
-    elif attempt == 1:
-      try:
-        ioctl(stream, TIOCGWINSZ, size)
-      except OSError:
-        continue
+        rows = 0
 
     elif attempt == 2:
       try:
-        with open(ctermid(), "rb", opener=open_noctty) as cterm_fd:
-          ioctl(cterm_fd, TIOCGWINSZ, size)
+        cols, rows = os.get_terminal_size(fd)
       except OSError:
         continue
 
+    elif attempt == 3:
+      try:
+        with open(ctermid(), "wb", opener=open_noctty) as cterm_fd:
+          cols, rows = os.get_terminal_size(cterm_fd.fileno())
+      except OSError:
+        continue
+
+    else:
+      break
+
     if final_cols <= 0:
-      final_cols = size.ws_col
+      final_cols = cols
     if final_rows <= 0:
-      final_rows = size.ws_row
+      final_rows = rows
 
     if final_cols > 0 and final_rows > 0:
       return final_cols, final_rows

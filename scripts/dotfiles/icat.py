@@ -58,14 +58,31 @@
 # cross-platform way of obtaining the `TIOCGWINSZ` constant). The startup time
 # can be profiled by running this script with `python -X importtime =icat`.
 
+import ctypes
 import os
 import re
 import subprocess
 import sys
 from contextlib import ExitStack
+from fcntl import ioctl
+from termios import TIOCGWINSZ
 from typing import BinaryIO, List, Optional
 
-from .terminal_utils import ctermid, get_terminal_size, open_noctty, tiocgwinsz
+from .terminal_utils import ctermid, get_terminal_size, open_noctty
+
+
+class winsize(ctypes.Structure):  # noqa: N801
+  _fields_ = (
+    ("ws_row", ctypes.c_ushort),
+    ("ws_col", ctypes.c_ushort),
+    ("ws_xpixel", ctypes.c_ushort),
+    ("ws_ypixel", ctypes.c_ushort),
+  )
+  ws_row: int
+  ws_col: int
+  ws_xpixel: int
+  ws_ypixel: int
+
 
 # <https://github.com/alacritty/alacritty/wiki/ANSI-References>
 # <https://vt100.net/emu/dec_ansi_parser>
@@ -93,7 +110,8 @@ def run(argv: List[str], stdout: BinaryIO, mode: Optional[str] = None) -> int:
   # Vim is supposed to provide this variable, see `../nvim/init.vim`
   vim_tty = os.environ.get("VIM_TTY", "") or ctermid()
   with open(vim_tty, "wb", opener=open_noctty) as vim_tty:
-    vim = tiocgwinsz(vim_tty.fileno())
+    vim = winsize()
+    ioctl(vim_tty, TIOCGWINSZ, vim)
     xpixels = vim.ws_xpixel * cols // vim.ws_col
     ypixels = vim.ws_ypixel * rows // vim.ws_row
 
