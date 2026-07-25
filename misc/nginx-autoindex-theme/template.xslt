@@ -162,12 +162,12 @@ POSSIBILITY OF SUCH DAMAGE.
         <meta property="theme-color" content="#2b2b2b" />
 
 <style type="text/css"><!-- include styles.css start -->
-  <xsl:text>*{box-sizing:border-box}body{background:#383838;color:#dadada;font-family:monospace;line-height:1.2;margin:8px}a{color:#7eafe9;text-decoration:none}a:active,a:focus,a:hover{color:#d1c5e9;</xsl:text>
-  <xsl:text>text-decoration:underline}a:active{color:#e6bdbc}svg.icon{fill:currentColor;height:1em;vertical-align:-.125em;width:1em}.main,.nav{border:1px solid #292929;margin:8px auto;max-width:900px;overflow:</xsl:text>
-  <xsl:text>auto}.nav{background:#404040;padding:6px 12px}.nav&gt;*{display:inline-block;margin-right:3px}table{border-spacing:0;width:100%}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}</xsl:text>
-  <xsl:text>table&gt;:last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:</xsl:text>
-  <xsl:text>focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#4c4c4c}tr&gt;*{text-align:left;white-space:nowrap}th{font-weight:700}th.sort&gt;a,tr&gt;*{padding:4px 12px}th.sort{padding:0}th.sort&gt;a{color:unset;cursor:pointer;</xsl:text>
-  <xsl:text>display:block;text-decoration:unset}th.sort&gt;a:active,th.sort&gt;a:focus,th.sort&gt;a:hover{background:#3d3d3d}th&gt;svg.icon{height:.75em;width:.75em}tr&gt;[data-col=icon]{padding-right:0;width:1em}tr&gt;[data-col=</xsl:text>
+  <xsl:text>*{box-sizing:border-box}body{margin:8px;font-family:monospace;line-height:1.2;background:#383838;color:#dadada}a{text-decoration:none;color:#7eafe9}a:active,a:focus,a:hover{text-decoration:underline;</xsl:text>
+  <xsl:text>color:#d1c5e9}a:active{color:#e6bdbc}svg.icon{width:1em;height:1em;fill:currentColor;vertical-align:-.125em}.main,.nav{max-width:900px;margin:8px auto;border:1px solid #292929;overflow:auto}.nav{</xsl:text>
+  <xsl:text>padding:6px 12px;background:#404040}.nav&gt;*{display:inline-block;margin-right:3px}table{width:100%;border-spacing:0}tr&gt;*{background:#404040;border:1px #292929;border-style:none none solid}table&gt;:</xsl:text>
+  <xsl:text>last-child&gt;tr:last-child&gt;*{border-bottom-style:none}thead&gt;tr&gt;*{background:#353535;border-right-style:solid}table&gt;*&gt;tr&gt;:last-child{border-right-style:none}tfoot&gt;tr&gt;*{background:#383838}tbody&gt;tr:</xsl:text>
+  <xsl:text>focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#4c4c4c}tr&gt;*{white-space:nowrap;text-align:left}th{font-weight:700}th.sort&gt;a,tr&gt;*{padding:4px 12px}th.sort{padding:0}th.sort&gt;a{display:block;cursor:pointer;</xsl:text>
+  <xsl:text>text-decoration:unset;color:unset}th.sort&gt;a:active,th.sort&gt;a:focus,th.sort&gt;a:hover{background:#3d3d3d}th&gt;svg.icon{width:.75em;height:.75em}tr&gt;[data-col=icon]{width:1em;padding-right:0}tr&gt;[data-col=</xsl:text>
   <xsl:text>icon]+*{padding-left:6px}tr&gt;[data-col=name]{width:100%}.nav,td[data-col=name]{white-space:pre}td[data-col=size]{text-align:right}@media (prefers-color-scheme:light){body{background:#f5f5f5;color:</xsl:text>
   <xsl:text>#303030}a{color:#5294e2}a:active,a:focus,a:hover{color:#8c6ec9}a:active{color:#c15b58}.nav{border-color:#bababa}.main,tr&gt;*{border-color:#c7c7c7}.nav,tr&gt;*{background:#fff}tfoot&gt;tr&gt;*,thead&gt;tr&gt;*{</xsl:text>
   <xsl:text>background:#f5f5f5}tbody&gt;tr:focus-within&gt;*,tbody&gt;tr:hover&gt;*{background:#f5f5f5}th.sort&gt;a:active,th.sort&gt;a:focus,th.sort&gt;a:hover{background:#fafafa}}</xsl:text>

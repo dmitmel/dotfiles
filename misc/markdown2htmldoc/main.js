@@ -23,10 +23,12 @@ async function main() {
 
   parser.add_argument('--input-encoding', {
     default: 'utf-8',
+    metavar: 'ENCODING',
     help: '(utf-8 by default)',
   });
   parser.add_argument('--output-encoding', {
     default: 'utf-8',
+    metavar: 'ENCODING',
     help: '(utf-8 by default)',
   });
 
@@ -40,9 +42,11 @@ async function main() {
 
   parser.add_argument('--stylesheet', {
     nargs: argparse.ZERO_OR_MORE,
+    metavar: 'FILE',
   });
   parser.add_argument('--script', {
     nargs: argparse.ZERO_OR_MORE,
+    metavar: 'FILE',
   });
 
   let args = parser.parse_args();
