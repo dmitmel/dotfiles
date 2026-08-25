@@ -13,13 +13,18 @@ setopt prompt_subst
 zmodload zsh/datetime  # for $EPOCHREALTIME
 autoload -Uz add-zsh-hook
 
+# Variables that are defined and set by the precmd/preexec hooks
+unset _PROMPT_EXEC_START_TIME
+unset _PROMPT_EXIT_CODE
+unset _PROMPT_GIT_BRANCH
+
 # The installation of hooks for measuring command execution time is deferred
 # until after the shell is initialized and the first prompt is drawn. This is
 # done so that this script can control the order of placement of its hooks, so
 # that it doesn't depend on the load order of other scripts and plugins.
 _prompt_install_hooks() {
-  add-zsh-hook -d preexec _prompt_install_hooks  # uninstall this temporary hook
-  unfunction _prompt_install_hooks               # and unload it from memory
+  add-zsh-hook -d precmd _prompt_install_hooks  # uninstall this temporary hook
+  unfunction _prompt_install_hooks              # and unload it from memory
 
   # I manipulate the `*_functions` arrays directly here because `add-zsh-hook`
   # does not let me control the placement order. To get the most accurate
@@ -28,29 +33,29 @@ _prompt_install_hooks() {
   #
   # 1. user types in a command and presses <Enter>
   # 2. preexec hooks are executed
-  # 3. **prompt_preexec_hook is executed and records the start time**
+  # 3. **prompt_exec_time_preexec_hook is executed and records the start time**
   # 4. ...the command runs...
   # 5. the command exits
-  # 6. **prompt_precmd_hook is executed and records the stop time**
+  # 6. **prompt_exec_time_precmd_hook is executed and records the stop time**
   # 7. all other precmd hooks are executed
   # 8. a new prompt is drawn
-  typeset -ag preexec_functions=("${preexec_functions[@]:#prompt_preexec_hook}" prompt_preexec_hook)
-  typeset -ag precmd_functions=(prompt_precmd_hook "${precmd_functions[@]:#prompt_precmd_hook}")
+  declare -ag preexec_functions=("${preexec_functions[@]:#prompt_exec_time_preexec_hook}" prompt_exec_time_preexec_hook)
+  declare -ag precmd_functions=(prompt_exec_time_precmd_hook "${precmd_functions[@]:#prompt_exec_time_precmd_hook}")
 }
 
-prompt_preexec_hook() {
+prompt_exec_time_preexec_hook() {
   # $EPOCHREALTIME returns a float representing the system time in seconds (see
   # docs for the zsh/datetime module). It is much faster than `date +%s.%N`
   # because it doesn't involve forking another process.
   float -g _PROMPT_EXEC_START_TIME="$EPOCHREALTIME"
 }
 
-prompt_precmd_hook() {
+prompt_exec_time_precmd_hook() {
   if (( ${+_PROMPT_EXEC_START_TIME} )); then  # check if this variable is defined
     float t=$(( EPOCHREALTIME - _PROMPT_EXEC_START_TIME ))
     unset _PROMPT_EXEC_START_TIME
 
-    typeset -g _PROMPT_EXEC_TIME=""
+    declare -g _PROMPT_EXEC_TIME=""
     if (( t > 1 )); then
       integer d h m s
       (( d = t/60/60/24, h = t/60/60%24, m = t/60%60, s = t%60 ))
@@ -71,7 +76,7 @@ prompt_exit_code_precmd_hook() {
   # initial value of the `$?` variable (this is plainly stated in the section
   # "Hook Functions" of zshmisc(1)).
   integer exit_code=$?
-  typeset -g _PROMPT_EXIT_CODE="${exit_code}"
+  declare -g _PROMPT_EXIT_CODE="${exit_code}"
   if (( exit_code > 128 )); then
     local signal="${signals[exit_code - 128 + 1]}"
     # `ZERR`, `DEBUG` and `EXIT` do not correspond to any real signals, they are
@@ -82,18 +87,16 @@ prompt_exit_code_precmd_hook() {
   fi
 }
 
-add-zsh-hook precmd _prompt_install_hooks
-add-zsh-hook precmd prompt_precmd_hook
-add-zsh-hook precmd prompt_exit_code_precmd_hook
-add-zsh-hook preexec prompt_preexec_hook
+# TODO: use `autoload -Uz vcs_info`
+prompt_vcs_info_precmd_hook() {
+  declare -g _PROMPT_GIT_BRANCH=""
 
-prompt_vcs_info() {
-  if [[ "$(command git rev-parse --is-inside-work-tree)" != true ]]; then
+  if [[ "$(command git rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]]; then
     return
   fi
 
   local branch="(no branches)" line=""
-  command git branch | while IFS= read -r line; do
+  command git branch 2>/dev/null | while IFS= read -r line; do
     # find a line which starts with `* `, it contains the current branch name
     if [[ "$line" == "* "* ]]; then
       # remove the `* ` prefix
@@ -102,13 +105,21 @@ prompt_vcs_info() {
     fi
   done
 
-  # Be sure to escape `%` in the branch name by replacing them with `%%`, so
-  # that untrusted input does not affect prompt rendering.
-  print -rn -- " %F{blue}git:%F{magenta}${branch//\%/%%}%f"
+  _PROMPT_GIT_BRANCH="$branch"
 }
+
+add-zsh-hook precmd _prompt_install_hooks
+add-zsh-hook precmd prompt_exec_time_precmd_hook
+add-zsh-hook precmd prompt_exit_code_precmd_hook
+add-zsh-hook precmd prompt_vcs_info_precmd_hook
+add-zsh-hook preexec prompt_exec_time_preexec_hook
 
 # Construct the prompt. See EXPANSION OF PROMPT SEQUENCES in zshmisc(1) for the
 # list and descriptions of the expansion sequences.
+#
+# NOTE: Be sure to escape `%` signs in the variables interpolated into the
+# prompt by replacing them with `%%`, so that untrusted input does not affect
+# prompt rendering.
 
 # Start the prompt with gray (ANSI color 8 is "bright black" or "gray") box
 # drawing characters, also enable bold font for the rest of it. This makes the
@@ -151,7 +162,7 @@ PROMPT+=' in %F{cyan}%~%f'
 PROMPT+=' [%F{red}%D %*%f]'
 
 # VCS info
-PROMPT+='$(prompt_vcs_info 2>/dev/null)'
+PROMPT+='${_PROMPT_GIT_BRANCH:+" %F{blue}git:%F{magenta}${_PROMPT_GIT_BRANCH//\%/%%}%f"}'
 
 # Python's virtualenv
 PROMPT+='${VIRTUAL_ENV:+" %F{blue}venv:%F{magenta}${${VIRTUAL_ENV:t}//\%/%%}%f"}'
