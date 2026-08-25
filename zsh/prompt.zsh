@@ -65,8 +65,26 @@ prompt_precmd_hook() {
   fi
 }
 
+prompt_exit_code_precmd_hook() {
+  # NOTE: This hook does not need to be the very first one in the list in order
+  # to obtain the exit code correctly, as each hook is executed with the same
+  # initial value of the `$?` variable (this is plainly stated in the section
+  # "Hook Functions" of zshmisc(1)).
+  integer exit_code=$?
+  typeset -g _PROMPT_EXIT_CODE="${exit_code}"
+  if (( exit_code > 128 )); then
+    local signal="${signals[exit_code - 128 + 1]}"
+    # `ZERR`, `DEBUG` and `EXIT` do not correspond to any real signals, they are
+    # names of special traps used by Zsh.
+    if [[ $signal != "" && $signal != "ZERR" && $signal != "DEBUG" && $signal != "EXIT" ]]; then
+      _PROMPT_EXIT_CODE+="[SIG${signal}]"
+    fi
+  fi
+}
+
 add-zsh-hook precmd _prompt_install_hooks
 add-zsh-hook precmd prompt_precmd_hook
+add-zsh-hook precmd prompt_exit_code_precmd_hook
 add-zsh-hook preexec prompt_preexec_hook
 
 prompt_vcs_info() {
@@ -149,7 +167,7 @@ PROMPT+=' '
 PROMPT+='${_PROMPT_EXEC_TIME:+" %F{yellow}${_PROMPT_EXEC_TIME//\%/%%}%f"}'
 
 # exit code of the previous command
-PROMPT+='%(?.. %F{red}EXIT:%?%f)'
+PROMPT+='%(?.. %F{red}EXIT:${${_PROMPT_EXIT_CODE//\%/%%}//)/%)}%f)'
 
 # number of currently running background jobs
 PROMPT+='%1(j. %F{blue}JOBS:%j%f.)'
