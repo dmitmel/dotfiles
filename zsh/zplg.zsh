@@ -107,6 +107,9 @@ autoload -Uz is-at-least
 
   _zplg_source_git_download() {
     local plugin_url="$1" plugin_dir="$2"
+    # Make a local variable which is exported (-x) into the environment (yes,
+    # this is indeed a valid combination).
+    local -x GIT_TERMINAL_PROMPT=0
 
     local output='' has_partial_clone=''
     output=$(git --version)
@@ -122,6 +125,7 @@ autoload -Uz is-at-least
 
   _zplg_source_git_upgrade() {
     local plugin_url="$1" dir="$2"
+    local -x GIT_TERMINAL_PROMPT=0
     if git symbolic-ref --quiet HEAD &>/dev/null; then
       git -C "$plugin_dir" pull
     else
