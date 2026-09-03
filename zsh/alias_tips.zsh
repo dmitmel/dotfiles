@@ -34,17 +34,16 @@ _preexec_alias_tips() {
   # lengths of all parsed words, plus 1 for every imaginary typed whitespace.
   # This should also help us improve the quality of tips compared to dumb
   # string length comparisons.
-  local -i orig_lexed_len=0 min_lexed_len=-1
+  integer orig_lexed_len=0 min_lexed_len=-1
   local min_short_cmd=''
   local word; for word in "${cmd_words[@]}"; do
     (( orig_lexed_len += ${#word} + 1 ))
   done; unset word
 
-  # This routine repeatedly expands aliases in the original string. For
-  # reference, further alias expansion is performed on the input so that we can
-  # suggest further shortening of alises. For example, if we have two alises
-  # defined: `alias gc='git commit'` and `alias gca='git commit --all'`, we
-  # will be able to suggest to shorten `gc --all` to just `gca`.
+  # Perform alias expansion on the input so that we can suggest further
+  # shortening of alises. For example, if we have two alises defined:
+  # `alias gc='git commit'` and `alias gca='git commit --all'`, we will be
+  # able to suggest shortening `gc --all` to just `gca`.
   local reply=("${cmd_words[@]}")
   _alias_tips_expand_aliases
   cmd_words=("${reply[@]}")
@@ -56,8 +55,7 @@ _preexec_alias_tips() {
       continue
     fi
 
-    # The same alias expansion routine as before. Aliases can also reference
-    # other aliases!
+    # Aliases can also reference other aliases!
     local reply=("${alias_words[@]}")
     _alias_tips_expand_aliases
     alias_words=("${reply[@]}")
@@ -71,7 +69,7 @@ _preexec_alias_tips() {
       continue
     fi
     # Now, the classic algorithm.
-    local -i idx=1
+    integer idx=1
     for (( ; idx <= ${#alias_words[@]}; idx++ )); do
       if [[ "${cmd_words[$idx]}" != "${alias_words[$idx]}" ]]; then
         break
@@ -84,7 +82,7 @@ _preexec_alias_tips() {
 
     # Compute the lexed length for the original command with an inserted alias.
     local short_cmd_words=("$alias_name" "${(@)cmd_words[idx,-1]}")
-    local -i short_lexed_len=0
+    integer short_lexed_len=0
     local word; for word in "${short_cmd_words[@]}"; do
       (( short_lexed_len += ${#word} + 1 ))
     done; unset word
@@ -104,8 +102,16 @@ _preexec_alias_tips() {
 
   # Finally...
   if (( min_lexed_len > 0 )); then
-    print -r -- "${fg_no_bold[blue]}Alias tip: ${fg_bold[blue]}${min_short_cmd}${reset_color}"
+    _give_alias_tip "$min_short_cmd"
   fi
+}
+
+# This function is an extension point that gives the user a way of modifying
+# how alias tips are presented.
+_give_alias_tip() {
+  print >&2 -Pn '%b%F{blue}Alias tip: %B'
+  print >&2 -rn -- "$@"
+  print >&2 -P '%b%f'
 }
 
 # This routine repeatedly expands aliases in the original string. A hashtable is
@@ -117,7 +123,7 @@ _alias_tips_expand_aliases() {
   setopt local_options err_return
   local word expansion
   local -A used_aliases=()
-  local -i pos=1 next_word=1
+  integer pos=1 next_word=1
   for (( ; pos <= ${#reply[@]} && next_word; pos++ )); do
     next_word=0
     while word="${reply[$pos]}" && (( ${+aliases[$word]} && ! ${+used_aliases[$word]} )); do
