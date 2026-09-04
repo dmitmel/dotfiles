@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     GitHub Codespaces hotkey (.) disabler
-// @version  3
+// @version  4
 // @grant    none
 // @match    https://github.com/*
 // @run-at   document-start
@@ -9,24 +9,33 @@
 (() => {
   'use strict';
 
-  function main() {
-    for (let elem of document.querySelectorAll(
-      '.js-github-dev-shortcut, .js-github-dev-new-tab-shortcut',
-    )) {
-      delete elem.dataset.hotkey;
-    }
+  function blockEvent(/** @type {Event} */ e) {
+    e.preventDefault();
+    e.stopPropagation();
   }
 
-  if (document.readyState !== 'loading') {
-    main();
-  } else {
-    document.addEventListener('readystatechange', () => {
-      if (document.readyState === 'loading') return;
-      main();
+  function main() {
+    document.querySelectorAll('[data-hotkey]').forEach((elem) => {
+      // Make sure only one listener is ever installed if this script gets
+      // triggered repeatedly
+      elem.removeEventListener('click', blockEvent, /* useCapture */ true);
+
+      if (
+        elem instanceof HTMLAnchorElement &&
+        (elem.hostname === 'github.dev' ||
+          (elem.hostname === 'github.com' && elem.pathname.startsWith('/codespaces/')))
+      ) {
+        elem.addEventListener('click', blockEvent, /* useCapture */ true);
+      }
     });
   }
 
-  document.addEventListener('turbo:load', () => {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', main);
+  } else {
     main();
-  });
+  }
+
+  document.addEventListener('turbo:load', main);
+  document.addEventListener('turbo:frame-load', main);
 })();
