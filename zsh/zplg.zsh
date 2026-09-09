@@ -96,52 +96,48 @@ autoload -Uz is-at-least
 # plugin sources {{{
 # See documentation of the `plugin` function for description.
 
-  _zplg_source_url_download() {
-    local plugin_url="$1" plugin_dir="$2"
-    wget --timestamping --directory-prefix "$plugin_dir" -- "$plugin_url"
+  _zplg_source_url() {
+    local action="$1" plugin_url="$2" plugin_dir="$3"
+    case "$action" in
+      (download|upgrade) wget --timestamping --directory-prefix "$plugin_dir" -- "$plugin_url" ;;
+      (*) _zplg_error "unknown action: $action" ;;
+    esac
   }
 
-  _zplg_source_url_upgrade() {
-    _zplg_source_url_download "$@"
-  }
-
-  _zplg_source_git_download() {
-    local plugin_url="$1" plugin_dir="$2"
+  _zplg_source_git() {
+    local action="$1" plugin_url="$2" plugin_dir="$3"
     # Make a local variable which is exported (-x) into the environment (yes,
     # this is indeed a valid combination).
     local -x GIT_TERMINAL_PROMPT=0
 
-    local output='' has_partial_clone=''
-    output=$(git --version)
-    output=${output#'git version '}
-    # <https://github.blog/open-source/git/highlights-from-git-2-25/>
-    if is-at-least 2.25 "$output"; then
-      has_partial_clone=yes
-    fi
+    case "$action" in
+      (download)
+        local output='' has_partial_clone=''
+        output=$(git --version)
+        output=${output#'git version '}
+        # <https://github.blog/open-source/git/highlights-from-git-2-25/>
+        if is-at-least 2.25 "$output"; then
+          has_partial_clone=yes
+        fi
 
-    git clone --progress --recurse-submodules ${has_partial_clone:+'--filter=blob:none'} \
-      -- "$plugin_url" "$plugin_dir"
+        git clone --progress --recurse-submodules ${has_partial_clone:+'--filter=blob:none'} \
+          -- "$plugin_url" "$plugin_dir" ;;
+
+      (upgrade)
+        if git symbolic-ref --quiet HEAD &>/dev/null; then
+          git -C "$plugin_dir" pull
+        else
+          git -C "$plugin_dir" fetch
+        fi &&
+          git -C "$plugin_dir" submodule update --init --recursive ;;
+
+      (*) _zplg_error "unknown action: $action" ;;
+    esac
   }
 
-  _zplg_source_git_upgrade() {
-    local plugin_url="$1" dir="$2"
-    local -x GIT_TERMINAL_PROMPT=0
-    if git symbolic-ref --quiet HEAD &>/dev/null; then
-      git -C "$plugin_dir" pull
-    else
-      git -C "$plugin_dir" fetch
-    fi &&
-      git -C "$plugin_dir" submodule update --init --recursive
-  }
-
-  _zplg_source_github_download() {
-    local plugin_url="$1" plugin_dir="$2"
-    _zplg_source_git_download "https://github.com/$plugin_url.git" "$plugin_dir"
-  }
-
-  _zplg_source_github_upgrade() {
-    local plugin_url="$1" plugin_dir="$2"
-    _zplg_source_git_upgrade "https://github.com/$plugin_url.git" "$plugin_dir"
+  _zplg_source_github() {
+    local action="$1" plugin_url="$2" plugin_dir="$3"
+    _zplg_source_git "$action" "https://github.com/$plugin_url.git" "$plugin_dir"
   }
 
 # }}}
@@ -167,13 +163,13 @@ autoload -Uz is-at-least
 #   * git    - clones a repository
 #   * github - clones a repository from GitHub
 #   * url    - simply downloads a file
-#   Custom sources can easily be defined. Just create two functions:
-#   `_zplg_source_${name}_download` and `_zplg_source_${name}_upgrade`. Both
-#   functions take two arguments: plugin URL and plugin directory. Download
-#   function must, well, download a plugin from the given URL into the given
-#   directory, upgrade one, obviously, upgrades plugin inside of the given
-#   directory. Please note that neither of these functions is executed INSIDE
-#   of the plugin directory (i.e. current working directory is not changed).
+#   Custom sources can be easily created by declaring a function named
+#   `_zplg_source_${source_name}`. It should take three arguments: the action
+#   (`download` or `upgrade`), plugin URL and plugin directory. It must, well,
+#   either download a plugin from the given URL into the given directory, or
+#   upgrade an already downloaded plugin inside of the given directory. Please
+#   note that neither of these functions is executed INSIDE of the plugin
+#   directory (i.e. current working directory is not changed).
 #
 # build (+)
 #   Command which builds/compiles the plugin, executed just once in a subshell
@@ -281,7 +277,7 @@ plugin() {
   # simple check whether the plugin directory exists is enough for me
   if [[ ! -d "$plugin_dir" ]]; then
     _zplg_log "downloading $plugin_id"
-    _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
+    _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return "$?"
 
     if (( ${#plugin_build[@]} > 0 )); then
       _zplg_log "building $plugin_id"
@@ -477,7 +473,7 @@ _zplg_run_commands() {
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
 
       _zplg_log "upgrading $plugin_id"
-      _zplg_source_"$plugin_from"_upgrade "$plugin_url" "$plugin_dir" || return "$?"
+      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir" || return "$?"
 
       zplg-rebuild "$plugin_id"
     done
@@ -505,7 +501,7 @@ _zplg_run_commands() {
       rm -rf "$plugin_dir"
 
       _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from"_download "$plugin_url" "$plugin_dir" || return "$?"
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return "$?"
 
       zplg-rebuild "$plugin_id"
     done
