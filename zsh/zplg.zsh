@@ -119,11 +119,18 @@ autoload -Uz is-at-least
           -- "$plugin_url" "$plugin_dir" ;;
 
       (upgrade)
-        if git -C "$plugin_dir" symbolic-ref --quiet HEAD; then
-          git -C "$plugin_dir" pull
-        else
-          git -C "$plugin_dir" fetch
-        fi
+        local exit_code=0
+        git -C "$plugin_dir" symbolic-ref --quiet HEAD >/dev/null || exit_code=$?
+
+        case "$exit_code" in
+          (0) # HEAD points to a branch
+            git -C "$plugin_dir" pull ;;
+          (1) # HEAD is in a detached state (e.g. a tag is checked out)
+            git -C "$plugin_dir" fetch ;;
+          (*) # an error has occured
+            return exit_code ;;
+        esac
+
         git -C "$plugin_dir" submodule update --init --recursive ;;
 
       (*) _zplg_error "unknown action: $action" ;;
@@ -449,7 +456,7 @@ _zplg_run_commands() {
 
     local pattern="$1" tag="" found=0
 
-    git tag --sort=-version:refname | while IFS= read -r tag; do
+    git tag --list --sort=-version:refname | while IFS= read -r tag; do
       if [[ "$tag" == ${~pattern} ]]; then
         found=1
         break
@@ -458,7 +465,7 @@ _zplg_run_commands() {
 
     if (( found )); then
       _zplg_log "the latest version is $tag"
-      git checkout --quiet -- "$tag"
+      git checkout --quiet "refs/tags/$tag"
     fi
   }
 
