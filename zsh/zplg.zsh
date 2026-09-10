@@ -105,31 +105,37 @@ autoload -Uz is-at-least
   }
 
   _zplg_source_git() {
+    setopt local_options err_return
     local action="$1" plugin_url="$2" plugin_dir="$3"
+
     # Make a local variable which is exported (-x) into the environment (yes,
     # this is indeed a valid combination).
     local -x GIT_TERMINAL_PROMPT=0
+    # From <https://github.com/sindresorhus/pure/blob/89c9e30a38d3d35457bcc58b43ea6c28ae56934b/pure.zsh#L410-L419>
+    local -x GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh} -o BatchMode=yes"
+    local -x GPG_TTY=''
 
     case "$action" in
       (download)
-        local output='' has_partial_clone=''
-        output=$(git --version)
-        output=${output#'git version '}
+        local git_version
+        # Get the output of `git --version`, split it into lines, pick the first
+        # one, remove the prefix `git version `.
+        git_version=${${${(f)"$(git --version)"}[1]}#'git version '}
+
+        local has_partial_clone=''
         # <https://github.blog/open-source/git/highlights-from-git-2-25/>
-        if is-at-least 2.25 "$output"; then
-          has_partial_clone=yes
-        fi
+        if is-at-least 2.25 "$git_version"; then has_partial_clone='yes'; fi
 
         git clone --progress --recurse-submodules ${has_partial_clone:+'--filter=blob:none'} \
           -- "$plugin_url" "$plugin_dir" ;;
 
       (upgrade)
-        if git symbolic-ref --quiet HEAD &>/dev/null; then
+        if git -C "$plugin_dir" symbolic-ref --quiet HEAD; then
           git -C "$plugin_dir" pull
         else
           git -C "$plugin_dir" fetch
-        fi &&
-          git -C "$plugin_dir" submodule update --init --recursive ;;
+        fi
+        git -C "$plugin_dir" submodule update --init --recursive ;;
 
       (*) _zplg_error "unknown action: $action" ;;
     esac
@@ -418,16 +424,16 @@ _zplg_run_commands() {
 
     local pattern="$1" tag="" found=0
 
-    while IFS= read -r tag; do
+    git tag --sort=-version:refname | while IFS= read -r tag; do
       if [[ "$tag" == ${~pattern} ]]; then
         found=1
         break
       fi
-    done < <(command git tag --sort=-version:refname)
+    done
 
     if (( found )); then
       _zplg_log "the latest version is $tag"
-      command git checkout --quiet "$tag"
+      git checkout --quiet -- "$tag"
     fi
   }
 
