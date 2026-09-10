@@ -70,14 +70,20 @@ ZPLG_PLUGINS_DIR="${ZPLG_PLUGINS_DIR:-${ZPLG_HOME}/plugins}"
 # arrays that have IDs as their keys. It is implemented this way because you
 # can't put associative arrays (or any other alternative to "objects") into
 # another associative array.
-typeset -gA ZPLG_LOADED_PLUGINS
-typeset -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
+declare -gA ZPLG_LOADED_PLUGINS
+declare -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
 
 # A wrapper around `source` for easier profiling and debugging. You can override
 # this function to change the plugin loading strategy.
-(( ${+functions[_zplg_load]} )) || function _zplg_load { source "$@"; }
+if ! declare -f _zplg_load &>/dev/null; then
+  _zplg_load() { source "$@"; }
+fi
 
 autoload -Uz is-at-least
+
+if [[ -z "${reset_color+1}" ]]; then
+  autoload -Uz colors && colors
+fi
 
 # plugin sources {{{
 # See documentation of the `plugin` function for description.
