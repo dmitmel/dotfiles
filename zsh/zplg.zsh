@@ -305,12 +305,35 @@ plugin() {
 
     _zplg_run_commands "${plugin_before_load[@]}"
 
-    local -a reply
-    _zplg_expand_load_patterns plugin_load plugin_ignore "$plugin_dir"
+    # The list of file paths matched by the `load=...` patterns, excluding those
+    # matched by `ignore=...`
+    local -a scripts_to_load
+
+    () {
+      # Set the NULL_GLOB option, so that patterns that generate no matches
+      # don't throw an error. We can't append `(N)` to patterns to get this
+      # effect, as they might already have parentheses at the end with their own
+      # qualifiers. The reason this code sits in an anonymous function is that
+      # here we can use LOCAL_OPTIONS to have Zsh take care of restoring the
+      # previous value of NULL_GLOB, as set by the user or by other scripts.
+      setopt local_options null_glob
+
+      # ${~var_name} turns on globbing from the expansion of ${var_name}. Note
+      # the lack of double quotes -- that is intentional and necessary.
+      # ${^array} makes it so that a prefix is prepended to all values of an
+      # array (Zsh performs this BEFORE the glob expansion step).
+      scripts_to_load=( "${plugin_dir}/"${~^plugin_load} )
+
+      local ignore_pat
+      for ignore_pat in "${plugin_ignore[@]}"; do
+        # ${array:#pattern} removes all elements matching the pattern from the array
+        scripts_to_load=( "${scripts_to_load[@]:#"${plugin_dir}/"${~ignore_pat}}" )
+      done
+    }
 
     if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
       local script_path
-      for script_path in "${reply[@]}"; do
+      for script_path in "${scripts_to_load[@]}"; do
         _zplg_debug "sourcing $script_path"
 
         if (( ! __zplg_err_return_was_set )); then
@@ -359,35 +382,6 @@ plugin() {
     fi
   }
 
-}
-
-# Takes the name of a variable with a list of `load=...` patterns, another name
-# for a list of `ignore=...` patterns, and a plugin directory relative to which
-# these patterns will be evaluated. Returns a list of file paths matched by the
-# `load=...` patterns, excluding those matched by `ignore=...`, in the variable
-# `$reply` (because shell functions can't return arrays, argh).
-_zplg_expand_load_patterns() {
-  # Set the option NULL_GLOB so that patterns that generate no matches don't
-  # throw an error. This is the only reason for moving this code into a separate
-  # function, so that we can use LOCAL_OPTIONS to have Zsh take care of
-  # restoring the previous value of NULL_GLOB set by the user or other scripts.
-  setopt local_options null_glob
-
-  local load_patterns_var="$1" ignore_patterns_var="$2" plugin_dir="$3"
-
-  # The (P) modifier lets you refer to a variable by a name stored in another variable
-  local -a load_patterns=("${(@P)load_patterns_var}")
-  # ${~var_name} turns on globbing from the expansion of ${var_name}. Note the
-  # lack of double quotes -- that is intentional and necessary. ${^array} makes
-  # it so that a prefix is prepended to all values of an array (Zsh performs
-  # this BEFORE the glob expansion step).
-  reply=( "${plugin_dir}/"${~^load_patterns} )
-
-  local ignore_pat
-  for ignore_pat in "${(@P)ignore_patterns_var}"; do
-    # ${array:#pattern} removes all elements from the array matching the pattern
-    reply=( "${reply[@]:#${plugin_dir}/${~ignore_pat}}" )
-  done
 }
 
 # Runs a list of commands within the context of an isolated function.
