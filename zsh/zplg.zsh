@@ -15,16 +15,6 @@
 # But fear not, read my comments and they'll guide you through this jungle of
 # shell script mess.
 
-# Also:
-#
-# 1. This script is compatitable with SH_WORD_SPLIT (if you for whatever reason
-#    want to enable this), so I use "@" everywhere. This expansion modifier
-#    means "put all elements of the array in separate quotes".
-# 2. I often use the following snippet to exit functions on errors:
-#    eval "$some_user_command_that_might_fail" || return "$?"
-#    I do this instead of `setopt local_options err_exit` because some plugins
-#    may not be compatitable with ERREXIT.
-
 # $ZPLG_HOME is a directory where all your plugins are downloaded. In the future
 # it might also contain some kind of state/lock/database files. This variable
 # can only be modified before `source`-ing this script.
@@ -105,7 +95,6 @@ autoload -Uz is-at-least
   }
 
   _zplg_source_git() {
-    setopt local_options err_return
     local action="$1" plugin_url="$2" plugin_dir="$3"
 
     # Make a local variable which is exported (-x) into the environment (yes,
@@ -207,6 +196,21 @@ autoload -Uz is-at-least
 # self) that you'll be able to read this code, I tried to comment everything.
 plugin() {
 
+  # NOTE: We don't use `setopt local_options` here, so that if a plugin executes
+  # `setopt` commands of its own, their effects propagate out of this function.
+  # Instead, I track the status of ERR_RETURN manually, to restore it to its
+  # original value before returning from this function, but also when actually
+  # loading the plugin, since not every plugin may be compatible with the strict
+  # behavior of ERR_RETURN.
+  if [[ -o err_return ]]; then
+    local __zplg_err_return_was_set=1
+  else
+    local __zplg_err_return_was_set=0
+  fi
+  setopt err_return
+
+  {
+
   # parse basic arguments {{{
 
   if (( $# < 2 )); then
@@ -283,11 +287,13 @@ plugin() {
   # simple check whether the plugin directory exists is enough for me
   if [[ ! -d "$plugin_dir" ]]; then
     _zplg_log "downloading $plugin_id"
-    _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return "$?"
+    _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
 
     if (( ${#plugin_build[@]} > 0 )); then
       _zplg_log "building $plugin_id"
-      ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
+      # The flag `-q` tells `cd` to not execute `chpwd` hooks (which get
+      # inherited by subshells)
+      ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
     fi
   fi
 
@@ -297,7 +303,7 @@ plugin() {
 
   {
 
-    _zplg_run_commands "${plugin_before_load[@]}" || return "$?"
+    _zplg_run_commands "${plugin_before_load[@]}"
 
     local -a reply
     _zplg_expand_load_patterns plugin_load plugin_ignore "$plugin_dir"
@@ -306,12 +312,25 @@ plugin() {
       local script_path
       for script_path in "${reply[@]}"; do
         _zplg_debug "sourcing $script_path"
-        _zplg_load "$script_path" || return "$?"
+
+        if (( ! __zplg_err_return_was_set )); then
+          setopt no_err_return
+        fi
+
+        _zplg_load "$script_path"
+
+        if [[ -o err_return ]]; then
+          # The plugin has decided to flip ERR_RETURN on for some reason. Well,
+          # we'll make sure to propagate this effect to our caller...
+          __zplg_err_return_was_set=1
+        else
+          setopt err_return
+        fi
       done
       unset script_path
     fi
 
-    _zplg_run_commands "${plugin_after_load[@]}" || return "$?"
+    _zplg_run_commands "${plugin_after_load[@]}"
 
     # plugin has finally been loaded, we can add it to $ZPLG_LOADED_PLUGINS
     ZPLG_LOADED_PLUGINS[$plugin_id]="$plugin_dir"
@@ -327,12 +346,18 @@ plugin() {
     fi
 
   } always {
-    if [[ "$?" != 0 ]]; then
+    if (( $? != 0 )); then
       _zplg_error "an error occured while loading $plugin_id"
     fi
   }
 
   # }}}
+
+  } always {
+    if (( ! __zplg_err_return_was_set )); then
+      setopt no_err_return
+    fi
+  }
 
 }
 
@@ -365,10 +390,8 @@ _zplg_expand_load_patterns() {
   done
 }
 
-# Runs a list of commands within the context of an isolated function. Exits
-# immediately with an error if any command fails.
+# Runs a list of commands within the context of an isolated function.
 _zplg_run_commands() {
-  setopt local_options err_exit
   # (F) modifier joins an array with newlines
   eval "${(F)@}"
 }
@@ -378,6 +401,8 @@ _zplg_run_commands() {
   # Simplifies modification of path variables (path/fpath/manpath etc) in
   # after_load and before_load hooks.
   plugin-cfg-path() {
+    setopt local_options err_return
+
     if (( $# < 2 )); then
       _zplg_error "usage: $0 <var_name> prepend|append <value...>"
       return 1
@@ -417,6 +442,8 @@ _zplg_run_commands() {
   }
 
   plugin-cfg-git-checkout-version() {
+    setopt local_options err_return
+
     if (( $# < 1 )); then
       _zplg_error "usage: $0 <pattern>"
       return 1
@@ -460,6 +487,8 @@ _zplg_run_commands() {
   # Upgrades all plugins if no arguments are given, otherwise upgrades plugins by
   # their IDs.
   zplg-upgrade() {
+    setopt local_options err_return
+
     local plugin_ids_var
     if (( $# > 0 )); then
       plugin_ids_var=("$@")
@@ -479,7 +508,7 @@ _zplg_run_commands() {
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
 
       _zplg_log "upgrading $plugin_id"
-      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir" || return "$?"
+      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir"
 
       zplg-rebuild "$plugin_id"
     done
@@ -487,6 +516,8 @@ _zplg_run_commands() {
 
   # Reinstall plugins by IDs.
   zplg-reinstall() {
+    setopt local_options err_return
+
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
@@ -507,13 +538,15 @@ _zplg_run_commands() {
       rm -rf "$plugin_dir"
 
       _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return "$?"
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
 
       zplg-rebuild "$plugin_id"
     done
   }
 
   zplg-rebuild() {
+    setopt local_options err_return
+
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
@@ -532,13 +565,15 @@ _zplg_run_commands() {
         local plugin_build="${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}"
         local plugin_build=("${(@Q)${(z)plugin_build}}")
         _zplg_log "building $plugin_id"
-        ( cd "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return "$?"
+        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
       fi
     done
   }
 
   # Clears directories of plugins by their IDs.
   zplg-purge() {
+    setopt local_options err_return
+
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
@@ -554,7 +589,7 @@ _zplg_run_commands() {
       local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
-      rm -rf "$plugin_dir"
+      rm -rf -- "$plugin_dir"
     done
   }
 

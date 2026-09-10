@@ -107,7 +107,7 @@ fi
 # Why `zcompile` is always calledd with `-R`: <https://github.com/romkatv/powerlevel10k/issues/1574#issuecomment-921132158>
 plugin fast-syntax-highlighting 'zdharma-continuum/fast-syntax-highlighting' \
   build='for f in (fast*|.fast*)~*.zwc **/*.zsh; zcompile -R -- "$f"' \
-  build='cd -- →chroma; for f in *.ch; zcompile -R -- "$f"' \
+  build='cd -q -- →chroma; for f in *.ch; zcompile -R -- "$f"' \
   before_load='FAST_WORK_DIR="$ZSH_CACHE_DIR"' \
   before_load='plugin-cfg-path fpath prepend .' \
   ${${(M)${DOTFILES_REAL_TERM:-$TERM}:#linux}:+"ignore=*"}  # a shitty ternary operator, adds ignore=* if $TERM == "linux"
