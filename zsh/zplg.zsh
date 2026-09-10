@@ -218,7 +218,7 @@ plugin() {
     return 1
   fi
 
-  local plugin_id="$1" plugin_url="$2"; shift 2
+  readonly plugin_id="$1" plugin_url="$2"; shift 2
 
   local MATCH MBEGIN MEND
   if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
@@ -231,9 +231,9 @@ plugin() {
     return 1
   fi
 
-  # Don't even try to continue if the plugin has already been loaded. This is
-  # not or problem. Plugin manager loads plugins and shouldn't bother
-  # unloading them.
+  # Don't even try to continue if the plugin has already been loaded. Currently,
+  # ZPLG can only load plugins, and doesn't bother with reloading or unloading
+  # them.
   if (( ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
     _zplg_error "plugin $plugin_id has already been loaded"
     return 1
@@ -270,8 +270,6 @@ plugin() {
   done
   unset option key value
 
-  # }}}
-
   if (( ${#plugin_load[@]} == 0 )); then
     # default loading patterns:
     # - *.plugin.zsh for most plugins and Oh My Zsh ones
@@ -281,9 +279,13 @@ plugin() {
     plugin_load=("(*.plugin.zsh|*.zsh-theme|init.zsh)([1])")
   fi
 
+  readonly plugin_from plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
+
+  # }}}
+
   # download plugin {{{
 
-  local plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
+  readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
   # simple check whether the plugin directory exists is enough for me
   if [[ ! -d "$plugin_dir" ]]; then
     _zplg_log "downloading $plugin_id"
@@ -302,8 +304,6 @@ plugin() {
   # load plugin {{{
 
   {
-
-    _zplg_run_commands "${plugin_before_load[@]}"
 
     # The list of file paths matched by the `load=...` patterns, excluding those
     # matched by `ignore=...`
@@ -330,6 +330,10 @@ plugin() {
         scripts_to_load=( "${scripts_to_load[@]:#"${plugin_dir}/"${~ignore_pat}}" )
       done
     }
+
+    readonly scripts_to_load
+
+    _zplg_run_commands "${plugin_before_load[@]}"
 
     if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
       local script_path
