@@ -42,24 +42,20 @@ ZPLG_PLUGINS_DIR="${ZPLG_PLUGINS_DIR:-${ZPLG_HOME}/plugins}"
 
   _zplg_error() {
     # try to find the place outside of the script that caused this error
-    local external_caller
-    local i; for (( i=1; i<=${#funcfiletrace[@]}; i++ )); do
+    local i external_caller=''
+    for (( i = 1; i <= ${#funcfiletrace[@]}; i++ )); do
       # $funcfiletrace contains file paths and line numbers
       # $functions_source tells in which file a function was defined
-      if [[ "${funcfiletrace[$i]}" != "${functions_source[_zplg_error]}":* ]]; then
-        # $functrace contains "ugly" call sites, the line numbers are
-        # relative to the beginning of a function/file here. I use it here
-        # only for consistency with the shell, TODO might change this in the
-        # future.
-        _zplg_log "${fg[red]}error:${reset_color} ${functrace[$i]}: $@"
-        return 1
+      # <-> matches any number
+      if [[ "${funcfiletrace[i]}" != "${functions_source[_zplg_error]}":<-> ]]; then
+        # $functrace contains "ugly" call sites, where the line numbers are
+        # relative to the beginning of a function/file. I use it here only for
+        # consistency with the shell.
+        external_caller=" at ${functrace[i]}"
+        break
       fi
     done
-
-    # if for whatever reason we couldn't find the caller, simply print the
-    # error without it
-    _zplg_log "${fg[red]}error:${reset_color} $@"
-    return 1
+    _zplg_log "${fg[red]}error${external_caller}:${reset_color} $@"
   }
 
 # }}}
@@ -89,12 +85,13 @@ autoload -Uz is-at-least
   _zplg_source_url() {
     local action="$1" plugin_url="$2" plugin_dir="$3"
     case "$action" in
-      (download|upgrade) wget --timestamping --directory-prefix "$plugin_dir" -- "$plugin_url" ;;
-      (*) _zplg_error "unknown action: $action" ;;
+      (download|upgrade) wget --timestamping --directory-prefix="$plugin_dir" -- "$plugin_url" ;;
+      (*) _zplg_error "unknown action: $action"; return 1 ;;
     esac
   }
 
   _zplg_source_git() {
+    setopt local_options err_return
     local action="$1" plugin_url="$2" plugin_dir="$3"
 
     # Make a local variable which is exported (-x) into the environment (yes,
@@ -133,7 +130,7 @@ autoload -Uz is-at-least
 
         git -C "$plugin_dir" submodule update --init --recursive ;;
 
-      (*) _zplg_error "unknown action: $action" ;;
+      (*) _zplg_error "unknown action: $action"; return 1 ;;
     esac
   }
 
@@ -227,8 +224,7 @@ plugin() {
 
   readonly plugin_id="$1" plugin_url="$2"; shift 2
 
-  local MATCH MBEGIN MEND
-  if [[ ! "$plugin_id" =~ '^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*$' ]]; then
+  if [[ -z "$plugin_id" || "$plugin_id" == *[^[a-zA-Z0-9._-]]* || "$plugin_id" == '.'* ]]; then
     _zplg_error "invalid plugin ID"
     return 1
   fi
@@ -292,19 +288,27 @@ plugin() {
 
   # download plugin {{{
 
-  readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
-  # simple check whether the plugin directory exists is enough for me
-  if [[ ! -d "$plugin_dir" ]]; then
-    _zplg_log "downloading $plugin_id"
-    _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
+  {
 
-    if (( ${#plugin_build[@]} > 0 )); then
-      _zplg_log "building $plugin_id"
-      # The flag `-q` tells `cd` to not execute `chpwd` hooks (which get
-      # inherited by subshells)
-      ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
+    readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
+    # simple check whether the plugin directory exists is enough for me
+    if [[ ! -d "$plugin_dir" ]]; then
+      _zplg_log "downloading $plugin_id"
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
+
+      if (( ${#plugin_build[@]} > 0 )); then
+        _zplg_log "building $plugin_id"
+        # The flag `-q` tells `cd` to not execute `chpwd` hooks (which get
+        # inherited by subshells)
+        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
+      fi
     fi
-  fi
+
+  } always {
+    if (( $? != 0 )); then
+      _zplg_error "an error occured while downloading $plugin_id"
+    fi
+  }
 
   # }}}
 
@@ -494,15 +498,12 @@ _zplg_run_commands() {
   zplg-upgrade() {
     setopt local_options err_return
 
-    local plugin_ids_var
-    if (( $# > 0 )); then
-      plugin_ids_var=("$@")
-    else
-      plugin_ids_var=("${(k)ZPLG_LOADED_PLUGINS[@]}")
+    if (( $# == 0 )); then
+      set -- "${(@k)ZPLG_LOADED_PLUGINS}"
     fi
 
-    local plugin_id plugin_url plugin_from plugin_dir
-    for plugin_id in "${plugin_ids_var[@]}"; do
+    local plugin_id plugin_url plugin_from plugin_dir exit_code=0
+    for plugin_id in "$@"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
         return 1
@@ -513,10 +514,16 @@ _zplg_run_commands() {
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
 
       _zplg_log "upgrading $plugin_id"
-      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir"
+      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir" || {
+        exit_code=$?; _zplg_error "failed to upgrade $plugin_id"; continue
+      }
 
-      zplg-rebuild "$plugin_id"
+      zplg-rebuild "$plugin_id" || {
+        exit_code=$?; continue
+      }
     done
+
+    return exit_code
   }
 
   # Reinstall plugins by IDs.
@@ -528,7 +535,7 @@ _zplg_run_commands() {
       return 1
     fi
 
-    local plugin_id plugin_url plugin_from plugin_dir
+    local plugin_id plugin_url plugin_from plugin_dir exit_code=0
     for plugin_id in "$@"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
@@ -540,13 +547,21 @@ _zplg_run_commands() {
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
-      rm -rf "$plugin_dir"
+      rm -rf "$plugin_dir" || {
+        exit_code=$?; _zplg_error "failed to remove $plugin_id"; continue
+      }
 
       _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || {
+        exit_code=$?; _zplg_error "failed to download $plugin_id": continue
+      }
 
-      zplg-rebuild "$plugin_id"
+      zplg-rebuild "$plugin_id" || {
+        exit_code=$?; continue
+      }
     done
+
+    return exit_code
   }
 
   zplg-rebuild() {
@@ -557,7 +572,7 @@ _zplg_run_commands() {
       return 1
     fi
 
-    local plugin_id
+    local plugin_id exit_code=0
     for plugin_id in "$@"; do
       local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
@@ -567,12 +582,17 @@ _zplg_run_commands() {
         # procedure. First, I get encoded string. Then with the (z) modifier I
         # split it into array taking into account quoting. Then with the (Q)
         # modifier I unquote every value.
-        local plugin_build="${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}"
-        local plugin_build=("${(@Q)${(z)plugin_build}}")
+        local plugin_build_str="${ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]}"
+        local plugin_build=("${(@Q)${(z)plugin_build_str}}")
+
         _zplg_log "building $plugin_id"
-        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
+        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || {
+          exit_code=$?; _zplg_error "failed to build $plugin_id"; continue
+        }
       fi
     done
+
+    return exit_code
   }
 
   # Clears directories of plugins by their IDs.
@@ -584,7 +604,7 @@ _zplg_run_commands() {
       return 1
     fi
 
-    local plugin_id
+    local plugin_id exit_code=0
     for plugin_id in "$@"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
@@ -594,8 +614,12 @@ _zplg_run_commands() {
       local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
-      rm -rf -- "$plugin_dir"
+      rm -rf -- "$plugin_dir" || {
+        exit_code=$?; _zplg_error "failed to remove $plugin_id"; continue
+      }
     done
+
+    return exit_code
   }
 
 # }}}
