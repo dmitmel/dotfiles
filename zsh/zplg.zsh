@@ -292,6 +292,8 @@ plugin() {
 
   # download plugin {{{
 
+  {
+
   readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
   # simple check whether the plugin directory exists is enough for me
   if [[ ! -d "$plugin_dir" ]]; then
@@ -305,6 +307,12 @@ plugin() {
       ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
     fi
   fi
+
+  } always {
+    if (( $? != 0 )); then
+      _zplg_error "an error occured while downloading $plugin_id"
+    fi
+  }
 
   # }}}
 
