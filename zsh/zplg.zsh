@@ -81,7 +81,7 @@ fi
 
 autoload -Uz is-at-least
 
-if [[ -z "${reset_color+1}" ]]; then
+if (( ! ${+reset_color} )); then
   autoload -Uz colors && colors
 fi
 
@@ -89,11 +89,106 @@ fi
 # See documentation of the `plugin` function for description.
 
   _zplg_source_url() {
+    setopt local_options err_return extended_glob
     local action="$1" plugin_url="$2" plugin_dir="$3"
-    case "$action" in
-      (download|upgrade) wget --timestamping --directory-prefix="$plugin_dir" -- "$plugin_url" ;;
-      (*) _zplg_error "unknown action: $action"; return 1 ;;
-    esac
+
+    # For this source there is no distinction between updating stuff or
+    # downloading it anew -- the logic is the same anyway.
+    if [[ "$action" != 'download' && "$action" != 'upgrade' ]]; then
+      _zplg_error "unknown action: $action"
+      return 1
+    fi
+
+    if [[ ! -d "$plugin_dir" ]]; then
+      mkdir -p -- "$plugin_dir"
+    fi
+
+    # Strip the fragment and the query from the URL, and then take the last
+    # (tail) component of the remaining path with `:t`.
+    local file_name="${${${plugin_url%%\#*}%%\?*}:t}"
+
+    local headers_file="${plugin_dir}/.${file_name}.headers.tmp"
+    local    etag_file="${plugin_dir}/.${file_name}.etag"
+    # Put the downloaded file beside the installation destination and not into a
+    # separate/temporary directory to make sure that it resides on the same file
+    # system as the installed one, so that the `mv` operation to install it
+    # becomes atomic.
+    local downloaded_file="${plugin_dir}/${file_name}.part"
+    local  installed_file="${plugin_dir}/${file_name}"
+
+    local files_to_delete=( "$downloaded_file" "$headers_file" )
+
+    {
+      local etag=''
+      if [[ -f "$installed_file" ]]; then
+        etag=$(<"$etag_file") 2>/dev/null || etag=''
+        # Remove CR and LF characters to protect from header injections
+        etag=${etag//[$'\n\r']/}
+        # Limit the length to 1 KiB (just in case)
+        # Limits on header sizes in popular browsers: <https://stackoverflow.com/a/3436155/12005228>
+        etag=${etag:0:1024}
+      fi
+
+      print >&2 -r -- "downloading ${(qq)plugin_url}..."
+
+      local http_status
+      # It's very handy that we can split the outputs of curl(1) four ways: the
+      # headers of the final HTTP reponse (and all in-between redirects) will go
+      # into one file, the final body into another one, the status code will be
+      # printed to stdout, and error messages and the progress meter will be
+      # shown for the user on stderr! <https://superuser.com/a/442395/1272235>
+      # Also, note that curl(1) began supporting equals signs after long options
+      # (like this: `--long-name=value`) only a year ago, in v8.16.0, so please
+      # don't try putting `=`s between the names of options and their values to
+      # match the style of option-passing throughout my code, as this will break
+      # compatibility with LTS distros.
+      http_status=$(
+        curl --fail --location --write-out '%{http_code}' \
+          ${etag:+'--header'} ${etag:+"If-None-Match: $etag"} \
+          --dump-header "$headers_file" --output "$downloaded_file" \
+          -- "$plugin_url"
+      ) || return $?
+
+      # Unfortunately, we have to do a little bit of manual parsing of HTTP headers.
+      # The HTTP/1.1 spec: <https://datatracker.ietf.org/doc/html/rfc7230>
+      # Conditional requests spec: <https://datatracker.ietf.org/doc/html/rfc7232>
+      local header headers_block_ended=0 etag=''
+      while IFS= read -r header; do
+        if (( headers_block_ended )); then
+          headers_block_ended=0
+          etag=''
+        fi
+
+        header=${header%$'\r'}  # remove the CR at the end (if present)
+        if [[ -z "$header" ]]; then  # start of a new response after a redirect
+          headers_block_ended=1
+        elif [[ "$header" == (#i)"ETag:"* ]]; then  # `(#i)` enables case-insensitive matching
+          etag=${header:5}
+          # Strip the white space from the back and the front
+          etag=${${etag/#[$' \t']##/}/%[$' \t']##/}
+          # NOTE: The double quotes are part of the ETag, we must not remove
+          # them, as we must pass the ETag back to the server *exactly* as it
+          # was given to us.
+        fi
+      done < "$headers_file"
+
+      if (( http_status == 304 )); then  # Not Modified
+        print >&2 -r -- "done, ${(qq)installed_file} is already up to date."
+        return 0
+      fi
+
+      mv -- "$downloaded_file" "$installed_file"
+
+      if [[ -z "$etag" ]]; then
+        files_to_delete+=("$etag_file")
+      else
+        print -r -- "$etag" >| "$etag_file"
+      fi
+
+      print >&2 -r -- "done, saved to ${(qq)installed_file}."
+    } always {
+      if (( ${#files_to_delete[@]} > 0 )); then rm -f -- "${files_to_delete[@]}"; fi
+    }
   }
 
   _zplg_source_git() {
@@ -299,6 +394,7 @@ plugin() {
     readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
     # simple check whether the plugin directory exists is enough for me
     if [[ ! -d "$plugin_dir" ]]; then
+      mkdir -p -- "$plugin_dir"
       _zplg_log "downloading $plugin_id"
       _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
 
