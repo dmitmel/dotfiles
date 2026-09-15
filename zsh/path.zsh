@@ -108,8 +108,6 @@ path_prepend path ~/.cargo/bin
 path_prepend path "${ZSH_DOTFILES:h}/scripts"
 path_prepend path ~/.local/bin
 
-unfunction path_prepend
-
 # For some reason manpath is not always set when logging with ssh for instance.
 # Let's ensure that it is always set and exported. The additional colon ensures
 # that the system manpath isn't overwritten (see manpath(1)).
