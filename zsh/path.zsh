@@ -6,14 +6,19 @@ export -T PKG_CONFIG_PATH pkg_config_path ':'
 export -T LD_LIBRARY_PATH ld_library_path ':'
 
 path_prepend() {
-  if (( $# < 1 )); then
-    print >&2 -r -- "usage: $0 <var_name> [value...]"
-    return 1
-  fi
-  local var_name="$1"; shift
+  local var_name="${1:?a variable name is needed}"; shift 1
   local value; for value in "$@"; do
     if ! contains "$var_name" "$value"; then
       set -A "$var_name" "$value" "${(@P)var_name}"
+    fi
+  done
+}
+
+path_append() {
+  local var_name="${1:?a variable name is needed}"; shift 1
+  local value; for value in "$@"; do
+    if ! contains "$var_name" "$value"; then
+      set -A "$var_name" "${(@P)var_name}" "$value"
     fi
   done
 }
