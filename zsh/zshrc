@@ -65,8 +65,8 @@ if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
   command mkdir -pv -- "$ZSH_CACHE_DIR"
 fi
 
-# Zsh can define a function under multiple different names, apparently
-function perf_source _zplg_load {
+# Apparently, in Zsh you can define a function under multiple different names.
+function _perf_source _zplg_load {
   {
     _perf_timer_start "${1:t}"
     builtin source "$@"
@@ -75,7 +75,7 @@ function perf_source _zplg_load {
   }
 }
 
-if (( ${+functions[compdef]} )); then
+if (( $+functions[compdef] )); then
   print >&2 -P '%F{red}`compinit` must not be called before loading the dotfiles!%f'
 else
   # This idea was borrowed from zinit: to simplify the loading sequence, if any
@@ -85,27 +85,46 @@ else
   compdef() { _deferred_compdefs+=("$0 ${(j: :)${(q-)@}}"); }
 fi
 
-for script in options functions path; do
-  perf_source "${ZSH_DOTFILES}/${script}.zsh"
-done; unset script
-
 integer welcome_fd=-1
 {
 
-  if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" ]]; then
-    # Once the basic shell environment has been configured, start the `welcome`
-    # script in the background and open a pipe to read its output. The script
-    # will collect information about the system in parallel with the heavier
-    # part of the Zsh startup procedure, and once that's done we can read its
-    # output from this pipe to display it to the user.
-    exec {welcome_fd}< <(welcome)
+  if (( $+functions[_dotfiles_early_customizations] )); then
+    _dotfiles_early_customizations
   fi
 
-  for script in env prompt zplg plugins aliases completion zle alias_tips colorscheme; do
-    perf_source "${ZSH_DOTFILES}/${script}.zsh"
-  done; unset script
+  # TODO: my ZLE widgets must be loaded after the plugins, but before F-Sy-H
+  _all_dotfiles_components=(
+    options functions path welcome
+    env prompt zplg plugins aliases completion zle alias_tips colorscheme
+  )
 
-  if function_exists _dotfiles_customizations; then
+  for _dotfiles_component in "${_all_dotfiles_components[@]}"; do
+    if (( $+functions[_dotfiles_before_${_dotfiles_component}] )); then
+      "_dotfiles_before_${_dotfiles_component}"
+    fi
+
+    if (( $+functions[_dotfiles_override_${_dotfiles_component}] )); then
+      "_dotfiles_override_${_dotfiles_component}"
+    elif [[ "$_dotfiles_component" == "welcome" ]]; then
+      if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" ]]; then
+        # Once the basic shell environment has been configured, start the
+        # `welcome` script in the background and open a pipe to read its output.
+        # The script will collect information about the system in parallel with
+        # the heavier part of the shell startup procedure, and once that's done
+        # we can read its output from this pipe to display it to the user.
+        exec {welcome_fd}< <(welcome)
+      fi
+    else
+      _perf_source "${ZSH_DOTFILES}/${_dotfiles_component}.zsh"
+    fi
+
+    if (( $+functions[_dotfiles_after_${_dotfiles_component}] )); then
+      "_dotfiles_after_${_dotfiles_component}"
+    fi
+  done
+  unset _dotfiles_component _all_dotfiles_components
+
+  if (( $+functions[_dotfiles_customizations] )); then
     _dotfiles_customizations
   fi
 
@@ -119,7 +138,7 @@ integer welcome_fd=-1
 
 } always {
   if (( welcome_fd >= 0 )); then
-    exec {welcome_fd}<&-  # close our pipe with this ugly-ass syntax
+    exec {welcome_fd}<&-  # close our end of the pipe with this ugly-ass syntax
   fi
   unset welcome_fd
 }
