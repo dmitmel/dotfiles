@@ -152,7 +152,7 @@ if command_exists systemd-detect-virt; then
   # process happens: <https://github.com/systemd/systemd/blob/v260.2/src/basic/virt.c#L632>
   if _prompt_container="$(systemd-detect-virt --container)" 2>/dev/null; then
     PROMPT+="%F{magenta}(${_prompt_container//\%/%%})%f"
-  fi; unset _prompt_container
+  fi
 fi
 
 # working directory
@@ -192,6 +192,8 @@ PROMPT+=$'\n'
 # Begin the second line of the prompt.
 PROMPT+='%b%F{8}└─'
 
+integer i
+
 # For shells started by pressing `w` in the LF file manager.
 for (( i = 1; i <= LF_LEVEL; i++ )); do
   PROMPT+='(lf)'
@@ -201,7 +203,7 @@ done
 # repeated as many times as there are nested shells.
 for (( i = DOTFILES_STARTING_SHLVL + 1; i < SHLVL; i++ )); do
   PROMPT+='%(!.#.\$)'
-done; unset i
+done
 
 # The final dollar/hash sign is normally colored green, but becomes red if the
 # last command has exited with a non-zero code.

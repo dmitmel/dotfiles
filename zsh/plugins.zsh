@@ -40,9 +40,9 @@ plugin completions 'zsh-users/zsh-completions' \
   # The plugin sometimes leaves behind the temporary files it creates for
   # atomically updating its database, so we find and delete them ourselves. The
   # glob selects files which were modified older than a week ago.
-  for match in "${ZSHZ_DATA}".*(N.mw+1); do
-    command rm -f -- "$match"
-  done; unset match
+  local stale; for stale in "${ZSHZ_DATA}".*(N.mw+1); do
+    command rm -f -- "$stale"
+  done
 
   plugin zsh-z 'agkozak/zsh-z' build='zcompile -R zsh-z.plugin.zsh'
 
@@ -63,33 +63,31 @@ if [[ -n "$DOTFILES_INSTALL_FZF" ]]; then
 fi
 
 if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
-  () {
-    # The naming of lf's build artifacts is based on combinations of $GOOS and $GOARCH.
-    # They are documented here: <https://go.dev/doc/install/source#environment>.
-    local lf_arch='' lf_os=''
+  # The naming of lf's build artifacts is based on combinations of $GOOS and $GOARCH.
+  # They are documented here: <https://go.dev/doc/install/source#environment>.
+  local lf_arch='' lf_os=''
 
-    # The value of $CPUTYPE is derived from the result of the uname(2) syscall.
-    # Non-exhaustive lists of its possible values:
-    # <https://wiki.debian.org/ArchitectureSpecificsMemo#Summary>
-    # <https://en.wikipedia.org/wiki/Uname#Examples>
-    case "$CPUTYPE" in
-      (x86_64)  lf_arch=amd64 ;;
-      (i?86)    lf_arch=386   ;;
-      (aarch64) lf_arch=arm64 ;;
-      (arm*)    lf_arch=arm   ;;
-      (*) return
-    esac
+  # The value of $CPUTYPE is derived from the result of the uname(2) syscall.
+  # Non-exhaustive lists of its possible values:
+  # <https://wiki.debian.org/ArchitectureSpecificsMemo#Summary>
+  # <https://en.wikipedia.org/wiki/Uname#Examples>
+  case "$CPUTYPE" in
+    (x86_64)  lf_arch=amd64 ;;
+    (i?86)    lf_arch=386   ;;
+    (aarch64) lf_arch=arm64 ;;
+    (arm*)    lf_arch=arm   ;;
+  esac
 
-    case "$OSTYPE" in
-      (linux-android*) lf_os=android ;;
-      (linux*)   lf_os=linux   ;;
-      (darwin*)  lf_os=darwin  ;;
-      (freebsd*) lf_os=freebsd ;;
-      (openbsd*) lf_os=openbsd ;;
-      (netbsd*)  lf_os=netbsd  ;;
-      (*) return
-    esac
+  case "$OSTYPE" in
+    (linux-android*) lf_os=android ;;
+    (linux*)   lf_os=linux   ;;
+    (darwin*)  lf_os=darwin  ;;
+    (freebsd*) lf_os=freebsd ;;
+    (openbsd*) lf_os=openbsd ;;
+    (netbsd*)  lf_os=netbsd  ;;
+  esac
 
+  if [[ -n "$lf_arch" && -n "$lf_os" ]]; then
     local lf_archive_name="lf-${lf_os}-${lf_arch}.tar.gz"
     plugin lf "https://github.com/gokcehan/lf/releases/latest/download/${lf_archive_name}" from=url \
       build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${lf_archive_name}" lf && chmod +x bin/lf" \
@@ -98,7 +96,7 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
         "${plugin_dir}/man/man1"' \
       after_load='plugin-cfg-path path prepend bin' \
       after_load='plugin-cfg-path manpath prepend man'
-  }
+  fi
 fi
 
 # `*.ch` files are compiled in an extra step because Zsh is unable to write

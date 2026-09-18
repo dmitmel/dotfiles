@@ -74,6 +74,7 @@ lfcd() {
 }
 
 if [[ "$OSTYPE" != darwin* ]]; then
+  local open_cmd
   if [[ "$OSTYPE" == linux-android* ]]; then
     open_cmd='termux-open'
   elif command_exists xdg-open; then
@@ -84,25 +85,26 @@ if [[ "$OSTYPE" != darwin* ]]; then
   # "${@:-.}" will substitute either the list of arguments, or the current
   # directory if no arguments were given.
   eval "open(){local f; for f in \"\${@:-.}\"; do $open_cmd \"\$f\"; done;}"
-  unset open_cmd
 fi
 
 if [[ "$OSTYPE" == darwin* ]]; then
-  copy_cmd='pbcopy' paste_cmd='pbpaste'
+  function clipcopy  { pbcopy;  }
+  function clippaste { pbpaste; }
 elif [[ "$OSTYPE" == linux-android* ]]; then
-  copy_cmd='termux-clipboard-set' paste_cmd='termux-clipboard-get'
+  function clipcopy  { termux-clipboard-set; }
+  function clippaste { termux-clipboard-get; }
 elif command_exists xclip; then
-  copy_cmd='xclip -in -selection clipboard' paste_cmd='xclip -out -selection clipboard'
+  function clipcopy  { xclip -in  -selection clipboard; }
+  function clippaste { xclip -out -selection clipboard; }
 elif command_exists xsel; then
-  copy_cmd='xsel --clipboard --input' paste_cmd='xsel --clipboard --output'
+  function clipcopy  { xsel --clipboard --input;  }
+  function clippaste { xsel --clipboard --output; }
 else
-  error_msg='Platform $OSTYPE is not supported'
-  copy_cmd='print >&2 -r -- "clipcopy: '"$error_msg"'"; return 1'
-  paste_cmd='print >&2 -r -- "clippaste: '"$error_msg"'"; return 1'
-  unset error_msg
+  function clipcopy clippaste {
+    print >&2 -r -- "$0: Platform $OSTYPE is not supported"
+    return 1
+  }
 fi
-eval "clipcopy() { $copy_cmd; }; clippaste() { $paste_cmd; }"
-unset copy_cmd paste_cmd
 
 # for compatibility with Oh My Zsh plugins
 # Source: https://github.com/ohmyzsh/ohmyzsh/blob/5911aea46c71a2bcc6e7c92e5bebebf77b962233/lib/git.zsh#L58-L71

@@ -76,9 +76,9 @@ alias ln='ln -iv'
 alias mkdir='mkdir -v' md='mkdir -p'
 alias vidir='vidir -v'
 
-for n in {1..9}; do
+local n; for n in {1..9}; do
   alias "$n"="cd +$n"
-done; unset n
+done
 
 alias ...='cd ../..'
 alias ....='cd ../../..'
@@ -93,10 +93,9 @@ alias free='free -h'
 alias ip='ip -color=auto -human-readable'
 
 if command_exists apt && command_exists apt-get; then
-  apt_get_message="use 'apt' instead of 'apt-get'
-if you really want to use 'apt-get', type '\\apt-get'"
+  local apt_get_message="use 'apt' instead of 'apt-get'"$'\n'
+  apt_get_message+="if you really want to use 'apt-get', type '\\apt-get'"
   alias apt-get="echo -E ${(q-)apt_get_message} #"
-  unset apt_get_message
 fi
 
 # editor
@@ -163,11 +162,11 @@ fi
 # Find all commands whose names match the given pattern. This is possible with
 # `${list[(I)pattern]}` in Zsh. We need a list though, so the `k` modifier is
 # used to pick just the keys of the `$commands` associative array.
-for python in "${(@k)commands[(I)*python(|[0-9]|[0-9].[0-9]|[0-9].[0-9][0-9])]}"; do
+local python; for python in "${(@k)commands[(I)*python(|[0-9]|[0-9].[0-9]|[0-9].[0-9][0-9])]}"; do
   # Replace the *last* occurrence of the substring `python` with `pycalc`.
-  pycalc="${python%python*}pycalc${python##*python}"
+  local pycalc="${python%python*}pycalc${python##*python}"
   aliases[${pycalc}]="PYTHONSTARTUP=${(q)ZSH_DOTFILES:h}/scripts/dotfiles/pycalc_startup.py ${(q)python}"
-done; unset python pycalc
+done
 
 if command_exists litecli; then
   alias litecli='LESS+=" --chop-long-lines" litecli'

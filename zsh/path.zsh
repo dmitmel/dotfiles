@@ -36,7 +36,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
   path_prepend manpath /usr/local/opt/*/libexec/gnuman(N/)
 
   # add some keg-only Homebrew formulas
-  for formula in curl file-formula openssl ruby; do
+  local formula; for formula in curl file-formula openssl ruby; do
     formula_path="/usr/local/opt/$formula"
     if [[ ! -d "$formula_path" ]]; then
       continue
@@ -49,7 +49,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
     if [[ -d "$formula_path/lib/pkgconfig" ]]; then
       path_prepend pkg_config_path "$formula_path/lib/pkgconfig"
     fi
-  done; unset formula
+  done
 
   # Use Python 3 executables by default, i.e. when a version suffix (`python3`)
   # is not specified.
@@ -74,7 +74,7 @@ export GOBIN="${HOME}/.local/bin"
 path_prepend path "${GOBIN:-$GOPATH/bin}"
 
 # Rust
-rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
+local rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
 if [[ -f "$rustup_home"/settings.toml ]]; then
   # Make a low-effort attempt at quickly extracting the selected Rust toolchain
   # from rustup's settings. The TOML file is obviously assumed to be well-formed
@@ -82,7 +82,7 @@ if [[ -f "$rustup_home"/settings.toml ]]; then
   # use of rustup's CLI. Also a shortcut is taken: strings aren't unescaped
   # because Rust toolchain names don't need escaping in strings.
   # See also <https://github.com/toml-lang/toml/blob/master/toml.abnf>.
-  rust_toolchain=""
+  local rust_toolchain='' line=''
   < "$rustup_home"/settings.toml while IFS= read -r line; do
     if [[ "$line" =~ '^default_toolchain = "(.+)"$' ]]; then
       rust_toolchain="${match[1]}"
@@ -90,15 +90,16 @@ if [[ -f "$rustup_home"/settings.toml ]]; then
     elif [[ "$line" == \[*\] ]]; then
       break
     fi
-  done; unset line
+  done
 
   if [[ -n "$rust_toolchain" ]]; then
-    rust_sysroot="$rustup_home"/toolchains/"$rust_toolchain"
+    local rust_sysroot="$rustup_home"/toolchains/"$rust_toolchain"
     # path_append path "$rust_sysroot"/bin
     # path_prepend fpath "$rust_sysroot"/zsh/site-functions
     path_prepend manpath "$rust_sysroot"/share/man
   fi
 
+  local rust_sysroot=''
   for rust_sysroot in "$rustup_home"/toolchains/*(/); do
     # The filenames of all libraries in toolchain dirs are suffixed with their
     # build hashes or the compiler identifier, so in practice conflicts are
@@ -106,7 +107,6 @@ if [[ -f "$rustup_home"/settings.toml ]]; then
     path_prepend ld_library_path "$rust_sysroot"/lib
   done
 fi
-unset rustup_home rust_toolchain rust_sysroot
 
 path_prepend path ~/.cargo/bin
 

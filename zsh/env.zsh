@@ -1,11 +1,9 @@
 if [[ -z "$EDITOR" ]]; then
-  for EDITOR in nvim vim nano; do
-    if command_exists "$EDITOR"; then
-      export EDITOR
-      export VISUAL="${VISUAL:-$EDITOR}"
+  local editor; for editor in nvim vim nano; do
+    if command_exists "$editor"; then
+      export EDITOR="$editor"
+      export VISUAL="${VISUAL:-$editor}"
       break
-    else
-      unset EDITOR
     fi
   done
 fi
@@ -29,20 +27,19 @@ if command_exists dircolors; then  # (this program is also part of GNU coreutils
   # `dircolors` and regenerate it only when its binary gets updated together
   # with the rest of coreutils. Also note that the output of `dircolors` depends
   # on the value of $TERM and $COLORTERM, so they are a part of the cache key.
-  cached_dircolors="${ZSH_CACHE_DIR}/dircolors-${TERM}-${COLORTERM}.sh"
+  local cached_dircolors="${ZSH_CACHE_DIR}/dircolors-${TERM}-${COLORTERM}.sh"
 
   # Clear cached dircolors scripts every once in a while. The glob selects
   # regular files which were modified more than a week ago.
-  for stale in "${ZSH_CACHE_DIR}/dircolors"*.sh(N.mw+0); do
-    command rm -f -- "$stale";
-  done; unset stale
+  local stale; for stale in "${ZSH_CACHE_DIR}/dircolors"*.sh(N.mw+0); do
+    command rm -f -- "$stale"
+  done
 
   if should_rebuild "$cached_dircolors" "${commands[dircolors]}"; then
     command dircolors --bourne-shell >| "${cached_dircolors}.$$"
     command mv -f -- "${cached_dircolors}.$$" "$cached_dircolors"
   fi
   source "$cached_dircolors"
-  unset cached_dircolors
 fi
 
 # lf can load settings from LS_COLORS, but the configuration which is generated
@@ -100,16 +97,15 @@ export BAT_THEME="base16-256"
 export BAT_CONFIG_DIR="${ZSH_DOTFILES:h}/misc/bat"
 
 if ! is_defined KITTY_INSTALLATION_DIR; then
-  for KITTY_INSTALLATION_DIR in \
+  local kitty_dir
+  for kitty_dir in \
     ${commands[kitty]:+"${commands[kitty]:A:h:h}/lib/kitty"} \
-    /usr/lib/kitty /usr/local/lib/kitty \
+    "/usr/lib/kitty" "/usr/local/lib/kitty" \
     "${XDG_DATA_HOME:-${HOME}/.local/share}/kitty-ssh-kitten"
   do
-    if [[ -d "${KITTY_INSTALLATION_DIR}/shell-integration/zsh" ]]; then
-      export KITTY_INSTALLATION_DIR
+    if [[ -d "${kitty_dir}/shell-integration/zsh" ]]; then
+      export KITTY_INSTALLATION_DIR="$kitty_dir"
       break
-    else
-      unset KITTY_INSTALLATION_DIR
     fi
   done
 fi
