@@ -1,7 +1,8 @@
-# Performance {{{
+_zsh_dotfiles_entry() {
+  unfunction _zsh_dotfiles_entry
 
   zmodload zsh/datetime  # to read `$EPOCHREALTIME`
-  typeset -gA _perf_timers
+  declare -gA _perf_timers
 
   _perf_timer_start() {
     local name="${1:?timer name is needed}"
@@ -21,144 +22,150 @@
     fi
   }
 
-# }}}
+  # Declare this variable as an exported integer variable. If it is not already
+  # present in the process environment, reading this variable will return zero.
+  export -i DOTFILES_STARTING_SHLVL
+  # I use $SHLVL to detect if the current shell is nested in a different shell,
+  # e.g. when commands such as `poetry shell` or `nix shell` are invoked to
+  # temporarily drop into a new interactive shell. However, the value of $SHLVL
+  # by itself is not very useful because, well, it is inherited by the processes
+  # launched from the shell without any regard to the context in which the shell
+  # was spawned or the purpose of the processes themselves. For instance, if you
+  # start a terminal emulator, use it to run a TUI editor such as nvim and open
+  # a terminal window within it, the $SHLVL of the innermost shell will be 2,
+  # even though it is clearly running in a completely different application. To
+  # address this, I add an environment variable called $DOTFILES_PARENT_TTY,
+  # which shall be inherited by child processes, just like $SHLVL, which a shell
+  # descendent from the current process can use to tell if it is still running
+  # in the same TTY as the one at `$SHLVL - 1`, in which case it counts as a
+  # nested shell, or if it was started in a new TTY, which most likely means
+  # that it is running in a completely different terminal within an application
+  # that happened to be launched from an interactive shell, and thus inherited
+  # its environment.
+  if [[ -n "$TTY" && "$DOTFILES_PARENT_TTY" != "$TTY" ]]; then
+    export DOTFILES_PARENT_TTY="$TTY"
+    # Avoid explicitly setting this variable to zero to avoid polluting the
+    # environment with a redundant variable, as it will be zero 90% of the time.
+    if (( SHLVL != 1 )); then (( DOTFILES_STARTING_SHLVL = SHLVL - 1 )); fi
+  else
+    # If running in a nested shell, assume that the startup logs and the welcome
+    # message have already been shown, so don't display them twice in this TTY.
+    : ${DOTFILES_ZSHRC_SILENT=1}
+  fi
 
-# Declare this variable as an exported integer variable. If it is not already
-# present in the process environment, reading this variable will return zero.
-export -i DOTFILES_STARTING_SHLVL
-# I use $SHLVL to detect if the current shell is nested in a different shell,
-# e.g. when commands such as `poetry shell` or `nix shell` are invoked to
-# temporarily drop into a new interactive shell. However, the value of $SHLVL by
-# itself is not very useful because, well, it is inherited by the processes
-# launched from the shell without any regard to the context in which the shell
-# was spawned or the purpose of the processes themselves. For instance, if you
-# start a terminal emulator, use it to run a TUI editor such as nvim and open a
-# terminal window within it, the $SHLVL of the innermost shell will be 2, even
-# though it is clearly running in a completely different application. To address
-# this, I add an environment variable called $DOTFILES_PARENT_TTY, which shall
-# be inherited by child processes, just like $SHLVL, which a shell descendent
-# from the current process can use to tell if it is still running in the same
-# TTY as the one at `$SHLVL - 1`, in which case it counts as a nested shell, or
-# if it was started in a new TTY, which most likely means that it is running in
-# a completely different terminal within an application that happened to be
-# launched from an interactive shell, and thus inherited its environment.
-if [[ -n "$TTY" && "$DOTFILES_PARENT_TTY" != "$TTY" ]]; then
-  export DOTFILES_PARENT_TTY="$TTY"
-  # Avoid explicitly setting this variable to zero to avoid polluting the
-  # environment with a redundant variable, as it will be zero 90% of the time.
-  if (( SHLVL != 1 )); then (( DOTFILES_STARTING_SHLVL = SHLVL - 1 )); fi
-else
-  # If running in a nested shell, assume that the startup logs and the welcome
-  # message have already been shown, so don't display them twice in this TTY.
-  : ${DOTFILES_ZSHRC_SILENT=1}
-fi
+  _perf_timer_start "total"
 
-_perf_timer_start "total"
+  # How this weird abomination for getting the path to the current script works:
+  # <https://unix.stackexchange.com/questions/386113/zsh-expansion-syntax>
+  # <https://github.com/zdharma-continuum/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc#1-standardized-0-handling>
+  # `%x` must be used here and not `%N` since inside functions `%N` reports the
+  # name of the current function, and `%x` always gives the path to the script
+  # with the code that is currently being executed.
+  declare -g ZSH_DOTFILES="${${(%):-%x}:A:h}"
 
-# How this weird abomination for getting the path to the current script works:
-# <https://unix.stackexchange.com/questions/386113/zsh-expansion-syntax>
-# <https://github.com/zdharma-continuum/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc#1-standardized-0-handling>
-ZSH_DOTFILES="${${(%):-%N}:A:h}"
+  declare -g ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/zsh"
+  if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
+    command mkdir -pv -- "$ZSH_CACHE_DIR"
+  fi
 
-ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/zsh"
-if [[ ! -d "$ZSH_CACHE_DIR" ]]; then
-  command mkdir -pv -- "$ZSH_CACHE_DIR"
-fi
+  # Apparently, in Zsh you can define a function under multiple different names.
+  function _perf_source _zplg_load {
+    {
+      _perf_timer_start "${1:t}"
+      builtin source "$@"
+    } always {
+      _perf_timer_stop "${1:t}"
+    }
+  }
 
-# Apparently, in Zsh you can define a function under multiple different names.
-function _perf_source _zplg_load {
+  if (( $+functions[compdef] )); then
+    print >&2 -P '%F{red}`compinit` must not be called before loading the dotfiles!%f'
+  else
+    # This idea was borrowed from zinit to simplify the loading sequence: if any
+    # scripts or plugins call `compdef` before the completion system is properly
+    # initialized, we record those calls in an array to replay them later.
+    declare -ga _deferred_compdefs
+    compdef() { _deferred_compdefs+=("$0 ${(j: :)${(q-)@}}"); }
+  fi
+
+  integer welcome_fd=-1
   {
-    _perf_timer_start "${1:t}"
-    builtin source "$@"
-  } always {
-    _perf_timer_stop "${1:t}"
-  }
-}
 
-if (( $+functions[compdef] )); then
-  print >&2 -P '%F{red}`compinit` must not be called before loading the dotfiles!%f'
-else
-  # This idea was borrowed from zinit: to simplify the loading sequence, if any
-  # scripts or plugins call `compdef` before the completion system is properly
-  # initialized, then record those calls in an array to replay them later.
-  typeset -ga _deferred_compdefs
-  compdef() { _deferred_compdefs+=("$0 ${(j: :)${(q-)@}}"); }
-fi
-
-integer welcome_fd=-1
-{
-
-  if (( $+functions[_dotfiles_early_customizations] )); then
-    _dotfiles_early_customizations
-  fi
-
-  # TODO: my ZLE widgets must be loaded after the plugins, but before F-Sy-H
-  _all_dotfiles_components=(
-    options functions path welcome
-    env prompt zplg plugins aliases completion zle alias_tips colorscheme
-  )
-
-  for _dotfiles_component in "${_all_dotfiles_components[@]}"; do
-    if (( $+functions[_dotfiles_before_${_dotfiles_component}] )); then
-      "_dotfiles_before_${_dotfiles_component}"
+    if (( $+functions[_dotfiles_early_customizations] )); then
+      _dotfiles_early_customizations
     fi
 
-    if (( $+functions[_dotfiles_override_${_dotfiles_component}] )); then
-      "_dotfiles_override_${_dotfiles_component}"
-    elif [[ "$_dotfiles_component" == "welcome" ]]; then
-      if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" ]]; then
-        # Once the basic shell environment has been configured, start the
-        # `welcome` script in the background and open a pipe to read its output.
-        # The script will collect information about the system in parallel with
-        # the heavier part of the shell startup procedure, and once that's done
-        # we can read its output from this pipe to display it to the user.
-        exec {welcome_fd}< <(welcome)
+    # TODO: my ZLE widgets should be loaded after the plugins, but before F-Sy-H
+    local -a all_dotfiles_components
+    all_dotfiles_components=(
+      options functions path welcome
+      env prompt zplg plugins aliases completion zle alias_tips colorscheme
+    )
+
+    local component
+    for component in "${all_dotfiles_components[@]}"; do
+      if (( $+functions[_dotfiles_before_${component}] )); then
+        "_dotfiles_before_${component}"
       fi
-    else
-      _perf_source "${ZSH_DOTFILES}/${_dotfiles_component}.zsh"
+
+      if (( $+functions[_dotfiles_override_${component}] )); then
+        "_dotfiles_override_${component}"
+      elif [[ "$component" == "welcome" ]]; then
+        if [[ -z "$DOTFILES_ZSHRC_SILENT" && -z "$DOTFILES_DISABLE_WELCOME" ]]; then
+          # Once the basic shell environment has been set up, start the
+          # `welcome` script in the background and open a pipe to read its
+          # output. The script will collect information about the system in
+          # parallel with the heavier part of the shell startup procedure, and
+          # once that's done we can read its output from this pipe to display it
+          # to the user.
+          exec {welcome_fd}< <(welcome)
+        fi
+      else
+        _perf_source "${ZSH_DOTFILES}/${component}.zsh"
+      fi
+
+      if (( $+functions[_dotfiles_after_${component}] )); then
+        "_dotfiles_after_${component}"
+      fi
+    done
+
+    if (( $+functions[_dotfiles_customizations] )); then
+      _dotfiles_customizations
     fi
 
-    if (( $+functions[_dotfiles_after_${_dotfiles_component}] )); then
-      "_dotfiles_after_${_dotfiles_component}"
+    _perf_timer_stop "total"
+
+    if (( welcome_fd >= 0 )); then
+      # A pure-Zsh version of `cat`. The flag `-u` of `read` and `print`
+      # specifies the file descriptor to read from or write to.
+      while IFS= read -r -u "$welcome_fd"; do print -r -u2 -- "$REPLY"; done
     fi
-  done
-  unset _dotfiles_component _all_dotfiles_components
 
-  if (( $+functions[_dotfiles_customizations] )); then
-    _dotfiles_customizations
-  fi
-
-  _perf_timer_stop "total"
-
-  if (( welcome_fd >= 0 )); then
-    # A pure-Zsh version of `cat`. The flag `-u` of `read` and `print` specifies
-    # the file descriptor to read from or write to.
-    while IFS= read -r -u "$welcome_fd"; do print -r -u2 -- "$REPLY"; done
-  fi
-
-} always {
-  if (( welcome_fd >= 0 )); then
-    exec {welcome_fd}<&-  # close our end of the pipe with this ugly-ass syntax
-  fi
-  unset welcome_fd
-}
-
-if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" ]]; then
-  autoload -Uz -- "${KITTY_INSTALLATION_DIR}/shell-integration/zsh/kitty-integration"
-  kitty-integration
-  unfunction kitty-integration
-fi
-
-if [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
-  # Push this command onto the editing stack. ZLE will pop it into the editing
-  # buffer when the first prompt is drawn.
-  print -z "$KITTY_SI_RUN_COMMAND_AT_STARTUP"
-  unset KITTY_SI_RUN_COMMAND_AT_STARTUP
-
-  autoload -Uz add-zle-hook-widget
-  _run_command_at_startup() {
-    add-zle-hook-widget -d line-init _run_command_at_startup
-    zle accept-line
+  } always {
+    if (( welcome_fd >= 0 )); then
+      exec {welcome_fd}<&-  # close our end of the pipe with this ugly-ass syntax
+    fi
   }
-  add-zle-hook-widget line-init _run_command_at_startup
-fi
+
+  if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" ]]; then
+    autoload -Uz -- "${KITTY_INSTALLATION_DIR}/shell-integration/zsh/kitty-integration"
+    kitty-integration
+    unfunction kitty-integration
+  fi
+
+  if [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
+    # Push this command onto the editing stack. ZLE will pop it into the editing
+    # buffer when the first prompt is drawn.
+    print -z "$KITTY_SI_RUN_COMMAND_AT_STARTUP"
+    unset KITTY_SI_RUN_COMMAND_AT_STARTUP
+
+    autoload -Uz add-zle-hook-widget
+    _run_command_at_startup() {
+      add-zle-hook-widget -d line-init _run_command_at_startup
+      zle accept-line
+    }
+    add-zle-hook-widget line-init _run_command_at_startup
+  fi
+
+}
+_zsh_dotfiles_entry
