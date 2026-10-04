@@ -74,7 +74,8 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
   case "$CPUTYPE" in
     (x86_64)  lf_arch=amd64 ;;
     (i?86)    lf_arch=386   ;;
-    (aarch64) lf_arch=arm64 ;;
+    (aarch64) lf_arch=arm64 ;; # designation used by Linux
+    (arm64)   lf_arch=arm64 ;; # designation used by macOS
     (arm*)    lf_arch=arm   ;;
   esac
 
@@ -90,12 +91,17 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
   if [[ -n "$lf_arch" && -n "$lf_os" ]]; then
     local lf_archive_name="lf-${lf_os}-${lf_arch}.tar.gz"
     plugin lf "https://github.com/gokcehan/lf/releases/latest/download/${lf_archive_name}" from=url \
-      build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${lf_archive_name}" lf && chmod +x bin/lf" \
+      build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${lf_archive_name}" lf" \
       build='_zplg_source_url download \
         "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/lf.1" \
         "${plugin_dir}/man/man1"' \
+      build='_zplg_source_url download \
+        "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/etc/lf.zsh" \
+        "${plugin_dir}/functions"' \
+      build='ln -sf -- "${plugin_dir}/functions/"{lf.zsh,_lf}' \
       after_load='plugin-cfg-path path prepend bin' \
-      after_load='plugin-cfg-path manpath prepend man'
+      after_load='plugin-cfg-path manpath prepend man' \
+      after_load='plugin-cfg-path fpath prepend functions'
   fi
 fi
 
