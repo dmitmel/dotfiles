@@ -147,7 +147,7 @@ _zsh_dotfiles_entry() {
     fi
   }
 
-  if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" ]]; then
+  if [[ -n "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" && "$KITTY_SHELL_INTEGRATION" != 'disabled' ]]; then
     autoload -Uz -- "${KITTY_INSTALLATION_DIR}/shell-integration/zsh/kitty-integration"
     kitty-integration
     unfunction kitty-integration
@@ -156,7 +156,7 @@ _zsh_dotfiles_entry() {
   if [[ -n "$KITTY_SI_RUN_COMMAND_AT_STARTUP" ]]; then
     # Push this command onto the editing stack. ZLE will pop it into the editing
     # buffer when the first prompt is drawn.
-    print -z "$KITTY_SI_RUN_COMMAND_AT_STARTUP"
+    pushln -- "$KITTY_SI_RUN_COMMAND_AT_STARTUP"
     unset KITTY_SI_RUN_COMMAND_AT_STARTUP
 
     autoload -Uz add-zle-hook-widget

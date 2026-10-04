@@ -56,10 +56,6 @@ RUN \
   mkdir -p ~/.vim && echo "source ${DOTFILES_DIR}/nvim/init.vim" > ~/.vim/vimrc && \
   for dir in git lf ranger tmux; do ln -sr "${DOTFILES_DIR}/misc/${dir}" -t ~/.config/; done
 
-RUN \
-  mkdir -p /usr/local/lib/kitty && \
-  curl -Lf https://github.com/kovidgoyal/kitty/archive/refs/heads/master.tar.gz | \
-    tar -C /usr/local/lib/kitty -xzvf - --strip-components=1 kitty-master/shell-integration && \
-  DOTFILES_ZSHRC_SILENT=1 zsh -i -c 'nvim --headless +"qa!" || true'
+RUN DOTFILES_ZSHRC_SILENT=1 zsh -i -c 'nvim --headless +"qa!" || true'
 
 CMD /bin/zsh

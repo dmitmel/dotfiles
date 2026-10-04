@@ -160,3 +160,11 @@ if function_exists fast-theme; then
     set-my-syntax-theme
   fi
 fi
+
+if [[ -z "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" && "$KITTY_SHELL_INTEGRATION" != 'disabled' ]]; then
+  plugin kitty-shell-integration 'https://raw.githubusercontent.com/kovidgoyal/kitty/master/shell-integration/zsh/kitty-integration' \
+    from=url ignore='*' \
+    build='mkdir -p ./shell-integration/zsh' \
+    build='ln -sf ../../kitty-integration ./shell-integration/zsh/' \
+    before_load='KITTY_INSTALLATION_DIR="$plugin_dir"'
+fi
