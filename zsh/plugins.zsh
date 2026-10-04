@@ -160,9 +160,3 @@ if function_exists fast-theme; then
     set-my-syntax-theme
   fi
 fi
-
-if [[ "$OSTYPE" == darwin* ]]; then
-  plugin retina 'https://raw.githubusercontent.com/lunixbochs/meta/master/utils/retina/retina.m' from=url \
-    build='mkdir -p bin && gcc retina.m -framework Foundation -framework AppKit -o bin/retina' \
-    after_load='plugin-cfg-path path prepend "bin"'
-fi
