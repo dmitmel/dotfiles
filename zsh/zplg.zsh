@@ -14,6 +14,23 @@
 #
 # But fear not, read my comments and they'll guide you through this jungle of
 # shell script mess.
+#
+# Error handling in this script is done by graciously sprinkling `|| return`
+# statements after every command that might fail (e.g. after stuff that involves
+# I/O, calling external programs or user-supplied code). Usage of the options
+# ERR_EXIT (more commonly known as `set -e`) or ERR_RETURN was not, well, an
+# option, because:
+#
+# 1. I bet that most plugins are not designed to work in a "strict" mode where
+#    a non-zero status code stops the execution, so I would need to set these
+#    options only for my code and reset them before sourcing the plugins;
+# 2. ERR_EXIT has zero effect while shell initialization scripts are executed,
+#    and killing the whole shell would really be too strong anyway;
+# 3. ERR_RETURN is *completely* broken in Zsh v5.4.2, which is *precisely* the
+#    version of Zsh that is (and will be till the end of times) shipped with
+#    Ubuntu 18.04 LTS! (see these commits for more detail:
+#    <https://github.com/zsh-users/zsh/commit/97d4bdbc7e86e6e8da0d4a059b118ffab289d3a9>,
+#    <https://github.com/zsh-users/zsh/commit/ebcea98eca33b8894d29545f1a46331d03f3913a>)
 
 # $ZPLG_HOME is a directory where all your plugins are downloaded. In the future
 # it might also contain some kind of state/lock/database files. This variable
@@ -89,18 +106,18 @@ fi
 # See documentation of the `plugin` function for description.
 
   _zplg_source_url() {
-    setopt local_options err_return extended_glob
+    setopt local_options extended_glob
     local action="$1" plugin_url="$2" plugin_dir="$3"
 
     # For this source there is no distinction between updating stuff or
     # downloading it anew -- the logic is the same anyway.
-    if [[ "$action" != 'download' && "$action" != 'upgrade' ]]; then
+    if [[ ! ( "$action" == 'download' || "$action" == 'upgrade' ) ]]; then
       _zplg_error "unknown action: $action"
       return 1
     fi
 
     if [[ ! -d "$plugin_dir" ]]; then
-      mkdir -p -- "$plugin_dir"
+      command mkdir -p -- "$plugin_dir" || return
     fi
 
     # Strip the fragment and the query from the URL, and then take the last
@@ -143,11 +160,11 @@ fi
       # match the style of option-passing throughout my code, as this will break
       # compatibility with LTS distros.
       http_status=$(
-        curl --fail --location --write-out '%{http_code}' \
+        command curl --fail --location --write-out '%{http_code}' \
           ${etag:+'--header'} ${etag:+"If-None-Match: $etag"} \
           --dump-header "$headers_file" --output "$downloaded_file" \
           -- "$plugin_url"
-      ) || return $?
+      ) || return
 
       # Unfortunately, we have to do a little bit of manual parsing of HTTP headers.
       # The HTTP/1.1 spec: <https://datatracker.ietf.org/doc/html/rfc7230>
@@ -170,29 +187,30 @@ fi
           # them, as we must pass the ETag back to the server *exactly* as it
           # was given to us.
         fi
-      done < "$headers_file"
+      done < "$headers_file" || return
 
       if (( http_status == 304 )); then  # Not Modified
         print >&2 -r -- "done, ${(qq)installed_file} is already up to date."
         return 0
       fi
 
-      mv -- "$downloaded_file" "$installed_file"
+      command mv -- "$downloaded_file" "$installed_file" || return
 
       if [[ -z "$etag" ]]; then
         files_to_delete+=("$etag_file")
       else
-        print -r -- "$etag" >| "$etag_file"
+        print -r -- "$etag" >| "$etag_file" || return
       fi
 
       print >&2 -r -- "done, saved to ${(qq)installed_file}."
     } always {
-      if (( ${#files_to_delete[@]} > 0 )); then rm -f -- "${files_to_delete[@]}"; fi
+      if (( ${#files_to_delete[@]} > 0 )); then
+        command rm -f -- "${files_to_delete[@]}" || true
+      fi
     }
   }
 
   _zplg_source_git() {
-    setopt local_options err_return
     local action="$1" plugin_url="$2" plugin_dir="$3"
 
     # Make a local variable which is exported (-x) into the environment (yes,
@@ -207,29 +225,30 @@ fi
         local git_version
         # Get the output of `git --version`, split it into lines, pick the first
         # one, remove the prefix `git version `.
-        git_version=${${${(f)"$(git --version)"}[1]}#'git version '}
+        git_version=${${${(f)"$(command git --version)"}[1]}#'git version '} || return
 
         local has_partial_clone=''
         # <https://github.blog/open-source/git/highlights-from-git-2-25/>
         if is-at-least 2.25 "$git_version"; then has_partial_clone='yes'; fi
 
-        git clone --progress --recurse-submodules ${has_partial_clone:+'--filter=blob:none'} \
-          -- "$plugin_url" "$plugin_dir" ;;
+        command git clone --progress --recurse-submodules \
+          ${has_partial_clone:+'--filter=blob:none'} \
+          -- "$plugin_url" "$plugin_dir" || return ;;
 
       (upgrade)
         local exit_code=0
-        git -C "$plugin_dir" symbolic-ref --quiet HEAD >/dev/null || exit_code=$?
+        command git -C "$plugin_dir" symbolic-ref --quiet HEAD >/dev/null || exit_code=$?
 
         case "$exit_code" in
           (0) # HEAD points to a branch
-            git -C "$plugin_dir" pull ;;
+            command git -C "$plugin_dir" pull || return ;;
           (1) # HEAD is in a detached state (e.g. a tag is checked out)
-            git -C "$plugin_dir" fetch ;;
+            command git -C "$plugin_dir" fetch || return ;;
           (*) # an error has occured
             return exit_code ;;
         esac
 
-        git -C "$plugin_dir" submodule update --init --recursive ;;
+        command git -C "$plugin_dir" submodule update --init --recursive || return ;;
 
       (*) _zplg_error "unknown action: $action"; return 1 ;;
     esac
@@ -283,7 +302,6 @@ fi
 #
 # load (+) and ignore (+)
 #   Globs which tell what files should be sourced (load) or ignored (ignore).
-#   If glob expands to nothing (NULL_GLOB), nothing is loaded.
 #
 # Neat trick when using options: if you want to assign values using an array,
 # write it like this: option=${^array}. That way `option=` is prepended to
@@ -300,21 +318,6 @@ fi
 # everything into one code block. I hope (this is also a message for my future
 # self) that you'll be able to read this code, I tried to comment everything.
 plugin() {
-
-  # NOTE: We don't use `setopt local_options` here, so that if a plugin executes
-  # `setopt` commands of its own, their effects propagate out of this function.
-  # Instead, I track the status of ERR_RETURN manually, to restore it to its
-  # original value before returning from this function, but also when actually
-  # loading the plugin, since not every plugin may be compatible with the strict
-  # behavior of ERR_RETURN.
-  if [[ -o err_return ]]; then
-    local __zplg_err_return_was_set=1
-  else
-    local __zplg_err_return_was_set=0
-  fi
-  setopt err_return
-
-  {
 
   # parse basic arguments {{{
 
@@ -379,8 +382,12 @@ plugin() {
     # - *.plugin.zsh for most plugins and Oh My Zsh ones
     # - *.zsh-theme for most themes and Oh My Zsh ones
     # - init.zsh for Prezto plugins
-    # ([1]) means "expand only to the first match"
-    plugin_load=("(*.plugin.zsh|*.zsh-theme|init.zsh)([1])")
+    # glob qualifiers used here:
+    # - `N` = enable NULL_GLOB (don't throw an error if no matches are found)
+    # - `-` = resolve symlinks before checking the type of the file
+    # - `.` = match only regular files
+    # - `[1]` = expand to only the first match
+    plugin_load=("(*.plugin.zsh|*.zsh-theme|init.zsh)(N-.[1])")
   fi
 
   readonly plugin_from plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
@@ -394,21 +401,24 @@ plugin() {
     readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
     # simple check whether the plugin directory exists is enough for me
     if [[ ! -d "$plugin_dir" ]]; then
-      mkdir -p -- "$plugin_dir"
       _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir"
+      command mkdir -p -- "$plugin_dir" || return
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return
 
       if (( ${#plugin_build[@]} > 0 )); then
         _zplg_log "building $plugin_id"
         # The flag `-q` tells `cd` to not execute `chpwd` hooks (which get
         # inherited by subshells)
-        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" )
+        ( cd -q -- "$plugin_dir" && _zplg_run_commands "${plugin_build[@]}" ) || return
       fi
     fi
 
   } always {
     if (( $? != 0 )); then
       _zplg_error "an error occured while downloading $plugin_id"
+      # Try to not leave an empty directory behind if the downloader fails and
+      # downloads nothing
+      command rmdir -- "$plugin_dir" 2>/dev/null || true
     fi
   }
 
@@ -422,55 +432,37 @@ plugin() {
     # matched by `ignore=...`
     local -a scripts_to_load
 
-    () {
-      # Set the NULL_GLOB option, so that patterns that generate no matches
-      # don't throw an error. We can't append `(N)` to patterns to get this
-      # effect, as they might already have parentheses at the end with their own
-      # qualifiers. The reason this code sits in an anonymous function is that
-      # here we can use LOCAL_OPTIONS to have Zsh take care of restoring the
-      # previous value of NULL_GLOB, as set by the user or by other scripts.
-      setopt local_options null_glob
+    # ${~var_name} turns on globbing from the expansion of ${var_name}. Note
+    # the lack of double quotes -- that is intentional and necessary.
+    # ${^array} makes it so that a prefix is prepended to all values of an
+    # array (Zsh performs this BEFORE the glob expansion step).
+    scripts_to_load=( "${plugin_dir}/"${~^plugin_load} ) || return
 
-      # ${~var_name} turns on globbing from the expansion of ${var_name}. Note
-      # the lack of double quotes -- that is intentional and necessary.
-      # ${^array} makes it so that a prefix is prepended to all values of an
-      # array (Zsh performs this BEFORE the glob expansion step).
-      scripts_to_load=( "${plugin_dir}/"${~^plugin_load} )
-
-      local ignore_pat
-      for ignore_pat in "${plugin_ignore[@]}"; do
-        # ${array:#pattern} removes all elements matching the pattern from the array
-        scripts_to_load=( "${scripts_to_load[@]:#"${plugin_dir}/"${~ignore_pat}}" )
-      done
-    }
+    local ignore_pat
+    for ignore_pat in "${plugin_ignore[@]}"; do
+      # ${array:#pattern} removes all elements matching the pattern from the array
+      scripts_to_load=( "${scripts_to_load[@]:#"${plugin_dir}/"${~ignore_pat}}" ) || return
+    done
 
     readonly scripts_to_load
 
-    _zplg_run_commands "${plugin_before_load[@]}"
+    _zplg_run_commands "${plugin_before_load[@]}" || return
 
     if [[ -z "$ZPLG_SKIP_LOADING" ]]; then
-      local script_path
+      local script_path script_ret_code
       for script_path in "${scripts_to_load[@]}"; do
         _zplg_debug "sourcing $script_path"
-
-        if (( ! __zplg_err_return_was_set )); then
-          setopt no_err_return
-        fi
-
         _zplg_load "$script_path"
-
-        if [[ -o err_return ]]; then
-          # The plugin has decided to flip ERR_RETURN on for some reason. Well,
-          # we'll make sure to propagate this effect to our caller...
-          __zplg_err_return_was_set=1
-        else
-          setopt err_return
+        script_ret_code=$?
+        if (( script_ret_code != 0 )); then
+          return script_ret_code
         fi
       done
-      unset script_path
+      unset script_path script_ret_code
     fi
 
-    _zplg_run_commands "${plugin_after_load[@]}"
+    _zplg_run_commands "${plugin_after_load[@]}" || return
+
 
     # plugin has finally been loaded, we can add it to $ZPLG_LOADED_PLUGINS
     ZPLG_LOADED_PLUGINS[$plugin_id]="$plugin_dir"
@@ -489,22 +481,35 @@ plugin() {
     if (( $? != 0 )); then
       _zplg_error "an error occured while loading $plugin_id"
     fi
+    # Zsh treats some errors as reasons for aborting execution of a script, such
+    # as syntax errors, invalid or non-matching globs, and some logical mistakes
+    # like assigning to a read-only variable. These will bubble upwards through
+    # the call stack, just like exceptions in normal programming languages,
+    # until the error condition is cleared by resetting `TRY_BLOCK_ERROR` to
+    # zero in an `always` block. Since such fatal errors can very well occur in
+    # the code of plugins or in the user-supplied hooks, I don't want an error
+    # in one plugin to completely break the loading of all other plugins, so I
+    # always reset the error condition here. Note that doing so does not change
+    # the exit status of the function, regardless of whether `TRY_BLOCK_ERROR`
+    # is reset or not, a non-zero exit code will be returned from the body of
+    # the `always` block as it normally would be.
+    TRY_BLOCK_ERROR=0
   }
 
   # }}}
-
-  } always {
-    if (( ! __zplg_err_return_was_set )); then
-      setopt no_err_return
-    fi
-  }
 
 }
 
 # Runs a list of commands within the context of an isolated function.
 _zplg_run_commands() {
-  # (F) modifier joins an array with newlines
-  eval "${(F)@}"
+  setopt local_options no_aliases
+  while (( $# > 0 )); do
+    if eval "$1"; then
+      shift
+    else
+      return $?
+    fi
+  done
 }
 
 # helper functions for plugin configuration {{{
@@ -512,8 +517,6 @@ _zplg_run_commands() {
   # Simplifies modification of path variables (path/fpath/manpath etc) in
   # after_load and before_load hooks.
   plugin-cfg-path() {
-    setopt local_options err_return
-
     if (( $# < 2 )); then
       _zplg_error "usage: $0 <var_name> prepend|append <value...>"
       return 1
@@ -553,25 +556,24 @@ _zplg_run_commands() {
   }
 
   plugin-cfg-git-checkout-version() {
-    setopt local_options err_return
-
     if (( $# < 1 )); then
       _zplg_error "usage: $0 <pattern>"
       return 1
     fi
 
+    setopt local_options pipe_fail
     local pattern="$1" tag="" found=0
 
-    git tag --list --sort=-version:refname | while IFS= read -r tag; do
+    command git tag --list --sort=-version:refname | while IFS= read -r tag; do
       if [[ "$tag" == ${~pattern} ]]; then
         found=1
         break
       fi
-    done
+    done || return $?
 
     if (( found )); then
       _zplg_log "the latest version is $tag"
-      git checkout --quiet "refs/tags/$tag"
+      command git checkout --quiet "refs/tags/$tag" || return $?
     fi
   }
 
@@ -598,8 +600,6 @@ _zplg_run_commands() {
   # Upgrades all plugins if no arguments are given, otherwise upgrades plugins by
   # their IDs.
   zplg-upgrade() {
-    setopt local_options err_return
-
     if (( $# == 0 )); then
       set -- "${(@k)ZPLG_LOADED_PLUGINS}"
     fi
@@ -630,8 +630,6 @@ _zplg_run_commands() {
 
   # Reinstall plugins by IDs.
   zplg-reinstall() {
-    setopt local_options err_return
-
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
@@ -649,7 +647,7 @@ _zplg_run_commands() {
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
-      rm -rf "$plugin_dir" || {
+      command rm -rf "$plugin_dir" || {
         exit_code=$?; _zplg_error "failed to remove $plugin_id"; continue
       }
 
@@ -667,16 +665,14 @@ _zplg_run_commands() {
   }
 
   zplg-rebuild() {
-    setopt local_options err_return
-
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
     fi
 
-    local plugin_id exit_code=0
+    local plugin_id plugin_dir plugin_build exit_code=0
     for plugin_id in "$@"; do
-      local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
+      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       if (( ${+ZPLG_LOADED_PLUGIN_BUILD_CMDS[$plugin_id]} )); then
         # TERRIBLE HACK continued: this monstrosity is used to "decode" build
@@ -699,24 +695,22 @@ _zplg_run_commands() {
 
   # Clears directories of plugins by their IDs.
   zplg-purge() {
-    setopt local_options err_return
-
     if (( $# == 0 )); then
       _zplg_error "usage: $0 <plugin...>"
       return 1
     fi
 
-    local plugin_id exit_code=0
+    local plugin_id plugin_dir exit_code=0
     for plugin_id in "$@"; do
       if (( ! ${+ZPLG_LOADED_PLUGINS[$plugin_id]} )); then
         _zplg_error "unknown plugin $plugin_id"
         return 1
       fi
 
-      local plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
+      plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
-      rm -rf -- "$plugin_dir" || {
+      command rm -rf -- "$plugin_dir" || {
         exit_code=$?; _zplg_error "failed to remove $plugin_id"; continue
       }
     done
