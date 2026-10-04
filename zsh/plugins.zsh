@@ -53,6 +53,7 @@ plugin completions 'zsh-users/zsh-completions' \
 # variable being defined).
 if ! command_exists fzf; then : ${DOTFILES_INSTALL_FZF=yes}; fi
 if ! command_exists lf;  then : ${DOTFILES_INSTALL_LF=yes};  fi
+if ! command_exists eza; then : ${DOTFILES_INSTALL_EZA=yes}; fi
 
 if [[ -n "$DOTFILES_INSTALL_FZF" ]]; then
   plugin fzf 'junegunn/fzf' \
@@ -99,6 +100,41 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
         "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/etc/lf.zsh" \
         "${plugin_dir}/functions"' \
       build='ln -sf -- "${plugin_dir}/functions/"{lf.zsh,_lf}' \
+      after_load='plugin-cfg-path path prepend bin' \
+      after_load='plugin-cfg-path manpath prepend man' \
+      after_load='plugin-cfg-path fpath prepend functions'
+  fi
+fi
+
+if [[ -n "$DOTFILES_INSTALL_EZA" ]]; then
+  local eza_triple=''
+
+  if [[ "$OSTYPE" == 'linux'* ]]; then
+    case "$CPUTYPE" in
+      (x86_64)  eza_triple='x86_64-unknown-linux-gnu'    ;;
+      #(x86_64) eza_triple='x86_64-unknown-linux-musl'   ;;
+      (aarch64) eza_triple='aarch64-unknown-linux-gnu'   ;;
+      (arm64)   eza_triple='aarch64-unknown-linux-gnu'   ;;
+      (arm*)    eza_triple='arm-unknown-linux-gnueabihf' ;;
+    esac
+  elif [[ "$OSTYPE" == 'msys' && "$CPUTYPE" == 'x86_64' ]]; then
+    eza_triple='x86_64-pc-windows-gnu'
+  fi
+
+  if [[ -n "$eza_triple" ]]; then
+    local eza_archive_name="eza_${eza_triple}.tar.gz"
+    plugin eza "https://github.com/eza-community/eza/releases/latest/download/${eza_archive_name}" from=url \
+      build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${eza_archive_name}" ./eza" \
+      build='eza_version="${${(s: :)${${(f)$(./bin/eza --version)}[2]}}[1]#"v"}"' \
+      build='_zplg_source_url download \
+        "https://github.com/eza-community/eza/releases/latest/download/man-${eza_version}.tar.gz" "${plugin_dir}"' \
+      build='_zplg_source_url download \
+        "https://github.com/eza-community/eza/releases/latest/download/completions-${eza_version}.tar.gz" "${plugin_dir}"' \
+      build='mkdir -p man/man1 && tar -C man --no-same-owner -xzf "man-${eza_version}.tar.gz" \
+        --wildcards "./target/man-${eza_version}/*.[0-9]" --strip-components=3 \
+        --transform="s|/([^/]+)\.([0-9])$|/man\2/\1.\2|x" --show-transformed-names' \
+      build='mkdir -p functions && tar -C functions --no-same-owner -xzf "completions-${eza_version}.tar.gz" \
+        "./target/completions-${eza_version}/_eza" --strip-components=3 --show-transformed-names' \
       after_load='plugin-cfg-path path prepend bin' \
       after_load='plugin-cfg-path manpath prepend man' \
       after_load='plugin-cfg-path fpath prepend functions'
