@@ -95,11 +95,10 @@ if [[ -n "$DOTFILES_INSTALL_LF" ]]; then
       build="mkdir -p bin && tar -C bin --no-same-owner -xzf "${lf_archive_name}" lf" \
       build='_zplg_source_url download \
         "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/lf.1" \
-        "${plugin_dir}/man/man1"' \
+        "${plugin_dir}/man/man1/lf.1"' \
       build='_zplg_source_url download \
         "https://raw.githubusercontent.com/gokcehan/lf/refs/tags/$(./bin/lf -version)/etc/lf.zsh" \
-        "${plugin_dir}/functions"' \
-      build='ln -sf -- "${plugin_dir}/functions/"{lf.zsh,_lf}' \
+        "${plugin_dir}/functions/_lf"' \
       after_load='plugin-cfg-path path prepend bin' \
       after_load='plugin-cfg-path manpath prepend man' \
       after_load='plugin-cfg-path fpath prepend functions'
@@ -163,8 +162,6 @@ fi
 
 if [[ -z "$KITTY_INSTALLATION_DIR" && -n "$KITTY_SHELL_INTEGRATION" && "$KITTY_SHELL_INTEGRATION" != 'disabled' ]]; then
   plugin kitty-shell-integration 'https://raw.githubusercontent.com/kovidgoyal/kitty/master/shell-integration/zsh/kitty-integration' \
-    from=url ignore='*' \
-    build='mkdir -p ./shell-integration/zsh' \
-    build='ln -sf ../../kitty-integration ./shell-integration/zsh/' \
+    from=url to='shell-integration/zsh/kitty-integration' ignore='*' \
     before_load='KITTY_INSTALLATION_DIR="$plugin_dir"'
 fi

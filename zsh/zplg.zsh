@@ -88,7 +88,8 @@ ZPLG_PLUGINS_DIR="${ZPLG_PLUGINS_DIR:-${ZPLG_HOME}/plugins}"
 # can't put associative arrays (or any other alternative to "objects") into
 # another associative array.
 declare -gA ZPLG_LOADED_PLUGINS
-declare -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_BUILD_CMDS
+declare -gA ZPLG_LOADED_PLUGIN_URLS ZPLG_LOADED_PLUGIN_SOURCES ZPLG_LOADED_PLUGIN_PATHS \
+  ZPLG_LOADED_PLUGIN_BUILD_CMDS
 
 # A wrapper around `source` for easier profiling and debugging. You can override
 # this function to change the plugin loading strategy.
@@ -107,7 +108,7 @@ fi
 
   _zplg_source_url() {
     setopt local_options extended_glob
-    local action="$1" plugin_url="$2" plugin_dir="$3"
+    local action="$1" url="$2" destination="$3"
 
     # For this source there is no distinction between updating stuff or
     # downloading it anew -- the logic is the same anyway.
@@ -116,22 +117,29 @@ fi
       return 1
     fi
 
-    if [[ ! -d "$plugin_dir" ]]; then
-      command mkdir -p -- "$plugin_dir" || return
-    fi
-
     # Strip the fragment and the query from the URL, and then take the last
     # (tail) component of the remaining path with `:t`.
-    local file_name="${${${plugin_url%%\#*}%%\?*}:t}"
+    local file_name="${${${url%%\#*}%%\?*}:t}"
 
-    local headers_file="${plugin_dir}/.${file_name}.headers.tmp"
-    local    etag_file="${plugin_dir}/.${file_name}.etag"
+    if [[ "$destination" == *'/' ]]; then
+      destination=${destination%'/'}
+    elif [[ ! -d "$destination" ]]; then
+      file_name="${destination:t}"
+      destination="${destination:h}"
+    fi
+
+    if [[ ! -d "$destination" ]]; then
+      command mkdir -p -- "$destination" || return
+    fi
+
+    local headers_file="${destination}/.${file_name}.headers.tmp"
+    local    etag_file="${destination}/.${file_name}.etag"
     # Put the downloaded file beside the installation destination and not into a
     # separate/temporary directory to make sure that it resides on the same file
     # system as the installed one, so that the `mv` operation to install it
     # becomes atomic.
-    local downloaded_file="${plugin_dir}/${file_name}.part"
-    local  installed_file="${plugin_dir}/${file_name}"
+    local downloaded_file="${destination}/${file_name}.part"
+    local  installed_file="${destination}/${file_name}"
 
     local files_to_delete=( "$downloaded_file" "$headers_file" )
 
@@ -146,7 +154,7 @@ fi
         etag=${etag:0:1024}
       fi
 
-      print >&2 -r -- "downloading ${(qq)plugin_url}..."
+      print >&2 -r -- "downloading ${(qq)url}..."
 
       local http_status
       # It's very handy that we can split the outputs of curl(1) four ways: the
@@ -163,7 +171,7 @@ fi
         command curl --fail --location --write-out '%{http_code}' \
           ${etag:+'--header'} ${etag:+"If-None-Match: $etag"} \
           --dump-header "$headers_file" --output "$downloaded_file" \
-          -- "$plugin_url"
+          -- "$url"
       ) || return
 
       # Unfortunately, we have to do a little bit of manual parsing of HTTP headers.
@@ -211,7 +219,7 @@ fi
   }
 
   _zplg_source_git() {
-    local action="$1" plugin_url="$2" plugin_dir="$3"
+    local action="$1" url="$2" destination="$3"
 
     # Make a local variable which is exported (-x) into the environment (yes,
     # this is indeed a valid combination).
@@ -233,30 +241,30 @@ fi
 
         command git clone --progress --recurse-submodules \
           ${has_partial_clone:+'--filter=blob:none'} \
-          -- "$plugin_url" "$plugin_dir" || return ;;
+          -- "$url" "$destination" || return ;;
 
       (upgrade)
         local exit_code=0
-        command git -C "$plugin_dir" symbolic-ref --quiet HEAD >/dev/null || exit_code=$?
+        command git -C "$destination" symbolic-ref --quiet HEAD >/dev/null || exit_code=$?
 
         case "$exit_code" in
           (0) # HEAD points to a branch
-            command git -C "$plugin_dir" pull || return ;;
+            command git -C "$destination" pull || return ;;
           (1) # HEAD is in a detached state (e.g. a tag is checked out)
-            command git -C "$plugin_dir" fetch || return ;;
+            command git -C "$destination" fetch || return ;;
           (*) # an error has occured
             return exit_code ;;
         esac
 
-        command git -C "$plugin_dir" submodule update --init --recursive || return ;;
+        command git -C "$destination" submodule update --init --recursive || return ;;
 
       (*) _zplg_error "unknown action: $action"; return 1 ;;
     esac
   }
 
   _zplg_source_github() {
-    local action="$1" plugin_url="$2" plugin_dir="$3"
-    _zplg_source_git "$action" "https://github.com/$plugin_url.git" "$plugin_dir"
+    local action="$1" url="$2" destination="$3"
+    _zplg_source_git "$action" "https://github.com/$url.git" "$destination"
   }
 
 # }}}
@@ -284,11 +292,15 @@ fi
 #   * url    - simply downloads a file
 #   Custom sources can be easily created by declaring a function named
 #   `_zplg_source_${source_name}`. It should take three arguments: the action
-#   (`download` or `upgrade`), plugin URL and plugin directory. It must, well,
-#   either download a plugin from the given URL into the given directory, or
-#   upgrade an already downloaded plugin inside of the given directory. Please
-#   note that neither of these functions is executed INSIDE of the plugin
-#   directory (i.e. current working directory is not changed).
+#   (`download` or `upgrade`), a URL and a destination path (usually the same
+#   as the plugin directory). It must, well, either download a plugin from the
+#   given URL to the given path, or upgrade an already downloaded plugin at the
+#   given path. Please note that neither of these functions is executed INSIDE
+#   of the plugin directory (i.e. current working directory is not changed).
+#
+# to
+#   Set this to a relative path under $plugin_dir to change where exactly the
+#   plugin files get downloaded and installed.
 #
 # build (+)
 #   Command which builds/compiles the plugin, executed just once in a subshell
@@ -358,7 +370,7 @@ plugin() {
   fi
   unset invalid_options
 
-  local plugin_from="$ZPLG_DEFAULT_SOURCE"
+  local plugin_from="$ZPLG_DEFAULT_SOURCE" plugin_to=''
   local -a plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
 
   local option key value
@@ -366,7 +378,7 @@ plugin() {
     # split 'option' at the first occurence of '='
     key="${option%%=*}" value="${option#*=}"
     case "$key" in
-      from)
+      from|to)
         eval "plugin_$key=\"\$value\"" ;;
       build|before_load|after_load|load|ignore)
         eval "plugin_$key+=(\"\$value\")" ;;
@@ -390,7 +402,7 @@ plugin() {
     plugin_load=("(*.plugin.zsh|*.zsh-theme|init.zsh)(N-.[1])")
   fi
 
-  readonly plugin_from plugin_build plugin_before_load plugin_after_load plugin_load plugin_ignore
+  readonly plugin_{from,to,build,before_load,after_load,load,ignore}
 
   # }}}
 
@@ -399,11 +411,16 @@ plugin() {
   {
 
     readonly plugin_dir="$ZPLG_PLUGINS_DIR/$plugin_id"
+
+    local plugin_path="$plugin_dir"
+    if [[ -n "$plugin_to" ]]; then plugin_path+="/$plugin_to"; fi
+    readonly plugin_path
+
     # simple check whether the plugin directory exists is enough for me
     if [[ ! -d "$plugin_dir" ]]; then
       _zplg_log "downloading $plugin_id"
       command mkdir -p -- "$plugin_dir" || return
-      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || return
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_path" || return
 
       if (( ${#plugin_build[@]} > 0 )); then
         _zplg_log "building $plugin_id"
@@ -468,6 +485,7 @@ plugin() {
     ZPLG_LOADED_PLUGINS[$plugin_id]="$plugin_dir"
     ZPLG_LOADED_PLUGIN_URLS[$plugin_id]="$plugin_url"
     ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]="$plugin_from"
+    ZPLG_LOADED_PLUGIN_PATHS[$plugin_id]="$plugin_path"
 
     # HORRIBLE HACK: because you can't store arrays as values in associative
     # arrays, I simply quote every element with the (@q) modifier, then join
@@ -614,9 +632,10 @@ _zplg_run_commands() {
       plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
+      plugin_path="${ZPLG_LOADED_PLUGIN_PATHS[$plugin_id]}"
 
       _zplg_log "upgrading $plugin_id"
-      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_dir" || {
+      _zplg_source_"$plugin_from" upgrade "$plugin_url" "$plugin_path" || {
         exit_code=$?; _zplg_error "failed to upgrade $plugin_id"; continue
       }
 
@@ -645,6 +664,7 @@ _zplg_run_commands() {
       plugin_dir="${ZPLG_LOADED_PLUGINS[$plugin_id]}"
       plugin_url="${ZPLG_LOADED_PLUGIN_URLS[$plugin_id]}"
       plugin_from="${ZPLG_LOADED_PLUGIN_SOURCES[$plugin_id]}"
+      plugin_path="${ZPLG_LOADED_PLUGIN_PATHS[$plugin_id]}"
 
       _zplg_log "removing $plugin_id"
       command rm -rf "$plugin_dir" || {
@@ -652,7 +672,7 @@ _zplg_run_commands() {
       }
 
       _zplg_log "downloading $plugin_id"
-      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_dir" || {
+      _zplg_source_"$plugin_from" download "$plugin_url" "$plugin_path" || {
         exit_code=$?; _zplg_error "failed to download $plugin_id": continue
       }
 
