@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "@types/prismjs": "^1.26.6",
     "eslint": "^8.56.0",
     "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel",
     "eslint-config-prettier": "^9.1.0",

@@ -3,11 +3,8 @@
 const fs = require('fs');
 const Path = require('path');
 const argparse = require('argparse');
-const PRISM_COMPONENTS = require('prismjs/components.js');
-const createRenderer = require('./renderer');
-
-// TODO: integrate <https://github.com/PrismJS/prism-themes>
-const PRISM_THEMES = Object.keys(PRISM_COMPONENTS.themes).filter((k) => k !== 'meta');
+const { PRISM_THEMES, highlight } = require('./syntax-highlighting');
+const markdownIt = require('markdown-it');
 
 async function main() {
   let parser = new argparse.ArgumentParser();
@@ -51,10 +48,18 @@ async function main() {
 
   let args = parser.parse_args();
 
-  let render = createRenderer();
+  let md = markdownIt({
+    html: true,
+    linkify: true,
+    highlight,
+  });
+
+  md.use(require('markdown-it-emoji').full, { shortcuts: {} });
+  md.use(require('markdown-it-task-checkbox'));
+  md.use(require('./markdown-it-header-anchors'));
 
   let markdownDocument = fs.readFileSync(args.INPUT_FILE || 0, args.input_encoding);
-  let renderedMarkdown = render(markdownDocument);
+  let renderedMarkdown = md.render(markdownDocument);
 
   let stylesheetsTexts = [];
   let scriptsTexts = [];
