@@ -74,13 +74,13 @@ async function main() {
   }
 
   syntaxThemeName = args.syntax_theme || syntaxThemeName;
-  if (syntaxThemeName && syntaxThemeName !== 'none') {
+  if (syntaxThemeName && syntaxThemeName !== 'none' && /^[\w-]+$/.test(syntaxThemeName)) {
     stylesheetsTexts.push(
       fs.readFileSync(
         require.resolve(
           syntaxThemeName === 'dotfiles'
             ? './themes-out/my-prismjs-theme.css'
-            : `prismjs/themes/${syntaxThemeName}.css`,
+            : `prismjs/themes/${syntaxThemeName}.min.css`,
         ),
         'utf-8',
       ),
@@ -95,27 +95,27 @@ async function main() {
     scriptsTexts.push(fs.readFileSync(scriptPath));
   }
 
+  const trimTrailingNewline = (/** @type {string} */ s) => (s.endsWith('\n') ? s.slice(0, -1) : s);
+
   let renderedHtmlDocument = [
     '<!DOCTYPE html>',
     '<html>',
     '<head>',
-    '<meta charset="UTF-8">',
+    `<meta charset="${md.utils.escapeHtml(String(args.output_encoding).toUpperCase())}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     '<meta http-equiv="X-UA-Compatible" content="ie=edge">',
-    `<title>${Path.basename(args.INPUT_FILE || '<stdin>')}</title>`,
-    ...stylesheetsTexts.map((s) => {
-      let st = s.trim();
-      return !st.includes('\n') ? `<style>${st}</style>` : `<style>\n${s}\n</style>`;
-    }),
+    `<title>${md.utils.escapeHtml(Path.basename(args.INPUT_FILE || '<stdin>'))}</title>`,
+    ...stylesheetsTexts
+      .map(trimTrailingNewline)
+      .map((s) => (!s.includes('\n') ? `<style>${s}</style>` : `<style>\n${s}\n</style>`)),
     '</head>',
     '<body>',
     '<article class="markdown-body">',
-    renderedMarkdown,
+    trimTrailingNewline(renderedMarkdown),
     '</article>',
-    ...scriptsTexts.map((s) => {
-      let st = s.trim();
-      return !st.includes('\n') ? `<script>${st}</script>` : `<script>\n${s}\n</script>`;
-    }),
+    ...scriptsTexts
+      .map(trimTrailingNewline)
+      .map((s) => (!s.includes('\n') ? `<script>${s}</script>` : `<script>\n${s}\n</script>`)),
     '</body>',
     '</html>',
   ].join('\n');
