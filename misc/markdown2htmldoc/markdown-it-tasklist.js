@@ -20,49 +20,78 @@ function markdownItTasklist(/** @type {md.MarkdownIt} */ md) {
   md.core.ruler.after('inline', 'tasklist', function tasklist(state) {
     let { tokens } = state;
 
-    for (let i = 2; i < tokens.length; i++) {
-      let token = tokens[i];
-      if (
-        tokens[i - 2].type === 'list_item_open' &&
-        tokens[i - 1].type === 'paragraph_open' &&
-        token.type === 'inline' &&
-        token.children != null
-      ) {
-        let match = /^\[([xX\s])\]\s/.exec(token.content);
-        if (match == null) continue;
-        let checked = match[1] === 'x' || match[1] === 'X';
-        token.children[0].content = token.children[0].content.slice(3);
+    let openedLists = [];
 
-        let checkbox = new state.Token('tasklist_checkbox', 'input', 0);
-        checkbox.attrs = [
-          ['type', 'checkbox'],
-          ['disabled', ''],
-          ['class', 'task-list-item-checkbox'],
-        ];
-        if (checked) checkbox.attrs.push(['checked', '']);
-        token.children.unshift(checkbox);
+    for (let i = 0; i < tokens.length; i++) {
+      switch (tokens[i].type) {
+        case 'ordered_list_open':
+        case 'bullet_list_open':
+          openedLists.push(tokens[i]);
+          break;
 
-        tokens[i - 2].attrJoin('class', 'task-list-item');
+        case 'ordered_list_close':
+        case 'bullet_list_close':
+          openedLists.pop();
+          break;
 
-        let list = tokens[findParentToken(tokens, i - 2)];
-        list.meta = list.meta || {};
-        if (!list.meta.addedTaskListClass) {
-          list.attrJoin('class', 'contains-task-list');
-          list.meta.addedTaskListClass = true;
-        }
+        case 'list_item_open':
+          if (
+            openedLists.length > 0 &&
+            i + 2 < tokens.length &&
+            tokens[i + 1].type === 'paragraph_open' &&
+            tokens[i + 2].type === 'inline'
+          ) {
+            let parentList = openedLists[openedLists.length - 1];
+            let listItem = tokens[i];
+            let inline = tokens[i + 2];
+            processListItem(listItem, parentList, inline);
+          }
+      }
+    }
+
+    function processListItem(
+      /** @type {md.Token} */ listItem,
+      /** @type {md.Token} */ parentList,
+      /** @type {md.Token} */ inline,
+    ) {
+      // Make a cheap `startsWith()` check first, to see if the more expensive
+      // regexp evaluation is even necessary.
+      // NOTE: markdown-it has already trimmed the whitespace after the list
+      // marker off the `inline.content` for us.
+      if (!inline.content.startsWith('[')) return;
+      // Check for the task list marker: `[x]`, `[X]` or `[ ]`
+      let match = inline.content.match(/^((\[[xX\s]\])\s+)\S/);
+      if (!match) return;
+      let markerAndWhitespace = match[1];
+      let marker = match[2];
+      let checked = marker === '[x]' || marker === '[X]';
+
+      if (!inline.children) return;
+      let firstChild = inline.children[0];
+      if (!firstChild || firstChild.type !== 'text') return;
+      if (!firstChild.content.startsWith(markerAndWhitespace)) return;
+      firstChild.content = firstChild.content.slice(marker.length);
+      inline.content = inline.content.slice(marker.length);
+
+      let checkbox = new state.Token('tasklist_checkbox', 'input', 0);
+      checkbox.attrs = [
+        ['type', 'checkbox'],
+        ['disabled', ''],
+        ['class', 'task-list-item-checkbox'],
+        ['aria-label', checked ? 'Completed task' : 'Incomplete task'],
+      ];
+      if (checked) checkbox.attrs.push(['checked', '']);
+      inline.children.unshift(checkbox);
+
+      listItem.attrJoin('class', 'task-list-item');
+
+      parentList.meta = parentList.meta || {};
+      if (!parentList.meta.addedTaskListClass) {
+        parentList.attrJoin('class', 'contains-task-list');
+        parentList.meta.addedTaskListClass = true;
       }
     }
   });
-}
-
-function findParentToken(/** @type {md.Token[]} */ tokens, /** @type {number} */ index) {
-  let targetLevel = tokens[index].level - 1;
-  for (let i = index - 1; i >= 0; i--) {
-    if (tokens[i].level === targetLevel) {
-      return i;
-    }
-  }
-  return -1;
 }
 
 module.exports = markdownItTasklist;
