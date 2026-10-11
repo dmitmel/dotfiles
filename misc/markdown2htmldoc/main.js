@@ -55,7 +55,7 @@ async function main() {
   });
 
   md.use(require('markdown-it-emoji').full, { shortcuts: {} });
-  md.use(require('markdown-it-task-checkbox'));
+  md.use(require('./markdown-it-tasklist'));
   md.use(require('./markdown-it-header-anchors'));
 
   let markdownDocument = fs.readFileSync(args.INPUT_FILE || 0, args.input_encoding);
