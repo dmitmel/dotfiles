@@ -275,6 +275,7 @@ if dotplug.has('fzf-lua') then
       }
 
       if ui_opts.kind == 'codeaction' then
+        ---@cast items {action: lsp.Command|lsp.CodeAction, ctx: lsp.HandlerContext}[]
         opts.winopts.width = utils.clamp(
           -- +1 for the scrollbar, +2 for the borders of the floating window
           num_width + item_width + 2 + 1,

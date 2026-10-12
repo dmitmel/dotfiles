@@ -140,16 +140,26 @@ end, { bar = true })
 
 local map = vim.keymap.set
 
-map({ 'n', 'x' }, '<space>f', function() --
-  lsp_format({ async = false })
-end, { desc = 'lsp.buf.format()' })
-
 map('n', '<F2>', lsp.buf.rename, { desc = 'lsp.buf.rename()' })
-map({ 'n', 'x' }, '<A-CR>', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
-map({ 'n', 'x' }, '<space>a', lsp.buf.code_action, { desc = 'lsp.buf.code_action()' })
+
+map({ 'n', 'x' }, '<space>f', function() lsp_format({ async = false }) end, {
+  desc = 'lsp.buf.format()',
+})
+
+local function open_code_actions()
+  lsp.buf.code_action({
+    -- See also: <https://github.com/neovim/neovim/pull/34453> and
+    -- <https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=disabled%3F%3A>
+    filter = function(x) return not x.disabled end,
+  })
+end
+map({ 'n', 'x' }, '<A-CR>', open_code_actions, { desc = 'lsp.buf.code_action()' })
+map({ 'n', 'x' }, '<space>a', open_code_actions, { desc = 'lsp.buf.code_action()' })
+
 local function signature_help() lsp.buf.signature_help(lsp_extras.info_floating_preview_opts()) end
 map('n', '<space>s', signature_help, { desc = 'lsp.buf.signature_help()' })
 map('i', '<F1>', signature_help, { desc = 'lsp.buf.signature_help()' })
+
 map('n', '<space>K', function() lsp_extras.hover(lsp_extras.info_floating_preview_opts()) end, {
   desc = 'lsp.buf.hover()',
 })
