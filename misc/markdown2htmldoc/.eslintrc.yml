@@ -1,5 +1,7 @@
 extends:
   - eslint-config-dmitmel/presets/node
   - eslint-config-dmitmel/presets/formatting
+env:
+  jest: true
 rules:
   node/shebang: off

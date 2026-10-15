@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "theme:build": "sass --no-source-map --style=compressed themes-src/:themes-out/",
-    "theme:watch": "sass --no-source-map --style=compressed --watch themes-src/:themes-out/"
+    "theme:watch": "sass --no-source-map --style=compressed --watch themes-src/:themes-out/",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "argparse": "^3.0.0",
@@ -13,6 +15,7 @@
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.1.1",
     "@types/prismjs": "^1.26.6",
     "eslint": "^8.56.0",
@@ -20,6 +23,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.3",
+    "jest": "^30.5.2",
     "normalize.css": "^8.0.1",
     "prettier": "^3.2.4",
     "sass": "^1.70.0"
