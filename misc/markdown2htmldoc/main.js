@@ -3,8 +3,21 @@
 const fs = require('fs');
 const Path = require('path');
 const argparse = require('argparse');
+
 const { PRISM_THEMES, highlight } = require('./syntax-highlighting');
-const markdownIt = require('markdown-it');
+
+// This polyfill is needed to run `markdown-it` on Node.js versions before v16.
+// More details here: <https://github.com/markdown-it/markdown-it/issues/1216>.
+if (typeof atob === 'undefined') {
+  global.atob = (data) => Buffer.from(data, 'base64').toString('binary');
+}
+
+// This one is not strictly necessary, but let's provide it too, for good measure.
+if (typeof btoa === 'undefined') {
+  global.btoa = (data) => Buffer.from(data, 'binary').toString('base64');
+}
+
+const MarkdownIt = require('markdown-it');
 
 async function main() {
   let parser = new argparse.ArgumentParser();
@@ -48,7 +61,7 @@ async function main() {
 
   let args = parser.parse_args();
 
-  let md = markdownIt({
+  let md = new MarkdownIt({
     html: true,
     linkify: true,
     highlight,

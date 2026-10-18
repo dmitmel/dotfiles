@@ -1,5 +1,8 @@
 {
   "private": true,
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "scripts": {
     "theme:build": "sass --no-source-map --style=compressed themes-src/:themes-out/",
     "theme:watch": "sass --no-source-map --style=compressed --watch themes-src/:themes-out/",
@@ -10,7 +13,7 @@
     "argparse": "^3.0.0",
     "github-markdown-css": "^5.5.0",
     "github-slugger": "^1.5.0",
-    "markdown-it": "^14.2.0",
+    "markdown-it": "^15.0.2",
     "markdown-it-emoji": "^3.0.0",
     "prismjs": "^1.30.0"
   },

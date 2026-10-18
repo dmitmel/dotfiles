@@ -1,11 +1,11 @@
 /// @ts-check
 /// <reference types="@types/jest" />
 
-const markdownIt = require('markdown-it');
+const MarkdownIt = require('markdown-it');
 const markdownItTasklist = require('./markdown-it-tasklist');
 
 const render = (/** @type {string} */ markdown) =>
-  markdownIt().use(markdownItTasklist).render(markdown);
+  new MarkdownIt().use(markdownItTasklist).render(markdown);
 
 const ul = (/** @type {string[]} */ ...body) => `<ul>\n${body.join('\n')}\n</ul>\n`;
 const li = (/** @type {string} */ body) => `<li>${body}</li>`;
