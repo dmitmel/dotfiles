@@ -1,7 +1,15 @@
 extends:
-  - eslint-config-dmitmel/presets/node
-  - eslint-config-dmitmel/presets/formatting
+extends: eslint-config-dmitmel/presets/node
+parserOptions:
+  ecmaVersion: 2017
 env:
   jest: true
+
 rules:
-  node/shebang: off
+  n/no-unsupported-features/es-syntax:
+    - error
+    - ignores: ['hashbang']
+
+  n/no-unsupported-features/node-builtins:
+    - error
+    - ignores: ['atob', 'btoa']
