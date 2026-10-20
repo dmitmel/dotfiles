@@ -1,0 +1,15 @@
+{
+  "include": ["*.js", "*.mjs", "types.d.ts"],
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "node20",
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}

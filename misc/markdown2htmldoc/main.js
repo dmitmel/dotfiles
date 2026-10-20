@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/// <reference types="node" />
 const fs = require('fs');
 const Path = require('path');
 const argparse = require('argparse');
@@ -9,12 +8,12 @@ const { PRISM_THEMES, highlight } = require('./syntax-highlighting');
 // This polyfill is needed to run `markdown-it` on Node.js versions before v16.
 // More details here: <https://github.com/markdown-it/markdown-it/issues/1216>.
 if (typeof atob === 'undefined') {
-  global.atob = (data) => Buffer.from(data, 'base64').toString('binary');
+  global.atob = (/** @type {string} */ data) => Buffer.from(data, 'base64').toString('binary');
 }
 
 // This one is not strictly necessary, but let's provide it too, for good measure.
 if (typeof btoa === 'undefined') {
-  global.btoa = (data) => Buffer.from(data, 'binary').toString('base64');
+  global.btoa = (/** @type {string} */ data) => Buffer.from(data, 'binary').toString('base64');
 }
 
 const MarkdownIt = require('markdown-it');
@@ -59,6 +58,19 @@ async function main() {
     metavar: 'FILE',
   });
 
+  /**
+   * @typedef {Object} Args
+   * @property {string} INPUT_FILE
+   * @property {string} OUTPUT_FILE
+   * @property {BufferEncoding} input_encoding
+   * @property {BufferEncoding} output_encoding
+   * @property {string} theme
+   * @property {string} syntax_theme
+   * @property {string} stylesheet
+   * @property {string} script
+   */
+
+  /** @type {Args} */
   let args = parser.parse_args();
 
   let md = new MarkdownIt({
@@ -101,14 +113,16 @@ async function main() {
   }
 
   for (let stylesheetPath of args.stylesheet || []) {
-    stylesheetsTexts.push(fs.readFileSync(stylesheetPath));
+    stylesheetsTexts.push(fs.readFileSync(stylesheetPath, args.input_encoding));
   }
 
   for (let scriptPath of args.script || []) {
-    scriptsTexts.push(fs.readFileSync(scriptPath));
+    scriptsTexts.push(fs.readFileSync(scriptPath, args.input_encoding));
   }
 
-  const trimTrailingNewline = (/** @type {string} */ s) => (s.endsWith('\n') ? s.slice(0, -1) : s);
+  function trimTrailingNewline(/** @type {string} */ s) {
+    return s.endsWith('\n') ? s.slice(0, -1) : s;
+  }
 
   let renderedHtmlDocument = [
     '<!DOCTYPE html>',

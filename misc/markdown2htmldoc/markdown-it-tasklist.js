@@ -1,5 +1,3 @@
-// @ts-check
-
 // A plugin for markdown-it that implements the `tasklist` extension of GitHub
 // Flavored Markdown. I wrote this module because all of the existing plugins
 // for task lists would generate HTML markup that was a bit too different from
@@ -66,7 +64,6 @@ function markdownItTasklist(/** @type {md.MarkdownIt} */ md) {
       let marker = match[2];
       let checked = marker === '[x]' || marker === '[X]';
 
-      if (!inline.children) return;
       let firstChild = inline.children[0];
       if (!firstChild || firstChild.type !== 'text') return;
       if (!firstChild.content.startsWith(markerAndWhitespace)) return;

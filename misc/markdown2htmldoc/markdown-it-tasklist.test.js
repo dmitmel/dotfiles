@@ -1,6 +1,3 @@
-/// @ts-check
-/// <reference types="@types/jest" />
-
 const MarkdownIt = require('markdown-it');
 const markdownItTasklist = require('./markdown-it-tasklist');
 

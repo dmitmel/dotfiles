@@ -10,19 +10,24 @@ const OCTICON_LINK_ICON_SVG = [
   '</svg>',
 ].join('');
 
-function markdownItHeaderAnchors(md) {
+function markdownItHeaderAnchors(/** @type {import('markdown-it').MarkdownIt} */ md) {
+  let { escapeHtml } = md.utils;
   let slugger = new GithubSlugger();
 
-  let defaultRender =
+  let defaultRenderer =
     md.renderer.rules.heading_open ||
     ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
 
   // eslint-disable-next-line camelcase
   md.renderer.rules.heading_open = (tokens, idx, opts, env, self) => {
-    let renderedHeadingOpen = defaultRender(tokens, idx, opts, env, self);
+    let renderedHeadingOpen = defaultRenderer(tokens, idx, opts, env, self);
+
+    let headingContentToken = tokens[idx + 1];
+    if (headingContentToken.type !== 'inline') {
+      return renderedHeadingOpen;
+    }
 
     let innerText = '';
-    let headingContentToken = tokens[idx + 1];
     headingContentToken.children.forEach((child) => {
       switch (child.type) {
         case 'html_block':
@@ -37,7 +42,7 @@ function markdownItHeaderAnchors(md) {
     });
 
     if (innerText.length > 0) {
-      let id = md.utils.escapeHtml(slugger.slug(innerText));
+      let id = escapeHtml(slugger.slug(innerText));
       renderedHeadingOpen += `<a id="${id}" class="anchor" href="#${id}" aria-hidden="true">${OCTICON_LINK_ICON_SVG}</a>`;
     }
 
