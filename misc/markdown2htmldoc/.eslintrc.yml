@@ -8,7 +8,3 @@ rules:
   n/no-unsupported-features/es-syntax:
     - error
     - ignores: ['hashbang']
-
-  n/no-unsupported-features/node-builtins:
-    - error
-    - ignores: ['atob', 'btoa']

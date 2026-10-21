@@ -15,7 +15,7 @@
     "argparse": "^3.0.0",
     "github-markdown-css": "^5.5.0",
     "github-slugger": "^1.5.0",
-    "markdown-it": "^15.0.2",
+    "markdown-it": "^15.0.3",
     "markdown-it-emoji": "^3.0.0",
     "prismjs": "^1.30.0"
   },
