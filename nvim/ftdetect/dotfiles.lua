@@ -24,6 +24,8 @@ vim.filetype.add({
     ['fp-lib-table'] = 'kicad',
     ['sym-lib-table'] = 'kicad',
     ['design-block-lib-table'] = 'kicad',
+    ['yarn.lock'] = 'conf', -- It is *NOT* YAML, as the default ftdetect rule might suggest
+    ['.yarnrc'] = 'conf',
   },
   pattern = {
     ['.*/assets/.*%.json%.patch'] = 'json',

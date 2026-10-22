@@ -1,5 +1,5 @@
 " vint: -ProhibitAutocmdWithNoGroup
-if get(g:, 'do_filetype_lua', 0) | finish | endif
+if g:do_filetype_lua | finish | endif
 
 autocmd BufNewFile,BufRead *
 \ if !did_filetype() && expand("<amatch>") !~ g:ft_ignore_pat && getline(1) =~ '^<?xml' |
