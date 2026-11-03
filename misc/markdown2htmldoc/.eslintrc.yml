@@ -4,7 +4,14 @@ parserOptions:
 env:
   jest: true
 
-rules:
-  n/no-unsupported-features/es-syntax:
-    - error
-    - ignores: ['hashbang']
+overrides:
+  - files: 'main.js'
+    rules:
+      n/no-unsupported-features/es-syntax:
+        - error
+        - ignores: ['hashbang']
+
+  - files: '*.test.js'
+    settings:
+      node:
+        version: '>= 24.0.0'
