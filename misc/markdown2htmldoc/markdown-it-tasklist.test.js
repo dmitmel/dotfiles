@@ -7,35 +7,72 @@ const markdownItTasklist = require('./markdown-it-tasklist');
 
 /** @returns {{ [group: string]: { [markdown: string]: string } }} */
 function makeTestCases(fromGithubApi = false) {
-  const ul = (/** @type {string[]} */ ...body) => `<ul>\n${body.join('\n')}\n</ul>\n`;
-  const li = (/** @type {string} */ body) => `<li>${body}</li>`;
+  const ul = (/** @type {string[]} */ ...body) => `<ul>\n${body.join('')}</ul>\n`;
+  const ol = (/** @type {string[]} */ ...body) => `<ol>\n${body.join('')}</ol>\n`;
+  const li = (/** @type {string[]} */ ...body) => `<li>${body.join('')}</li>\n`;
+  const p = (/** @type {string[]} */ ...body) => `<p>${body.join('')}</p>\n`;
 
   const taskList = (/** @type {string[]} */ ...body) =>
-    `<ul class="contains-task-list">\n${body.join('\n')}\n</ul>\n`;
+    `<ul class="contains-task-list">\n${body.join('')}</ul>\n`;
 
-  const taskListItem = (/** @type {boolean} */ checked) => (/** @type {string} */ body) =>
-    `<li class="task-list-item"><input type="checkbox"${fromGithubApi ? ' id=""' : ''} disabled=""` +
-    ` class="task-list-item-checkbox" aria-label="${checked ? 'Completed task' : 'Incomplete task'}"` +
-    `${checked ? ' checked=""' : ''}>${body}</li>`;
+  const item = (/** @type {string[]} */ ...body) =>
+    `<li class="task-list-item">${body.join('')}</li>\n`;
 
-  const checked = taskListItem(true);
-  const unchecked = taskListItem(false);
+  const taskListItemCheckbox = (/** @type {boolean} */ checked) =>
+    `<input type="checkbox"${fromGithubApi ? ' id=""' : ''}` +
+    ` disabled="" class="task-list-item-checkbox"` +
+    ` aria-label="${checked ? 'Completed task' : 'Incomplete task'}"` +
+    `${checked ? ' checked=""' : ''}>`;
+
+  const checked = taskListItemCheckbox(true);
+  const unchecked = taskListItemCheckbox(false);
 
   const pre = (/** @type {string} */ body) => {
     let notranslate = fromGithubApi ? ' class="notranslate"' : '';
     return `\n<pre${notranslate}><code${notranslate}>${body}</code></pre>\n`;
   };
 
+  const comment = (/** @type {string} */ text) => (fromGithubApi ? '' : `<!--${text}-->`);
+
+  const quirkyOnGithub = (
+    /** @type {Array<{ my: string, github: string, body: string }>} */ ...items
+  ) => {
+    let itemsStr = items.map(({ my, github, body }) =>
+      fromGithubApi ? item(github, body) : li(my, body),
+    );
+    return fromGithubApi ? taskList(...itemsStr) : ul(...itemsStr);
+  };
+
   return {
     'basic cases': {
-      '- [x] hi!': taskList(checked(' hi!')),
-      '- [ ] hi!': taskList(unchecked(' hi!')),
+      '- [x] hi!': taskList(item(checked, ' hi!')),
+      '- [X] hi!': taskList(item(checked, ' hi!')),
+      '- [ ] hi!': taskList(item(unchecked, ' hi!')),
+    },
+
+    'second checkbox marker in the text': {
+      '- [x] [x]': taskList(item(checked, ' [x]')),
+      '- [ ] [ ]': taskList(item(unchecked, ' [ ]')),
     },
 
     'no text after marker': {
       '- [ ]': ul(li('[ ]')),
       '- [ ] ': ul(li('[ ]')),
       '- [x]    ': ul(li('[x]')),
+      '- [x]\n\na': ul(li('[x]')) + p('a'),
+    },
+
+    'multiple characters in the marker': {
+      '- [xx] 2 Xs': ul(li('[xx] 2 Xs')),
+      '- [  ] 2 spaces': ul(li('[  ] 2 spaces')),
+    },
+
+    'NUL bytes': {
+      '- [\0] single NUL': ul(li('[\uFFFD] single NUL')),
+      '- [x\0] x then NUL': ul(li('[x\uFFFD] x then NUL')),
+      '- [\0x] NUL then x': ul(li('[\uFFFDx] NUL then x')),
+      '- \0[x] NUL before': ul(li('\uFFFD[x] NUL before')),
+      '- [x]\0 NUL after': ul(li('[x]\uFFFD NUL after')),
     },
 
     'does not break links': {
@@ -44,62 +81,140 @@ function makeTestCases(fromGithubApi = false) {
 
     // NOTE: this is a quirk of GitHub's parser that I *don't* want to imitate.
     'escaped square brackets': {
-      '- \\[x] text': fromGithubApi ? taskList(checked(' text')) : ul(li('[x] text')),
-      '- [ \\] text': fromGithubApi ? taskList(unchecked(' text')) : ul(li('[ ] text')),
-      '- \\[ \\] text': fromGithubApi ? taskList(unchecked(' text')) : ul(li('[ ] text')),
+      '- \\[x] text': quirkyOnGithub({ my: '[x]', github: checked, body: ' text' }),
+      '- [ \\] text': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }),
+      '- \\[ \\] text': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }),
+      '- [\\x] text': ul(li('[\\x] text')),
+      '- [\\ ] text': ul(li('[\\ ] text')),
     },
 
     'square brackets as HTML entities': {
-      '- &lsqb; ] lsqb': fromGithubApi ? taskList(unchecked(' lsqb')) : ul(li('[ ] lsqb')),
-      '- [x&rsqb; rsqb': fromGithubApi ? taskList(checked(' rsqb')) : ul(li('[x] rsqb')),
-      '- &lsqb;x&rsqb; lsqb + rsqb': fromGithubApi
-        ? taskList(checked(' lsqb + rsqb'))
-        : ul(li('[x] lsqb + rsqb')),
+      '- &lsqb; ] lsqb': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' lsqb' }),
+      '- [x&rsqb; rsqb': quirkyOnGithub({ my: '[x]', github: checked, body: ' rsqb' }),
+      '- &lsqb;x&rsqb; both': quirkyOnGithub({ my: '[x]', github: checked, body: ' both' }),
+      '- &#91;&#120;&#93; dec': quirkyOnGithub({ my: '[x]', github: checked, body: ' dec' }),
+      '- &#x5b;&#x78;&#x5d; hex': quirkyOnGithub({ my: '[x]', github: checked, body: ' hex' }),
     },
 
     'list with and without checkboxes': {
       '- first\n- [x] second\n- [ ] third\n- normal\n- [x] checkbox again': taskList(
         li('first'),
-        checked(' second'),
-        unchecked(' third'),
+        item(checked, ' second'),
+        item(unchecked, ' third'),
         li('normal'),
-        checked(' checkbox again'),
+        item(checked, ' checkbox again'),
       ),
     },
 
-    'long indent before checkbox marker': (() => {
-      let taskListHTML = taskList(checked(' a'));
-      let preCodeHTML = ul(li(pre('[x] a\n')));
-      return {
-        '-  [x] a': taskListHTML,
-        '-   [x] a': taskListHTML,
-        '-    [x] a': taskListHTML,
-        '-     [x] a': preCodeHTML,
-        '-      [x] a': ul(li(pre(' [x] a\n'))),
-        '-\t[x] a': taskListHTML,
-        '-\t [x] a': taskListHTML,
-        '- \t [x] a': taskListHTML,
-        '-  \t [x] a': taskListHTML,
-        '-\t  [x] a': preCodeHTML,
-        '- \t  [x] a': preCodeHTML,
-        '-  \t  [x] a': preCodeHTML,
-      };
-    })(),
+    'long indent before checkbox marker': {
+      '-  [x] a': taskList(item(checked, ' a')),
+      '-   [x] a': taskList(item(checked, ' a')),
+      '-    [x] a': taskList(item(checked, ' a')),
+      '-     [x] a': ul(li(pre('[x] a\n'))),
+      '-      [x] a': ul(li(pre(' [x] a\n'))),
+      '-\t[x] a': taskList(item(checked, ' a')),
+      '-\t [x] a': taskList(item(checked, ' a')),
+      '- \t [x] a': taskList(item(checked, ' a')),
+      '-  \t [x] a': taskList(item(checked, ' a')),
+      '-\t  [x] a': ul(li(pre('[x] a\n'))),
+      '- \t  [x] a': ul(li(pre('[x] a\n'))),
+      '-  \t  [x] a': ul(li(pre('[x] a\n'))),
+    },
 
     'no space before checkbox marker': {
-      '-[x]': '<p>-[x]</p>\n',
-      '-[ ] text': '<p>-[ ] text</p>\n',
-      '-[x] text': '<p>-[x] text</p>\n',
-      '-[ ]': '<p>-[ ]</p>\n',
+      '-[x]': p('-[x]'),
+      '-[ ] text': p('-[ ] text'),
+      '-[x] text': p('-[x] text'),
+      '-[ ]': p('-[ ]'),
     },
 
     'linebreak between checkbox and text': {
-      '- [x]\n  a': ul(li(`[x]${fromGithubApi ? '<br>' : ''}\na`)),
-      '- [x] \n  a': ul(li(`[x]${fromGithubApi ? '<br>' : ''}\na`)),
+      '- [x]\n  a': ul(li('[x]<br>\na')),
+      '- [x] \n  a': ul(li('[x]<br>\na')),
       '- [x]  \n  a': ul(li('[x]<br>\na')),
       '- [x]\\\n  a': ul(li('[x]<br>\na')),
-      '- [x] \\\n  a': taskList(checked(' <br>\na')),
-      '- [x] \\ a': taskList(checked(' \\ a')),
+      '- [x] \\\n  a': taskList(item(checked, ' <br>\na')),
+      '- [x] \\ a': taskList(item(checked, ' \\ a')),
+      '- \n  [x] newline before checkbox': taskList(item(checked, ' newline before checkbox')),
+    },
+
+    'loose list': {
+      '* [x] loose 1\n\n* [ ] loose 2\n* [x] loose 3': taskList(
+        item('\n', p(checked, ' loose 1')),
+        item('\n', p(unchecked, ' loose 2')),
+        item('\n', p(checked, ' loose 3')),
+      ),
+    },
+
+    "quirks of Github's parser": {
+      '- [ ]<span></span> empty span after': ul(li('[ ]<span></span> empty span after')),
+      '- <span></span>[ ] empty span before': ul(li('<span></span>[ ] empty span before')),
+
+      '- <button></button>[ ] illegal tag': quirkyOnGithub({
+        my: '<button></button>[ ]',
+        github: unchecked,
+        body: ' illegal tag',
+      }),
+
+      '- <foo></foo>[ ] unknown tag': quirkyOnGithub({
+        my: '<foo></foo>[ ]',
+        github: unchecked,
+        body: ' unknown tag',
+      }),
+
+      '- [ ]<!-- --> empty comment after': ul(li(`[ ]${comment(' ')} empty comment after`)),
+      '- [x<!-- -->] empty comment inside': ul(li(`[x${comment(' ')}] empty comment inside`)),
+
+      // NOTE: this is an actually interesting quirk: a task list is generated,
+      // but checkboxes inside aren't
+      '- <!-- --> [ ] empty comment before\n': quirkyOnGithub({
+        my: '\n<!-- --> [ ]',
+        github: '\n [ ]',
+        body: ' empty comment before\n',
+      }),
+
+      '1. <!-- --> [ ] empty comment before\n': quirkyOnGithub({
+        my: '\n<!-- --> [ ]',
+        github: '\n [ ]',
+        body: ' empty comment before\n',
+      }).replace(/ul/g, 'ol'),
+
+      '- <!-- [x] --> [ ] checkbox in comment\n': quirkyOnGithub({
+        my: '\n<!-- [x] --> [ ]',
+        github: '\n [ ]',
+        body: ' checkbox in comment\n',
+      }),
+    },
+
+    'raw HTML': {
+      '<ul>\n<li>[x] raw</li>\n</ul>\n': quirkyOnGithub({
+        my: '[x]',
+        github: checked,
+        body: ' raw',
+      }),
+
+      '<li>[x] just li</li>\n': li(fromGithubApi ? checked : '[x]', ' just li'),
+      '<li>[ ] just li</li>\n': li(fromGithubApi ? unchecked : '[ ]', ' just li'),
+
+      '<ul>\n<li> [ ] space before</li>\n</ul>\n': quirkyOnGithub({
+        my: ' [ ]',
+        github: unchecked,
+        body: ' space before',
+      }),
+
+      '<ul>\n<li>&#32;[ ] space before</li>\n</ul>\n': quirkyOnGithub({
+        my: '&#32;[ ]',
+        github: unchecked,
+        body: ' space before',
+      }),
+
+      '<ul>\n<li><p>[x] loose</p>\n</li>\n<li><p>[ ] loose 2</p>\n</li>\n</ul>\n': quirkyOnGithub(
+        { my: '<p>[x]', github: `<p>${checked}`, body: ' loose</p>\n' },
+        { my: '<p>[ ]', github: `<p>${unchecked}`, body: ' loose 2</p>\n' },
+      ),
+
+      '<li><p>[x] p</p>\n</li>\n': li(p(fromGithubApi ? checked : '[x]', ' p')),
+      '<li><div>[x] div</div></li>\n': li('<div>', '[x]', ' div', '</div>'),
     },
   };
 }
@@ -108,11 +223,28 @@ describe('my markdown-it plugin', () => {
   for (let [group, cases] of Object.entries(makeTestCases(false))) {
     describe(group, () => {
       test.each(Object.entries(cases))('%j', (markdown, html) => {
-        let md = new MarkdownIt().use(markdownItTasklist);
+        // NOTE: the `breaks` option does not affect parsing in any way, only
+        // the HTML that gets rendered. It needs to be enabled for parity with
+        // GitHub's REST API, as the `https://api.github.com/markdown` endpoint
+        // renders content in hard breaks mode (like in the comment boxes on the
+        // website itself). This option is only ever read here in the code of
+        // markdown-it: <https://github.com/markdown-it/markdown-it/blob/15.0.2/src/renderer.ts#L126>
+        let md = new MarkdownIt({ breaks: true, html: true }).use(markdownItTasklist);
         expect(md.render(markdown)).toBe(html);
       });
     });
   }
+
+  test('strips the checkbox marker from the token.content', () => {
+    let md = new MarkdownIt().use(markdownItTasklist);
+    let whitespace = '   ';
+    let text = 'token  contents';
+    let tokens = md.parse(`+ [x]${whitespace}${text}   \n`, {});
+    expect(tokens[3].type).toBe('inline');
+    expect(tokens[3].content).toBe(`${whitespace}${text}`);
+    expect(tokens[3].children[1].type).toBe('text');
+    expect(tokens[3].children[1].content).toBe(`${whitespace}${text}`);
+  });
 });
 
 describe("GitHub's /markdown API", () => {
