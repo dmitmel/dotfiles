@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const Path = require('path');
+const util = require('util');
 const argparse = require('argparse');
 const { PRISM_THEMES, highlight } = require('./syntax-highlighting');
 const MarkdownIt = require('markdown-it');
 
 async function main() {
   let parser = new argparse.ArgumentParser();
+
+  /** @returns {BufferEncoding} */
+  function validateEncoding(/** @type {string} */ str) {
+    if (Buffer.isEncoding(str)) return str;
+    throw new argparse.ArgumentTypeError(`not a valid encoding name: ${util.inspect(str)}`);
+  }
 
   parser.add_argument('INPUT_FILE', {
     nargs: argparse.OPTIONAL,
@@ -21,11 +28,13 @@ async function main() {
     default: 'utf-8',
     metavar: 'ENCODING',
     help: '(utf-8 by default)',
+    type: validateEncoding,
   });
   parser.add_argument('--output-encoding', {
     default: 'utf-8',
     metavar: 'ENCODING',
     help: '(utf-8 by default)',
+    type: validateEncoding,
   });
 
   parser.add_argument('--theme', {
