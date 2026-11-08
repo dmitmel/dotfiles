@@ -239,9 +239,12 @@ set nofixendofline
       setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
       read ++edit #
       1 delete _
-      setlocal readonly nomodifiable
-      diffthis
       let &l:filetype = getbufvar('#', '&filetype', '')
+      setlocal readonly nomodifiable
+      " Start the diff only *after* setting the filetype of the new buffer, as
+      " `:diffthis` will also override some options based on its own discretion
+      " (like disabling `&wrap` if `&diffopt` does not contain `followwrap`)
+      diffthis
       wincmd p
     endfunction
     command! -bar DiffOrig call s:DiffOrig()
