@@ -5,8 +5,53 @@ const util = require('util');
 const MarkdownIt = require('markdown-it');
 const markdownItTasklist = require('./markdown-it-tasklist');
 
-/** @returns {{ [group: string]: { [markdown: string]: string } }} */
-function makeTestCases(fromGithubApi = false) {
+// NOTE: Can't use a narrower assertion like `x is Record<string, unknown>`
+// because then type narrowing with the `in` operator stops working.
+// <https://www.reddit.com/r/typescript/comments/tq3m4f/the_difference_between_object_and_recordstring/>
+/** @returns {x is object} */
+const isObject = (/** @type {unknown} */ x) => {
+  // eslint-disable-next-line eqeqeq
+  return typeof x === 'object' && x !== null && !Array.isArray(x);
+};
+
+const createTestCases = (
+  /** @type {{ fromGithubApi: boolean, hardBreaksMode: boolean, render: (markdown: string) => string }} */
+  { fromGithubApi, hardBreaksMode, render },
+) => {
+  const mdtest = (/** @type {string} */ markdown, /** @type {string} */ expectedHtml) => {
+    let actualHtml = render(markdown);
+    try {
+      expect(actualHtml).toBe(expectedHtml);
+    } catch (error) {
+      if (isObject(error) && 'name' in error && error.name === 'AssertionError') {
+        // <https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions>
+        Error.captureStackTrace(error, mdtest);
+      }
+      throw error;
+    }
+  };
+
+  /** @typedef {(mdtest_: typeof mdtest) => void} MarkdownTestFunction */
+
+  /** @type {MarkdownTestFunction[]} */
+  let allTestFunctions = [];
+
+  const collect = (/** @type {MarkdownTestFunction} */ testImpl) => {
+    allTestFunctions.push(testImpl);
+    return testImpl.bind(null, mdtest);
+  };
+
+  const extractAllMarkdownSnippets = () => {
+    /** @type {Set<string>} */
+    let snippets = new Set();
+    for (let testImpl of allTestFunctions) {
+      testImpl((markdown, _html) => {
+        snippets.add(markdown);
+      });
+    }
+    return snippets;
+  };
+
   const ul = (/** @type {string[]} */ ...body) => `<ul>\n${body.join('')}</ul>\n`;
   const ol = (/** @type {string[]} */ ...body) => `<ol>\n${body.join('')}</ol>\n`;
   const li = (/** @type {string[]} */ ...body) => `<li>${body.join('')}</li>\n`;
@@ -43,203 +88,269 @@ function makeTestCases(fromGithubApi = false) {
     return fromGithubApi ? taskList(...itemsStr) : ul(...itemsStr);
   };
 
-  return {
-    'basic cases': {
-      '- [x] hi!': taskList(item(checked, ' hi!')),
-      '- [X] hi!': taskList(item(checked, ' hi!')),
-      '- [ ] hi!': taskList(item(unchecked, ' hi!')),
-    },
+  test(
+    'basic cases',
+    collect((mdtest) => {
+      mdtest('- [x] hi!', taskList(item(checked, ' hi!')));
+      mdtest('- [X] hi!', taskList(item(checked, ' hi!')));
+      mdtest('- [ ] hi!', taskList(item(unchecked, ' hi!')));
+    }),
+  );
 
-    'second checkbox marker in the text': {
-      '- [x] [x]': taskList(item(checked, ' [x]')),
-      '- [ ] [ ]': taskList(item(unchecked, ' [ ]')),
-    },
+  test(
+    'second checkbox marker in the text',
+    collect((mdtest) => {
+      mdtest('- [x] [x]', taskList(item(checked, ' [x]')));
+      mdtest('- [ ] [ ]', taskList(item(unchecked, ' [ ]')));
+    }),
+  );
 
-    'no text after marker': {
-      '- [ ]': ul(li('[ ]')),
-      '- [ ] ': ul(li('[ ]')),
-      '- [x]    ': ul(li('[x]')),
-      '- [x]\n\na': ul(li('[x]')) + p('a'),
-    },
+  test(
+    'no text after marker',
+    collect((mdtest) => {
+      mdtest('- [ ]', ul(li('[ ]')));
+      mdtest('- [ ] ', ul(li('[ ]')));
+      mdtest('- [x]    ', ul(li('[x]')));
+      mdtest('- [x]\n\na', ul(li('[x]')) + p('a'));
+    }),
+  );
 
-    'multiple characters in the marker': {
-      '- [xx] 2 Xs': ul(li('[xx] 2 Xs')),
-      '- [  ] 2 spaces': ul(li('[  ] 2 spaces')),
-    },
+  test(
+    'multiple characters in the marker',
+    collect((mdtest) => {
+      mdtest('- [xx] 2 Xs', ul(li('[xx] 2 Xs')));
+      mdtest('- [  ] 2 spaces', ul(li('[  ] 2 spaces')));
+    }),
+  );
 
-    'NUL bytes': {
-      '- [\0] single NUL': ul(li('[\uFFFD] single NUL')),
-      '- [x\0] x then NUL': ul(li('[x\uFFFD] x then NUL')),
-      '- [\0x] NUL then x': ul(li('[\uFFFDx] NUL then x')),
-      '- \0[x] NUL before': ul(li('\uFFFD[x] NUL before')),
-      '- [x]\0 NUL after': ul(li('[x]\uFFFD NUL after')),
-    },
+  test(
+    'NUL bytes',
+    collect((mdtest) => {
+      mdtest('- [\0] single NUL', ul(li('[\uFFFD] single NUL')));
+      mdtest('- [x\0] x then NUL', ul(li('[x\uFFFD] x then NUL')));
+      mdtest('- [\0x] NUL then x', ul(li('[\uFFFDx] NUL then x')));
+      mdtest('- \0[x] NUL before', ul(li('\uFFFD[x] NUL before')));
+      mdtest('- [x]\0 NUL after', ul(li('[x]\uFFFD NUL after')));
+    }),
+  );
 
-    'does not break links': {
-      '- [x](link)': ul(li('<a href="link">x</a>')),
-    },
+  test(
+    'does not break links',
+    collect((mdtest) => {
+      mdtest('- [x](link)', ul(li('<a href="link">x</a>')));
+    }),
+  );
 
-    // NOTE: this is a quirk of GitHub's parser that I *don't* want to imitate.
-    'escaped square brackets': {
-      '- \\[x] text': quirkyOnGithub({ my: '[x]', github: checked, body: ' text' }),
-      '- [ \\] text': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }),
-      '- \\[ \\] text': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }),
-      '- [\\x] text': ul(li('[\\x] text')),
-      '- [\\ ] text': ul(li('[\\ ] text')),
-    },
+  // NOTE: this is a quirk of GitHub's parser that I *don't* want to imitate.
+  test(
+    'escaped square brackets',
+    collect((mdtest) => {
+      mdtest('- \\[x] text', quirkyOnGithub({ my: '[x]', github: checked, body: ' text' }));
+      mdtest('- [ \\] text', quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }));
+      mdtest('- \\[ \\] text', quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' text' }));
+      mdtest('- [\\x] text', ul(li('[\\x] text')));
+      mdtest('- [\\ ] text', ul(li('[\\ ] text')));
+    }),
+  );
 
-    'square brackets as HTML entities': {
-      '- &lsqb; ] lsqb': quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' lsqb' }),
-      '- [x&rsqb; rsqb': quirkyOnGithub({ my: '[x]', github: checked, body: ' rsqb' }),
-      '- &lsqb;x&rsqb; both': quirkyOnGithub({ my: '[x]', github: checked, body: ' both' }),
-      '- &#91;&#120;&#93; dec': quirkyOnGithub({ my: '[x]', github: checked, body: ' dec' }),
-      '- &#x5b;&#x78;&#x5d; hex': quirkyOnGithub({ my: '[x]', github: checked, body: ' hex' }),
-    },
+  test(
+    'square brackets as HTML entities',
+    collect((mdtest) => {
+      mdtest('- &lsqb; ] lsqb', quirkyOnGithub({ my: '[ ]', github: unchecked, body: ' lsqb' }));
+      mdtest('- [x&rsqb; rsqb', quirkyOnGithub({ my: '[x]', github: checked, body: ' rsqb' }));
+      mdtest('- &lsqb;x&rsqb; both', quirkyOnGithub({ my: '[x]', github: checked, body: ' both' }));
+      mdtest(
+        '- &#91;&#120;&#93; dec',
+        quirkyOnGithub({ my: '[x]', github: checked, body: ' dec' }),
+      );
+      mdtest(
+        '- &#x5b;&#x78;&#x5d; hex',
+        quirkyOnGithub({ my: '[x]', github: checked, body: ' hex' }),
+      );
+    }),
+  );
 
-    'list with and without checkboxes': {
-      '- first\n- [x] second\n- [ ] third\n- normal\n- [x] checkbox again': taskList(
-        li('first'),
-        item(checked, ' second'),
-        item(unchecked, ' third'),
-        li('normal'),
-        item(checked, ' checkbox again'),
-      ),
-    },
+  test(
+    'list with and without checkboxes',
+    collect((mdtest) => {
+      mdtest(
+        '- first\n- [x] second\n- [ ] third\n- normal\n- [x] checkbox again',
+        taskList(
+          li('first'),
+          item(checked, ' second'),
+          item(unchecked, ' third'),
+          li('normal'),
+          item(checked, ' checkbox again'),
+        ),
+      );
+    }),
+  );
 
-    'long indent before checkbox marker': {
-      '-  [x] a': taskList(item(checked, ' a')),
-      '-   [x] a': taskList(item(checked, ' a')),
-      '-    [x] a': taskList(item(checked, ' a')),
-      '-     [x] a': ul(li(pre('[x] a\n'))),
-      '-      [x] a': ul(li(pre(' [x] a\n'))),
-      '-\t[x] a': taskList(item(checked, ' a')),
-      '-\t [x] a': taskList(item(checked, ' a')),
-      '- \t [x] a': taskList(item(checked, ' a')),
-      '-  \t [x] a': taskList(item(checked, ' a')),
-      '-\t  [x] a': ul(li(pre('[x] a\n'))),
-      '- \t  [x] a': ul(li(pre('[x] a\n'))),
-      '-  \t  [x] a': ul(li(pre('[x] a\n'))),
-    },
+  test(
+    'long indent before checkbox marker',
+    collect((mdtest) => {
+      mdtest('-  [x] a', taskList(item(checked, ' a')));
+      mdtest('-   [x] a', taskList(item(checked, ' a')));
+      mdtest('-    [x] a', taskList(item(checked, ' a')));
+      mdtest('-     [x] a', ul(li(pre('[x] a\n'))));
+      mdtest('-      [x] a', ul(li(pre(' [x] a\n'))));
+      mdtest('-\t[x] a', taskList(item(checked, ' a')));
+      mdtest('-\t [x] a', taskList(item(checked, ' a')));
+      mdtest('- \t [x] a', taskList(item(checked, ' a')));
+      mdtest('-  \t [x] a', taskList(item(checked, ' a')));
+      mdtest('-\t  [x] a', ul(li(pre('[x] a\n'))));
+      mdtest('- \t  [x] a', ul(li(pre('[x] a\n'))));
+      mdtest('-  \t  [x] a', ul(li(pre('[x] a\n'))));
+    }),
+  );
 
-    'no space before checkbox marker': {
-      '-[x]': p('-[x]'),
-      '-[ ] text': p('-[ ] text'),
-      '-[x] text': p('-[x] text'),
-      '-[ ]': p('-[ ]'),
-    },
+  test(
+    'no space before checkbox marker',
+    collect((mdtest) => {
+      mdtest('-[x]', p('-[x]'));
+      mdtest('-[ ] text', p('-[ ] text'));
+      mdtest('-[x] text', p('-[x] text'));
+      mdtest('-[ ]', p('-[ ]'));
+    }),
+  );
 
-    'linebreak between checkbox and text': {
-      '- [x]\n  a': ul(li('[x]<br>\na')),
-      '- [x] \n  a': ul(li('[x]<br>\na')),
-      '- [x]  \n  a': ul(li('[x]<br>\na')),
-      '- [x]\\\n  a': ul(li('[x]<br>\na')),
-      '- [x] \\\n  a': taskList(item(checked, ' <br>\na')),
-      '- [x] \\ a': taskList(item(checked, ' \\ a')),
-      '- \n  [x] newline before checkbox': taskList(item(checked, ' newline before checkbox')),
-    },
+  test(
+    'linebreak between checkbox and text',
+    collect((mdtest) => {
+      mdtest('- [x]\n  a', ul(li('[x]<br>\na')));
+      mdtest('- [x] \n  a', ul(li('[x]<br>\na')));
+      mdtest('- [x]  \n  a', ul(li('[x]<br>\na')));
+      mdtest('- [x]\\\n  a', ul(li('[x]<br>\na')));
+      mdtest('- [x] \\\n  a', taskList(item(checked, ' <br>\na')));
+      mdtest('- [x] \\ a', taskList(item(checked, ' \\ a')));
+      mdtest(
+        '- \n  [x] newline before checkbox',
+        taskList(item(checked, ' newline before checkbox')),
+      );
+    }),
+  );
 
-    'loose list': {
-      '* [x] loose 1\n\n* [ ] loose 2\n* [x] loose 3': taskList(
-        item('\n', p(checked, ' loose 1')),
-        item('\n', p(unchecked, ' loose 2')),
-        item('\n', p(checked, ' loose 3')),
-      ),
-    },
+  test(
+    'loose list',
+    collect((mdtest) => {
+      mdtest(
+        '* [x] loose 1\n\n* [ ] loose 2\n* [x] loose 3',
+        taskList(
+          item('\n', p(checked, ' loose 1')),
+          item('\n', p(unchecked, ' loose 2')),
+          item('\n', p(checked, ' loose 3')),
+        ),
+      );
+    }),
+  );
 
-    "quirks of Github's parser": {
-      '- [ ]<span></span> empty span after': ul(li('[ ]<span></span> empty span after')),
-      '- <span></span>[ ] empty span before': ul(li('<span></span>[ ] empty span before')),
+  test(
+    "quirks of Github's parser",
+    collect((mdtest) => {
+      mdtest('- [ ]<span></span> empty span after', ul(li('[ ]<span></span> empty span after')));
+      mdtest('- <span></span>[ ] empty span before', ul(li('<span></span>[ ] empty span before')));
 
-      '- <button></button>[ ] illegal tag': quirkyOnGithub({
-        my: '<button></button>[ ]',
-        github: unchecked,
-        body: ' illegal tag',
-      }),
+      mdtest(
+        '- <button></button>[ ] illegal tag',
+        quirkyOnGithub({ my: '<button></button>[ ]', github: unchecked, body: ' illegal tag' }),
+      );
 
-      '- <foo></foo>[ ] unknown tag': quirkyOnGithub({
-        my: '<foo></foo>[ ]',
-        github: unchecked,
-        body: ' unknown tag',
-      }),
+      mdtest(
+        '- <foo></foo>[ ] unknown tag',
+        quirkyOnGithub({ my: '<foo></foo>[ ]', github: unchecked, body: ' unknown tag' }),
+      );
 
-      '- [ ]<!-- --> empty comment after': ul(li(`[ ]${comment(' ')} empty comment after`)),
-      '- [x<!-- -->] empty comment inside': ul(li(`[x${comment(' ')}] empty comment inside`)),
+      mdtest('- [ ]<!-- --> empty comment after', ul(li(`[ ]${comment(' ')} empty comment after`)));
+      mdtest(
+        '- [x<!-- -->] empty comment inside',
+        ul(li(`[x${comment(' ')}] empty comment inside`)),
+      );
 
       // NOTE: this is an actually interesting quirk: a task list is generated,
       // but checkboxes inside aren't
-      '- <!-- --> [ ] empty comment before\n': quirkyOnGithub({
-        my: '\n<!-- --> [ ]',
-        github: '\n [ ]',
-        body: ' empty comment before\n',
-      }),
+      mdtest(
+        '- <!-- --> [ ] empty comment before\n',
+        quirkyOnGithub({ my: '\n<!-- --> [ ]', github: '\n [ ]', body: ' empty comment before\n' }),
+      );
 
-      '1. <!-- --> [ ] empty comment before\n': quirkyOnGithub({
-        my: '\n<!-- --> [ ]',
-        github: '\n [ ]',
-        body: ' empty comment before\n',
-      }).replace(/ul/g, 'ol'),
+      mdtest(
+        '1. <!-- --> [ ] empty comment before\n',
+        quirkyOnGithub({
+          my: '\n<!-- --> [ ]',
+          github: '\n [ ]',
+          body: ' empty comment before\n',
+        }).replace(/ul/g, 'ol'),
+      );
 
-      '- <!-- [x] --> [ ] checkbox in comment\n': quirkyOnGithub({
-        my: '\n<!-- [x] --> [ ]',
-        github: '\n [ ]',
-        body: ' checkbox in comment\n',
-      }),
-    },
+      mdtest(
+        '- <!-- [x] --> [ ] checkbox in comment\n',
+        quirkyOnGithub({
+          my: '\n<!-- [x] --> [ ]',
+          github: '\n [ ]',
+          body: ' checkbox in comment\n',
+        }),
+      );
+    }),
+  );
 
-    'raw HTML': {
-      '<ul>\n<li>[x] raw</li>\n</ul>\n': quirkyOnGithub({
-        my: '[x]',
-        github: checked,
-        body: ' raw',
-      }),
+  test(
+    'raw HTML',
+    collect((mdtest) => {
+      mdtest(
+        '<ul>\n<li>[x] raw</li>\n</ul>\n',
+        quirkyOnGithub({ my: '[x]', github: checked, body: ' raw' }),
+      );
 
-      '<li>[x] just li</li>\n': li(fromGithubApi ? checked : '[x]', ' just li'),
-      '<li>[ ] just li</li>\n': li(fromGithubApi ? unchecked : '[ ]', ' just li'),
+      mdtest('<li>[x] just li</li>\n', li(fromGithubApi ? checked : '[x]', ' just li'));
+      mdtest('<li>[ ] just li</li>\n', li(fromGithubApi ? unchecked : '[ ]', ' just li'));
 
-      '<ul>\n<li> [ ] space before</li>\n</ul>\n': quirkyOnGithub({
-        my: ' [ ]',
-        github: unchecked,
-        body: ' space before',
-      }),
+      mdtest(
+        '<ul>\n<li> [ ] space before</li>\n</ul>\n',
+        quirkyOnGithub({ my: ' [ ]', github: unchecked, body: ' space before' }),
+      );
 
-      '<ul>\n<li>&#32;[ ] space before</li>\n</ul>\n': quirkyOnGithub({
-        my: '&#32;[ ]',
-        github: unchecked,
-        body: ' space before',
-      }),
+      mdtest(
+        '<ul>\n<li>&#32;[ ] space before</li>\n</ul>\n',
+        quirkyOnGithub({ my: '&#32;[ ]', github: unchecked, body: ' space before' }),
+      );
 
-      '<ul>\n<li><p>[x] loose</p>\n</li>\n<li><p>[ ] loose 2</p>\n</li>\n</ul>\n': quirkyOnGithub(
-        { my: '<p>[x]', github: `<p>${checked}`, body: ' loose</p>\n' },
-        { my: '<p>[ ]', github: `<p>${unchecked}`, body: ' loose 2</p>\n' },
-      ),
+      mdtest(
+        '<ul>\n<li><p>[x] loose</p>\n</li>\n<li><p>[ ] loose 2</p>\n</li>\n</ul>\n',
+        quirkyOnGithub(
+          { my: '<p>[x]', github: `<p>${checked}`, body: ' loose</p>\n' },
+          { my: '<p>[ ]', github: `<p>${unchecked}`, body: ' loose 2</p>\n' },
+        ),
+      );
 
-      '<li><p>[x] p</p>\n</li>\n': li(p(fromGithubApi ? checked : '[x]', ' p')),
-      '<li><div>[x] div</div></li>\n': li('<div>', '[x]', ' div', '</div>'),
-    },
-  };
-}
+      mdtest('<li><p>[x] p</p>\n</li>\n', li(p(fromGithubApi ? checked : '[x]', ' p')));
+      mdtest('<li><div>[x] div</div></li>\n', li('<div>', '[x]', ' div', '</div>'));
+    }),
+  );
+
+  return extractAllMarkdownSnippets;
+};
 
 describe('my markdown-it plugin', () => {
-  for (let [group, cases] of Object.entries(makeTestCases(false))) {
-    describe(group, () => {
-      test.each(Object.entries(cases))('%j', (markdown, html) => {
-        // NOTE: the `breaks` option does not affect parsing in any way, only
-        // the HTML that gets rendered. It needs to be enabled for parity with
-        // GitHub's REST API, as the `https://api.github.com/markdown` endpoint
-        // renders content in hard breaks mode (like in the comment boxes on the
-        // website itself). This option is only ever read here in the code of
-        // markdown-it: <https://github.com/markdown-it/markdown-it/blob/15.0.2/src/renderer.ts#L126>
-        let md = new MarkdownIt({ breaks: true, html: true }).use(markdownItTasklist);
-        expect(md.render(markdown)).toBe(html);
-      });
-    });
-  }
+  const hardBreaksMode = true;
+
+  // NOTE: the `breaks` option does not affect parsing in any way, only the HTML
+  // that gets rendered. It needs to be enabled for parity with GitHub's REST
+  // API, as the `https://api.github.com/markdown` endpoint renders content in
+  // hard breaks mode (the way it is parsed in the comment boxes on the website
+  // itself). This option is only ever read here in the code of markdown-it:
+  // <https://github.com/markdown-it/markdown-it/blob/15.0.2/src/renderer.ts#L126>
+  let mdit = new MarkdownIt({ breaks: hardBreaksMode, html: true }).use(markdownItTasklist);
+
+  createTestCases({
+    fromGithubApi: false,
+    hardBreaksMode,
+    render: (markdown) => mdit.render(markdown),
+  });
 
   test('strips the checkbox marker from the token.content', () => {
-    let md = new MarkdownIt().use(markdownItTasklist);
     let whitespace = '   ';
     let text = 'token  contents';
-    let tokens = md.parse(`+ [x]${whitespace}${text}   \n`, {});
+    let tokens = mdit.parse(`+ [x]${whitespace}${text}   \n`, {});
     expect(tokens[3].type).toBe('inline');
     expect(tokens[3].content).toBe(`${whitespace}${text}`);
     expect(tokens[3].children[1].type).toBe('text');
@@ -248,23 +359,20 @@ describe('my markdown-it plugin', () => {
 });
 
 describe("GitHub's /markdown API", () => {
-  const TEST_CASES = makeTestCases(true);
   const DATABASE_PATH = Path.join(__dirname, 'fixtures', 'rendered-by-github', 'tasklist.json');
   const DATABASE_FORMAT_VERSION = 1;
 
+  /** @type {Map<string, string>} */
   let renderedSnippets = new Map();
+
+  let collectSnippets = createTestCases({
+    fromGithubApi: true,
+    hardBreaksMode: true,
+    render: (markdown) => renderedSnippets.get(markdown),
+  });
 
   beforeAll(async () => {
     renderedSnippets.clear();
-
-    // NOTE: Can't use a narrower assertion like `x is Record<string, unknown>`
-    // because then type narrowing with the `in` operator stops working.
-    // <https://www.reddit.com/r/typescript/comments/tq3m4f/the_difference_between_object_and_recordstring/>
-    /** @returns {x is object} */
-    function isObject(/** @type {unknown} */ x) {
-      // eslint-disable-next-line eqeqeq
-      return typeof x === 'object' && x !== null && !Array.isArray(x);
-    }
 
     let text = await fs.readFile(DATABASE_PATH, 'utf8').catch((/** @type {unknown} */ error) => {
       if (isObject(error) && 'code' in error && error.code === 'ENOENT') {
@@ -295,33 +403,31 @@ describe("GitHub's /markdown API", () => {
     let snippetsById = new Map();
     let missingSnippets = new Map();
 
-    for (let cases of Object.values(TEST_CASES)) {
-      for (let markdown of Object.keys(cases)) {
-        // I want the IDs to be stable and deterministic, as that would help
-        // with caching the responses from the REST API (although I'm not doing
-        // any such caching currently) -- a weak hash function would be more
-        // than enough for this. Also, on my laptop, SHA-1 seems to be faster
-        // than MD5, which is why I picked it.
-        let id = crypto.hash('sha1', markdown, 'base64url');
+    for (let markdown of collectSnippets()) {
+      // I want the IDs to be stable and deterministic, as that would help with
+      // caching the responses from the REST API (although I'm not doing any
+      // such caching currently) -- a weak hash function would be more than
+      // enough for this. Also, on my laptop, SHA-1 seems to be faster than MD5,
+      // which is why I picked it.
+      let id = crypto.hash('sha1', markdown, 'base64url');
 
-        if (markdown.includes(id)) {
-          throw new Error(
-            `markdown snippet ${JSON.stringify(markdown)} contains its own ID ${JSON.stringify(id)}`,
-          );
-        }
-        if (snippetsById.has(id) && snippetsById.get(id) !== markdown) {
-          throw new Error(
-            `ID collision between markdown snippets ${JSON.stringify(markdown)} and ${JSON.stringify(snippetsById.get(id))}`,
-          );
-        }
-        snippetsById.set(id, markdown);
+      if (markdown.includes(id)) {
+        throw new Error(
+          `markdown snippet ${util.inspect(markdown)} contains its own ID ${util.inspect(id)}`,
+        );
+      }
+      if (snippetsById.has(id) && snippetsById.get(id) !== markdown) {
+        throw new Error(
+          `ID collision between markdown snippets ${util.inspect(markdown)} and ${util.inspect(snippetsById.get(id))}`,
+        );
+      }
+      snippetsById.set(id, markdown);
 
-        let html = cachedSnippets.get(markdown);
-        if (typeof html === 'string') {
-          renderedSnippets.set(markdown, html);
-        } else if (!renderedSnippets.has(markdown)) {
-          missingSnippets.set(id, markdown);
-        }
+      let html = cachedSnippets.get(markdown);
+      if (typeof html === 'string') {
+        renderedSnippets.set(markdown, html);
+      } else if (!renderedSnippets.has(markdown)) {
+        missingSnippets.set(id, markdown);
       }
     }
 
@@ -410,12 +516,4 @@ describe("GitHub's /markdown API", () => {
       await fs.writeFile(DATABASE_PATH, text, 'utf-8');
     }
   });
-
-  for (let [group, cases] of Object.entries(TEST_CASES)) {
-    describe(group, () => {
-      test.each(Object.entries(cases))('%j', (markdown, html) => {
-        expect(renderedSnippets.get(markdown)).toBe(html);
-      });
-    });
-  }
 });
