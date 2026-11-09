@@ -6,10 +6,11 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "theme:build": "sass --no-source-map --style=compressed themes-src/:themes-out/",
-    "theme:watch": "sass --no-source-map --style=compressed --watch themes-src/:themes-out/",
+    "build:themes": "sass --no-source-map --style=compressed themes-src/:themes-out/",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "lint": "eslint . --ext .js,.mjs",
+    "check:types": "tsc --noEmit",
+    "check:fmt": "prettier --check '**/*.{js,mjs}'"
   },
   "dependencies": {
     "argparse": "^3.0.0",
