@@ -1,8 +1,9 @@
-extends: eslint-config-dmitmel/presets/node
+extends:
+  - eslint-config-dmitmel/presets/node
+  - eslint-config-dmitmel/presets/vitest
+
 parserOptions:
   ecmaVersion: 2017
-env:
-  jest: true
 
 overrides:
   - files: 'main.js'
@@ -11,7 +12,7 @@ overrides:
         - error
         - ignores: ['hashbang']
 
-  - files: '*.test.js'
+  - files: ['*.test.js', 'vitest.config.mjs']
     settings:
       node:
         version: '>= 24.0.0'

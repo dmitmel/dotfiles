@@ -1,5 +1,5 @@
 /// <reference types="node" />
-/// <reference types="jest" />
+/// <reference types="vitest/globals" />
 
 declare module 'prismjs/components/prism-core' {
   export * from 'prismjs';

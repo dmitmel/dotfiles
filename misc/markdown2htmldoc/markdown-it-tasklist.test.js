@@ -326,6 +326,24 @@ describe("GitHub's /markdown API", () => {
     }
 
     if (missingSnippets.size > 0) {
+      /** @returns {never} */
+      const unwrapNetworkErrors = (/** @type {unknown} */ error) => {
+        // Undici wraps network errors into `TypeError('fetch failed')` with the
+        // `e.cause` set to the real error.
+        // https://github.com/nodejs/undici/blob/e5c9d703e63cd5ad691b8ce26e3f9a81c598f2e3/lib/fetch/index.js#L223-L230
+        // https://github.com/octokit/request.js/blob/999fad9ce9ed4e9428c7e17da1795c80d1df52d6/src/fetch-wrapper.ts#L65-L75
+        if (
+          error instanceof TypeError &&
+          error.message === 'fetch failed' &&
+          'cause' in error &&
+          error.cause instanceof Error
+        ) {
+          throw error.cause;
+        } else {
+          throw error;
+        }
+      };
+
       // To save on API requests (unauthenticated users get 60 requests per
       // hour, and I don't want to bother with authentication), I am gonna
       // concatenate all markdown snippets in a big document, separated by
@@ -356,7 +374,7 @@ describe("GitHub's /markdown API", () => {
         }),
       });
 
-      let res = await fetch(req);
+      let res = await fetch(req).catch(unwrapNetworkErrors);
       if (!res.ok) {
         throw new Error(`${req.method} ${req.url} => ${res.status} ${res.statusText}`);
       }
@@ -366,7 +384,7 @@ describe("GitHub's /markdown API", () => {
         throw new Error(`${req.method} ${req.url} => unrecognized content type: ${contentType}`);
       }
 
-      let body = await res.text();
+      let body = await res.text().catch(unwrapNetworkErrors);
 
       renderedSnippets.clear();
       for (let [_, id, html] of body.matchAll(
