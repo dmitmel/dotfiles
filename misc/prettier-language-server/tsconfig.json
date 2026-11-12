@@ -9,5 +9,5 @@
     "noImplicitOverride": true,
     "resolveJsonModule": true
   },
-  "include": ["**/*.js", "**/*.mjs"]
+  "include": ["*.js", "*.mjs"]
 }
