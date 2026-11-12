@@ -54,21 +54,21 @@ function markdownItTasklist(/** @type {md.MarkdownIt} */ md) {
     ) {
       // Make a cheap `startsWith()` check first, to see if the more expensive
       // regexp evaluation is even necessary.
-      // NOTE: markdown-it has already trimmed the whitespace after the list
-      // marker off the `inline.content` for us.
-      if (!inline.content.startsWith('[')) return;
+      // NOTE: markdown-it trims spaces and tabs after the list marker off the
+      // `inline.content` for us, but not other kinds of white space.
+      if (!inline.content.trimStart().startsWith('[')) return;
       // Check for the task list marker: `[x]`, `[X]` or `[ ]`
-      let match = inline.content.match(/^((\[[xX\s]\])\s+)\S/);
+      let match = inline.content.match(/^((\s*\[([xX\s])\])\s+)\S/);
       if (!match) return;
       let markerAndWhitespace = match[1];
-      let marker = match[2];
-      let checked = marker === '[x]' || marker === '[X]';
+      let markerAndBrackets = match[2];
+      let checked = match[3] === 'x' || match[3] === 'X';
 
       let firstChild = inline.children[0];
       if (!firstChild || firstChild.type !== 'text') return;
       if (!firstChild.content.startsWith(markerAndWhitespace)) return;
-      firstChild.content = firstChild.content.slice(marker.length);
-      inline.content = inline.content.slice(marker.length);
+      firstChild.content = firstChild.content.slice(markerAndBrackets.length);
+      inline.content = inline.content.slice(markerAndBrackets.length);
 
       let checkbox = new state.Token('tasklist_checkbox', 'input', 0);
       checkbox.attrs = [
