@@ -30,6 +30,7 @@
  * of its features, but only as a guideline, not as an iron law.
  */
 
+/// <reference types="node" />
 const LS = require('vscode-languageserver/node');
 const { TextDocument } = require('vscode-languageserver-textdocument');
 const { URI } = require('vscode-uri');

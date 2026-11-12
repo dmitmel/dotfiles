@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "moduleResolution": "node10",
+    "module": "node16",
     "checkJs": true,
     "allowJs": true,
     "noEmit": true,
