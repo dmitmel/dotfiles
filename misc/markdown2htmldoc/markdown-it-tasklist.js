@@ -56,7 +56,7 @@ function markdownItTasklist(/** @type {md.MarkdownIt} */ md) {
       // regexp evaluation is even necessary.
       // NOTE: markdown-it trims spaces and tabs after the list marker off the
       // `inline.content` for us, but not other kinds of white space.
-      if (!inline.content.trimStart().startsWith('[')) return;
+      if (!inline.content.trimLeft().startsWith('[')) return;
       // Check for the task list marker: `[x]`, `[X]` or `[ ]`
       let match = inline.content.match(/^((\s*\[([xX\s])\])\s+)\S/);
       if (!match) return;

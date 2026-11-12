@@ -5,6 +5,10 @@ extends:
 parserOptions:
   ecmaVersion: 2017
 
+settings:
+  # <https://eslint-community.github.io/eslint-plugin-es-x/#the-aggressive-mode>
+  es-x: { aggressive: true }
+
 overrides:
   - files: 'main.js'
     rules:
