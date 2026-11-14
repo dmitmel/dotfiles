@@ -1,1 +1,4 @@
-module.exports = require('eslint-config-dmitmel/prettier.config.js');
+module.exports = {
+  ...require('eslint-config-dmitmel/prettier.config.js'),
+  proseWrap: 'preserve',
+};
