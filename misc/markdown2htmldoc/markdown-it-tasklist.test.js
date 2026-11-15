@@ -8,79 +8,37 @@
 // <https://github.com/github/cmark-gfm/blob/27d942c8b0a62d192f616e5bf3578f4b6a89e180/test/extensions.txt#L835-L920>
 // <https://github.com/Ranrar/marco-core/blob/cd1708988bb213edb7bf50362abca5fe5d30cf51/tests/gfm_tasklist_it.rs>
 
-const fs = require('fs/promises');
 const Path = require('path');
-const crypto = require('crypto');
-const util = require('util');
 const MarkdownIt = require('markdown-it');
 const markdownItTasklist = require('./markdown-it-tasklist');
-
-// NOTE: Can't use a narrower assertion like `x is Record<string, unknown>`
-// because then type narrowing with the `in` operator stops working.
-// <https://www.reddit.com/r/typescript/comments/tq3m4f/the_difference_between_object_and_recordstring/>
-/** @returns {x is object} */
-const isObject = (/** @type {unknown} */ x) => {
-  // eslint-disable-next-line eqeqeq
-  return typeof x === 'object' && x !== null && !Array.isArray(x);
-};
+const markdownTestingUtils = require('./markdown-testing-utils');
 
 const createTestCases = (
   /** @type {{ fromGithubApi: boolean, hardBreaksMode: boolean, render: (markdown: string) => string }} */
   { fromGithubApi, hardBreaksMode, render },
 ) => {
-  const mdtest = (/** @type {string} */ markdown, /** @type {string} */ expectedHtml) => {
-    expectedHtml = String(expectedHtml).replace(/\n\n+/g, '\n').replace(/^\n/, '');
-    let actualHtml = render(markdown);
-    try {
-      expect(actualHtml).toBe(expectedHtml);
-    } catch (error) {
-      if (isObject(error) && 'name' in error && error.name === 'AssertionError') {
-        // <https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions>
-        Error.captureStackTrace(error, mdtest);
-      }
-      throw error;
-    }
-  };
+  const { collect, extractAllMarkdownSnippets } =
+    markdownTestingUtils.createMarkdownTestingHarness(render);
 
-  /** @typedef {(mdtest_: typeof mdtest) => void} MarkdownTestFunction */
-
-  /** @type {MarkdownTestFunction[]} */
-  let allTestFunctions = [];
-
-  const collect = (/** @type {MarkdownTestFunction} */ testImpl) => {
-    allTestFunctions.push(testImpl);
-    return testImpl.bind(null, mdtest);
-  };
-
-  const extractAllMarkdownSnippets = () => {
-    /** @type {Set<string>} */
-    let snippets = new Set();
-    for (let testImpl of allTestFunctions) {
-      testImpl((markdown, _html) => {
-        snippets.add(markdown);
-      });
-    }
-    return snippets;
-  };
-
-  const concat = (/** @type {string[]} */ ...strings) => strings.join('');
-  const concatLines = (/** @type {string[]} */ ...strings) => `${strings.join('\n')}\n`;
-
-  const blockTag = (/** @type {string} */ nameAndAttrs, /** @type {string[]} */ ...body) => {
-    let onlyName = nameAndAttrs.split(/\s+/, 1)[0];
-    return `\n<${nameAndAttrs}>${body.join('')}</${onlyName}>\n`;
-  };
-
-  const ul = blockTag.bind(null, 'ul');
-  const ol = blockTag.bind(null, 'ol');
-  const li = blockTag.bind(null, 'li');
-  const p = blockTag.bind(null, 'p');
-  const blockquote = blockTag.bind(null, 'blockquote');
-  const h1 = blockTag.bind(null, 'h1');
-  const h2 = blockTag.bind(null, 'h2');
-
-  const hardbr = '<br>\n';
-  const softbr = hardBreaksMode ? hardbr : '\n';
+  const {
+    concat,
+    concatLines,
+    blockTag,
+    ul,
+    ol,
+    li,
+    p,
+    blockquote,
+    h1,
+    h2,
+    hardbr,
+    softbr,
+    pre,
+    code,
+    em,
+    comment,
+    img,
+  } = markdownTestingUtils.createHtmlBuilders({ fromGithubApi, hardBreaksMode });
 
   const taskList = (/** @type {string} */ tag, /** @type {string[]} */ ...body) =>
     blockTag(`${tag} class="contains-task-list"`, ...body);
@@ -97,21 +55,6 @@ const createTestCases = (
 
   const checked = taskListItemCheckbox(true);
   const unchecked = taskListItemCheckbox(false);
-
-  // <https://stackoverflow.com/questions/9628507/how-can-i-tell-google-translate-to-not-translate-a-section-of-a-website>
-  const notranslate = fromGithubApi ? ' class="notranslate"' : '';
-  const code = (/** @type {string} */ body) => `<code${notranslate}>${body}</code>`;
-  const pre = (/** @type {string} */ body) => blockTag(`pre${notranslate}`, code(body));
-
-  const em = (/** @type {string[]} */ ...body) => `<em>${body.join('')}</em>`;
-
-  const comment = (/** @type {string} */ text) => (fromGithubApi ? '' : `<!--${text}-->`);
-
-  const img = (/** @type {string} */ alt, /** @type {string} */ src) =>
-    fromGithubApi
-      ? `<a target="_blank" rel="noopener noreferrer" href="${src}"` +
-        `><img src="${src}" alt="${alt}" style="max-width: 100%;"></a>`
-      : `<img src="${src}" alt="${alt}">`;
 
   const quirkyOnGithub = (
     /** @type {string} */ tag,
@@ -936,7 +879,7 @@ const createTestCases = (
   return extractAllMarkdownSnippets;
 };
 
-describe('my markdown-it plugin', () => {
+describe('my plugin for markdown-it', () => {
   const hardBreaksMode = true;
 
   // NOTE: the `breaks` option does not affect parsing in any way, only the HTML
@@ -965,9 +908,6 @@ describe('my markdown-it plugin', () => {
 });
 
 describe("GitHub's /markdown API", () => {
-  const DATABASE_PATH = Path.join(__dirname, 'fixtures', 'rendered-by-github', 'tasklist.json');
-  const DATABASE_FORMAT_VERSION = 1;
-
   /** @type {Map<string, string>} */
   let renderedSnippets = new Map();
 
@@ -978,154 +918,10 @@ describe("GitHub's /markdown API", () => {
   });
 
   beforeAll(async () => {
-    renderedSnippets.clear();
-
-    let text = await fs.readFile(DATABASE_PATH, 'utf8').catch((/** @type {unknown} */ error) => {
-      if (isObject(error) && 'code' in error && error.code === 'ENOENT') {
-        // The `null` needs to be cast to a `string` because of the disabled
-        // `strictNullChecks`, so that the type of the variable `text` resolves
-        // to `string`, and not `any`.
-        return /** @type {string?} */ (null);
-      } else {
-        throw error;
-      }
-    });
-
-    let cachedSnippets = new Map();
-
-    if (text != null && text.length !== 0) {
-      /** @type {unknown} */
-      let data = JSON.parse(text);
-
-      if (isObject(data) && 'version' in data && data.version === DATABASE_FORMAT_VERSION) {
-        if ('snippets' in data && isObject(data.snippets)) {
-          cachedSnippets = new Map(
-            Object.entries(data.snippets).filter(([_key, val]) => typeof val === 'string'),
-          );
-        }
-      }
-    }
-
-    let snippetsById = new Map();
-    let missingSnippets = new Map();
-
-    for (let markdown of collectSnippets()) {
-      // I want the IDs to be stable and deterministic, as that would help with
-      // caching the responses from the REST API (although I'm not doing any
-      // such caching currently) -- a weak hash function would be more than
-      // enough for this. Also, on my laptop, SHA-1 seems to be faster than MD5,
-      // which is why I picked it.
-      let id = crypto.hash('sha1', markdown, 'base64url');
-
-      if (markdown.includes(id)) {
-        throw new Error(
-          `markdown snippet ${util.inspect(markdown)} contains its own ID ${util.inspect(id)}`,
-        );
-      }
-      if (snippetsById.has(id) && snippetsById.get(id) !== markdown) {
-        throw new Error(
-          `ID collision between markdown snippets ${util.inspect(markdown)} and ${util.inspect(snippetsById.get(id))}`,
-        );
-      }
-      snippetsById.set(id, markdown);
-
-      let html = cachedSnippets.get(markdown);
-      if (typeof html === 'string') {
-        renderedSnippets.set(markdown, html);
-      } else if (!renderedSnippets.has(markdown)) {
-        missingSnippets.set(id, markdown);
-      }
-    }
-
-    if (missingSnippets.size > 0) {
-      /** @returns {never} */
-      const unwrapNetworkErrors = (/** @type {unknown} */ error) => {
-        // Undici wraps network errors into `TypeError('fetch failed')` with the
-        // `e.cause` set to the real error.
-        // https://github.com/nodejs/undici/blob/e5c9d703e63cd5ad691b8ce26e3f9a81c598f2e3/lib/fetch/index.js#L223-L230
-        // https://github.com/octokit/request.js/blob/999fad9ce9ed4e9428c7e17da1795c80d1df52d6/src/fetch-wrapper.ts#L65-L75
-        if (
-          error instanceof TypeError &&
-          error.message === 'fetch failed' &&
-          'cause' in error &&
-          error.cause instanceof Error
-        ) {
-          throw error.cause;
-        } else {
-          throw error;
-        }
-      };
-
-      // To save on API requests (unauthenticated users get 60 requests per
-      // hour, and I don't want to bother with authentication), I am gonna
-      // concatenate all markdown snippets in a big document, separated by
-      // markers which GitHub's markdown renderer definitely won't generate (but
-      // which will pass the HTML sanitization), render this entire document in
-      // one request, and then split the resulting HTML document into the
-      // individual snippets. This method does rely on the individual Markdown
-      // snippets not having side effects that extend beyond a single paragraph,
-      // as otherwise a broken snippet can mess up the rendering of other
-      // unrelated ones.
-      let dummyDocument = '';
-      for (let [id, markdown] of snippetsById) {
-        dummyDocument += `<div>snippetStart(${id})</div>\n\n${markdown}\n\n<div>snippetEnd(${id})</div>\n\n`;
-      }
-
-      // <https://docs.github.com/en/rest/markdown/markdown?apiVersion=2026-03-10#render-a-markdown-document>
-      let req = new Request('https://api.github.com/markdown', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          accept: 'text/html; charset=utf-8',
-          'user-agent': 'https://github.com/dmitmel/dotfiles/tree/master/misc/markdown2htmldoc',
-          'X-GitHub-Api-Version': '2026-03-10',
-        },
-        body: JSON.stringify({
-          mode: 'gfm',
-          text: dummyDocument,
-        }),
-      });
-
-      let res = await fetch(req).catch(unwrapNetworkErrors);
-      if (!res.ok) {
-        throw new Error(`${req.method} ${req.url} => ${res.status} ${res.statusText}`);
-      }
-
-      let contentType = new util.MIMEType(res.headers.get('content-type') || '');
-      if (!(contentType.essence === 'text/html' && contentType.params.get('charset') === 'utf-8')) {
-        throw new Error(`${req.method} ${req.url} => unrecognized content type: ${contentType}`);
-      }
-
-      let body = await res.text().catch(unwrapNetworkErrors);
-
-      renderedSnippets.clear();
-      for (let [_, id, html] of body.matchAll(
-        /<div>snippetStart\(([^)]+?)\)<\/div>\n([\s\S]*?\n)<div>snippetEnd\(\1\)<\/div>/g,
-      )) {
-        if (snippetsById.has(id)) {
-          renderedSnippets.set(snippetsById.get(id), html);
-        }
-      }
-    }
-
-    // Only write the database file if the data in it was actually modified.
-    if (missingSnippets.size > 0 || cachedSnippets.size !== renderedSnippets.size) {
-      let json = {
-        version: DATABASE_FORMAT_VERSION,
-        snippets: Object.fromEntries(renderedSnippets),
-      };
-
-      let text = JSON.stringify(json, null, 2);
-      text += '\n';
-
-      // Ensure that the saved JSON contains only ASCII characters.
-      // <https://stackoverflow.com/a/31652607/12005228>
-      text = text.replace(/[^\t\n\r\x20-\x7E]/g, (c) => {
-        return `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`;
-      });
-
-      await fs.mkdir(Path.dirname(DATABASE_PATH), { recursive: true });
-      await fs.writeFile(DATABASE_PATH, text, 'utf-8');
-    }
+    await markdownTestingUtils.refreshFetchedSnippetsDatabase(
+      renderedSnippets,
+      Path.join(__dirname, 'fixtures', 'rendered-by-github', 'tasklist.json'),
+      collectSnippets(),
+    );
   });
 });
