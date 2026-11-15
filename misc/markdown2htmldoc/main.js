@@ -1,19 +1,12 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const Path = require('path');
-const util = require('util');
 const argparse = require('argparse');
 const { PRISM_THEMES, highlight } = require('./syntax-highlighting');
 const MarkdownIt = require('markdown-it');
 
 async function main() {
   let parser = new argparse.ArgumentParser();
-
-  /** @returns {BufferEncoding} */
-  function validateEncoding(/** @type {string} */ str) {
-    if (Buffer.isEncoding(str)) return str;
-    throw new argparse.ArgumentTypeError(`not a valid encoding name: ${util.inspect(str)}`);
-  }
 
   parser.add_argument('INPUT_FILE', {
     nargs: argparse.OPTIONAL,
@@ -22,19 +15,6 @@ async function main() {
   parser.add_argument('OUTPUT_FILE', {
     nargs: argparse.OPTIONAL,
     help: '(stdout by default)',
-  });
-
-  parser.add_argument('--input-encoding', {
-    default: 'utf-8',
-    metavar: 'ENCODING',
-    help: '(utf-8 by default)',
-    type: validateEncoding,
-  });
-  parser.add_argument('--output-encoding', {
-    default: 'utf-8',
-    metavar: 'ENCODING',
-    help: '(utf-8 by default)',
-    type: validateEncoding,
   });
 
   parser.add_argument('--theme', {
@@ -58,8 +38,6 @@ async function main() {
    * @typedef {Object} Args
    * @property {string} INPUT_FILE
    * @property {string} OUTPUT_FILE
-   * @property {BufferEncoding} input_encoding
-   * @property {BufferEncoding} output_encoding
    * @property {string} theme
    * @property {string} syntax_theme
    * @property {string} stylesheet
@@ -109,11 +87,11 @@ async function main() {
   }
 
   for (let stylesheetPath of args.stylesheet || []) {
-    stylesheetsTexts.push(fs.readFileSync(stylesheetPath, args.input_encoding));
+    stylesheetsTexts.push(fs.readFileSync(stylesheetPath, 'utf-8'));
   }
 
   for (let scriptPath of args.script || []) {
-    scriptsTexts.push(fs.readFileSync(scriptPath, args.input_encoding));
+    scriptsTexts.push(fs.readFileSync(scriptPath, 'utf-8'));
   }
 
   function trimTrailingNewline(/** @type {string} */ s) {
@@ -124,7 +102,7 @@ async function main() {
     '<!DOCTYPE html>',
     '<html>',
     '<head>',
-    `<meta charset="${md.utils.escapeHtml(String(args.output_encoding).toUpperCase())}">`,
+    '<meta charset="UTF-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     '<meta http-equiv="X-UA-Compatible" content="ie=edge">',
     `<title>${md.utils.escapeHtml(Path.basename(args.INPUT_FILE || '<stdin>'))}</title>`,
@@ -143,7 +121,7 @@ async function main() {
     '</html>',
   ].join('\n');
 
-  fs.writeFileSync(args.OUTPUT_FILE || 1, renderedHtmlDocument, args.output_encoding);
+  fs.writeFileSync(args.OUTPUT_FILE || 1, renderedHtmlDocument, 'utf-8');
 
   return 0;
 }
