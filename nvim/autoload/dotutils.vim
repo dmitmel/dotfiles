@@ -209,6 +209,11 @@ function! dotutils#url_decode(str) abort
   return iconv(substitute(str, '%\(\x\x\)', '\=nr2char("0x".submatch(1))', 'g'), 'utf-8', 'latin1')
 endfunction
 
+" Transforms text in the same way as the |g?| normal-mode operator.
+function! dotutils#ascii_rot13(text) abort
+  return tr(a:text, 'abcdefghijklmnopqrstuvwxyz', 'nopqrstuvwxyzabcdefghijklm')
+endfunction
+
 function! dotutils#get_inmemory_buffer_size() abort
   if exists('*nvim_buf_get_offset')
     let bufnr = 0

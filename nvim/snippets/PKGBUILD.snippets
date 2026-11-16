@@ -1,4 +1,8 @@
 extends sh
+snippet maintainer
+	# Maintainer: `FugitiveConfigGet('user.name', bufnr('%'), 'Your Name')` <`dotutils#ascii_rot13(FugitiveConfigGet('user.email', bufnr('%'), 'your.email@example.com'))`(rot13)>
+snippet contributor
+	# Contributor: `FugitiveConfigGet('user.name', bufnr('%'), 'Your Name')` <`dotutils#ascii_rot13(FugitiveConfigGet('user.email', bufnr('%'), 'your.email@example.com'))`(rot13)>
 snippet ! Basic template (/usr/share/pacman/PKGBUILD.proto)
 	# This is an example PKGBUILD file. Use this as a start to creating your own,
 	# and remove these comments. For more information, see 'man PKGBUILD'.

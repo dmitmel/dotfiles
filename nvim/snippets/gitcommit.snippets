@@ -1,2 +1,2 @@
 snippet signoff Adds a "Signed-off-by:" header
-	Signed-off-by: ${1:`trim(system(['git', 'config', 'get', '--default=Your Name', 'user.name']))`} <${2:`trim(system(['git', 'config', 'get', '--default=your.email@example.com', 'user.email']))`}>
+	Signed-off-by: ${1:`FugitiveConfigGet('user.name', bufnr('%'), 'Your Name')`} <${2:`FugitiveConfigGet('user.email', bufnr('%'), 'your.email@example.com')`}>
