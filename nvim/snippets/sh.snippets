@@ -37,3 +37,18 @@ snippet XDG_DATA_HOME
 	\${XDG_DATA_HOME:-\${HOME}/.local/store}
 snippet XDG_STATE_HOME
 	\${XDG_STATE_HOME:-\${HOME}/.local/state}
+snippet timeit measure execution time (in Bash)
+	start_time_${1:test}=\$EPOCHREALTIME
+	$0
+	end_time_${1:test}=\$EPOCHREALTIME
+	printf '${1:test}: %s ms\n' "\$(( (10#\${end_time_${1:test}//[^0-9]/} - 10#\${start_time_${1:test}//[^0-9]/}) / 1000 ))" >&2
+snippet prof profile_start/profile_stop pair
+	profile_start "${1:test}"
+	$0
+	profile_stop "${1:test}"
+snippet basename extract file name from path
+	\${${1:path}##*/}
+snippet dirname extract directory path
+	\${${1:path}%/*}
+snippet setoptlocal
+	setopt local_options $0

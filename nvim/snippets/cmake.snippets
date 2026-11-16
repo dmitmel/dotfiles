@@ -24,3 +24,13 @@ snippet function
 	function($1)
 		$0
 	endfunction()
+snippet cmake_minimum_required 
+	cmake_minimum_required(VERSION ${1:`matchstr(system(['cmake', '--version']), 'cmake version \zs\d\+\.\d\+\.\d\+\ze')`})
+snippet CMAKE_EXPORT_COMPILE_COMMANDS 
+	if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
+		set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+	endif()
+snippet CMAKE_TOOLCHAIN_FILE 
+	if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+		set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${1:cmake/toolchain.cmake}")
+	endif()

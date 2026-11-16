@@ -3,8 +3,12 @@ snippet assert Assertion
 		throw new Error("Assertion failed: $1");
 	}
 snippet foriarr fast for-loop over an array
-	for (let ${2:i} = 0, len = ${1:array}.length; ${2:i} < len; ${2:i}++) {
+	for (let ${2:i} = 0; ${2:i} < ${1:array}.length; ${2:i}++) {
 		let ${3:element} = ${1:array}[${2:i}];
+		$0
+	}
+snippet function
+	function ${1:name}(${2:args}) {
 		$0
 	}
 snippet iife Immediately-invoked function expression (IIFE)
@@ -42,11 +46,35 @@ snippet timeit measure execution time of a section of code
 	console.log(elapsedTime${1:Test});
 snippet unreachable
 	throw new Error('unreachable');
-snippet @type JSDoc @type comment
+snippet @type
 	/** @type {$1} */$0
-snippet @returns JSDoc @returns comment
+snippet @string
+	/** @type {string} */ $0
+snippet @number
+	/** @type {number} */ $0
+snippet @returns
 	/** @returns {$1} */$0
 snippet @ JSDoc comment
 	/**
 	 * @$0
 	 */
+snippet jsd JSDoc comment
+	/**
+	 * @$0
+	 */
+snippet @typedef
+	/** @typedef {${0:Type}} ${1:TypeAlias} */
+snippet @struct
+	/**
+	 * @typedef {Object} ${1:Struct}
+	 * @property {${2:fieldType}} ${3:fieldName}
+	 * $0
+	 */
+snippet @property
+	@property {${1:type}} ${0:name}
+snippet @param
+	@param {${1:type}} ${0:name}
+snippet @generic
+	@template ${0:T}
+snippet referencetypes
+	/// <reference types="${1:node}" />$0

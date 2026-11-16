@@ -54,3 +54,13 @@ snippet timeit measure execution time of a chunk of code
 	$0
 	let elapsed${1:_time} = reltimefloat(reltime(start${1:_time}))
 	echomsg elapsed${1:_time} 'seconds'
+snippet hideflink highlight default link
+	highlight default link $0
+snippet savecpo insert a block that temporarily resets `cpoptions` to Vim defaults
+	let s:cpo_save = &cpoptions
+	set cpoptions&vim
+
+	$0
+
+	let &cpoptions = s:cpo_save
+	unlet s:cpo_save
