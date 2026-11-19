@@ -1,6 +1,8 @@
 const Prism = require('prismjs/components/prism-core');
 const createPrismLoader = require('prismjs/dependencies');
 
+// TODO: does not resolve language aliases currently!
+
 /** @type {createPrismLoader.Components} */
 const PRISM_COMPONENTS = require('prismjs/components.js');
 
@@ -45,10 +47,15 @@ function hasKey(/** @type {object} */ obj, /** @type {PropertyKey} */ key) {
 let availableSyntaxes = {};
 for (let [id, entry] of Object.entries(PRISM_COMPONENTS.languages)) {
   if (id !== 'meta' && typeof entry === 'object') {
-    entry = Object.assign({}, entry, {
+    /** @type {createPrismLoader.ComponentEntry} */
+    let patches = {
       // Make all optional dependencies non-optional
       require: [...toArray(entry.require), ...toArray(entry.optional), ...toArray(entry.modify)],
-    });
+    };
+    if (id === 'shell-session') {
+      patches.alias = [...toArray(entry.alias), 'console'];
+    }
+    entry = Object.assign({}, entry, patches);
   }
   availableSyntaxes[id] = entry;
 }
