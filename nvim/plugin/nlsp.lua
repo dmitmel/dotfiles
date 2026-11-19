@@ -142,9 +142,19 @@ local map = vim.keymap.set
 
 map('n', '<F2>', lsp.buf.rename, { desc = 'lsp.buf.rename()' })
 
-map({ 'n', 'x' }, '<space>f', function() lsp_format({ async = false }) end, {
-  desc = 'lsp.buf.format()',
-})
+map({ 'n', 'x' }, '<space>f', function()
+  lsp_format({
+    async = false,
+    formatting_options = {
+      -- NOTE: This is read by my `prettier-language-server` to allow me to
+      -- format files inside `node_modules/` with an explicit request. The LSP
+      -- spec explicitly allows adding custom properties to `FormattingOptions`:
+      -- <https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#formattingOptions>,
+      -- so I expect all servers to handle this extra field without any problems.
+      dmitmel_dotfiles_lsp_formatting_was_manually_triggered = true,
+    } --[[@as any]],
+  })
+end, { desc = 'lsp.buf.format()' })
 
 local function open_code_actions()
   lsp.buf.code_action({

@@ -180,13 +180,19 @@ async function formattingHandler(params) {
     let document = documents.get(params.textDocument.uri);
     if (!document) return [];
 
+    const manuallyTriggeredOption = 'dmitmel_dotfiles_lsp_formatting_was_manually_triggered';
+    let wasManuallyTriggered =
+      'options' in params &&
+      manuallyTriggeredOption in params.options &&
+      params.options[manuallyTriggeredOption] === true;
+
     let {
       enable = true,
       disableLanguages = [],
       prettierPath,
       ignorePath,
       configPath,
-      withNodeModules = false,
+      withNodeModules = wasManuallyTriggered,
       requireConfig = false,
       useEditorConfig = true,
       onlyUseLocalVersion = false,
