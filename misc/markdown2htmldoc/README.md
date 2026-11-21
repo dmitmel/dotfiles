@@ -49,7 +49,7 @@ The reported version of 0.23.13 is actually pretty odd because no such version e
 
 It is actually possible to pretty easily to verify that GitHub.com is indeed using cmark-gfm and not comrak - we just need a parsing bug that occurs on one, but not the other. I used Claude to find such bugs/quirks by asking it to read through the changelogs of [comrak](https://github.com/kivikakk/comrak/blob/main/CHANGELOG.md) and [cmark-gfm](https://github.com/github/cmark-gfm/blob/master/changelog.txt), and it found an ideal candidate for us: cmark-gfm does not cap the number of digits in numeric HTML entities at the correct limits. The spec (which sits in the same repository!) requires numeric entities to consist of [1-7 decimal digits](https://github.com/github/cmark-gfm/blob/0.29.0.gfm.14/test/spec.txt#L5965) or [1-6 hex digits](https://github.com/github/cmark-gfm/blob/0.29.0.gfm.14/test/spec.txt#L5980), but cmark-gfm (currently) accepts [up to 8 digits](https://github.com/github/cmark-gfm/blob/0.29.0.gfm.14/src/houdini_html_u.c#L74) for both decimal and hex entities (**TODO:** I should actually report this to the them). Comrak used to have this same inconsistency with the spec too, but that was eventually discovered and fixed for both [decimal](https://github.com/kivikakk/comrak/commit/685d8a6de9c5b6c8b0b2ead013cdd785c22c47d4) and [hexadecimal](https://github.com/kivikakk/comrak/commit/87cf630ddb5b336c6feab2eab3eddb088ae47c22) entities. Let's use this fact to check our suspicions:
 
-```shell-session
+```sh-session
 $ comrak --version
 comrak 0.59.0
 

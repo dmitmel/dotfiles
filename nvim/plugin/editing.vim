@@ -817,8 +817,8 @@ endif
   \ 'tsx=typescriptreact',
   \ 'objective-c=objc',
   \ 'objective-cpp=objcpp',
-  \ 'sh-session=shell-session',
-  \ 'console=shell-session',
+  \ 'shell-session=sh-session',
+  \ 'console=sh-session',
   \]
 
   let g:java_highlight_all = 1

@@ -44,7 +44,7 @@ highlight default link shellSessionPrompt String
 highlight default link shellSessionPromptChar Title
 highlight default link shellSessionJustPromptChar shellSessionPromptChar
 
-let b:current_syntax = 'shell-session'
+let b:current_syntax = 'sh-session'
 
 unlet s:prompt s:prompt_char s:prompt_kinds s:prompt_prefix
 
