@@ -181,23 +181,63 @@ const createTestCases = (
     'checkbox after a link definition',
     collect((mdtest) => {
       mdtest(
-        '- [n]: example.com\n  [x] [link to n][n]',
+        concatLines(
+          '- [n]: example.com', //
+          '  [x] [link to n][n]',
+        ),
         taskList.ul(item(checked, ' <a href="example.com">link to n</a>')),
+        { isolated: true },
       );
+
       mdtest(
-        '- [n]: example.com\n\n  [x] [link to n][n]',
+        concatLines(
+          '- [n]: example.com', //
+          '',
+          '  [x] [link to n][n]',
+        ),
         fromGithubApi
           ? taskList.ul(item(checked, ' <a href="example.com">link to n</a>'))
           : taskList.ul(item(p(checked, ' <a href="example.com">link to n</a>'))),
+        { isolated: true },
       );
-      if (!fromGithubApi) {
-        mdtest('[x]: example.com/x\n\n+ [x] a', ul(li('<a href="example.com/x">x</a> a')));
-        mdtest('- [x]: example.com', ul(li('')));
-        mdtest(
-          '- [x] [y]\n\n[y]: https://example.com',
-          taskList.ul(item(checked, ' <a href="https://example.com">y</a>')),
-        );
-      }
+
+      mdtest(
+        concatLines(
+          '- [x]: example.com', //
+        ),
+        ul(li('')),
+        { isolated: true },
+      );
+
+      mdtest(
+        concatLines(
+          '[x]: example.com', //
+          '',
+          '+ [x] a',
+        ),
+        ul(li('<a href="example.com">x</a> a')),
+        { isolated: true },
+      );
+
+      mdtest(
+        concatLines(
+          '- [x] [y]', //
+          '',
+          '[y]: example.com',
+        ),
+        taskList.ul(item(checked, ' <a href="example.com">y</a>')),
+        { isolated: true },
+      );
+
+      mdtest(
+        concatLines(
+          '- [x][y]', //
+          '',
+          '[y]: example.com',
+        ),
+        ul(li('<a href="example.com">x</a>')),
+        { isolated: true },
+      );
     }),
   );
 

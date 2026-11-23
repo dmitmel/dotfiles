@@ -3,7 +3,7 @@ extends:
   - eslint-config-dmitmel/presets/vitest
 
 parserOptions:
-  ecmaVersion: 2017
+  ecmaVersion: 2020
 
 settings:
   # <https://eslint-community.github.io/eslint-plugin-es-x/#the-aggressive-mode>
@@ -16,7 +16,7 @@ overrides:
         - error
         - ignores: ['hashbang']
 
-  - files: ['*.test.js', 'vitest.config.mjs']
+  - files: ['*.test.js', 'markdown-testing-utils.js', 'vitest.config.mjs']
     settings:
       node:
         version: '>= 24.0.0'
