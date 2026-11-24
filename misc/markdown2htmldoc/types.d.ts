@@ -25,3 +25,9 @@ declare module 'markdown-it-emoji' {
 
   export { emoji_plugin as bare, emoji_plugin as light, emoji_plugin as full };
 }
+
+declare module 'markdown-it-footnote' {
+  import { MarkdownIt } from 'markdown-it';
+  function footnote_plugin(md: MarkdownIt): void;
+  export = footnote_plugin;
+}

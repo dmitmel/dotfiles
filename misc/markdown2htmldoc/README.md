@@ -11,7 +11,7 @@ Aspects of Markdown rendering on GitHub.com that are currently supported:
 - [x] Standard [CommonMark] syntax - handled by [markdown-it]
 - [x] Tables[^tables], strikethrough[^strikethrough], extended autolinks[^autolinks] - these [Github Flavored Markdown][GFM] extensions are also handled by [markdown-it] out of the box
 - [x] Task lists[^tasklist]
-- [ ] Footnotes[^footnotes]
+- [x] Footnotes[^footnotes]
 - [x] Emojis[^emojis]
 - [ ] `@`-mentions[^mentions]
 - [ ] Permalinks to code blocks[^code-permalinks]

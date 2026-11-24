@@ -10,6 +10,11 @@ settings:
   es-x: { aggressive: true }
 
 overrides:
+  - files: 'markdown-it-*'
+    excludedFiles: '*.test.*'
+    rules:
+      dot-notation: off
+
   - files: 'main.js'
     rules:
       n/no-unsupported-features/es-syntax:

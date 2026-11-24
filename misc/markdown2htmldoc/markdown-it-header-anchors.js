@@ -15,11 +15,10 @@ function markdownItHeaderAnchors(/** @type {import('markdown-it').MarkdownIt} */
   let slugger = new GithubSlugger();
 
   let defaultRenderer =
-    md.renderer.rules.heading_open ||
+    md.renderer.rules['heading_open'] ||
     ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
 
-  // eslint-disable-next-line camelcase
-  md.renderer.rules.heading_open = (tokens, idx, opts, env, self) => {
+  md.renderer.rules['heading_open'] = (tokens, idx, opts, env, self) => {
     let renderedHeadingOpen = defaultRenderer(tokens, idx, opts, env, self);
 
     let headingContentToken = tokens[idx + 1];
@@ -42,12 +41,16 @@ function markdownItHeaderAnchors(/** @type {import('markdown-it').MarkdownIt} */
     });
 
     if (innerText.length > 0) {
-      let id = escapeHtml(slugger.slug(innerText));
-      renderedHeadingOpen += `<a id="${id}" class="anchor" href="#${id}" aria-hidden="true">${OCTICON_LINK_ICON_SVG}</a>`;
+      let id = slugger.slug(innerText);
+      renderedHeadingOpen += renderAnchorHtml(escapeHtml(id), escapeHtml(innerText));
     }
 
     return renderedHeadingOpen;
   };
 }
 
-module.exports = markdownItHeaderAnchors;
+function renderAnchorHtml(/** @type {string} */ rawID, /** @type {string} */ rawLabel) {
+  return `<a id="${rawID}" class="anchor" href="#${rawID}" aria-label="Permalink: ${rawLabel}">${OCTICON_LINK_ICON_SVG}</a>`;
+}
+
+module.exports = Object.assign(markdownItHeaderAnchors, { renderAnchorHtml });

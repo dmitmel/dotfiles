@@ -54,6 +54,11 @@ async function main() {
   });
 
   md.use(require('markdown-it-emoji').full, { shortcuts: {} });
+  md.use(require('markdown-it-footnote'))
+    // The syntax for inline footnotes, implemented in this plugin, is not part
+    // of GFM (it is actually an extension introduced by pandoc)
+    .disable('footnote_inline');
+  md.use(require('./markdown-it-footnote-customizations'));
   md.use(require('./markdown-it-tasklist'));
   md.use(require('./markdown-it-header-anchors'));
 

@@ -22,3 +22,15 @@ body {
     padding: 16px;
   }
 }
+
+// <https://github.com/primer/css/blob/v22.3.2/src/utilities/visibility-display.scss#L93-L106>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: rect(0 0 0 0);
+  overflow-wrap: normal;
+  border: 0;
+}
